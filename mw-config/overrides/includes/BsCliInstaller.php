@@ -19,6 +19,52 @@ if ( !defined( 'BS_DATA_PATH' ) ) {
 
 class BsCliInstaller extends CliInstaller {
 
+	/**
+	 *
+	 * @var bool
+	 */
+	private $ignoreExistingLocalSettings = false;
+
+	/**
+	 *
+	 * @param string $siteName
+	 * @param string $admin
+	 * @param array $option
+	 */
+	public function __construct( $siteName, $admin = null, array $option = array() ) {
+		parent::__construct( $siteName, $admin, $option );
+
+		if ( isset( $option['ignoreExistingLocalSettings'] ) ) {
+			$this->ignoreExistingLocalSettings = true;
+		}
+	}
+
+	/**
+	 *
+	 * @param \Status $status
+	 * @return void
+	 */
+	public function showStatusMessage( \Status $status ) {
+		$this->ignoreExistingLocalSettings;
+		$errors = $status->getErrorsByType( 'error' );
+		foreach( $errors as $error ) {
+			if( $this->skipExistingLocalSettingsError( $error ) ) {
+				return;
+			}
+		}
+		return parent::showStatusMessage( $status );
+	}
+
+	private function skipExistingLocalSettingsError( $error ) {
+		if( $error['message'] !== 'config-localsettings-cli-upgrade' ) {
+			return false;
+		}
+		if( $this->ignoreExistingLocalSettings ) {
+			return true;
+		}
+		return false;
+	}
+
 	protected function includeExtensions() {
 		global $IP;
 		$exts = $this->getVar( '_Extensions' );
