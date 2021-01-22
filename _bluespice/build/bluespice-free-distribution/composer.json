@@ -17,7 +17,6 @@
 		"mediawiki/lingo": "~3.0",
 		"mediawiki/nuke": "dev-REL1_35",
 		"mediawiki/pluggable-auth": "dev-REL1_35",
-		"mediawiki/quiz": "dev-REL1_35",
 		"mediawiki/rss": "dev-REL1_35",
 		"mediawiki/simple-s-a-m-lphp": "dev-REL1_35",
 		"mediawiki/template-styles": "dev-REL1_35",
