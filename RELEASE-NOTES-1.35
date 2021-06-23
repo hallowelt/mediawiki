@@ -9,9 +9,15 @@ declare 1.35 as supporting PHP 8.0.
 
 PHP 8.0 workboard: https://phabricator.wikimedia.org/tag/php_8.0_support/
 
-== MediaWiki 1.35.3 ==
+== MediaWiki 1.35.4 ==
 
 THIS IS NOT A RELEASE YET
+
+=== Changes since MediaWiki 1.35.3 ===
+
+== MediaWiki 1.35.3 ==
+
+This is a security and maintenance release of the MediaWiki 1.35 branch.
 
 === Changes since MediaWiki 1.35.2 ===
 * (T259685) SQLite compatibility with ZeroConf VisualEditor was fixed in 1.35.2.
@@ -46,6 +52,8 @@ THIS IS NOT A RELEASE YET
 * (T247223) Optimise MessageCache::isMainCacheable() for the single-message
   case.
 * (T278579) Don't send headers on ob_end_clean().
+* (T280226, CVE-2021-35197) SECURITY: Prevent blocked users from purging
+  pages.
 
 == MediaWiki 1.35.2 ==
 
