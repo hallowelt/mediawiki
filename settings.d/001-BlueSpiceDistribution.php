@@ -19,4 +19,5 @@ wfLoadExtension( 'BlueSpiceEchoConnector' );
 wfLoadExtension( 'BlueSpiceDistributionConnector' );
 require_once __DIR__ . "/../extensions/BlueSpiceUserMergeConnector/BlueSpiceUserMergeConnector.php";
 require_once __DIR__ . "/../extensions/UserFunctions/UserFunctions.php";
+$GLOBALS['wgUFAllowedNamespaces'] = array_fill( 0, 5000, true );
 require_once __DIR__ . "/../extensions/UrlGetParameters/UrlGetParameters.php";
