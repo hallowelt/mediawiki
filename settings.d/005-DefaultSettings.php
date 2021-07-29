@@ -28,6 +28,8 @@ $GLOBALS['wgParserCacheType'] = CACHE_NONE;
  */
 $GLOBALS['wgExtensionFunctions'][] = function() {
 	$GLOBALS['wgGroupPermissions']['*']['autocreateaccount'] = true;
+	$GLOBALS['wgGroupPermissions']['user']['gadgets-edit'] = true;
+	$GLOBALS['wgGroupPermissions']['user']['gadgets-definition-edit'] = true;
 };
 
 /**
