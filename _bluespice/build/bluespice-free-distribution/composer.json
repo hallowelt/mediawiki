@@ -14,6 +14,7 @@
 		"mediawiki/hit-counters": "dev-REL1_35",
 		"mediawiki/image-map-edit": "dev-REL1_35",
 		"mediawiki/lingo": "~3.0",
+		"mediawiki/loops": "dev-REL1_35",
 		"mediawiki/nuke": "dev-REL1_35",
 		"mediawiki/pluggable-auth": "dev-REL1_35",
 		"mediawiki/rss": "dev-REL1_35",
