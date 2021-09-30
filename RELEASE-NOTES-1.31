@@ -1,11 +1,20 @@
 == MediaWiki 1.31.16 ==
 
-THIS IS NOT A RELEASE YET
+This is a security and maintenance release of the MediaWiki 1.31 branch.
+
+This is intended to be the final release of the MediaWiki 1.31 branch,
+and as such, 1.31 is now considered End of Life.
 
 === Changes since MediaWiki 1.31.15 ===
 * (T283273) Make postgres IRC channel point to libera.chat.
 * (T289108) ExtensionProcessor: Remove loaderScripts from
   extension.json schemas.
+* (T285515, CVE-2021-41798) SECURITY: XSS vulnerability in
+  Special:Search.
+* (T290379, CVE-2021-41799) SECURITY: ApiQueryBacklinks can cause a full
+  table scan.
+* (T284419, CVE-2021-41800) SECURITY: fix PoolCounter protection of
+  Special:Contributions.
 
 == MediaWiki 1.31.15 ==
 
