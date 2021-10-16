@@ -58,7 +58,6 @@
 		"mediawiki/chameleon-skin": "~1.0",
 		"bluespice/calumma": "dev-REL1_35",
 
-		"bluespice/discovery-skin": "dev-master",
-		"mwstake/mediawiki-component-commonwebapis": "dev-master"
+		"bluespice/discovery-skin": "dev-master"
 	}
 }
