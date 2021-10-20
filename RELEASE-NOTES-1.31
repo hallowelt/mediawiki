@@ -1,6 +1,47 @@
 == MediaWiki 1.31.16 ==
 
-THIS IS NOT A RELEASE YET
+This is a security and maintenance release of the MediaWiki 1.31 branch.
+
+This is intended to be the final release of the MediaWiki 1.31 branch,
+and as such, 1.31 is now considered End of Life.
+
+=== Changes since MediaWiki 1.31.15 ===
+* (T283273) Make postgres IRC channel point to libera.chat.
+* (T289108) ExtensionProcessor: Remove loaderScripts from
+  extension.json schemas.
+* (T285515, CVE-2021-41798) SECURITY: XSS vulnerability in
+  Special:Search.
+* (T290379, CVE-2021-41799) SECURITY: ApiQueryBacklinks can cause a full
+  table scan.
+* (T284419, CVE-2021-41800) SECURITY: fix PoolCounter protection of
+  Special:Contributions.
+
+== MediaWiki 1.31.15 ==
+
+This is a security and maintenance release of the MediaWiki 1.31 branch.
+
+=== Changes since MediaWiki 1.31.14 ===
+* (T270988) Fixup issues in SpecialChangeContentModel.php.
+* (T278026) rdbms: Add DB_PRIMARY to replace DB_MASTER.
+* (T276945) Define a batch size in maintenance/manageJobs.php.
+* (T276945) Implement JobQueueDB::getAllAbandonedJobs.
+* (T281549) WebInstaller: Don't show the announce-l subscribe
+  checkbox temporarily.
+* (T283247) Freenode -> Libera per wikimedia moving from
+  freenode to libera.
+* (T280226, CVE-2021-35197) SECURITY: Prevent blocked users from
+  purging pages.
+
+== MediaWiki 1.31.14 ==
+
+This is a maintenance release of the MediaWiki 1.31 branch.
+
+=== Changes since MediaWiki 1.31.13 ===
+* Make Title implement IDBAccessObject.
+
+== MediaWiki 1.31.13 ==
+
+This is a security and maintenance release of the MediaWiki 1.31 branch.
 
 === Changes since MediaWiki 1.31.15 ===
 
