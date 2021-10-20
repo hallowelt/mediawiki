@@ -57,6 +57,8 @@
 		"mediawiki/oojsplus": "dev-REL1_35",
 
 		"mediawiki/chameleon-skin": "~1.0",
-		"bluespice/calumma": "dev-REL1_35"
+		"bluespice/calumma": "dev-REL1_35-4.0.x",
+
+		"bluespice/discovery-skin": "dev-master"
 	}
 }
