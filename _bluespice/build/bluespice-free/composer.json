@@ -52,8 +52,8 @@
 		"bluespice/usersidebar": "4.1.*",
 		"bluespice/watchlist": "4.1.*",
 		"bluespice/whoisonline": "4.1.*",
-		"mediawiki/extjs-base": "4.1.*",
-		"mediawiki/oojsplus": "4.1.*",
+		"mediawiki/extjs-base": "dev-REL1_35",
+		"mediawiki/oojsplus": "dev-REL1_35",
 
 		"mediawiki/chameleon-skin": "~1.0",
 		"bluespice/calumma": "4.1.*",
