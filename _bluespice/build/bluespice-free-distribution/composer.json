@@ -26,7 +26,7 @@
 		"mediawiki/user-merge": "dev-REL1_35",
 		"mediawiki/variables": "dev-REL1_35",
 		"mediawiki/url-get-parameters": "dev-REL1_35",
-		"mediawiki/standard-dialogs": "dev-master",
+		"mediawiki/standard-dialogs": "dev-REL1_35",
 		"mediawiki/page-header": "dev-master"
 	}
 }
