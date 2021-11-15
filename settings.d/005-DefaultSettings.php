@@ -1,6 +1,8 @@
 <?php
 
-$wgLocalTZoffset = date("Z") / 60;
+if ( !wfIsWindows() ) {
+	$wgLocalTZoffset = date("Z") / 60;
+}
 $wgLocaltimezone = 'Europe/Berlin';
 $wgUrlProtocols[] = 'file://';
 $wgNamespacesWithSubpages[NS_MAIN] = true;
@@ -18,7 +20,6 @@ $GLOBALS['wgExternalLinkTarget'] = '_blank';
 $GLOBALS['wgCapitalLinkOverrides'][ NS_FILE ] = false;
 $GLOBALS['wgRestrictDisplayTitle'] = false; //Otherwise only titles that normalize to the same DB key are allowed
 $GLOBALS['wgUrlProtocols'][] = "file://";
-$GLOBALS['wgVerifyMimeType'] = false;
 $GLOBALS['wgAllowJavaUploads'] = true;
 $GLOBALS['wgParserCacheType'] = CACHE_NONE;
 

@@ -45,3 +45,4 @@ $wgVirtualRestConfig['modules']['parsoid'] = array(
 );
 
 $wgVisualEditorEnableWikitext = true;
+$wgVisualEditorShowBetaWelcome = false;
