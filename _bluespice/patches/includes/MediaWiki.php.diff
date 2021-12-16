@@ -1,0 +1,15 @@
+diff --git a/includes/MediaWiki.php b/includes/MediaWiki.php
+index e6709c7..dfba863 100644
+--- a/includes/MediaWiki.php
++++ b/includes/MediaWiki.php
+@@ -478,6 +478,10 @@ class MediaWiki {
+ 		$action = Action::factory( $act, $page, $this->context );
+ 
+ 		if ( $action instanceof Action ) {
++			// Check read permissions
++			if ( $action->needsReadRights() && !$user->isAllowed( 'read' ) ) {
++				throw new PermissionsError( 'read' );
++			}
+ 			// Narrow DB query expectations for this HTTP request
+ 			$trxLimits = $this->config->get( 'TrxProfilerLimits' );
+ 			$trxProfiler = Profiler::instance()->getTransactionProfiler();

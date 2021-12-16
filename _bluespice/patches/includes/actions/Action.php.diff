@@ -1,0 +1,21 @@
+diff --git a/includes/actions/Action.php b/includes/actions/Action.php
+index e8d9a3e..a92df87 100644
+--- a/includes/actions/Action.php
++++ b/includes/actions/Action.php
+@@ -294,6 +294,16 @@ abstract class Action implements MessageLocalizer {
+ 		return null;
+ 	}
+ 
++	/**
++	 * Indicates whether this action requires read rights
++	 * @since 1.35.5
++	 * @stable to override
++	 * @return bool
++	 */
++	public function needsReadRights() {
++		return true;
++	}
++
+ 	/**
+ 	 * Checks if the given user (identified by an object) can perform this action.  Can be
+ 	 * overridden by sub-classes with more complicated permissions schemes.  Failures here

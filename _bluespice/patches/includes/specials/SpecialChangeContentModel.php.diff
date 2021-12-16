@@ -1,0 +1,17 @@
+diff --git a/includes/specials/SpecialChangeContentModel.php b/includes/specials/SpecialChangeContentModel.php
+index 532e367..9c30bda 100644
+--- a/includes/specials/SpecialChangeContentModel.php
++++ b/includes/specials/SpecialChangeContentModel.php
+@@ -262,6 +262,12 @@ class SpecialChangeContentModel extends FormSpecialPage {
+ 			}
+ 			return $status;
+ 		}
++		if ( !$status->isOK() ) {
++			if ( !$status->getErrors() ) {
++				$status->fatal( 'hookaborted' );
++			}
++			return $status;
++		}
+ 
+ 		$status = $page->doEditContent(
+ 			$newContent,
