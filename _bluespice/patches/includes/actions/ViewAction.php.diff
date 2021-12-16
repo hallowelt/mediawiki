@@ -1,0 +1,17 @@
+diff --git a/includes/actions/ViewAction.php b/includes/actions/ViewAction.php
+index 134b8a4..99affad 100644
+--- a/includes/actions/ViewAction.php
++++ b/includes/actions/ViewAction.php
+@@ -40,6 +40,12 @@ class ViewAction extends FormlessAction {
+ 		return null;
+ 	}
+ 
++	public function needsReadRights() {
++		// Pages in $wgWhitelistRead can be viewed without having the 'read'
++		// right. We rely on Article::view() to properly check read access.
++		return false;
++	}
++
+ 	public function show() {
+ 		$config = $this->context->getConfig();
+ 

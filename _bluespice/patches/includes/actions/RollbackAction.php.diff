@@ -1,0 +1,13 @@
+diff --git a/includes/actions/RollbackAction.php b/includes/actions/RollbackAction.php
+index 9d336e4..567c39c 100644
+--- a/includes/actions/RollbackAction.php
++++ b/includes/actions/RollbackAction.php
+@@ -64,7 +64,7 @@ class RollbackAction extends FormlessAction {
+ 		if ( $from !== $rev->getUserText() ) {
+ 			throw new ErrorPageError( 'rollbackfailed', 'alreadyrolled', [
+ 				$this->getTitle()->getPrefixedText(),
+-				$from,
++				wfEscapeWikiText( $from ),
+ 				$rev->getUserText()
+ 			] );
+ 		}

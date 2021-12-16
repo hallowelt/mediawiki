@@ -1,0 +1,17 @@
+diff --git a/includes/EditPage.php b/includes/EditPage.php
+index 1d19123..a936b0b 100644
+--- a/includes/EditPage.php
++++ b/includes/EditPage.php
+@@ -1190,8 +1190,10 @@ class EditPage {
+ 				$undo = $request->getInt( 'undo' );
+ 
+ 				if ( $undo > 0 && $undoafter > 0 ) {
+-					$undorev = Revision::newFromId( $undo );
+-					$oldrev = Revision::newFromId( $undoafter );
++					// The use of getRevisionByTitle() is intentional, as allowing access to
++					// arbitrary revisions on arbitrary pages bypass partial visibility restrictions (T297322).
++					$undorev = Revision::newFromTitle( $this->mTitle, $undo );
++					$oldrev = Revision::newFromTitle( $this->mTitle, $undoafter );
+ 
+ 					# Sanity check, make sure it's the right page,
+ 					# the revisions exist and they were not deleted.
