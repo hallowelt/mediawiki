@@ -130,6 +130,7 @@
 		"pre-update-cmd": "ComposerHookHandler::onPreUpdate",
 		"post-install-cmd": "ComposerVendorHtaccessCreator::onEvent",
 		"post-update-cmd": "ComposerVendorHtaccessCreator::onEvent",
+		"releasenotes": "@phpunit:entrypoint --group ReleaseNotes",
 		"test": [
 			"composer lint",
 			"composer phpcs"
@@ -142,7 +143,8 @@
 		"phpunit:unit": "phpunit --colors=always --testsuite=core:unit,extensions:unit,skins:unit",
 		"phpunit:integration": "phpunit --colors=always --testsuite=core:integration,extensions:integration,skins:integration",
 		"phpunit:coverage": "phpunit --testsuite=core:unit --exclude-group Dump,Broken",
-		"phpunit:coverage-edit": "ComposerPhpunitXmlCoverageEdit::onEvent"
+		"phpunit:coverage-edit": "ComposerPhpunitXmlCoverageEdit::onEvent",
+		"phpunit:entrypoint": "php tests/phpunit/phpunit.php"
 	},
 	"config": {
 		"optimize-autoloader": true,
