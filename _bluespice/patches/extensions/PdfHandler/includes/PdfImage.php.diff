@@ -1,0 +1,11 @@
+--- PdfHandler/includes/PdfImage.php	2022-01-14 15:53:00.261959386 +0100
++++ PdfHandler.new/includes/PdfImage.php	2022-01-14 15:53:31.166536286 +0100
+@@ -148,7 +148,7 @@
+ 
+ 		// Read text layer
+ 		if ( isset( $wgPdftoText ) ) {
+-			$cmd = [ $wgPdftoText,  $this->mFilename, '-' ];
++			$cmd = "{$wgPdftoText} {$this->mFilename}";
+ 			$result = Shell::command( $cmd )
+ 				->execute();
+ 			$retval = $result->getExitCode();
