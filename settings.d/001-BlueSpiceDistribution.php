@@ -3,6 +3,7 @@
 require_once __DIR__ . "/../extensions/Arrays/Arrays.php";
 require_once __DIR__ . "/../extensions/CategoryTree/CategoryTree.php";
 wfLoadExtension( 'DynamicPageList' );
+$GLOBALS['wgDplSettings']['functionalRichness'] = 0;
 require_once __DIR__ . "/../extensions/HitCounters/HitCounters.php";
 require_once __DIR__ . "/../extensions/ImageMapEdit/ImageMapEdit.php";
 require_once __DIR__ . "/../extensions/Quiz/Quiz.php";
