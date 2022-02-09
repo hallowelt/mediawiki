@@ -54,7 +54,7 @@
 		"bluespice/watchlist": "dev-REL1_35-4.0.x",
 		"bluespice/whoisonline": "dev-REL1_35-4.0.x",
 		"mediawiki/extjs-base": "dev-REL1_35",
-		"mediawiki/oojsplus": "dev-REL1_35",
+		"mediawiki/oojsplus": "1.0.*",
 
 		"mediawiki/chameleon-skin": "~1.0",
 		"bluespice/calumma": "dev-REL1_35-4.0.x"

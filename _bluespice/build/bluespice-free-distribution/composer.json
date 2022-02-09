@@ -10,7 +10,7 @@
 		"mediawiki/dynamic-page-list": "3.3.4",
 		"mediawiki/echo": "dev-REL1_35",
 		"mediawiki/embed-video": "2.7.4",
-		"mediawiki/flexiskin": "dev-REL1_35",
+		"mediawiki/flexiskin": "1.0.*",
 		"mediawiki/hit-counters": "dev-REL1_35",
 		"mediawiki/image-map-edit": "dev-REL1_35",
 		"mediawiki/lingo": "~3.0",
