@@ -10,7 +10,7 @@
 		"mediawiki/dynamic-page-list3": "3.3.8",
 		"mediawiki/echo": "dev-REL1_35",
 		"mediawiki/embed-video": "2.7.4",
-		"mediawiki/flexiskin": "dev-REL1_35",
+		"mediawiki/flexiskin": "1.0.*",
 		"mediawiki/hit-counters": "dev-REL1_35",
 		"mediawiki/image-map-edit": "dev-REL1_35",
 		"mediawiki/lingo": "~3.0",
@@ -26,7 +26,7 @@
 		"mediawiki/user-merge": "dev-REL1_35",
 		"mediawiki/variables": "dev-REL1_35",
 		"mediawiki/url-get-parameters": "dev-REL1_35",
-		"mediawiki/standard-dialogs": "1.0.*",
+		"mediawiki/standard-dialogs": "dev-REL1_35",
 		"mediawiki/page-header": "1.0.*"
 	}
 }
