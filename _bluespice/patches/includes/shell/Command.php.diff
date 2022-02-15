@@ -1,0 +1,71 @@
+diff --git a/includes/shell/Command.php b/includes/shell/Command.php
+index c45b1fb110..04377127c1 100644
+--- a/includes/shell/Command.php
++++ b/includes/shell/Command.php
+@@ -382,10 +382,26 @@ class Command {
+ 				'(): total length of $cmd must not exceed SHELL_MAX_ARG_STRLEN' );
+ 		}
+ 
++		$stdin = [ 'pipe', 'r' ];
++		$stdout = $stderr = [ 'pipe', 'w' ];
++
++		if ( ( $this->inputString !== null ) && wfIsWindows() ) {
++			// Windows pipes cannot be set into non-blocking mode,
++			// which may cause deadlocks or other broken behavior.
++			// Instead redirect everything through temp files, see T199989
++			$stdin = tmpfile();
++			$stdout = tmpfile();
++			$stderr = tmpfile();
++			if ( $this->inputString !== '' ) {
++				fwrite( $stdin, $this->inputString );
++				fseek( $stdin, 0 );
++			}
++		}
++
+ 		$desc = [
+-			0 => $this->inputString === null ? [ 'file', 'php://stdin', 'r' ] : [ 'pipe', 'r' ],
+-			1 => [ 'pipe', 'w' ],
+-			2 => [ 'pipe', 'w' ],
++			0 => $this->inputString === null ? [ 'file', 'php://stdin', 'r' ] : $stdin,
++			1 => $stdout,
++			2 => $stderr,
+ 		];
+ 		if ( $useLogPipe ) {
+ 			$desc[3] = [ 'pipe', 'w' ];
+@@ -563,6 +579,29 @@ class Command {
+ 		}
+ 
+ 		// @phan-suppress-next-line PhanImpossibleCondition
++		if ( ( $this->inputString !== null ) && wfIsWindows() ) {
++			fseek( $stdout, 0 );
++			fseek( $stderr, 0 );
++			while ( !feof( $stdout ) ) {
++				$data = fread( $stdout, 65536 );
++				if ( $data !== false && $data !== '' ) {
++					$buffers[1] .= $data;
++				}
++			}
++			while ( !feof( $stderr ) ) {
++				$data = fread( $stderr, 65536 );
++				if ( $data !== false && $data !== '' ) {
++					$buffers[2] .= $data;
++				}
++			}
++			if ( $this->doIncludeStderr && $buffers[2] ) {
++				fwrite( STDERR, $buffers[2] );
++			}
++			fclose( $stdin );
++			fclose( $stdout );
++			fclose( $stderr );
++		}
++
+ 		if ( $buffers[2] && $this->doLogStderr ) {
+ 			$this->logger->error( "Error running {command}: {error}", [
+ 				'command' => $cmd,
+diff --git a/skins/Vector b/skins/Vector
+index 5517b93fa5..1b03bafb12 160000
+--- a/skins/Vector
++++ b/skins/Vector
+@@ -1 +1 @@
+-Subproject commit 5517b93fa5fa400856a2758bf92e6267b2cebc8d
++Subproject commit 1b03bafb1267f350ee2b0018da53c31ee0674f92
