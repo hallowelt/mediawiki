@@ -11,4 +11,4 @@
  *
  * ERM23675
  */
-mwsInitComponents();
+#mwsInitComponents(); // Must be re-enabled with 4.1.2 release
