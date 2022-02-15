@@ -62,10 +62,3 @@ index c45b1fb110..04377127c1 100644
  		if ( $buffers[2] && $this->doLogStderr ) {
  			$this->logger->error( "Error running {command}: {error}", [
  				'command' => $cmd,
-diff --git a/skins/Vector b/skins/Vector
-index 5517b93fa5..1b03bafb12 160000
---- a/skins/Vector
-+++ b/skins/Vector
-@@ -1 +1 @@
--Subproject commit 5517b93fa5fa400856a2758bf92e6267b2cebc8d
-+Subproject commit 1b03bafb1267f350ee2b0018da53c31ee0674f92
