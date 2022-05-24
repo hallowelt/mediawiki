@@ -15,7 +15,7 @@
 		"mediawiki/image-map-edit": "dev-REL1_35",
 		"mediawiki/lingo": "~3.0",
 		"mediawiki/loops": "dev-REL1_35",
-		"mediawiki/nuke": "dev-REL1_35",
+		"mediawiki/nuke": "1.32.*",
 		"mediawiki/pluggable-auth": "dev-REL1_35",
 		"mediawiki/rss": "dev-REL1_35",
 		"mediawiki/simple-s-a-m-lphp": "dev-REL1_35",
