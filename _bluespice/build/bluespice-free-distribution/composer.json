@@ -4,7 +4,7 @@
 		"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"bluespice/visualeditorconnector": "dev-REL1_35",
+		"bluespice/visualeditorconnector": "4.2.*",
 		"hallowelt/filter-special-pages": "dev-REL1_35",
 		"mediawiki/arrays": "dev-REL1_35",
 		"mediawiki/dynamic-page-list3": "3.4.*",
@@ -24,7 +24,7 @@
 		"mediawiki/user-merge": "dev-REL1_35",
 		"mediawiki/variables": "dev-REL1_35",
 		"mediawiki/url-get-parameters": "dev-REL1_35",
-		"mediawiki/standard-dialogs": "dev-REL1_35",
-		"mediawiki/page-header": "dev-REL1_35"
+		"mediawiki/standard-dialogs": "1.0.*",
+		"mediawiki/page-header": "1.0.*"
 	}
 }
