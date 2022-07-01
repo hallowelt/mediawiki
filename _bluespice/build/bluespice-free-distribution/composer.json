@@ -25,6 +25,8 @@
 		"mediawiki/variables": "dev-REL1_35",
 		"mediawiki/url-get-parameters": "dev-REL1_35",
 		"mediawiki/standard-dialogs": "1.0.*",
-		"mediawiki/page-header": "1.0.*"
+		"mediawiki/page-header": "1.0.*",
+		"mediawiki/menu-editor": "1.0.*",
+		"mediawiki/enhanced-upload": "1.0.*"
 	}
 }

@@ -21,6 +21,9 @@ $GLOBALS['wgUFAllowedNamespaces'] = array_fill( 0, 5000, true );
 require_once __DIR__ . "/../extensions/UrlGetParameters/UrlGetParameters.php";
 wfLoadExtension( 'FlexiSkin' );
 wfLoadExtension( 'Loops' );
+wfLoadExtension( 'MenuEditor' );
+wfLoadExtension( 'EnhancedUpload' );
+$GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
 $GLOBALS['wgGroupTypes'] = [
 	'*'                => 'implicit',
