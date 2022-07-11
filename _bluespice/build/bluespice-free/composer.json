@@ -50,7 +50,7 @@
 		"bluespice/usersidebar": "4.2.*",
 		"bluespice/watchlist": "4.2.*",
 		"bluespice/whoisonline": "4.2.*",
-		"mediawiki/extjs-base": "devREL1_35",
+		"mediawiki/extjs-base": "dev-REL1_35",
 		"mediawiki/oojsplus": "1.1.*",
 
 		"bluespice/discovery-skin": "4.2.*"
