@@ -1,0 +1,12 @@
+--- Math/src/MathRenderer.php	2022-08-29 08:22:44.590556457 +0200
++++ Math.fix/src/MathRenderer.php	2022-08-30 15:48:14.360644087 +0200
+@@ -696,7 +696,8 @@
+ 
+ 	public static function getValidModes() {
+ 		global $wgMathValidModes;
+-		return array_map( "MathHooks::mathModeToString", $wgMathValidModes );
++		$validModes = $wgMathValidModes ?? [];
++		return array_map( "MathHooks::mathModeToString", $validModes );
+ 	}
+ 
+ 	public static function getDisableTexFilter() {
