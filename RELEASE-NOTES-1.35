@@ -10,7 +10,15 @@ declare 1.35 as supporting PHP 8.0/8.1.
 PHP 8.0 workboard: https://phabricator.wikimedia.org/tag/php_8.0_support/
 PHP 8.1 workboard: https://phabricator.wikimedia.org/tag/php_8.1_support/
 
+== MediaWiki 1.35.9 ==
+
+THIS IS NOT A RELEASE YET
+
+=== Changes since MediaWiki 1.35.8 ===
+
 == MediaWiki 1.35.8 ==
+
+This is a security and maintenance release of the MediaWiki 1.35 branch.
 
 === Changes since MediaWiki 1.35.7 ===
 * Localisation updates.
@@ -83,6 +91,10 @@ PHP 8.1 workboard: https://phabricator.wikimedia.org/tag/php_8.1_support/
 * (T317750) session: Fix broken SessionTest case due to PHPUnit dependency
   change.
 * (T318460) SpecialChangeEmail: Set default for returntoquery.
+* (T316304, CVE-2022-41767) SECURITY: reassignEdits doesn't update results
+  in an IP range check on Special:Contributions.
+* (T309894, CVE-2022-41765) SECURITY: HTMLUserTextField exposes existence
+  of hidden users.
 
 == MediaWiki 1.35.7 ==
 
