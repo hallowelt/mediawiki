@@ -28,6 +28,7 @@
 		"bluespice/insertfile": "dev-REL1_35",
 		"bluespice/insertlink": "dev-REL1_35",
 		"bluespice/insertmagic": "dev-REL1_35",
+		"bluespice/instancestatus ": "dev-master",
 		"bluespice/interwikilinks": "dev-REL1_35",
 		"bluespice/namespacemanager": "dev-REL1_35",
 		"bluespice/pageaccess": "dev-REL1_35",
