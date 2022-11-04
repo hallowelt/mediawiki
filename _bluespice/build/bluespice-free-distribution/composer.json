@@ -9,7 +9,6 @@
 		"mediawiki/invite-signup": "dev-REL1_39",
 		"mediawiki/arrays": "dev-REL1_39",
 		"universal-omega/dynamic-page-list3": "dev-master",
-		"mediawiki/echo": "dev-REL1_39",
 		"mediawiki/embed-video": "dev-master",
 		"mediawiki/flexiskin": "dev-REL1_39",
 		"mediawiki/hit-counters": "dev-REL1_39",
@@ -27,6 +26,7 @@
 		"mediawiki/standard-dialogs": "dev-REL1_39",
 		"mediawiki/page-header": "dev-REL1_39",
 		"mediawiki/menu-editor": "dev-REL1_39",
-		"mediawiki/enhanced-upload": "dev-REL1_39"
+		"mediawiki/enhanced-upload": "dev-REL1_39",
+		"mediawiki/notifications": "dev-main"
 	}
 }
