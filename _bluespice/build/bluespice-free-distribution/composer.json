@@ -27,6 +27,6 @@
 		"mediawiki/page-header": "dev-REL1_35",
 		"mediawiki/menu-editor": "dev-REL1_35",
 		"mediawiki/enhanced-upload": "dev-REL1_35",
-		"mediawiki/notifications": "dev-main"
+		"mediawiki/notifications": "dev-REL1_35"
 	}
 }
