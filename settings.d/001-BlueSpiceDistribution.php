@@ -34,6 +34,8 @@ $GLOBALS['wgHooks']['SetupAfterCache'][] = function() {
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
+wfLoadExtension( 'ContentDroplets' );
+
 $GLOBALS['wgGroupTypes'] = [
 	'*'                => 'implicit',
 	'user'             => 'implicit',
