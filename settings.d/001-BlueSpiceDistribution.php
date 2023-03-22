@@ -30,6 +30,8 @@ wfLoadExtension( 'MenuEditor' );
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
+wfLoadExtension( 'ContentDroplets' );
+
 $GLOBALS['wgGroupTypes'] = [
 	'*'                => 'implicit',
 	'user'             => 'implicit',
