@@ -5,6 +5,7 @@
 	}],
 	"require": {
 		"bluespice/visualeditorconnector": "dev-REL1_35",
+		"mediawiki/content-droplets": "dev-main",
 		"hallowelt/filter-special-pages": "dev-REL1_35",
 		"mediawiki/invite-signup": "dev-REL1_35",
 		"mediawiki/arrays": "dev-REL1_35",
