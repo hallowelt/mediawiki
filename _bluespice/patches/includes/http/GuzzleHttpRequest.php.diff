@@ -1,0 +1,15 @@
+--- includes/http/GuzzleHttpRequest.php	2023-03-31 13:56:58.659098317 +0200
++++ includes/http/GuzzleHttpRequest.fix.php	2023-03-31 13:54:01.228000000 +0200
+@@ -141,7 +141,11 @@
+ 		if ( $this->method == 'POST' ) {
+ 			$postData = $this->postData;
+ 			if ( is_array( $postData ) ) {
+-				$this->guzzleOptions['form_params'] = $postData;
++				if ( isset( $postData['multipart' ] ) ) {
++					$this->guzzleOptions['multipart'] = $postData['multipart'];
++				} else {
++					$this->guzzleOptions['form_params'] = $postData;
++				}
+ 			} else {
+ 				$this->guzzleOptions['body'] = $postData;
+ 				// mimic CURLOPT_POST option
