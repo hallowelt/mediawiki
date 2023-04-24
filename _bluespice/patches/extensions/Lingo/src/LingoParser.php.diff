@@ -1,15 +1,26 @@
 diff --git a/src/LingoParser.php b/src/LingoParser.php
-index 75271ed..589b0f9 100644
+index 75271ed..c005efa 100644
 --- a/src/LingoParser.php
 +++ b/src/LingoParser.php
 @@ -177,6 +177,10 @@ class LingoParser {
- 	 * @param Parser $parser
- 	 */
- 	private function realParse( $parser ) {
+	 * @param Parser $parser
+	 */
+	private function realParse( $parser ) {
 +		if ( $parser->getOutput() === null ) {
 +			return;
 +		}
 +
- 		// Parse text identical to options used in includes/api/ApiParse.php
- 		$params = $this->mApiParams;
- 		$text = $params === null ? $parser->getOutput()->getText() : $parser->getOutput()->getText( [
+		// Parse text identical to options used in includes/api/ApiParse.php
+		$params = $this->mApiParams;
+		$text = $params === null ? $parser->getOutput()->getText() : $parser->getOutput()->getText( [
+@@ -384,6 +388,10 @@ class LingoParser {
+	private function shouldParse( $parser ) {
+		global $wgexLingoUseNamespaces;
+ 
++		if ( $parser->getOutput() === null ) {
++			return false;
++		}
++
+		if ( !( $parser instanceof Parser || $parser instanceof StubObject ) ) {
+			return false;
+		}
