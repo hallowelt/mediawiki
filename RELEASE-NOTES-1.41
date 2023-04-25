@@ -37,6 +37,9 @@ For notes on 1.40.x and older releases, see HISTORY.
 * …
 
 === New developer features in 1.41 ===
+* Added ForeignResourcesDir extension.json / skin.json attribute, which should
+  point to the directory holding your foreign-resources.yaml file. See
+  https://www.mediawiki.org/wiki/Foreign_resources for background.
 * …
 
 === External library changes in 1.41 ===
@@ -128,6 +131,8 @@ because of Phabricator reports.
   - SpecialBrokenRedirects
 * Various mediawiki.ui variables have been deprecated in favor of
   'minerva.skin.variables.less' Codex design tokens featuring replacements.
+* The jquery.cookie ResourceLoader module has been merged into the existing
+  mediawiki.cookie module; jquery.cookie remains but is deprecated.
 * The global function wfGetLangObj is deprecated and emits deprecation
   warnings. Use MediaWiki\Languages\LanguageFactory::getLanguage instead.
 * …
