@@ -98,7 +98,7 @@ if ( array_key_exists( 'semanticmediawiki', $GLOBALS['wgFooterIcons']['poweredby
 	$GLOBALS['wgFooterIcons']['poweredby'] = $footerIcons;
 }
 
-$defaultLogoPath = $GLOBALS['wgResourceBasePath'] . '/resources/assets/wiki.png';
+$defaultLogoPath = $GLOBALS['wgResourceBasePath'] . '/resources/assets/change-your-logo.svg';
 $blueSpiceLogoPath = "$bsImagesPath/bs_logo.png";
 
 if ( $GLOBALS['wgLogos']['1x'] === $defaultLogoPath ) {
