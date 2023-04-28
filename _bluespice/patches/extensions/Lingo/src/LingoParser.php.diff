@@ -1,26 +1,12 @@
 diff --git a/src/LingoParser.php b/src/LingoParser.php
-index 75271ed..adaf34d 100644
+index 75271ed..9a8ceda 100644
 --- a/src/LingoParser.php
 +++ b/src/LingoParser.php
-@@ -30,6 +30,7 @@ namespace Lingo;
- 
- use DOMDocument;
- use DOMXPath;
-+use LogicException;
- use ObjectCache;
- use Parser;
- use StubObject;
-@@ -384,6 +385,16 @@ class LingoParser {
+@@ -384,6 +384,10 @@ class LingoParser {
 	private function shouldParse( $parser ) {
 		global $wgexLingoUseNamespaces;
  
-+		try {
-+			$output = $parser->getOutput();
-+			if ( $output === null || $output->getText() === '' ) {
-+				return false;
-+			}
-+		} catch( LogicException $e ) {
-+			// This ParserOutput contains no text!
++		if ( $parser->getOutput() === null || !$parser->getOutput()->hasText() ) {
 +			return false;
 +		}
 +
