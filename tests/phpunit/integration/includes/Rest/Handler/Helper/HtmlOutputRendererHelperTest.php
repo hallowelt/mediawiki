@@ -470,6 +470,35 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper->getHtml();
 	}
 
+	public function testInteractionOfStashAndFlavor() {
+		$page = $this->getExistingTestPage( __METHOD__ );
+
+		$helper = $this->newHelper();
+
+		$user = $this->newUser( [ 'pingLimiter' => true ] );
+		$helper->init( $page, self::PARAM_DEFAULTS, $user );
+
+		// Assert that the initial flavor is "view"
+		$this->assertSame( 'view', $helper->getFlavor() );
+
+		// Assert that we can change the flavor to "edit"
+		$helper->setFlavor( 'edit' );
+		$this->assertSame( 'edit', $helper->getFlavor() );
+
+		// Assert that enabling stashing will force the flavor to be "stash"
+		$helper->setStashingEnabled( true );
+		$this->assertSame( 'stash', $helper->getFlavor() );
+
+		// Assert that disabling stashing will reset the flavor to "view"
+		$helper->setStashingEnabled( false );
+		$this->assertSame( 'view', $helper->getFlavor() );
+
+		// Assert that we cannot change the flavor to "view" when stashing is enabled
+		$helper->setStashingEnabled( true );
+		$helper->setFlavor( 'view' );
+		$this->assertSame( 'stash', $helper->getFlavor() );
+	}
+
 	public function testGetHtmlFragment() {
 		$page = $this->getExistingTestPage();
 
@@ -847,6 +876,41 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$output = $helper->getHtml();
 		$html = $output->getRawText();
 		$this->assertStringContainsString( 'lang="ar"', $html );
+	}
+
+	public function testGetParserOutputWithRedundantPageLanguage() {
+		$poa = $this->createMock( ParsoidOutputAccess::class );
+		$poa->expects( $this->once() )
+			->method( 'getParserOutput' )
+			->willReturnCallback( function (
+				PageIdentity $page,
+				ParserOptions $parserOpts,
+				$revision = null,
+				int $options = 0
+			) {
+				$usedOptions = [ 'targetLanguage' ];
+				self::assertNull( $parserOpts->getTargetLanguage(), 'No target language should be set in ParserOptions' );
+				self::assertTrue( $parserOpts->isSafeToCache( $usedOptions ) );
+
+				$html = $this->getMockHtml( $revision );
+				$pout = $this->makeParserOutput( $parserOpts, $html, $revision, $page );
+				return Status::newGood( $pout );
+			} );
+		$poa->method( 'getParsoidRenderID' )
+			->willReturnCallback( [ $this, 'getParsoidRenderID' ] );
+
+		$helper = $this->newHelper( null, $poa );
+
+		$page = $this->getExistingTestPage();
+
+		$helper->init( $page, [], $this->newUser() );
+
+		// Explicitly set the page language to the default.
+		$pageLanguage = $page->getTitle()->getPageLanguage();
+		$helper->setPageLanguage( $pageLanguage );
+
+		// Trigger parsing, so the assertions in the mock are executed.
+		$helper->getHtml();
 	}
 
 	public function provideInit() {

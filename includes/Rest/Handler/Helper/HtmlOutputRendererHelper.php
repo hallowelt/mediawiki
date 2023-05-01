@@ -44,6 +44,7 @@ use MediaWiki\Revision\MutableRevisionRecord;
 use MediaWiki\Revision\RevisionAccessException;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\Title\Title;
 use MWUnknownContentModelException;
 use ParserOptions;
 use ParserOutput;
@@ -178,6 +179,10 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 	 * Flavors may influence parser options, parsoid options, and DOM transformations.
 	 * They will be reflected by the ETag returned by getETag().
 	 *
+	 * @note This method should not be called if stashing mode is enabled.
+	 * @see setStashingEnabled
+	 * @see getFlavor()
+	 *
 	 * @param string $flavor
 	 *
 	 * @return void
@@ -187,7 +192,21 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 			throw new LogicException( 'Invalid flavor supplied' );
 		}
 
+		if ( $this->stash ) {
+			// XXX: throw?
+			$flavor = 'stash';
+		}
+
 		$this->flavor = $flavor;
+	}
+
+	/**
+	 * Returns the flavor of HTML that will be generated.
+	 * @see setFlavor()
+	 * @return string
+	 */
+	public function getFlavor(): string {
+		return $this->flavor;
 	}
 
 	/**
@@ -516,6 +535,19 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 		];
 	}
 
+	private function getDefaultPageLanguage( ParserOptions $options ): Bcp47Code {
+		// NOTE: keep in sync with Parser::getTargetLanguage!
+
+		// XXX: Inject a TitleFactory just for this?! We need a better way to determine the page language...
+		$title = Title::castFromPageIdentity( $this->page );
+
+		if ( $options->getInterfaceMessage() ) {
+			return $options->getUserLangObj();
+		}
+
+		return $title->getPageLanguage();
+	}
+
 	/**
 	 * @return ParserOutput
 	 */
@@ -524,8 +556,13 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 			$parserOptions = ParserOptions::newFromAnon();
 			$parserOptions->setRenderReason( __METHOD__ );
 
-			if ( $this->pageLanguage ) {
-				$parserOptions->setTargetLanguage( $this->pageLanguage );
+			$defaultLanguage = $this->getDefaultPageLanguage( $parserOptions );
+
+			if ( $this->pageLanguage
+				&& $this->pageLanguage->toBcp47Code() !== $defaultLanguage->toBcp47Code()
+			) {
+				$languageObj = $this->languageFactory->getLanguage( $this->pageLanguage );
+				$parserOptions->setTargetLanguage( $languageObj );
 			}
 
 			try {
