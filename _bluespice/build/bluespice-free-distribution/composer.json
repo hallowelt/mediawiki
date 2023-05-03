@@ -28,6 +28,7 @@
 		"mediawiki/page-header": "dev-REL1_39",
 		"mediawiki/menu-editor": "dev-REL1_39",
 		"mediawiki/enhanced-upload": "dev-REL1_39",
-		"mediawiki/notifications": "dev-main"
+		"mediawiki/notifications": "dev-main",
+		"mediawiki/font-awesome": "2.0.*"
 	}
 }
