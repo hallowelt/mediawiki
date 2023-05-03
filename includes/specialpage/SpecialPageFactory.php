@@ -69,6 +69,10 @@ use MediaWiki\Specials\SpecialEmailInvalidate;
 use MediaWiki\Specials\SpecialEmailUser;
 use MediaWiki\Specials\SpecialExpandTemplates;
 use MediaWiki\Specials\SpecialExport;
+use MediaWiki\Specials\SpecialFewestRevisions;
+use MediaWiki\Specials\SpecialFileDuplicateSearch;
+use MediaWiki\Specials\SpecialFilepath;
+use MediaWiki\Specials\SpecialGoToInterwiki;
 use MediaWiki\Specials\SpecialMostImages;
 use MediaWiki\Specials\SpecialMovePage;
 use MediaWiki\Specials\SpecialUserRights;
@@ -166,7 +170,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Fewestrevisions' => [
-			'class' => \SpecialFewestRevisions::class,
+			'class' => SpecialFewestRevisions::class,
 			'services' => [
 				// Same as for Mostrevisions
 				'NamespaceInfo',
@@ -643,7 +647,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Filepath' => [
-			'class' => \SpecialFilepath::class,
+			'class' => SpecialFilepath::class,
 			'services' => [
 				'SearchEngineFactory',
 			]
@@ -665,7 +669,7 @@ class SpecialPageFactory {
 			]
 		],
 		'FileDuplicateSearch' => [
-			'class' => \SpecialFileDuplicateSearch::class,
+			'class' => SpecialFileDuplicateSearch::class,
 			'services' => [
 				'LinkBatchFactory',
 				'RepoGroup',
@@ -767,7 +771,7 @@ class SpecialPageFactory {
 			]
 		],
 		'GoToInterwiki' => [
-			'class' => \SpecialGoToInterwiki::class,
+			'class' => SpecialGoToInterwiki::class,
 		],
 
 		// High use pages
