@@ -6,6 +6,7 @@ use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
+use Wikimedia\Assert\Assert;
 
 /**
  * Image gallery.
@@ -117,7 +118,7 @@ class TraditionalImageGallery extends ImageGalleryBase {
 			$isBadFile = $img && $thumb && $this->mHideBadImages &&
 				$badFileLookup->isBadFile( $nt->getDBkey(), $this->getContextTitle() );
 
-			if ( !$img || !$thumb || $isBadFile ) {
+			if ( !$img || !$thumb || ( !$enableLegacyMediaDOM && $thumb->isError() ) || $isBadFile ) {
 				$rdfaType = 'mw:Error ' . $rdfaType;
 
 				if ( $enableLegacyMediaDOM ) {
@@ -127,10 +128,20 @@ class TraditionalImageGallery extends ImageGalleryBase {
 						$thumbhtml = htmlspecialchars( $img ? $img->getLastError() : $nt->getText() );
 					}
 				} else {
-					// FIXME: BadFile is known
-					$label = $alt ?? '';
+					$currentExists = $img && $img->exists();
+					if ( $currentExists && !$thumb ) {
+						$label = wfMessage( 'thumbnail_error', '' )->text();
+					} elseif ( $thumb && $thumb->isError() ) {
+						Assert::invariant(
+							$thumb instanceof MediaTransformError,
+							'Unknown MediaTransformOutput: ' . get_class( $thumb )
+						);
+						$label = $thumb->toText();
+					} else {
+						$label = $alt ?? '';
+					}
 					$thumbhtml = Linker::makeBrokenImageLinkObj(
-						$nt, $label, '', '', '', false, $transformOptions
+						$nt, $label, '', '', '', false, $transformOptions, $currentExists
 					);
 					$thumbhtml = Html::rawElement( 'span', [ 'typeof' => $rdfaType ], $thumbhtml );
 				}
