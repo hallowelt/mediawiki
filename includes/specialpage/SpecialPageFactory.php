@@ -34,6 +34,8 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Profiler\ProfilingContext;
+use MediaWiki\Specials\Redirects\SpecialListAdmins;
+use MediaWiki\Specials\Redirects\SpecialListBots;
 use MediaWiki\Specials\SpecialActiveUsers;
 use MediaWiki\Specials\SpecialAllMessages;
 use MediaWiki\Specials\SpecialAllPages;
@@ -73,6 +75,20 @@ use MediaWiki\Specials\SpecialFewestRevisions;
 use MediaWiki\Specials\SpecialFileDuplicateSearch;
 use MediaWiki\Specials\SpecialFilepath;
 use MediaWiki\Specials\SpecialGoToInterwiki;
+use MediaWiki\Specials\SpecialImport;
+use MediaWiki\Specials\SpecialJavaScriptTest;
+use MediaWiki\Specials\SpecialLinkAccounts;
+use MediaWiki\Specials\SpecialLinkSearch;
+use MediaWiki\Specials\SpecialListDuplicatedFiles;
+use MediaWiki\Specials\SpecialListFiles;
+use MediaWiki\Specials\SpecialListGrants;
+use MediaWiki\Specials\SpecialListGroupRights;
+use MediaWiki\Specials\SpecialListRedirects;
+use MediaWiki\Specials\SpecialListUsers;
+use MediaWiki\Specials\SpecialLockdb;
+use MediaWiki\Specials\SpecialLog;
+use MediaWiki\Specials\SpecialLonelyPages;
+use MediaWiki\Specials\SpecialLongPages;
 use MediaWiki\Specials\SpecialMostImages;
 use MediaWiki\Specials\SpecialMovePage;
 use MediaWiki\Specials\SpecialUserRights;
@@ -142,7 +158,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Longpages' => [
-			'class' => \SpecialLongPages::class,
+			'class' => SpecialLongPages::class,
 			'services' => [
 				// Same as for Shortpages
 				'NamespaceInfo',
@@ -160,7 +176,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Lonelypages' => [
-			'class' => \SpecialLonelyPages::class,
+			'class' => SpecialLonelyPages::class,
 			'services' => [
 				'NamespaceInfo',
 				'DBLoadBalancerFactory',
@@ -335,7 +351,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Listredirects' => [
-			'class' => \SpecialListRedirects::class,
+			'class' => SpecialListRedirects::class,
 			'services' => [
 				'LinkBatchFactory',
 				'DBLoadBalancerFactory',
@@ -374,7 +390,7 @@ class SpecialPageFactory {
 			]
 		],
 		'LinkAccounts' => [
-			'class' => \SpecialLinkAccounts::class,
+			'class' => SpecialLinkAccounts::class,
 			'services' => [
 				'AuthManager',
 			]
@@ -515,7 +531,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Listgrouprights' => [
-			'class' => \SpecialListGroupRights::class,
+			'class' => SpecialListGroupRights::class,
 			'services' => [
 				'NamespaceInfo',
 				'UserGroupManager',
@@ -524,13 +540,13 @@ class SpecialPageFactory {
 			]
 		],
 		'Listgrants' => [
-			'class' => \SpecialListGrants::class,
+			'class' => SpecialListGrants::class,
 			'services' => [
 				'GrantsLocalization',
 			]
 		],
 		'Listusers' => [
-			'class' => \SpecialListUsers::class,
+			'class' => SpecialListUsers::class,
 			'services' => [
 				'LinkBatchFactory',
 				'DBLoadBalancerFactory',
@@ -539,10 +555,10 @@ class SpecialPageFactory {
 			]
 		],
 		'Listadmins' => [
-			'class' => \SpecialListAdmins::class,
+			'class' => SpecialListAdmins::class,
 		],
 		'Listbots' => [
-			'class' => \SpecialListBots::class,
+			'class' => SpecialListBots::class,
 		],
 		'Userrights' => [
 			'class' => SpecialUserRights::class,
@@ -583,7 +599,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Log' => [
-			'class' => \SpecialLog::class,
+			'class' => SpecialLog::class,
 			'services' => [
 				'LinkBatchFactory',
 				'DBLoadBalancerFactory',
@@ -635,7 +651,7 @@ class SpecialPageFactory {
 
 		// Media reports and uploads
 		'Listfiles' => [
-			'class' => \SpecialListFiles::class,
+			'class' => SpecialListFiles::class,
 			'services' => [
 				'RepoGroup',
 				'DBLoadBalancerFactory',
@@ -694,7 +710,7 @@ class SpecialPageFactory {
 			]
 		],
 		'ListDuplicatedFiles' => [
-			'class' => \SpecialListDuplicatedFiles::class,
+			'class' => SpecialListDuplicatedFiles::class,
 			'services' => [
 				'DBLoadBalancerFactory',
 				'LinkBatchFactory',
@@ -728,7 +744,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Lockdb' => [
-			'class' => \SpecialLockdb::class,
+			'class' => SpecialLockdb::class,
 		],
 		'Unlockdb' => [
 			'class' => \SpecialUnlockdb::class,
@@ -736,7 +752,7 @@ class SpecialPageFactory {
 
 		// Redirecting special pages
 		'LinkSearch' => [
-			'class' => \SpecialLinkSearch::class,
+			'class' => SpecialLinkSearch::class,
 			'services' => [
 				'DBLoadBalancerFactory',
 				'LinkBatchFactory',
@@ -850,7 +866,7 @@ class SpecialPageFactory {
 			]
 		],
 		'Import' => [
-			'class' => \SpecialImport::class,
+			'class' => SpecialImport::class,
 			'services' => [
 				'PermissionManager',
 				'WikiImporterFactory',
@@ -1218,7 +1234,7 @@ class SpecialPageFactory {
 
 			if ( $this->options->get( MainConfigNames::EnableJavaScriptTest ) ) {
 				$this->list['JavaScriptTest'] = [
-					'class' => \SpecialJavaScriptTest::class
+					'class' => SpecialJavaScriptTest::class
 				];
 			}
 

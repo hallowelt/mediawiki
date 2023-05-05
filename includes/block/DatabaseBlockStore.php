@@ -27,7 +27,6 @@ use DeferredUpdates;
 use InvalidArgumentException;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Config\ServiceOptions;
-use MediaWiki\DB\ReadOnlyMode;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\MainConfigNames;
@@ -37,6 +36,7 @@ use MWException;
 use Psr\Log\LoggerInterface;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\ILoadBalancer;
+use Wikimedia\Rdbms\ReadOnlyMode;
 
 /**
  * @since 1.36
@@ -241,10 +241,12 @@ class DatabaseBlockStore {
 				$this->blockRestrictionStore->deleteByBlockId( $ids );
 				$dbw->insert( 'ipblocks', $row, __METHOD__, [ 'IGNORE' ] );
 				$affected = $dbw->affectedRows();
-				$block->setId( $dbw->insertId() );
-				$restrictions = $block->getRawRestrictions();
-				if ( $restrictions ) {
-					$this->blockRestrictionStore->insert( $restrictions );
+				if ( $affected ) {
+					$block->setId( $dbw->insertId() );
+					$restrictions = $block->getRawRestrictions();
+					if ( $restrictions ) {
+						$this->blockRestrictionStore->insert( $restrictions );
+					}
 				}
 			}
 		}
