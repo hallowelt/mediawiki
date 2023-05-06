@@ -7,9 +7,8 @@
  */
 
 ( function () {
-	var uploadWarning, uploadTemplatePreview,
-		NS_FILE = mw.config.get( 'wgNamespaceIds' ).file,
-		$license = $( '#wpLicense' );
+	var uploadWarning, uploadTemplatePreview, $warningBox,
+		NS_FILE = mw.config.get( 'wgNamespaceIds' ).file;
 
 	window.wgUploadWarningObj = uploadWarning = {
 		responseCache: { '': '&nbsp;' },
@@ -71,8 +70,7 @@
 		},
 
 		setWarning: function ( warning ) {
-			var $warningBox = $( '#wpDestFile-warning' ),
-				$warning = $( $.parseHTML( warning ) );
+			var $warning = $( $.parseHTML( warning ) );
 			mw.hook( 'wikipage.content' ).fire( $warning );
 			$warningBox.empty().append( $warning );
 
@@ -139,14 +137,14 @@
 		} );
 		// Insert a row where the warnings will be displayed just below the
 		// wpDestFile row
+		$warningBox = $( '<td>' )
+			.attr( 'id', 'wpDestFile-warning' )
+			.attr( 'colspan', 2 );
 		$( '#mw-htmlform-description tbody' ).append(
-			$( '<tr>' ).append(
-				$( '<td>' )
-					.attr( 'id', 'wpDestFile-warning' )
-					.attr( 'colspan', 2 )
-			)
+			$( '<tr>' ).append( $warningBox )
 		);
 
+		var $license = $( '#wpLicense' );
 		if ( mw.config.get( 'wgAjaxLicensePreview' ) && $license.length ) {
 			// License selector check
 			$license.on( 'change', function () {
