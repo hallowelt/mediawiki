@@ -61,8 +61,9 @@ For notes on 1.40.x and older releases, see HISTORY.
 
 ==== Changed external libraries ====
 * Updated codex, codex-search, codex-design-tokens and codex-icons
-  from v0.6.2 to v0.9.1.
+  from v0.6.2 to v0.10.0.
 * Updated Mustache from 3.0.1 to 4.2.0.
+* Updated OOjs from 6.0.0 to 7.0.1.
 * Updated wikimedia/composer-merge-plugin from 2.0.1 to 2.1.0.
 * Updated wikimedia/minify from 2.3.0 to 2.4.0.
 * Updated wikimedia/less.php from 4.0.0 to 4.1.0.
@@ -138,10 +139,16 @@ because of Phabricator reports.
 * Protected method Database::getTempTableWrites() is now private.
 * Config parameter keywordTableMap in DatabasePostgres, deprecated since 1.37,
   has been removed.
+* Various mediawiki.less mediawiki.ui variables, deprecated in 1.35, have been
+  removed. See also below that the remaining mediawiki.ui variables are now also
+  deprecated.
 * SQLite no longer supports raw MySQL queries.
 * The following functions from the mediawiki.mixins Less import, deprecated
   since 1.37, have been removed: .transition(), .transition-transform(),
   .transform() and .transform-origin().
+* Database::queryMulti() has been removed without deprecation as it's not used
+  anywhere. Likewise, protected Database::doMultiStatementQuery is dropped and
+  executeQuery signature has changed.
 * …
 
 === Deprecations in 1.41 ===
@@ -213,6 +220,8 @@ because of Phabricator reports.
   mediawiki.cookie module; jquery.cookie remains but is deprecated.
 * The global function wfGetLangObj is deprecated and emits deprecation
   warnings. Use MediaWiki\Languages\LanguageFactory::getLanguage instead.
+* virtualrest::SwiftVirtualRESTService is deprecated in 1.41 and now emits
+  deprecation warnings.
 * …
 
 === Other changes in 1.41 ===

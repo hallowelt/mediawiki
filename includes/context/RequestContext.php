@@ -22,6 +22,7 @@
  * @file
  */
 
+use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -86,7 +87,7 @@ class RequestContext implements IContextSource, MutableContext {
 	private $lang;
 
 	/**
-	 * @var Skin
+	 * @var Skin|null
 	 */
 	private $skin;
 
@@ -331,8 +332,9 @@ class RequestContext implements IContextSource, MutableContext {
 		$this->user = $user;
 		// Keep authority consistent
 		$this->authority = $user;
-		// Invalidate cached user interface language
+		// Invalidate cached user interface language and skin
 		$this->lang = null;
+		$this->skin = null;
 	}
 
 	/**
@@ -434,12 +436,12 @@ class RequestContext implements IContextSource, MutableContext {
 			try {
 				$request = $this->getRequest();
 				$user = $this->getUser();
+				$services = MediaWikiServices::getInstance();
 
 				// Optimisation: Avoid slow getVal(), this isn't user-generated content.
 				$code = $request->getRawVal( 'uselang', 'user' );
 				if ( $code === 'user' ) {
-					$userOptionsLookup = MediaWikiServices::getInstance()
-						->getUserOptionsLookup();
+					$userOptionsLookup = $services->getUserOptionsLookup();
 					$code = $userOptionsLookup->getOption( $user, 'language' );
 				}
 
@@ -456,12 +458,12 @@ class RequestContext implements IContextSource, MutableContext {
 				// NFC form given this will not convert to normalised form.
 				$code = self::sanitizeLangCode( $code );
 
-				Hooks::runner()->onUserGetLanguageObject( $user, $code, $this );
+				( new HookRunner( $services->getHookContainer() ) )->onUserGetLanguageObject( $user, $code, $this );
 
 				if ( $code === $this->getConfig()->get( MainConfigNames::LanguageCode ) ) {
-					$this->lang = MediaWikiServices::getInstance()->getContentLanguage();
+					$this->lang = $services->getContentLanguage();
 				} else {
-					$obj = MediaWikiServices::getInstance()->getLanguageFactory()
+					$obj = $services->getLanguageFactory()
 						->getLanguage( $code );
 					$this->lang = $obj;
 				}
@@ -487,8 +489,9 @@ class RequestContext implements IContextSource, MutableContext {
 	public function getSkin() {
 		if ( $this->skin === null ) {
 			$skin = null;
-			Hooks::runner()->onRequestContextCreateSkin( $this, $skin );
-			$factory = MediaWikiServices::getInstance()->getSkinFactory();
+			$services = MediaWikiServices::getInstance();
+			( new HookRunner( $services->getHookContainer() ) )->onRequestContextCreateSkin( $this, $skin );
+			$factory = $services->getSkinFactory();
 
 			if ( $skin instanceof Skin ) {
 				// The hook provided a skin object
@@ -502,8 +505,7 @@ class RequestContext implements IContextSource, MutableContext {
 				// No hook override, go through normal processing
 				if ( !in_array( 'skin',
 				$this->getConfig()->get( MainConfigNames::HiddenPrefs ) ) ) {
-					$userOptionsLookup = MediaWikiServices::getInstance()
-						->getUserOptionsLookup();
+					$userOptionsLookup = $services->getUserOptionsLookup();
 					$userSkin = $userOptionsLookup->getOption( $this->getUser(), 'skin' );
 					// Optimisation: Avoid slow getVal(), this isn't user-generated content.
 					$userSkin = $this->getRequest()->getRawVal( 'useskin', $userSkin );

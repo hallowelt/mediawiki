@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\HookContainer\FauxGlobalHookArray;
+use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Logger\LegacyLogger;
 use MediaWiki\Logger\LegacySpi;
@@ -1578,7 +1579,10 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 		$comment = __METHOD__ . ': Sample page for unit test.';
 
 		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
-		$page->doUserEditContent( ContentHandler::makeContent( $text, $title ), $user, $comment );
+		$status = $page->doUserEditContent( ContentHandler::makeContent( $text, $title ), $user, $comment );
+		if ( !$status->isOK() ) {
+			$this->fail( $status->getWikiText() );
+		}
 
 		return [
 			'title' => $title,
@@ -1668,9 +1672,9 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 			return;
 		}
 
-		Hooks::runner()->onUnitTestsBeforeDatabaseTeardown();
-
 		$services = MediaWikiServices::getInstance();
+		( new HookRunner( $services->getHookContainer() ) )->onUnitTestsBeforeDatabaseTeardown();
+
 		$jobQueueGroup = $services->getJobQueueGroup();
 		foreach ( $wgJobClasses as $type => $class ) {
 			// Delete any jobs under the clone DB (or old prefix in other stores)
@@ -1791,7 +1795,7 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 			self::$dbClone = $dbClone;
 		}
 
-		Hooks::runner()->onUnitTestsAfterDatabaseSetup( $db, $prefix );
+		( new HookRunner( MediaWikiServices::getInstance()->getHookContainer() ) )->onUnitTestsAfterDatabaseSetup( $db, $prefix );
 	}
 
 	/**
