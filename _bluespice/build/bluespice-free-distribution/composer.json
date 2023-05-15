@@ -4,17 +4,17 @@
 		"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"bluespice/visualeditorconnector": "dev-REL1_39-4.3.x",
-		"mediawiki/content-droplets": "dev-REL1_39-1.0.x",
-		"hallowelt/filter-special-pages": "dev-REL1_39-2.0.x",
+		"bluespice/visualeditorconnector": "4.3.*",
+		"mediawiki/content-droplets": "1.0.*",
+		"hallowelt/filter-special-pages": "2.0.*",
 		"mediawiki/invite-signup": "dev-REL1_39",
 		"mediawiki/arrays": "dev-REL1_39",
 		"universal-omega/dynamic-page-list3": "3.5.*",
 		"mediawiki/echo": "dev-REL1_39",
 		"mediawiki/embed-video": "dev-master",
-		"mediawiki/flexiskin": "dev-REL1_39-2.0.x",
+		"mediawiki/flexiskin": "2.0.*",
 		"mediawiki/hit-counters": "dev-REL1_39",
-		"mediawiki/image-map-edit": "dev-REL1_39-2.0.x",
+		"mediawiki/image-map-edit": "2.0.*",
 		"mediawiki/lingo": "~3.2",
 		"mediawiki/loops": "dev-REL1_39",
 		"mediawiki/rss": "dev-REL1_39",
@@ -25,10 +25,10 @@
 		"mediawiki/user-merge": "dev-REL1_39",
 		"mediawiki/variables": "dev-REL1_39",
 		"mediawiki/url-get-parameters": "dev-REL1_39",
-		"mediawiki/standard-dialogs": "dev-REL1_39-2.0.x",
-		"mediawiki/page-header": "dev-REL1_39-2.0.x",
-		"mediawiki/menu-editor": "dev-REL1_39-2.0.x",
-		"mediawiki/enhanced-upload": "dev-REL1_39-2.0.x",
+		"mediawiki/standard-dialogs": "2.0.*",
+		"mediawiki/page-header": "2.0.*",
+		"mediawiki/menu-editor": "2.0.*",
+		"mediawiki/enhanced-upload": "2.0.*",
 		"mediawiki/font-awesome": "2.0.*"
 	}
 }
