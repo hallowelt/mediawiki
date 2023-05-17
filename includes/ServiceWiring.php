@@ -76,6 +76,8 @@ use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\Edit\ParsoidOutputStash;
 use MediaWiki\Edit\SimpleParsoidOutputStash;
 use MediaWiki\EditPage\Constraint\EditConstraintFactory;
+use MediaWiki\EditPage\IntroMessageBuilder;
+use MediaWiki\EditPage\PreloadedContentBuilder;
 use MediaWiki\EditPage\SpamChecker;
 use MediaWiki\Export\WikiExporterFactory;
 use MediaWiki\FileBackend\FSFile\TempFSFileFactory;
@@ -821,6 +823,23 @@ return [
 		);
 	},
 
+	'IntroMessageBuilder' => static function ( MediaWikiServices $services ): IntroMessageBuilder {
+		return new IntroMessageBuilder(
+			$services->getMainConfig(),
+			$services->getLinkRenderer(),
+			$services->getPermissionManager(),
+			$services->getUserNameUtils(),
+			$services->getTempUserCreator(),
+			$services->getUserFactory(),
+			$services->getRestrictionStore(),
+			$services->getReadOnlyMode(),
+			$services->getSpecialPageFactory(),
+			$services->getRepoGroup(),
+			$services->getNamespaceInfo(),
+			$services->getSkinFactory()
+		);
+	},
+
 	'JobFactory' => static function ( MediaWikiServices $services ): JobFactory {
 		return new JobFactory(
 			$services->getObjectFactory(),
@@ -1555,6 +1574,17 @@ return [
 		return $factory;
 	},
 
+	'PreloadedContentBuilder' => static function ( MediaWikiServices $services ): PreloadedContentBuilder {
+		return new PreloadedContentBuilder(
+			$services->getContentHandlerFactory(),
+			$services->getWikiPageFactory(),
+			$services->getRedirectLookup(),
+			$services->getSpecialPageFactory(),
+			$services->getContentTransformer(),
+			$services->getHookContainer(),
+		);
+	},
+
 	'ProxyLookup' => static function ( MediaWikiServices $services ): ProxyLookup {
 		$mainConfig = $services->getMainConfig();
 		return new ProxyLookup(
@@ -2143,7 +2173,7 @@ return [
 
 	'UserNamePrefixSearch' => static function ( MediaWikiServices $services ): UserNamePrefixSearch {
 		return new UserNamePrefixSearch(
-			$services->getDBLoadBalancer(),
+			$services->getDBLoadBalancerFactory(),
 			$services->getUserNameUtils()
 		);
 	},
