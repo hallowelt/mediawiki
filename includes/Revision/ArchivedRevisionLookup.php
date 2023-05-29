@@ -53,20 +53,25 @@ class ArchivedRevisionLookup {
 	 * various archive table fields.
 	 *
 	 * @param PageIdentity $page
+	 * @param array $extraConds Extra conditions to be added to the query
+	 * @param ?int $limit The limit to be applied to the query, or null for no limit
 	 * @return IResultWrapper
 	 */
-	public function listRevisions( PageIdentity $page ) {
+	public function listRevisions( PageIdentity $page, array $extraConds = [], ?int $limit = null ) {
 		$queryInfo = $this->revisionStore->getArchiveQueryInfo();
 
-		$conds = [
+		$conds = array_merge( $extraConds, [
 			'ar_namespace' => $page->getNamespace(),
 			'ar_title' => $page->getDBkey(),
-		];
+		] );
 
 		// NOTE: ordering by ar_timestamp and ar_id, to remove ambiguity.
 		// XXX: Ideally, we would be ordering by ar_timestamp and ar_rev_id, but since we
 		// don't have an index on ar_rev_id, that causes a file sort.
 		$options = [ 'ORDER BY' => [ 'ar_timestamp DESC', 'ar_id DESC' ] ];
+		if ( $limit !== null ) {
+			$options['LIMIT'] = $limit;
+		}
 
 		ChangeTags::modifyDisplayQuery(
 			$queryInfo['tables'],
