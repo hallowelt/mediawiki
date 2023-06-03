@@ -22,8 +22,8 @@ namespace MediaWiki\Mail;
 
 use BadMethodCallException;
 use CentralIdLookup;
-use Config;
 use MailAddress;
+use MediaWiki\Block\AbstractBlock;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
@@ -31,7 +31,6 @@ use MediaWiki\Language\RawMessage;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Permissions\Authority;
-use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Preferences\MultiUsernameFilter;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserOptionsLookup;
@@ -72,53 +71,54 @@ class EmailUser {
 	private UserOptionsLookup $userOptionsLookup;
 	/** @var CentralIdLookup */
 	private CentralIdLookup $centralIdLookup;
-	/** @var PermissionManager */
-	private PermissionManager $permissionManager;
 	/** @var UserFactory */
 	private UserFactory $userFactory;
 	/** @var IEmailer */
 	private IEmailer $emailer;
 
-	/** @var ServiceOptions|null Temporary property for BC with SpecialEmailUser */
-	private ?ServiceOptions $oldOptions;
+	/** @var Authority */
+	private Authority $sender;
 
 	/**
 	 * @param ServiceOptions $options
 	 * @param HookContainer $hookContainer
 	 * @param UserOptionsLookup $userOptionsLookup
 	 * @param CentralIdLookup $centralIdLookup
-	 * @param PermissionManager $permissionManager
 	 * @param UserFactory $userFactory
 	 * @param IEmailer $emailer
+	 * @param Authority $sender
 	 */
 	public function __construct(
 		ServiceOptions $options,
 		HookContainer $hookContainer,
 		UserOptionsLookup $userOptionsLookup,
 		CentralIdLookup $centralIdLookup,
-		PermissionManager $permissionManager,
 		UserFactory $userFactory,
-		IEmailer $emailer
+		IEmailer $emailer,
+		Authority $sender
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->options = $options;
 		$this->hookRunner = new HookRunner( $hookContainer );
 		$this->userOptionsLookup = $userOptionsLookup;
 		$this->centralIdLookup = $centralIdLookup;
-		$this->permissionManager = $permissionManager;
 		$this->userFactory = $userFactory;
 		$this->emailer = $emailer;
+
+		$this->sender = $sender;
 	}
 
 	/**
 	 * Validate target User
 	 *
-	 * @param User $target Target user
-	 * @param Authority $sender User sending the email
+	 * @param UserEmailContact $target Target user
 	 * @return StatusValue
 	 */
-	public function validateTarget( User $target, Authority $sender ): StatusValue {
-		if ( !$target->getId() ) {
+	public function validateTarget( UserEmailContact $target ): StatusValue {
+		$targetIdentity = $target->getUser();
+		$targetUser = $this->userFactory->newFromUserIdentity( $targetIdentity );
+
+		if ( !$targetIdentity->getId() ) {
 			return StatusValue::newFatal( 'emailnotarget' );
 		}
 
@@ -126,23 +126,26 @@ class EmailUser {
 			return StatusValue::newFatal( 'noemailtext' );
 		}
 
-		if ( !$target->canReceiveEmail() ) {
+		if ( !$targetUser->canReceiveEmail() ) {
 			return StatusValue::newFatal( 'nowikiemailtext' );
 		}
 
-		$sender = $this->userFactory->newFromAuthority( $sender );
-		if ( !$this->userOptionsLookup->getOption( $target, 'email-allow-new-users' ) && $sender->isNewbie() ) {
+		$senderUser = $this->userFactory->newFromAuthority( $this->sender );
+		if (
+			!$this->userOptionsLookup->getOption( $targetIdentity, 'email-allow-new-users' ) &&
+			$senderUser->isNewbie()
+		) {
 			return StatusValue::newFatal( 'nowikiemailtext' );
 		}
 
 		$muteList = $this->userOptionsLookup->getOption(
-			$target,
+			$targetIdentity,
 			'email-blacklist',
 			''
 		);
 		if ( $muteList ) {
 			$muteList = MultiUsernameFilter::splitIds( $muteList );
-			$senderId = $this->centralIdLookup->centralIdFromLocalUser( $sender );
+			$senderId = $this->centralIdLookup->centralIdFromLocalUser( $this->sender->getUser() );
 			if ( $senderId !== 0 && in_array( $senderId, $muteList ) ) {
 				return StatusValue::newFatal( 'nowikiemailtext' );
 			}
@@ -152,35 +155,13 @@ class EmailUser {
 	}
 
 	/**
-	 * @param Config $config
-	 * @internal Kept only for BC with SpecialEmailUser
-	 * @codeCoverageIgnore
-	 */
-	public function overrideOptionsFromConfig( Config $config ): void {
-		$this->oldOptions = $this->options;
-		$this->options = new ServiceOptions( self::CONSTRUCTOR_OPTIONS, $config );
-	}
-
-	/**
-	 * @internal Kept only for BC with SpecialEmailUser
-	 * @codeCoverageIgnore
-	 */
-	public function restoreOriginalOptions(): void {
-		if ( !$this->oldOptions ) {
-			throw new BadMethodCallException( 'Did not override options.' );
-		}
-		$this->options = $this->oldOptions;
-	}
-
-	/**
 	 * Check whether a user is allowed to send email
 	 *
-	 * @param Authority $performer
 	 * @param string $editToken
 	 * @return StatusValue For BC, the StatusValue's value can be set to a string representing a message key to use
 	 * with ErrorPageError.
 	 */
-	public function getPermissionsError( Authority $performer, string $editToken ): StatusValue {
+	public function getPermissionsError( string $editToken ): StatusValue {
 		if (
 			!$this->options->get( MainConfigNames::EnableEmail ) ||
 			!$this->options->get( MainConfigNames::EnableUserEmail )
@@ -188,7 +169,7 @@ class EmailUser {
 			return StatusValue::newFatal( 'usermaildisabled' );
 		}
 
-		$user = $this->userFactory->newFromAuthority( $performer );
+		$user = $this->userFactory->newFromAuthority( $this->sender );
 
 		// Run this before checking 'sendemail' permission
 		// to show appropriate message to anons (T160309)
@@ -196,11 +177,12 @@ class EmailUser {
 			return StatusValue::newFatal( 'mailnologin' );
 		}
 
-		if ( !$this->permissionManager->userHasRight( $user, 'sendemail' ) ) {
+		if ( !$this->sender->isAllowed( 'sendemail' ) ) {
 			return StatusValue::newFatal( 'badaccess' );
 		}
 
-		if ( $user->isBlockedFromEmailuser() ) {
+		$block = $this->sender->getBlock();
+		if ( $block instanceof AbstractBlock && $block->appliesToRight( 'sendemail' ) ) {
 			return StatusValue::newFatal( $this->getBlockedMessage( $user ) );
 		}
 
@@ -231,30 +213,34 @@ class EmailUser {
 	 * getPermissionsError(). It is probably also a good
 	 * idea to check the edit token and ping limiter in advance.
 	 *
-	 * @param User $target
+	 * @param UserEmailContact $target
 	 * @param string $subject
 	 * @param string $text
 	 * @param bool $CCMe
-	 * @param Authority $sender
 	 * @param MessageLocalizer $messageLocalizer
 	 * @return StatusValue
 	 */
 	public function submit(
-		User $target,
+		UserEmailContact $target,
 		string $subject,
 		string $text,
 		bool $CCMe,
-		Authority $sender,
 		MessageLocalizer $messageLocalizer
 	): StatusValue {
-		$sender = $this->userFactory->newFromAuthority( $sender );
-		$targetStatus = $this->validateTarget( $target, $sender );
+		$senderIdentity = $this->sender->getUser();
+		$senderUser = $this->userFactory->newFromAuthority( $this->sender );
+		$targetStatus = $this->validateTarget( $target );
 		if ( !$targetStatus->isGood() ) {
 			return $targetStatus;
 		}
 
+		// Check and increment the rate limits
+		if ( $senderUser->pingLimiter( 'sendemail' ) ) {
+			throw $this->getThrottledError();
+		}
+
 		$toAddress = MailAddress::newFromUser( $target );
-		$fromAddress = MailAddress::newFromUser( $sender );
+		$fromAddress = MailAddress::newFromUser( $senderUser );
 
 		// Add a standard footer and trim up trailing newlines
 		$text = rtrim( $text ) . "\n\n-- \n";
@@ -267,14 +253,9 @@ class EmailUser {
 		if ( $this->options->get( MainConfigNames::EnableSpecialMute ) ) {
 			$text .= "\n" . $messageLocalizer->msg(
 					'specialmute-email-footer',
-					$this->getSpecialMuteCanonicalURL( $sender->getName() ),
-					$sender->getName()
+					$this->getSpecialMuteCanonicalURL( $senderIdentity->getName() ),
+					$senderIdentity->getName()
 				)->inContentLanguage()->text();
-		}
-
-		// Check and increment the rate limits
-		if ( $sender->pingLimiter( 'sendemail' ) ) {
-			throw $this->getThrottledError();
 		}
 
 		$error = false;
@@ -328,7 +309,7 @@ class EmailUser {
 			$ccTo = $fromAddress;
 			$ccFrom = $fromAddress;
 			$ccSubject = $messageLocalizer->msg( 'emailccsubject' )->plaintextParams(
-				$target->getName(),
+				$target->getUser()->getName(),
 				$subject
 			)->text();
 			$ccText = $text;

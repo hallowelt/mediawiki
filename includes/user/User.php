@@ -2884,6 +2884,7 @@ class User implements Authority, UserIdentity, UserEmailContact {
 	/**
 	 * Get whether the user is blocked from using Special:Emailuser.
 	 * @return bool
+	 * @todo Deprecate in favour of EmailUser when that's no longer unstable
 	 */
 	public function isBlockedFromEmailuser() {
 		$this->getBlockedStatus();
@@ -3198,11 +3199,10 @@ class User implements Authority, UserIdentity, UserEmailContact {
 	 * @return bool
 	 */
 	public function canSendEmail() {
-		$permError = MediaWikiServices::getInstance()->getEmailUser()->getPermissionsError(
-			$this->getThisAsAuthority(),
+		$permError = MediaWikiServices::getInstance()->getEmailUserFactory()
+			->newEmailUser( $this->getThisAsAuthority() )
 			// XXX Pass an empty edit token, nobody is using it anyway.
-			''
-		);
+			->getPermissionsError( '' );
 		return $permError->isGood();
 	}
 
