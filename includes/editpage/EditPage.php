@@ -296,8 +296,7 @@ class EditPage implements IEditObject {
 	/** @var bool Corresponds to $wgWatchlistExpiry */
 	private $watchlistExpiryEnabled;
 
-	/** @var WatchedItemStoreInterface */
-	private $watchedItemStore;
+	private WatchedItemStoreInterface $watchedItemStore;
 
 	/** @var string|null The expiry time of the watch item, or null if it is not watched temporarily. */
 	private $watchlistExpiry;
@@ -446,47 +445,16 @@ class EditPage implements IEditObject {
 	 */
 	private $editConflictHelper;
 
-	/**
-	 * @var IContentHandlerFactory
-	 */
-	private $contentHandlerFactory;
-
-	/**
-	 * @var PermissionManager
-	 */
-	private $permManager;
-
-	/**
-	 * @var RevisionStore
-	 */
-	private $revisionStore;
-
-	/**
-	 * @var WikiPageFactory
-	 */
-	private $wikiPageFactory;
-
-	/**
-	 * @var WatchlistManager
-	 */
-	private $watchlistManager;
-
-	/**
-	 * @var UserNameUtils
-	 */
-	private $userNameUtils;
-
-	/** @var RedirectLookup */
-	private $redirectLookup;
-
-	/** @var UserOptionsLookup */
-	private $userOptionsLookup;
-
-	/** @var TempUserCreator */
-	private $tempUserCreator;
-
-	/** @var UserFactory */
-	private $userFactory;
+	private IContentHandlerFactory $contentHandlerFactory;
+	private PermissionManager $permManager;
+	private RevisionStore $revisionStore;
+	private WikiPageFactory $wikiPageFactory;
+	private WatchlistManager $watchlistManager;
+	private UserNameUtils $userNameUtils;
+	private RedirectLookup $redirectLookup;
+	private UserOptionsLookup $userOptionsLookup;
+	private TempUserCreator $tempUserCreator;
+	private UserFactory $userFactory;
 
 	/** @var User|null */
 	private $placeholderTempUser;
@@ -506,20 +474,11 @@ class EditPage implements IEditObject {
 	/** @var bool Whether temp user creation was successful */
 	private $tempUserCreateDone = false;
 
-	/** @var LinkRenderer */
-	private $linkRenderer;
-
-	/** @var LinkBatchFactory */
-	private $linkBatchFactory;
-
-	/** @var RestrictionStore */
-	private $restrictionStore;
-
-	/** @var CommentStore */
-	private $commentStore;
-
-	/** @var BlockErrorFormatter */
-	private $blockErrorFormatter;
+	private LinkRenderer $linkRenderer;
+	private LinkBatchFactory $linkBatchFactory;
+	private RestrictionStore $restrictionStore;
+	private CommentStore $commentStore;
+	private BlockErrorFormatter $blockErrorFormatter;
 
 	/**
 	 * @stable to call
@@ -1933,39 +1892,35 @@ class EditPage implements IEditObject {
 				return true;
 
 			case self::AS_SUCCESS_NEW_ARTICLE:
-				$query = $resultDetails['redirect'] ? 'redirect=no' : '';
+				$queryParts = [];
+				if ( $resultDetails['redirect'] ) {
+					$queryParts[] = 'redirect=no';
+				}
 				if ( $extraQueryRedirect ) {
-					if ( $query !== '' ) {
-						$query .= '&';
-					}
-					$query .= $extraQueryRedirect;
+					$queryParts[] = $extraQueryRedirect;
 				}
 				$anchor = $resultDetails['sectionanchor'] ?? '';
-				$this->doPostEditRedirect( $query, $anchor );
+				$this->doPostEditRedirect( implode( '&', $queryParts ), $anchor );
 				return false;
 
 			case self::AS_SUCCESS_UPDATE:
 				$extraQuery = '';
 				$sectionanchor = $resultDetails['sectionanchor'];
-
 				// Give extensions a chance to modify URL query on update
 				$this->getHookRunner()->onArticleUpdateBeforeRedirect( $this->mArticle,
 					$sectionanchor, $extraQuery );
 
+				$queryParts = [];
 				if ( $resultDetails['redirect'] ) {
-					if ( $extraQuery !== '' ) {
-						$extraQuery = '&' . $extraQuery;
-					}
-					$extraQuery = 'redirect=no' . $extraQuery;
+					$queryParts[] = 'redirect=no';
+				}
+				if ( $extraQuery ) {
+					$queryParts[] = $extraQuery;
 				}
 				if ( $extraQueryRedirect ) {
-					if ( $extraQuery !== '' ) {
-						$extraQuery .= '&';
-					}
-					$extraQuery .= $extraQueryRedirect;
+					$queryParts[] = $extraQueryRedirect;
 				}
-
-				$this->doPostEditRedirect( $extraQuery, $sectionanchor );
+				$this->doPostEditRedirect( implode( '&', $queryParts ), $sectionanchor );
 				return false;
 
 			case self::AS_SPAM_ERROR:
