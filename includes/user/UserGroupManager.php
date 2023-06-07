@@ -99,7 +99,7 @@ class UserGroupManager implements IDBAccessObject {
 	/** @var GroupPermissionsLookup */
 	private $groupPermissionsLookup;
 
-	/** @var JobQueueGroup for this $dbDomain */
+	/** @var JobQueueGroup */
 	private $jobQueueGroup;
 
 	/** @var LoggerInterface */
@@ -112,7 +112,7 @@ class UserGroupManager implements IDBAccessObject {
 	private $clearCacheCallbacks;
 
 	/** @var string|false */
-	private $dbDomain;
+	private $wikiId;
 
 	/** string key for implicit groups cache */
 	private const CACHE_IMPLICIT = 'implicit';
@@ -159,11 +159,11 @@ class UserGroupManager implements IDBAccessObject {
 	 * @param HookContainer $hookContainer
 	 * @param UserEditTracker $userEditTracker
 	 * @param GroupPermissionsLookup $groupPermissionsLookup
-	 * @param JobQueueGroup $jobQueueGroup for this $dbDomain
+	 * @param JobQueueGroup $jobQueueGroup
 	 * @param LoggerInterface $logger
 	 * @param TempUserConfig $tempUserConfig
 	 * @param callable[] $clearCacheCallbacks
-	 * @param string|false $dbDomain
+	 * @param string|false $wikiId
 	 */
 	public function __construct(
 		ServiceOptions $options,
@@ -176,12 +176,12 @@ class UserGroupManager implements IDBAccessObject {
 		LoggerInterface $logger,
 		TempUserConfig $tempUserConfig,
 		array $clearCacheCallbacks = [],
-		$dbDomain = false
+		$wikiId = UserIdentity::LOCAL
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->options = $options;
 		$this->loadBalancerFactory = $loadBalancerFactory;
-		$this->loadBalancer = $loadBalancerFactory->getMainLB( $dbDomain );
+		$this->loadBalancer = $loadBalancerFactory->getMainLB( $wikiId );
 		$this->hookContainer = $hookContainer;
 		$this->hookRunner = new HookRunner( $hookContainer );
 		$this->userEditTracker = $userEditTracker;
@@ -192,7 +192,7 @@ class UserGroupManager implements IDBAccessObject {
 		// Can't just inject ROM since we LB can be for foreign wiki
 		$this->readOnlyMode = new ReadOnlyMode( $configuredReadOnlyMode, $this->loadBalancer );
 		$this->clearCacheCallbacks = $clearCacheCallbacks;
-		$this->dbDomain = $dbDomain;
+		$this->wikiId = $wikiId;
 	}
 
 	/**
@@ -386,7 +386,8 @@ class UserGroupManager implements IDBAccessObject {
 		$res = $this->getDBConnectionRefForQueryFlags( $queryFlags )->newSelectQueryBuilder()
 			->select( 'ufg_group' )
 			->from( 'user_former_groups' )
-			->where( [ 'ufg_user' => $user->getId() ] )
+			// TODO Replace getWikiId with wiki id of this class (T337590)
+			->where( [ 'ufg_user' => $user->getId( $user->getWikiId() ) ] )
 			->caller( __METHOD__ )
 			->fetchResultSet();
 		$formerGroups = [];
@@ -621,8 +622,8 @@ class UserGroupManager implements IDBAccessObject {
 		string $event
 	): array {
 		Assert::precondition(
-			!$this->dbDomain || WikiMap::isCurrentWikiDbDomain( $this->dbDomain ),
-			__METHOD__ . " is not supported for foreign domains: {$this->dbDomain} used"
+			!$this->wikiId || WikiMap::isCurrentWikiDbDomain( $this->wikiId ),
+			__METHOD__ . " is not supported for foreign wikis: {$this->wikiId} used"
 		);
 
 		if ( $this->readOnlyMode->isReadOnly() || !$user->isRegistered() ) {
@@ -714,7 +715,8 @@ class UserGroupManager implements IDBAccessObject {
 
 		$queryBuilder = $this->newQueryBuilder( $this->getDBConnectionRefForQueryFlags( $queryFlags ) );
 		$res = $queryBuilder
-			->where( [ 'ug_user' => $user->getId() ] )
+			// TODO Replace getWikiId with wiki id of this class (T337590)
+			->where( [ 'ug_user' => $user->getId( $user->getWikiId() ) ] )
 			->caller( __METHOD__ )
 			->fetchResultSet();
 
@@ -779,13 +781,14 @@ class UserGroupManager implements IDBAccessObject {
 		}
 
 		$oldUgms = $this->getUserGroupMemberships( $user, self::READ_LATEST );
-		$dbw = $this->loadBalancer->getConnectionRef( DB_PRIMARY, [], $this->dbDomain );
+		$dbw = $this->loadBalancer->getConnectionRef( DB_PRIMARY, [], $this->wikiId );
 
 		$dbw->startAtomic( __METHOD__ );
 		$dbw->insert(
 			'user_groups',
 			[
-				'ug_user' => $user->getId(),
+				// TODO Replace getWikiId with wiki id of this class (T337590)
+				'ug_user' => $user->getId( $user->getWikiId() ),
 				'ug_group' => $group,
 				'ug_expiry' => $expiry ? $dbw->timestamp( $expiry ) : null,
 			],
@@ -798,7 +801,8 @@ class UserGroupManager implements IDBAccessObject {
 			// Conflicting row already exists; it should be overridden if it is either expired
 			// or if $allowUpdate is true and the current row is different than the loaded row.
 			$conds = [
-				'ug_user' => $user->getId(),
+				// TODO Replace getWikiId with wiki id of this class (T337590)
+				'ug_user' => $user->getId( $user->getWikiId() ),
 				'ug_group' => $group
 			];
 			if ( $allowUpdate ) {
@@ -823,7 +827,7 @@ class UserGroupManager implements IDBAccessObject {
 		// Purge old, expired memberships from the DB
 		$fname = __METHOD__;
 		DeferredUpdates::addCallableUpdate( function () use ( $fname ) {
-			$dbr = $this->loadBalancer->getConnectionRef( DB_REPLICA, [], $this->dbDomain );
+			$dbr = $this->loadBalancer->getConnectionRef( DB_REPLICA, [], $this->wikiId );
 			$hasExpiredRow = (bool)$dbr->selectField( 'user_groups', '1',
 				[ 'ug_expiry < ' . $dbr->addQuotes( $dbr->timestamp() ) ],
 				$fname
@@ -834,7 +838,8 @@ class UserGroupManager implements IDBAccessObject {
 		} );
 
 		if ( $affected > 0 ) {
-			$oldUgms[$group] = new UserGroupMembership( $user->getId(), $group, $expiry );
+			// TODO Replace getWikiId with wiki id of this class (T337590)
+			$oldUgms[$group] = new UserGroupMembership( $user->getId( $user->getWikiId() ), $group, $expiry );
 			if ( !$oldUgms[$group]->isExpired() ) {
 				$this->setCache(
 					$this->getCacheKey( $user ),
@@ -908,10 +913,11 @@ class UserGroupManager implements IDBAccessObject {
 
 		$oldUgms = $this->getUserGroupMemberships( $user, self::READ_LATEST );
 		$oldFormerGroups = $this->getUserFormerGroups( $user, self::READ_LATEST );
-		$dbw = $this->loadBalancer->getConnectionRef( DB_PRIMARY, [], $this->dbDomain );
+		$dbw = $this->loadBalancer->getConnectionRef( DB_PRIMARY, [], $this->wikiId );
 		$dbw->newDeleteQueryBuilder()
 			->delete( 'user_groups' )
-			->where( [ 'ug_user' => $user->getId(), 'ug_group' => $group ] )
+			// TODO Replace getWikiId with wiki id of this class (T337590)
+			->where( [ 'ug_user' => $user->getId( $user->getWikiId() ), 'ug_group' => $group ] )
 			->caller( __METHOD__ )->execute();
 
 		if ( !$dbw->affectedRows() ) {
@@ -920,7 +926,8 @@ class UserGroupManager implements IDBAccessObject {
 		// Remember that the user was in this group
 		$dbw->insert(
 			'user_former_groups',
-			[ 'ufg_user' => $user->getId(), 'ufg_group' => $group ],
+			// TODO Replace getWikiId with wiki id of this class (T337590)
+			[ 'ufg_user' => $user->getId( $user->getWikiId() ), 'ufg_group' => $group ],
 			__METHOD__,
 			[ 'IGNORE' ]
 		);
@@ -1159,7 +1166,7 @@ class UserGroupManager implements IDBAccessObject {
 	 */
 	private function getDBConnectionRefForQueryFlags( int $queryFlags ): DBConnRef {
 		[ $mode, ] = DBAccessObjectUtils::getDBOptions( $queryFlags );
-		return $this->loadBalancer->getConnectionRef( $mode, [], $this->dbDomain );
+		return $this->loadBalancer->getConnectionRef( $mode, [], $this->wikiId );
 	}
 
 	/**
@@ -1168,7 +1175,8 @@ class UserGroupManager implements IDBAccessObject {
 	 * @return string
 	 */
 	private function getCacheKey( UserIdentity $user ): string {
-		return $user->isRegistered() ? "u:{$user->getId()}" : "anon:{$user->getName()}";
+		// TODO Replace getWikiId with wiki id of this class (T337590)
+		return $user->isRegistered() ? "u:{$user->getId( $user->getWikiId() )}" : "anon:{$user->getName()}";
 	}
 
 	/**
