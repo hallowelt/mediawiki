@@ -319,15 +319,14 @@ class TemporaryPasswordPrimaryAuthenticationProvider
 			$newpassTime = null;
 		}
 
-		$dbw->update(
-			'user',
-			[
+		$dbw->newUpdateQueryBuilder()
+			->update( 'user' )
+			->set( [
 				'user_newpassword' => $pwhash->toString(),
 				'user_newpass_time' => $newpassTime,
-			],
-			[ 'user_name' => $username ],
-			__METHOD__
-		);
+			] )
+			->where( [ 'user_name' => $username ] )
+			->caller( __METHOD__ )->execute();
 
 		if ( $sendMail ) {
 			// Send email after DB commit

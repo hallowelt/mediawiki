@@ -3538,12 +3538,12 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 				__METHOD__,
 				function ( IDatabase $dbw, $fname ) use ( $conds, $purgeTime ) {
 					$dbTimestamp = $dbw->timestamp( $purgeTime ?: time() );
-					$dbw->update(
-						'page',
-						[ 'page_touched' => $dbTimestamp ],
-						$conds + [ 'page_touched < ' . $dbw->addQuotes( $dbTimestamp ) ],
-						$fname
-					);
+					$dbw->newUpdateQueryBuilder()
+						->update( 'page' )
+						->set( [ 'page_touched' => $dbTimestamp ] )
+						->where( $conds )
+						->andWhere( $dbw->buildComparison( '<', [ 'page_touched' => $dbTimestamp ] ) )
+						->caller( $fname )->execute();
 
 					MediaWikiServices::getInstance()->getLinkCache()->invalidateTitle( $this );
 
