@@ -1,9 +1,11 @@
---- a/PdfHandler/includes/PdfHandler.php
-+++ b/PdfHandler/includes/PdfHandler.php
-@@ -206,17 +206,31 @@ class PdfHandler extends ImageHandler {
- 			"-q",
- 			$srcPath
- 		);
+diff --git a/includes/PdfHandler.php b/includes/PdfHandler.php
+index 0ce0faf..26abf2f 100644
+--- a/includes/PdfHandler.php
++++ b/includes/PdfHandler.php
+@@ -224,17 +224,31 @@ class PdfHandler extends ImageHandler {
+			"-q",
+			$srcPath
+		);
 -		$cmd .= " | " . wfEscapeShellArg(
 -			$wgPdfPostProcessor,
 -			"-depth",
@@ -11,7 +13,7 @@
 -			"-quality",
 -			$wgPdfHandlerJpegQuality,
 -			"-resize",
--			$width,
+-			(string)$width,
 -			"-",
 -			$dstPath
 -		);
@@ -40,6 +42,6 @@
 +				$dstPath
 +			);
 +		}
- 		$cmd .= ")";
+		$cmd .= ")";
  
- 		wfDebug( __METHOD__ . ": $cmd\n" );
+		wfDebug( __METHOD__ . ": $cmd\n" );
