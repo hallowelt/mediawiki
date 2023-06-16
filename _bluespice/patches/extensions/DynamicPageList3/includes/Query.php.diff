@@ -1,22 +1,22 @@
 diff --git a/includes/Query.php b/includes/Query.php
-index 879782c..24901d4 100644
+index 879782c..043c28b 100644
 --- a/includes/Query.php
 +++ b/includes/Query.php
 @@ -167,9 +167,10 @@ class Query {
- 	 *
- 	 * @param bool $calcRows
- 	 * @param ?int &$foundRows
+	 *
+	 * @param bool $calcRows
+	 * @param ?int &$foundRows
 +	 * @param string $profilingContext Used to see the origin of a query in the profiling
- 	 * @return array|bool
- 	 */
+	 * @return array|bool
+	 */
 -	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null ) {
 +	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null, $profilingContext = '' ) {
- 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
+		global $wgNonincludableNamespaces, $wgDebugDumpSql;
  
- 		$options = [];
+		$options = [];
 @@ -363,10 +364,10 @@ class Query {
- 			$options['MAX_EXECUTION_TIME'] = $maxQueryTime;
- 		}
+			$options['MAX_EXECUTION_TIME'] = $maxQueryTime;
+		}
  
 -		$parser = MediaWikiServices::getInstance()->getParser();
 -		$pageName = str_replace( [ '*', '/' ], '-', $parser->getTitle()->getPrefixedDBkey() );
@@ -26,6 +26,53 @@ index 879782c..24901d4 100644
 +		if ( !empty( $profilingContext ) ) {
 +			$qname .= ' - ' . $profilingContext;
 +		}
- 		$where = $this->where;
- 		$join = $this->join;
- 		$db = $this->dbr;
+		$where = $this->where;
+		$join = $this->join;
+		$db = $this->dbr;
+@@ -1569,18 +1570,6 @@ class Query {
+		$this->addWhere( "((SELECT count(rev_aux3.revactor_page) FROM {$this->tableNames['revision_actor_temp']} AS rev_aux3 WHERE rev_aux3.revactor_page = {$this->tableNames['page']}.page_id) <= {$option})" );
+	}
+ 
+-	/**
+-	 * Set SQL for 'minoredits' parameter.
+-	 *
+-	 * @param mixed $option
+-	 */
+-	private function _minoredits( $option ) {
+-		if ( isset( $option ) && $option == 'exclude' ) {
+-			$this->addTable( 'revision', 'revision' );
+-			$this->addWhere( 'revision.rev_minor_edit = 0' );
+-		}
+-	}
+-
+	/**
+	 * Set SQL for 'minrevisions' parameter.
+	 *
+@@ -1857,17 +1846,18 @@ class Query {
+							]
+						);
+					} else {
+-						$this->addOrderBy( 'rev.revactor_timestamp' );
+-						$this->addTable( 'revision_actor_temp', 'rev' );
+-						$this->addSelect( [ 'rev.revactor_timestamp' ] );
++						$this->addOrderBy( 'rev.rev_timestamp' );
++						$this->addTable( 'revision', 'rev' );
++						$this->addSelect( [ 'rev.rev_timestamp' ] );
+ 
+						if ( !$this->revisionAuxWhereAdded ) {
+-							$this->addWhere(
+-								[
+-									"{$this->tableNames['page']}.page_id = rev.revactor_page",
+-									"rev.revactor_timestamp = (SELECT MAX(rev_aux.revactor_timestamp) FROM {$this->tableNames['revision_actor_temp']} AS rev_aux WHERE rev_aux.revactor_page = rev.revactor_page)"
+-								]
+-							);
++							$this->addWhere( "{$this->tableNames['page']}.page_id = rev.rev_page" );
++
++							if ( $this->parameters->getParameter( 'minoredits' ) == 'exclude' ) {
++								$this->addWhere( "rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page AND rev_aux.rev_minor_edit = 0)" );
++							} else {
++								$this->addWhere( "rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page)" );
++							}
+						}
+ 
+						$this->revisionAuxWhereAdded = true;
