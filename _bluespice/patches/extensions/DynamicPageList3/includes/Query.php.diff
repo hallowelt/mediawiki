@@ -1,5 +1,5 @@
 diff --git a/includes/Query.php b/includes/Query.php
-index 879782c..043c28b 100644
+index 879782c..8320e5a 100644
 --- a/includes/Query.php
 +++ b/includes/Query.php
 @@ -167,9 +167,10 @@ class Query {
@@ -48,16 +48,8 @@ index 879782c..043c28b 100644
 	/**
 	 * Set SQL for 'minrevisions' parameter.
 	 *
-@@ -1857,17 +1846,18 @@ class Query {
-							]
-						);
-					} else {
--						$this->addOrderBy( 'rev.revactor_timestamp' );
--						$this->addTable( 'revision_actor_temp', 'rev' );
--						$this->addSelect( [ 'rev.revactor_timestamp' ] );
-+						$this->addOrderBy( 'rev.rev_timestamp' );
-+						$this->addTable( 'revision', 'rev' );
-+						$this->addSelect( [ 'rev.rev_timestamp' ] );
+@@ -1862,12 +1851,13 @@ class Query {
+						$this->addSelect( [ 'rev.revactor_timestamp' ] );
  
 						if ( !$this->revisionAuxWhereAdded ) {
 -							$this->addWhere(
@@ -66,12 +58,12 @@ index 879782c..043c28b 100644
 -									"rev.revactor_timestamp = (SELECT MAX(rev_aux.revactor_timestamp) FROM {$this->tableNames['revision_actor_temp']} AS rev_aux WHERE rev_aux.revactor_page = rev.revactor_page)"
 -								]
 -							);
-+							$this->addWhere( "{$this->tableNames['page']}.page_id = rev.rev_page" );
++							$this->addWhere( "{$this->tableNames['page']}.page_id = rev.revactor_page" );
 +
 +							if ( $this->parameters->getParameter( 'minoredits' ) == 'exclude' ) {
-+								$this->addWhere( "rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page AND rev_aux.rev_minor_edit = 0)" );
++								$this->addWhere( "rev.revactor_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.revactor_page AND rev_aux.rev_minor_edit = 0)" );
 +							} else {
-+								$this->addWhere( "rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page)" );
++								$this->addWhere( "rev.revactor_timestamp = (SELECT MAX(rev_aux.revactor_timestamp) FROM {$this->tableNames['revision_actor_temp']} AS rev_aux WHERE rev_aux.revactor_page = rev.revactor_page)" );
 +							}
 						}
  
