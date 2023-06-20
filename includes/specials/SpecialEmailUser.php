@@ -267,7 +267,7 @@ class SpecialEmailUser extends UnlistedSpecialPage {
 	 */
 	public static function getPermissionsError( $user, $editToken, Config $config = null ) {
 		$emailUser = MediaWikiServices::getInstance()->getEmailUserFactory()->newEmailUserBC( $user, $config );
-		$status = $emailUser->getPermissionsError( (string)$editToken );
+		$status = $emailUser->authorizeSend( (string)$editToken );
 		if ( $status->isGood() ) {
 			return null;
 		}
@@ -360,12 +360,12 @@ class SpecialEmailUser extends UnlistedSpecialPage {
 		if ( !$target instanceof User ) {
 			return Status::newFatal( 'emailnotarget' );
 		}
-		$res = $this->emailUserFactory->newEmailUser( $this->getAuthority() )->submit(
+		$res = $this->emailUserFactory->newEmailUser( $this->getAuthority() )->sendEmailUnsafe(
 			$target,
 			$data['Subject'],
 			$data['Text'],
 			$data['CCMe'],
-			$this
+			$this->getLanguage()->getCode()
 		);
 		if ( $res->hasMessage( 'hookaborted' ) ) {
 			// BC: The method could previously return false if the EmailUser hook set the error to false. Preserve
@@ -395,12 +395,12 @@ class SpecialEmailUser extends UnlistedSpecialPage {
 		$emailUser = MediaWikiServices::getInstance()->getEmailUserFactory()
 			->newEmailUserBC( $context->getAuthority(), $context->getConfig() );
 
-		$ret = $emailUser->submit(
+		$ret = $emailUser->sendEmailUnsafe(
 			$target,
 			(string)$data['Subject'],
 			(string)$data['Text'],
 			(bool)$data['CCMe'],
-			$context
+			$context->getLanguage()->getCode()
 		);
 		if ( $ret->hasMessage( 'hookaborted' ) ) {
 			// BC: The method could previously return false if the EmailUser hook set the error to false.
