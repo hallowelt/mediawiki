@@ -258,6 +258,8 @@ class ApiMain extends ApiBase {
 				'DBLoadBalancerFactory',
 				'RevisionStore',
 				'WatchedItemStore',
+				'TitleFormatter',
+				'TitleFactory',
 			]
 		],
 		'rollback' => [
@@ -399,6 +401,7 @@ class ApiMain extends ApiBase {
 			'services' => [
 				'RepoGroup',
 				'TempFSFileFactory',
+				'TitleFactory',
 			]
 		],
 		'revisiondelete' => [
