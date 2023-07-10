@@ -7,6 +7,7 @@ use MediaWiki\Content\IContentHandlerFactory;
 use MediaWiki\Content\Transform\ContentTransformer;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
+use MediaWiki\Page\PageReference;
 use MediaWiki\Page\ProperPageIdentity;
 use MediaWiki\Page\RedirectLookup;
 use MediaWiki\Page\WikiPageFactory;
@@ -14,9 +15,9 @@ use MediaWiki\Permissions\Authority;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\SpecialPage\SpecialPageFactory;
 use MediaWiki\Title\Title;
+use MessageCache;
 use ParserOptions;
 use Wikimedia\Assert\Assert;
-use WikitextContent;
 
 /**
  * Provides the initial content of the edit box displayed in an edit form
@@ -124,20 +125,20 @@ class PreloadedContentBuilder {
 	/**
 	 * Get the contents to be preloaded into the box by loading the given page.
 	 *
-	 * @param ProperPageIdentity $page
+	 * @param ProperPageIdentity $contextPage
 	 * @param Authority $performer
 	 * @param string $preload Representing the title to preload from.
 	 * @param string[] $preloadParams Parameters to use (interface-message style) in the preloaded text
 	 * @return Content
 	 */
 	private function getPreloadedContentFromParams(
-		ProperPageIdentity $page,
+		ProperPageIdentity $contextPage,
 		Authority $performer,
 		string $preload,
 		array $preloadParams
 	): Content {
-		$title = Title::newFromPageIdentity( $page );
-		$contentModel = $title->getContentModel();
+		$contextTitle = Title::newFromPageIdentity( $contextPage );
+		$contentModel = $contextTitle->getContentModel();
 		$handler = $this->contentHandlerFactory->getContentHandler( $contentModel );
 
 		// T297725: Don't trick users into making edits to e.g. .js subpages
@@ -151,17 +152,21 @@ class PreloadedContentBuilder {
 			// When the preload source is in NS_MEDIAWIKI, get the content via wfMessage, to
 			// enable preloading from i18n messages. The message framework can work with normal
 			// pages in NS_MEDIAWIKI, so this does not restrict preloading only to i18n messages.
-			$msg = wfMessage( $title->getText() );
+			$msg = wfMessage( MessageCache::normalizeKey( $title->getText() ) );
 
 			if ( $msg->isDisabled() ) {
 				// Message is disabled and should not be used for preloading
 				return $handler->makeEmptyContent();
 			}
 
-			return new WikitextContent( $msg
-				->params( $preloadParams )
-				->inContentLanguage()
-				->text()
+			return $this->transform(
+				$handler->unserializeContent( $msg
+					->page( $title )
+					->params( $preloadParams )
+					->inContentLanguage()
+					->plain()
+				),
+				$title
 			);
 		}
 
@@ -208,7 +213,14 @@ class PreloadedContentBuilder {
 
 			$content = $converted;
 		}
+		return $this->transform( $content, $title, $preloadParams );
+	}
 
+	private function transform(
+		Content $content,
+		PageReference $title,
+		array $preloadParams = []
+	) {
 		return $this->contentTransformer->preloadTransform(
 			$content,
 			$title,
