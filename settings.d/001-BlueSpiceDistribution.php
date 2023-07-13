@@ -112,3 +112,11 @@ if ( $GLOBALS['wgFavicon'] == '/favicon.ico' ){
 unset( $bsImagesPath );
 unset( $defaultLogoPath );
 unset( $blueSpiceLogoPath );
+
+$GLOBALS['wgReservedUsernames'][] = 'BSMaintenance';
+$GLOBALS['wgReservedUsernames'][] = 'ContentStabilizationBot';
+$GLOBALS['wgReservedUsernames'][] = 'DynamicPageList3 extension';
+$GLOBALS['wgReservedUsernames'][] = 'Maintenance script';
+$GLOBALS['wgReservedUsernames'][] = 'Mediawiki default';
+$GLOBALS['wgReservedUsernames'][] = 'MediaWiki default';
+$GLOBALS['wgReservedUsernames'][] = 'Spam cleanup script';
