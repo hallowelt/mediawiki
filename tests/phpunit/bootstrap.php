@@ -31,7 +31,6 @@ $IP = $GLOBALS['IP'];
 define( 'MW_PHPUNIT_UNIT', true );
 
 // Faking in lieu of Setup.php
-$GLOBALS['wgCommandLineMode'] = true;
 $GLOBALS['wgAutoloadClasses'] = [];
 $GLOBALS['wgBaseDirectory'] = MW_INSTALL_PATH;
 
@@ -49,7 +48,6 @@ foreach ( MainConfigSchema::listDefaultValues( 'wg' ) as $var => $value ) {
 TestSetup::requireOnceInGlobalScope( "$IP/includes/DevelopmentSettings.php" );
 
 TestSetup::applyInitialConfig();
-MediaWikiCliOptions::initialize();
 
 // Since we do not load settings, expect to find extensions and skins
 // in their respective default locations.
@@ -79,9 +77,4 @@ AutoLoader::registerNamespaces( $autoload['namespaces'] );
 // More faking in lieu of Setup.php
 Profiler::init( [] );
 
-// Check that composer dependencies are up-to-date
-if ( !getenv( 'MW_SKIP_EXTERNAL_DEPENDENCIES' ) ) {
-	$composerLockUpToDate = new CheckComposerLockUpToDate();
-	$composerLockUpToDate->loadParamsAndArgs( 'phpunit', [ 'quiet' => true ] );
-	$composerLockUpToDate->execute();
-}
+TestSetup::maybeCheckComposerLockUpToDate();
