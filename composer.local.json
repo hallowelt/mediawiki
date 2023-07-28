@@ -3,7 +3,8 @@
 	"extra": {
 		"merge-plugin": {
 			"include": [
-				"_bluespice/build/*/composer.json"
+				"_bluespice/build/*/composer.json",
+				"extensions/OATHAuth/composer.json"
 			],
 			"merge-extra": true,
 			"merge-scripts": true
