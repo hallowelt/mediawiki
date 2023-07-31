@@ -10,7 +10,7 @@
 		"mediawiki/invite-signup": "dev-master",
 		"mediawiki/arrays": "dev-master",
 		"universal-omega/dynamic-page-list3": "dev-master",
-		"mediawiki/embed-video": "dev-master",
+		"starcitizenwiki/embedvideo": "3.2.*",
 		"mediawiki/flexiskin": "dev-master",
 		"mediawiki/hit-counters": "dev-master",
 		"mediawiki/image-map-edit": "dev-master",
