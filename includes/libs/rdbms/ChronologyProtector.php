@@ -311,7 +311,11 @@ class ChronologyProtector implements LoggerAwareInterface {
 		$masterName = $lb->getServerName( $lb->getWriterIndex() );
 
 		if ( $lb->hasStreamingReplicaServers() ) {
-			$pos = $lb->getReplicaResumePos();
+			$primaryConn = $lb->getAnyOpenConnection( ServerInfo::WRITER_INDEX );
+			$pos = null;
+			if ( $primaryConn ) {
+				$pos = $primaryConn->getPrimaryPos();
+			}
 			if ( $pos ) {
 				$this->logger->debug( __METHOD__ . ": $cluster ($masterName) position now '$pos'" );
 				$this->shutdownPositionsByPrimary[$masterName] = $pos;
@@ -592,5 +596,55 @@ class ChronologyProtector implements LoggerAwareInterface {
 		}
 
 		return $positions;
+	}
+
+	/**
+	 * Build a string conveying the client and write index of the chronology protector data
+	 *
+	 * @param int $writeIndex
+	 * @param int $time UNIX timestamp; can be used to detect stale cookies (T190082)
+	 * @param string $clientId Client ID hash from ILBFactory::shutdown()
+	 * @return string Value to use for "cpPosIndex" cookie
+	 * @since 1.32 in LBFactory, moved to CP in 1.41
+	 */
+	public static function makeCookieValueFromCPIndex(
+		int $writeIndex,
+		int $time,
+		string $clientId
+	) {
+		// Format is "<write index>@<write timestamp>#<client ID hash>"
+		return "{$writeIndex}@{$time}#{$clientId}";
+	}
+
+	/**
+	 * Parse a string conveying the client and write index of the chronology protector data
+	 *
+	 * @param string|null $value Value of "cpPosIndex" cookie
+	 * @param int $minTimestamp Lowest UNIX timestamp that a non-expired value can have
+	 * @return array (index: int or null, clientId: string or null)
+	 * @since 1.32 in LBFactory, moved to CP in 1.41
+	 */
+	public static function getCPInfoFromCookieValue( ?string $value, int $minTimestamp ) {
+		static $placeholder = [ 'index' => null, 'clientId' => null ];
+
+		if ( $value === null ) {
+			return $placeholder; // not set
+		}
+
+		// Format is "<write index>@<write timestamp>#<client ID hash>"
+		if ( !preg_match( '/^(\d+)@(\d+)#([0-9a-f]{32})$/', $value, $m ) ) {
+			return $placeholder; // invalid
+		}
+
+		$index = (int)$m[1];
+		if ( $index <= 0 ) {
+			return $placeholder; // invalid
+		} elseif ( isset( $m[2] ) && $m[2] !== '' && (int)$m[2] < $minTimestamp ) {
+			return $placeholder; // expired
+		}
+
+		$clientId = ( isset( $m[3] ) && $m[3] !== '' ) ? $m[3] : null;
+
+		return [ 'index' => $index, 'clientId' => $clientId ];
 	}
 }

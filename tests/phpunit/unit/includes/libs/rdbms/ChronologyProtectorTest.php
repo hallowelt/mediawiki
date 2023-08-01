@@ -87,16 +87,18 @@ class ChronologyProtectorTest extends PHPUnit\Framework\TestCase {
 		$replicationPos = '1-2-3';
 		$time = 100;
 
+		$db = $this->createMock( IDatabase::class );
+		$db->method( 'getPrimaryPos' )->willReturnCallback(
+			static function () use ( &$replicationPos, &$time ) {
+				return new MySQLPrimaryPos( $replicationPos, $time );
+			}
+		);
 		$lb = $this->createMock( ILoadBalancer::class );
 		$lb->method( 'getClusterName' )->willReturn( 'test' );
 		$lb->method( 'getServerName' )->willReturn( 'primary' );
 		$lb->method( 'hasOrMadeRecentPrimaryChanges' )->willReturn( true );
 		$lb->method( 'hasStreamingReplicaServers' )->willReturn( true );
-		$lb->method( 'getReplicaResumePos' )->willReturnCallback(
-			static function () use ( &$replicationPos, &$time ) {
-				return new MySQLPrimaryPos( $replicationPos, $time );
-			}
-		);
+		$lb->method( 'getAnyOpenConnection' )->willReturn( $db );
 
 		$client = [
 			'ip' => '127.0.0.1',
@@ -124,5 +126,68 @@ class ChronologyProtectorTest extends PHPUnit\Framework\TestCase {
 		$this->assertNotNull( $waitForPos );
 		$this->assertSame( $time, $waitForPos->asOfTime() );
 		$this->assertSame( "$replicationPos", "$waitForPos" );
+	}
+
+	public function testCPPosIndexCookieValues() {
+		$time = 1526522031;
+		$agentId = md5( 'Ramsey\'s Loyal Presa Canario' );
+
+		$this->assertEquals(
+			'3@542#c47dcfb0566e7d7bc110a6128a45c93a',
+			ChronologyProtector::makeCookieValueFromCPIndex( 3, 542, $agentId )
+		);
+
+		$this->assertEquals(
+			'1@542#c47dcfb0566e7d7bc110a6128a45c93a',
+			ChronologyProtector::makeCookieValueFromCPIndex( 1, 542, $agentId )
+		);
+
+		$this->assertSame(
+			null,
+			ChronologyProtector::getCPInfoFromCookieValue( "5#$agentId", $time - 10 )['index'],
+			'No time set'
+		);
+		$this->assertSame(
+			null,
+			ChronologyProtector::getCPInfoFromCookieValue( "5@$time", $time - 10 )['index'],
+			'No agent set'
+		);
+		$this->assertSame(
+			null,
+			ChronologyProtector::getCPInfoFromCookieValue( "0@$time#$agentId", $time - 10 )['index'],
+			'Bad index'
+		);
+
+		$this->assertSame(
+			2,
+			ChronologyProtector::getCPInfoFromCookieValue( "2@$time#$agentId", $time - 10 )['index'],
+			'Fresh'
+		);
+		$this->assertSame(
+			2,
+			ChronologyProtector::getCPInfoFromCookieValue( "2@$time#$agentId", $time + 9 - 10 )['index'],
+			'Almost stale'
+		);
+		$this->assertSame(
+			null,
+			ChronologyProtector::getCPInfoFromCookieValue( "0@$time#$agentId", $time + 9 - 10 )['index'],
+			'Almost stale; bad index'
+		);
+		$this->assertSame(
+			null,
+			ChronologyProtector::getCPInfoFromCookieValue( "2@$time#$agentId", $time + 11 - 10 )['index'],
+			'Stale'
+		);
+
+		$this->assertSame(
+			$agentId,
+			ChronologyProtector::getCPInfoFromCookieValue( "5@$time#$agentId", $time - 10 )['clientId'],
+			'Live (client ID)'
+		);
+		$this->assertSame(
+			null,
+			ChronologyProtector::getCPInfoFromCookieValue( "5@$time#$agentId", $time + 11 - 10 )['clientId'],
+			'Stale (client ID)'
+		);
 	}
 }
