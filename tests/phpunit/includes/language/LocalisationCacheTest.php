@@ -3,6 +3,7 @@
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Tests\Unit\DummyServicesTrait;
 use Psr\Log\NullLogger;
+use Wikimedia\TestingAccessWrapper;
 
 /**
  * @group Database
@@ -83,15 +84,12 @@ class LocalisationCacheTest extends MediaWikiIntegrationTestCase {
 	public function testRecacheFallbacks() {
 		$lc = $this->getMockLocalisationCache();
 		$lc->recache( 'ba' );
-		$this->assertEquals(
-			[
-				'present-ba' => 'ba',
-				'present-ru' => 'ru',
-				'present-en' => 'en',
-			],
-			$lc->getItem( 'ba', 'messages' ),
-			'Fallbacks are only used to fill missing data'
-		);
+		$messages = $lc->getItem( 'ba', 'messages' );
+
+		// Fallbacks are only used to fill missing data
+		$this->assertSame( 'ba', $messages['present-ba'] );
+		$this->assertSame( 'ru', $messages['present-ru'] );
+		$this->assertSame( 'en', $messages['present-en'] );
 	}
 
 	public function testRecacheFallbacksWithHooks() {
@@ -113,26 +111,43 @@ class LocalisationCacheTest extends MediaWikiIntegrationTestCase {
 				}
 		] );
 		$lc->recache( 'ba' );
-		$this->assertEquals(
-			[
-				'present-ba' => 'ba',
-				'present-ru' => 'ru-override',
-				'present-en' => 'ru-override',
-			],
-			$lc->getItem( 'ba', 'messages' ),
-			'Updates provided by hooks follow the normal fallback order.'
-		);
+		$messages = $lc->getItem( 'ba', 'messages' );
+
+		// Updates provided by hooks follow the normal fallback order.
+		$this->assertSame( 'ba', $messages['present-ba'] );
+		$this->assertSame( 'ru-override', $messages['present-ru'] );
+		$this->assertSame( 'ru-override', $messages['present-en'] );
 	}
 
 	public function testRecacheExtensionMessagesFiles(): void {
 		global $IP;
 
+		// first, recache the l10n cache and test it
 		$lc = $this->getMockLocalisationCache( [], [
 			'ExtensionMessagesFiles' => [
 				__METHOD__ => "$IP/tests/phpunit/data/localisationcache/ExtensionMessagesFiles.php",
 			]
 		] );
 		$lc->recache( 'de' );
+		$this->assertExtensionMessagesFiles( $lc );
+
+		// then, make another l10n cache sharing the first one’s LCStore and test that (T343375)
+		$lc = $this->getMockLocalisationCache( [], [
+			'ExtensionMessagesFiles' => [
+				__METHOD__ => "$IP/tests/phpunit/data/localisationcache/ExtensionMessagesFiles.php",
+			]
+		] );
+		// no recache this time, but load only the core data first by getting the fallbackSequence
+		$lc->getItem( 'de', 'fallbackSequence' );
+		$this->assertExtensionMessagesFiles( $lc );
+	}
+
+	/**
+	 * Assert that the given LocalisationCache, which should be configured with
+	 * ExtensionMessagesFiles containing the ExtensionMessagesFiles.php test fixture file,
+	 * contains the expected data.
+	 */
+	private function assertExtensionMessagesFiles( LocalisationCache $lc ): void {
 		$specialPageAliases = $lc->getItem( 'de', 'specialPageAliases' );
 		$this->assertSame(
 			[ 'LokalisierungsPufferTest' ],
@@ -144,10 +159,27 @@ class LocalisationCacheTest extends MediaWikiIntegrationTestCase {
 			$specialPageAliases['Activeusers'],
 			'specialPageAliases from extension/core files and fallback languages are merged'
 		);
+		$namespaceNames = $lc->getItem( 'de', 'namespaceNames' );
+		$this->assertSame(
+			'LokalisierungsPufferTest',
+			$namespaceNames[98]
+		);
 		$this->assertFalse(
 			$lc->getItem( 'de', 'rtl' ),
 			'rtl cannot be set in ExtensionMessagesFiles'
 		);
+	}
+
+	public function testLoadCoreDataAvoidsInitLanguage(): void {
+		$lc = $this->getMockLocalisationCache();
+
+		$lc->getItem( 'de', 'fallback' );
+		$lc->getItem( 'de', 'rtl' );
+		$lc->getItem( 'de', 'fallbackSequence' );
+		$lc->getItem( 'de', 'originalFallbackSequence' );
+
+		$this->assertArrayNotHasKey( 'de',
+			TestingAccessWrapper::newFromObject( $lc )->initialisedLangs );
 	}
 
 	public function testShallowFallbackForInvalidCode(): void {
