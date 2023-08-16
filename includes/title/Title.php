@@ -530,20 +530,6 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	}
 
 	/**
-	 * Returns a list of fields that are to be selected for initializing Title
-	 * objects.
-	 *
-	 * @deprecated since 1.36, use PageStore::newSelectQueryBuilder() instead.
-	 *   Hard deprecated in 1.39, remove in 1.40
-	 *
-	 * @return array
-	 */
-	protected static function getSelectFields() {
-		wfDeprecated( __METHOD__, '1.36' );
-		return MediaWikiServices::getInstance()->getPageStore()->getSelectFields();
-	}
-
-	/**
 	 * Create a new Title from an article ID
 	 *
 	 * @param int $id The page_id corresponding to the Title to create
@@ -568,34 +554,6 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 		}
 
 		return $title;
-	}
-
-	/**
-	 * Make an array of titles from an array of IDs
-	 *
-	 * @param int[] $ids Array of IDs
-	 * @return Title[] Array of Titles
-	 * @deprecated since 1.38 use a PageStore QueryBuilder instead
-	 */
-	public static function newFromIDs( $ids ) {
-		wfDeprecated( __METHOD__, '1.38' );
-
-		if ( !count( $ids ) ) {
-			return [];
-		}
-		$dbr = wfGetDB( DB_REPLICA );
-
-		$res = $dbr->newSelectQueryBuilder()
-			->select( self::getSelectFields() )
-			->from( 'page' )
-			->where( [ 'page_id' => $ids ] )
-			->caller( __METHOD__ )->fetchResultSet();
-
-		$titles = [];
-		foreach ( $res as $row ) {
-			$titles[] = self::newFromRow( $row );
-		}
-		return $titles;
 	}
 
 	/**
@@ -3516,22 +3474,10 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	/**
 	 * Get the last touched timestamp
 	 *
-	 * @param int $flags one of the READ_XXX constants. For historical reasons, an IDatabase
-	 *        instance is also accepted here. If an IDatabase is passed, a deprecation warning
-	 *        is triggered, caches will be bypassed, and the primary database connection will be
-	 *        used. However, the IDatabase instance itself will be ignored.
+	 * @param int $flags one of the READ_XXX constants.
 	 * @return string|false Last-touched timestamp
 	 */
-	public function getTouched( $flags = self::READ_NORMAL ) {
-		if ( is_object( $flags ) ) {
-			wfDeprecatedMsg(
-				__METHOD__ . ' was called with a ' . get_class( $flags )
-				. ' instance instead of an integer!',
-				'1.38'
-			);
-			$flags = self::READ_LATEST;
-		}
-
+	public function getTouched( int $flags = self::READ_NORMAL ) {
 		$touched = $this->getFieldFromPageStore( 'page_touched', $flags );
 		return $touched ? MWTimestamp::convert( TS_MW, $touched ) : false;
 	}
