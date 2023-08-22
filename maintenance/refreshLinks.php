@@ -35,9 +35,6 @@ require_once __DIR__ . '/Maintenance.php';
 class RefreshLinks extends Maintenance {
 	private const REPORTING_INTERVAL = 100;
 
-	/** @var int|false */
-	protected $namespace = false;
-
 	public function __construct() {
 		parent::__construct();
 		$this->addDescription( 'Refresh link tables' );
@@ -46,6 +43,7 @@ class RefreshLinks extends Maintenance {
 		$this->addOption( 'new-only', 'Only affect articles with just a single edit' );
 		$this->addOption( 'redirects-only', 'Only fix redirects, not all links' );
 		$this->addOption( 'old-redirects-only', 'Only fix redirects with no redirect table entry' );
+		$this->addOption( 'touched-only', 'Only fix pages that has been touched after last update' );
 		$this->addOption( 'e', 'Last page id to refresh', false, true );
 		$this->addOption( 'dfn-chunk-size', 'Maximum number of existent IDs to check per ' .
 			'query, default 100000', false, true );
@@ -67,13 +65,6 @@ class RefreshLinks extends Maintenance {
 		$end = (int)$this->getOption( 'e' ) ?: null;
 		$dfnChunkSize = (int)$this->getOption( 'dfn-chunk-size', 100000 );
 
-		$ns = $this->getOption( 'namespace' );
-		if ( $ns === null ) {
-			$this->namespace = false;
-		} else {
-			$this->namespace = (int)$ns;
-		}
-
 		if ( $this->hasOption( 'dfn-only' ) ) {
 			$this->deleteLinksFromNonexistent( $start, $end, $this->getBatchSize(), $dfnChunkSize );
 			return;
@@ -82,9 +73,12 @@ class RefreshLinks extends Maintenance {
 		$dbr = $this->getDB( DB_REPLICA, [ 'vslow' ] );
 		$builder = $dbr->newSelectQueryBuilder()
 			->from( 'page' )
-			->where( $this->namespaceCond() )
-			->andWhere( self::intervalCond( $dbr, 'page_id', $start, $end ) )
+			->where( self::intervalCond( $dbr, 'page_id', $start, $end ) )
 			->limit( $this->getBatchSize() );
+
+		if ( $this->hasOption( 'namespace' ) ) {
+			$builder->andWhere( [ 'page_namespace' => (int)$this->getOption( 'namespace' ) ] );
+		}
 
 		if ( $this->hasOption( 'before-timestamp' ) ) {
 			$timeCond = $dbr->buildComparison( '<', [
@@ -107,6 +101,7 @@ class RefreshLinks extends Maintenance {
 			$new = $this->hasOption( 'new-only' );
 			$redir = $this->hasOption( 'redirects-only' );
 			$oldRedir = $this->hasOption( 'old-redirects-only' );
+			$touched = $this->hasOption( 'touched-only' );
 			$what = $redir ? 'redirects' : 'links';
 			if ( $oldRedir ) {
 				$builder->leftJoin( 'redirect', null, 'page_id=rd_from' )
@@ -119,17 +114,18 @@ class RefreshLinks extends Maintenance {
 				$builder->andWhere( [ 'page_is_new' => 1 ] );
 				$this->output( "Refreshing $what from new pages...\n" );
 			} else {
+				if ( $touched ) {
+					$builder->andWhere( [
+						'page_touched > page_links_updated OR page_links_updated IS NULL',
+					] );
+				}
 				$this->output( "Refreshing $what from pages...\n" );
 			}
 			$this->doRefreshLinks( $builder, $redir || $oldRedir );
-			$this->deleteLinksFromNonexistent( $start, $end, $this->getBatchSize(), $dfnChunkSize );
+			if ( !$this->hasOption( 'namespace' ) ) {
+				$this->deleteLinksFromNonexistent( $start, $end, $this->getBatchSize(), $dfnChunkSize );
+			}
 		}
-	}
-
-	private function namespaceCond() {
-		return $this->namespace !== false
-			? [ 'page_namespace' => $this->namespace ]
-			: [];
 	}
 
 	/**
@@ -277,7 +273,6 @@ class RefreshLinks extends Maintenance {
 				->select( 'page_id' )
 				->from( 'page' )
 				->where( [ self::intervalCond( $dbr, 'page_id', $start, $end ) ] )
-				->andWhere( $this->namespaceCond() )
 				->orderBy( 'page_id' )
 				->offset( $chunkSize )
 				->caller( __METHOD__ )->fetchField();
