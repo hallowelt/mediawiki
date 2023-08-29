@@ -576,6 +576,9 @@ because of Phabricator reports.
   - MagicWordFactory -> MediaWiki\Parser\MagicWordFactory
   - Linker -> MediaWiki\Linker\Linker
   - DummyLinker -> MediaWiki\Linker\DummyLinker
+  - ForkController -> MediaWiki\Maintenance\ForkController
+  - OrderedStreamingForkController
+    -> MediaWiki\Maintenance\OrderedStreamingForkController
   - ContentSecurityPolicy -> MediaWiki\Request\ContentSecurityPolicy
   - DerivativeRequest -> MediaWiki\Request\DerivativeRequest
   - FauxRequest -> MediaWiki\Request\FauxRequest
@@ -585,6 +588,10 @@ because of Phabricator reports.
   - FauxResponse -> MediaWiki\Request\FauxResponse
   - WebResponse -> MediaWiki\Request\WebResponse
   - MediaWiki\HeaderCallback -> MediaWiki\Request\HeaderCallback
+  - StubObject -> MediaWiki\StubObject\StubObject
+  - DeprecatedGlobal -> MediaWiki\StubObject\DeprecatedGlobal
+  - StubGlobalUser -> MediaWiki\StubObject\StubGlobalUser
+  - StubUserLang -> MediaWiki\StubObject\StubUserLang
   - Title -> MediaWiki\Title\Title
   - TitleArray -> MediaWiki\Title\TitleArray
   - TitleArrayFromResult -> MediaWiki\Title\TitleArrayFromResult
@@ -619,6 +626,12 @@ because of Phabricator reports.
   - ConfiguredReadOnlyMode -> Wikimedia\Rdbms\ConfiguredReadOnlyMode
   - ReadOnlyMode -> Wikimedia\Rdbms\ReadOnlyMode
   - MediaWiki\Emptiable -> MediaWiki\Libs\Emptiable
+  - ProxyLookup -> MediaWiki\Request\ProxyLookup
+  - SiteStats -> MediaWiki\SiteStats\SiteStats
+  - SiteStatsInit -> MediaWiki\SiteStats\SiteStatsInit
+  - MediaWiki\ExtensionInfo -> MediaWiki\Utils\ExtensionInfo
+  - GitInfo -> MediaWiki\Utils\GitInfo
+  - MWTimestamp -> MediaWiki\Utils\MWTimestamp
 * The following methods, previously deprecated, now emit deprecation warnings:
   - ConfigFactory::getDefaultInstance(), deprecated since 1.27
   - AbstractContent::getNativeData(), deprecated since 1.33
