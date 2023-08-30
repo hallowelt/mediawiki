@@ -159,16 +159,14 @@ class InfoAction extends FormlessAction {
 	 */
 	public static function invalidateCache( PageIdentity $page, $revid = null ) {
 		$services = MediaWikiServices::getInstance();
-		if ( !$revid ) {
+		if ( $revid === null ) {
 			$revision = $services->getRevisionLookup()
 				->getRevisionByTitle( $page, 0, IDBAccessObject::READ_LATEST );
-			$revid = $revision ? $revision->getId() : null;
+			$revid = $revision ? $revision->getId() : 0;
 		}
-		if ( $revid !== null ) {
-			$cache = $services->getMainWANObjectCache();
-			$key = self::getCacheKey( $cache, $page, $revid );
-			$cache->delete( $key );
-		}
+		$cache = $services->getMainWANObjectCache();
+		$key = self::getCacheKey( $cache, $page, $revid ?? 0 );
+		$cache->delete( $key );
 	}
 
 	/**
@@ -519,11 +517,15 @@ class InfoAction extends FormlessAction {
 					$prefixIndex,
 					$this->msg( 'pageinfo-subpages-name' )->text()
 				),
-				$this->msg( 'pageinfo-subpages-value' )
-					->numParams(
+				// $wgNamespacesWithSubpages can be changed and this can be unset (T340749)
+				isset( $pageCounts['subpages'] )
+					? $this->msg( 'pageinfo-subpages-value' )->numParams(
 						$pageCounts['subpages']['total'],
 						$pageCounts['subpages']['redirects'],
 						$pageCounts['subpages']['nonredirects']
+					) : $this->msg( 'pageinfo-subpages-value-unknown' )->rawParams(
+						$linkRenderer->makeKnownLink(
+							$title, $this->msg( 'purge' )->text(), [], [ 'action' => 'purge' ] )
 					)
 			];
 		}
