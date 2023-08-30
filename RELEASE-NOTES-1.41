@@ -35,6 +35,7 @@ For notes on 1.40.x and older releases, see HISTORY.
   EmailNotificationSecondaryAuthenticationProvider now require
   DBLoadBalancerFactory, not DBLoadBalancer, as a service.
 * $wgUseFileCache is no longer used for ResourceLoader module caching.
+* $wgLBFactoryConf['secret'] has been replaced by $wgChronologyProtectorSecret.
 * …
 
 ==== Removed configuration ====
@@ -191,6 +192,8 @@ because of Phabricator reports.
   ::createMultiClient() have been removed.
 * WikiPage::factory(), ::newFromID() and ::newFromRow, deprecated in 1.36,
   have been removed.
+* Maintenance::$mArgList, ::shouldExecute(), ::setAgentAndTriggers(),
+  ::adjustMemoryLimit(), ::globals(), and ::loadSettings() have been removed.
 * The GenericArrayObject class, deprecated in 1.40,
   has been removed.
 * The $replace parameter has been removed from HookContainer::scopedRegister.
