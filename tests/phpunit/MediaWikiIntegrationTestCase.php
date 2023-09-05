@@ -21,7 +21,6 @@ use MediaWiki\Storage\PageUpdateStatus;
 use MediaWiki\Tests\Unit\DummyServicesTrait;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentityValue;
-use PHPUnit\Framework\TestResult;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Wikimedia\Rdbms\Database;
@@ -164,11 +163,7 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 	 */
 	public const DB_PREFIX = 'unittest_';
 
-	/**
-	 * @var array
-	 * @since 1.18
-	 */
-	protected $supportedDBs = [
+	private const SUPPORTED_DBS = [
 		'mysql',
 		'sqlite',
 		'postgres',
@@ -514,88 +509,19 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 		TestUserRegistry::clear();
 	}
 
-	public function run( TestResult $result = null ): TestResult {
-		$result ??= $this->createResult();
-
-		try {
-			$this->overrideMwServices();
-
-			if ( !self::needsDB() ) {
-				$this->getServiceContainer()->disableStorage();
-				// ReadOnlyMode calls ILoadBalancer::getReadOnlyReason(), which would throw an exception. However,
-				// very few tests actually need a real ReadOnlyMode, and those are probably already using a mock,
-				// so override the service here.
-				$this->setService( 'ReadOnlyMode', $this->getDummyReadOnlyMode( false ) );
-				$this->db = null;
-			} else {
-				// Set up a DB connection for this test to use
-				$useTemporaryTables = !$this->getCliArg( 'use-normal-tables' );
-
-				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-				// Need a Database where the DB domain changes during table cloning
-				$this->db = $lb->getConnectionInternal( DB_PRIMARY );
-
-				$this->checkDbIsSupported();
-
-				if ( !self::$dbSetup ) {
-					self::setupAllTestDBs(
-						$this->db, self::dbPrefix(), $useTemporaryTables
-					);
-					$this->addCoreDBData();
-				}
-
-				// TODO: the DB setup should be done in setUpBeforeClass(), so the test DB
-				// is available in subclass's setUpBeforeClass() and setUp() methods.
-				// This would also remove the need for the HACK that is oncePerClass().
-				if ( $this->oncePerClass() ) {
-					$this->setUpSchema( $this->db );
-					$this->resetDB( $this->db, $this->tablesUsed );
-					$this->addDBDataOnce();
-				}
-
-				$this->addDBData();
-			}
-		} catch ( Throwable $e ) {
-			$result->stop();
-			$result->addError( $this, $e, 0 );
-
-			return $result;
-		}
-
-		parent::run( $result );
-
-		try {
-			// We don't mind if we override already-overridden services during cleanup
-			$this->overriddenServices = [];
-			$this->temporaryHookHandlers = [];
-
-			if ( self::needsDB() ) {
-				$this->resetDB( $this->db, $this->tablesUsed );
-			}
-
-			self::restoreMwServices();
-			$this->localServices = null;
-		} catch ( Throwable $e ) {
-			$result->stop();
-			$result->addError( $this, $e, 0 );
-		}
-
-		return $result;
-	}
-
 	/**
 	 * @return bool
 	 */
-	private function oncePerClass() {
+	private static function oncePerClass( IDatabase $db ) {
 		// Remember current test class in the database connection,
 		// so we know when we need to run addData.
 
 		$class = static::class;
 
-		$first = !isset( $this->db->_hasDataForTestClass )
-			|| $this->db->_hasDataForTestClass !== $class;
+		$first = !isset( $db->_hasDataForTestClass )
+			|| $db->_hasDataForTestClass !== $class;
 
-		$this->db->_hasDataForTestClass = $class;
+		$db->_hasDataForTestClass = $class;
 		return $first;
 	}
 
@@ -674,6 +600,9 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 			);
 		}
 
+		$this->overrideMwServices();
+		$this->maybeSetupDB();
+
 		$this->overriddenServices = [];
 		$this->temporaryHookHandlers = [];
 
@@ -703,6 +632,43 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 			}
 		);
 		ob_start( 'MediaWikiIntegrationTestCase::wfResetOutputBuffersBarrier' );
+	}
+
+	private function maybeSetupDB(): void {
+		if ( !self::needsDB() ) {
+			$this->getServiceContainer()->disableStorage();
+			// ReadOnlyMode calls ILoadBalancer::getReadOnlyReason(), which would throw an exception. However,
+			// very few tests actually need a real ReadOnlyMode, and those are probably already using a mock,
+			// so override the service here.
+			$this->setService( 'ReadOnlyMode', $this->getDummyReadOnlyMode( false ) );
+			$this->db = null;
+			return;
+		}
+		// Set up a DB connection for this test to use
+		$useTemporaryTables = !self::getCliArg( 'use-normal-tables' );
+
+		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		// Need a Database where the DB domain changes during table cloning
+		$this->db = $lb->getConnectionInternal( DB_PRIMARY );
+
+		if ( !self::$dbSetup ) {
+			self::checkDbIsSupported( $this->db );
+			self::setupAllTestDBs(
+				$this->db, self::dbPrefix(), $useTemporaryTables
+			);
+			$this->addCoreDBData();
+		}
+
+		// TODO: the DB setup should be done in setUpBeforeClass(), so the test DB
+		// is available in subclass's setUpBeforeClass() and setUp() methods.
+		// This would also remove the need for the HACK that is oncePerClass().
+		if ( self::oncePerClass( $this->db ) ) {
+			$this->setUpSchema( $this->db );
+			$this->resetDB( $this->db, $this->tablesUsed );
+			$this->addDBDataOnce();
+		}
+
+		$this->addDBData();
 	}
 
 	protected function addTmpFiles( $files ) {
@@ -776,6 +742,17 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 		MediaWikiServices::getInstance()->resetServiceForTesting(
 			'SpecialPageFactory'
 		);
+
+		// We don't mind if we override already-overridden services during cleanup
+		$this->overriddenServices = [];
+		$this->temporaryHookHandlers = [];
+
+		if ( self::needsDB() ) {
+			$this->resetDB( $this->db, $this->tablesUsed );
+		}
+
+		self::restoreMwServices();
+		$this->localServices = null;
 	}
 
 	/**
@@ -2152,7 +2129,7 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 				$user->clearInstanceCache( $user->mFrom );
 			}
 
-			$this->truncateTables( $tablesUsed, $db );
+			self::truncateTables( $tablesUsed, $db );
 
 			if ( array_intersect( $tablesUsed, $coreDBDataTables ) ) {
 				// Reset services that may contain information relating to the truncated tables
@@ -2164,7 +2141,7 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 	}
 
 	protected function truncateTable( $table, IDatabase $db = null ) {
-		$this->truncateTables( [ $table ], $db );
+		self::truncateTables( [ $table ], $db );
 	}
 
 	/**
@@ -2175,8 +2152,8 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 	 * @param string[] $tables
 	 * @param IDatabase|null $db
 	 */
-	protected function truncateTables( array $tables, IDatabase $db = null ) {
-		$dbw = $db ?: $this->db;
+	protected static function truncateTables( array $tables, IDatabase $db = null ) {
+		$dbw = $db ?: MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 
 		$dbw->truncate( $tables, __METHOD__ );
 
@@ -2265,9 +2242,9 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 		}
 	}
 
-	private function checkDbIsSupported() {
-		if ( !in_array( $this->db->getType(), $this->supportedDBs ) ) {
-			throw new RuntimeException( $this->db->getType() . " is not currently supported for unit testing." );
+	private static function checkDbIsSupported( IDatabase $db ) {
+		if ( !in_array( $db->getType(), self::SUPPORTED_DBS ) ) {
+			throw new RuntimeException( $db->getType() . " is not currently supported for unit testing." );
 		}
 	}
 
@@ -2284,7 +2261,7 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 	 * @param string $offset
 	 * @return mixed
 	 */
-	public function getCliArg( $offset ) {
+	protected static function getCliArg( $offset ) {
 		self::maybeInitCliArgs();
 		return self::$additionalCliOptions[$offset] ?? null;
 	}
@@ -2294,7 +2271,7 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 	 * @param string $offset
 	 * @param mixed $value
 	 */
-	public function setCliArg( $offset, $value ) {
+	protected static function setCliArg( $offset, $value ) {
 		self::maybeInitCliArgs();
 		self::$additionalCliOptions[$offset] = $value;
 	}

@@ -423,6 +423,8 @@ class Parser {
 		MainConfigNames::StylePath,
 		MainConfigNames::TranscludeCacheExpiry,
 		MainConfigNames::PreprocessorCacheThreshold,
+		MainConfigNames::ParserEnableLegacyMediaDOM,
+		MainConfigNames::EnableParserLimitReporting,
 	];
 
 	/**
@@ -738,8 +740,7 @@ class Parser {
 		}
 
 		# Information on limits, for the benefit of users who try to skirt them
-		if ( MediaWikiServices::getInstance()->getMainConfig()->get(
-		MainConfigNames::EnableParserLimitReporting ) ) {
+		if ( $this->svcOptions->get( MainConfigNames::EnableParserLimitReporting ) ) {
 			$this->makeLimitReport();
 		}
 
@@ -5092,9 +5093,7 @@ class Parser {
 		}
 		$ig->setAdditionalOptions( $params );
 
-		$enableLegacyMediaDOM = MediaWikiServices::getInstance()->getMainConfig()->get(
-			MainConfigNames::ParserEnableLegacyMediaDOM
-		);
+		$enableLegacyMediaDOM = $this->svcOptions->get( MainConfigNames::ParserEnableLegacyMediaDOM );
 
 		$lines = StringUtils::explode( "\n", $text );
 		foreach ( $lines as $line ) {
@@ -5445,9 +5444,7 @@ class Parser {
 
 		$params['frame']['caption'] = $caption;
 
-		$enableLegacyMediaDOM = MediaWikiServices::getInstance()->getMainConfig()->get(
-			MainConfigNames::ParserEnableLegacyMediaDOM
-		);
+		$enableLegacyMediaDOM = $this->svcOptions->get( MainConfigNames::ParserEnableLegacyMediaDOM );
 
 		# Will the image be presented in a frame, with the caption below?
 		// @phan-suppress-next-line PhanImpossibleCondition
@@ -6267,61 +6264,6 @@ class Parser {
 		# Strip HTML tags
 		$text = StringUtils::delimiterReplace( '<', '>', '', $text );
 		return $text;
-	}
-
-	/**
-	 * Strip/replaceVariables/unstrip for preprocessor regression testing
-	 *
-	 * Called in preprocessorFuzzTest.php maintenance script
-	 * with the help of TestingAccessWrapper to hide it from the public interface
-	 *
-	 * @param string $text
-	 * @param PageReference $page
-	 * @param ParserOptions $options
-	 * @param int $outputType
-	 *
-	 * @return string
-	 */
-	private function fuzzTestSrvus( $text, PageReference $page, ParserOptions $options,
-		$outputType = self::OT_HTML
-	) {
-		$magicScopeVariable = $this->lock();
-		$this->startParse( $page, $options, $outputType, true );
-
-		$text = $this->replaceVariables( $text );
-		$text = $this->mStripState->unstripBoth( $text );
-		$text = Sanitizer::internalRemoveHtmlTags( $text );
-		return $text;
-	}
-
-	/**
-	 * Strip/replaceVariables/unstrip for preprocessor regression testing
-	 *
-	 * Called in preprocessorFuzzTest.php maintenance script
-	 * with the help of TestingAccessWrapper to hide it from the public interface
-	 *
-	 * @param string $text
-	 * @param PageReference $page
-	 * @param ParserOptions $options
-	 * @return string
-	 */
-	private function fuzzTestPst( $text, PageReference $page, ParserOptions $options ) {
-		return $this->preSaveTransform( $text, $page, $options->getUserIdentity(), $options );
-	}
-
-	/**
-	 * Strip/replaceVariables/unstrip for preprocessor regression testing
-	 *
-	 * Called in preprocessorFuzzTest.php maintenance script
-	 * with the help of TestingAccessWrapper to hide it from the public interface
-	 *
-	 * @param string $text
-	 * @param PageReference $page
-	 * @param ParserOptions $options
-	 * @return string
-	 */
-	private function fuzzTestPreprocess( $text, PageReference $page, ParserOptions $options ) {
-		return $this->fuzzTestSrvus( $text, $page, $options, self::OT_PREPROCESS );
 	}
 
 	/**
