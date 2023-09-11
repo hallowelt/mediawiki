@@ -317,19 +317,19 @@ class WatchedItemStore implements WatchedItemStoreInterface, StatsdAwareInterfac
 			if ( $wlIds ) {
 				// Delete rows from both the watchlist and watchlist_expiry tables.
 				$dbw->newDeleteQueryBuilder()
-					->delete( 'watchlist' )
+					->deleteFrom( 'watchlist' )
 					->where( [ 'wl_id' => $wlIds ] )
 					->caller( __METHOD__ )->execute();
 
 				$dbw->newDeleteQueryBuilder()
-					->delete( 'watchlist_expiry' )
+					->deleteFrom( 'watchlist_expiry' )
 					->where( [ 'we_item' => $wlIds ] )
 					->caller( __METHOD__ )->execute();
 			}
 			$this->lbFactory->commitAndWaitForReplication( __METHOD__, $ticket );
 		} else {
 			$dbw->newDeleteQueryBuilder()
-				->delete( 'watchlist' )
+				->deleteFrom( 'watchlist' )
 				->where( [ 'wl_user' => $user->getId() ] )
 				->caller( __METHOD__ )->execute();
 		}
@@ -520,14 +520,14 @@ class WatchedItemStore implements WatchedItemStoreInterface, StatsdAwareInterfac
 				if ( $wlIds ) {
 					// Delete rows from both the watchlist and watchlist_expiry tables.
 					$dbw->newDeleteQueryBuilder()
-						->delete( 'watchlist' )
+						->deleteFrom( 'watchlist' )
 						->where( [ 'wl_id' => $wlIds ] )
 						->caller( __METHOD__ )->execute();
 					$affectedRows += $dbw->affectedRows();
 
 					if ( $this->expiryEnabled ) {
 						$dbw->newDeleteQueryBuilder()
-							->delete( 'watchlist_expiry' )
+							->deleteFrom( 'watchlist_expiry' )
 							->where( [ 'we_item' => $wlIds ] )
 							->caller( __METHOD__ )->execute();
 						$affectedRows += $dbw->affectedRows();
@@ -1136,7 +1136,7 @@ class WatchedItemStore implements WatchedItemStoreInterface, StatsdAwareInterfac
 
 		// Insert into watchlist_expiry, updating the expiry for duplicate rows.
 		$dbw->newInsertQueryBuilder()
-			->insert( 'watchlist_expiry' )
+			->insertInto( 'watchlist_expiry' )
 			->rows( $weRows )
 			->onDuplicateKeyUpdate()
 			->uniqueIndexFields( [ 'we_item' ] )
@@ -1642,19 +1642,18 @@ class WatchedItemStore implements WatchedItemStoreInterface, StatsdAwareInterfac
 			}
 		}
 
-		if ( empty( $values ) ) {
+		if ( !$values ) {
 			return;
 		}
 
 		// Perform a replace on the watchlist table rows.
 		// Note that multi-row replace is very efficient for MySQL but may be inefficient for
 		// some other DBMSes, mostly due to poor simulation by us.
-		$dbw->replace(
-			'watchlist',
-			[ [ 'wl_user', 'wl_namespace', 'wl_title' ] ],
-			$values,
-			__METHOD__
-		);
+		$dbw->newReplaceQueryBuilder()
+			->replaceInto( 'watchlist' )
+			->uniqueIndexFields( [ 'wl_user', 'wl_namespace', 'wl_title' ] )
+			->rows( $values )
+			->caller( __METHOD__ )->execute();
 
 		if ( $this->expiryEnabled ) {
 			$this->updateExpiriesAfterMove( $dbw, $expiries, $newNamespace, $newDBkey );
@@ -1728,12 +1727,11 @@ class WatchedItemStore implements WatchedItemStoreInterface, StatsdAwareInterfac
 				// Batch the insertions.
 				$batches = array_chunk( $expiryData, $this->updateRowsPerQuery );
 				foreach ( $batches as $toInsert ) {
-					$dbw->replace(
-						'watchlist_expiry',
-						'we_item',
-						$toInsert,
-						$method
-					);
+					$dbw->newReplaceQueryBuilder()
+						->replaceInto( 'watchlist_expiry' )
+						->uniqueIndexFields( [ 'we_item' ] )
+						->rows( $toInsert )
+						->caller( $method )->execute();
 				}
 			},
 			DeferredUpdates::POSTSEND,
@@ -1797,11 +1795,11 @@ class WatchedItemStore implements WatchedItemStoreInterface, StatsdAwareInterfac
 		if ( count( $toDelete ) > 0 ) {
 			// Delete them from the watchlist and watchlist_expiry table.
 			$dbw->newDeleteQueryBuilder()
-				->delete( 'watchlist' )
+				->deleteFrom( 'watchlist' )
 				->where( [ 'wl_id' => $toDelete ] )
 				->caller( __METHOD__ )->execute();
 			$dbw->newDeleteQueryBuilder()
-				->delete( 'watchlist_expiry' )
+				->deleteFrom( 'watchlist_expiry' )
 				->where( [ 'we_item' => $toDelete ] )
 				->caller( __METHOD__ )->execute();
 		}
@@ -1821,7 +1819,7 @@ class WatchedItemStore implements WatchedItemStoreInterface, StatsdAwareInterfac
 				->fetchFieldValues();
 			if ( count( $expiryToDelete ) > 0 ) {
 				$dbw->newDeleteQueryBuilder()
-					->delete( 'watchlist_expiry' )
+					->deleteFrom( 'watchlist_expiry' )
 					->where( [ 'we_item' => $expiryToDelete ] )
 					->caller( __METHOD__ )->execute();
 			}

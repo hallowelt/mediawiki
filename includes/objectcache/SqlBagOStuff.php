@@ -580,7 +580,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 
 		if ( $this->multiPrimaryMode ) {
 			$db->newInsertQueryBuilder()
-				->insert( $ptable )
+				->insertInto( $ptable )
 				->rows( $rows )
 				->onDuplicateKeyUpdate()
 				->uniqueIndexFields( [ 'keyname' ] )
@@ -588,7 +588,11 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 				->caller( __METHOD__ )->execute();
 		} else {
 			// T288998: use REPLACE, if possible, to avoid cluttering the binlogs
-			$db->replace( $ptable, 'keyname', $rows, __METHOD__ );
+			$db->newReplaceQueryBuilder()
+				->replaceInto( $ptable )
+				->rows( $rows )
+				->uniqueIndexFields( [ 'keyname' ] )
+				->caller( __METHOD__ )->execute();
 		}
 
 		foreach ( $argsByKey as $key => $unused ) {
@@ -626,7 +630,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 			$mt = $this->makeTimestampedModificationToken( $mtime, $db );
 			$expiry = $this->makeNewKeyExpiry( self::TOMB_EXPTIME, (int)$mtime );
 			$queryBuilder = $db->newInsertQueryBuilder()
-				->insert( $ptable )
+				->insertInto( $ptable )
 				->onDuplicateKeyUpdate()
 				->uniqueIndexFields( [ 'keyname' ] )
 				->set( $this->buildMultiUpsertSetForOverwrite( $db, $mt ) );
@@ -637,7 +641,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 		} else {
 			// Just purge the keys since there is only one primary (e.g. "source of truth")
 			$db->newDeleteQueryBuilder()
-				->delete( $ptable )
+				->deleteFrom( $ptable )
 				->where( [ 'keyname' => array_keys( $argsByKey ) ] )
 				->caller( __METHOD__ )->execute();
 		}
@@ -705,7 +709,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 			return;
 		}
 		$db->newInsertQueryBuilder()
-			->insert( $ptable )
+			->insertInto( $ptable )
 			->rows( $rows )
 			->onDuplicateKeyUpdate()
 			->uniqueIndexFields( [ 'keyname' ] )
@@ -789,7 +793,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 			return;
 		}
 		$db->newInsertQueryBuilder()
-			->insert( $ptable )
+			->insertInto( $ptable )
 			->rows( $rows )
 			->onDuplicateKeyUpdate()
 			->uniqueIndexFields( [ 'keyname' ] )
@@ -853,7 +857,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 				return;
 			}
 			$db->newInsertQueryBuilder()
-				->insert( $ptable )
+				->insertInto( $ptable )
 				->rows( $rows )
 				->onDuplicateKeyUpdate()
 				->uniqueIndexFields( [ 'keyname' ] )
@@ -926,7 +930,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 			$atomic = $db->startAtomic( __METHOD__, IDatabase::ATOMIC_CANCELABLE );
 			try {
 				$db->newInsertQueryBuilder()
-					->insert( $ptable )
+					->insertInto( $ptable )
 					->rows( $this->buildUpsertRow( $db, $key, $init, $expiry, $mt ) )
 					->onDuplicateKeyUpdate()
 					->uniqueIndexFields( [ 'keyname' ] )
@@ -984,7 +988,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 			$mt = $this->makeTimestampedModificationToken( $mtime, $db );
 			$expiry = $this->makeNewKeyExpiry( $exptime, (int)$mtime );
 			$db->newInsertQueryBuilder()
-				->insert( $ptable )
+				->insertInto( $ptable )
 				->rows( $this->buildUpsertRow( $db, $key, $init, $expiry, $mt ) )
 				->onDuplicateKeyUpdate()
 				->uniqueIndexFields( [ 'keyname' ] )
@@ -1475,7 +1479,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 					}
 
 					$db->newDeleteQueryBuilder()
-						->delete( $this->getTableNameByShard( $tableIndex ) )
+						->deleteFrom( $this->getTableNameByShard( $tableIndex ) )
 						->where( [
 							'keyname' => $keys,
 							$db->buildComparison( '<', [ 'exptime' => $db->timestamp( $cutoffUnix ) ] ),
@@ -1521,7 +1525,7 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 				$db = $this->getConnection( $shardIndex );
 				for ( $i = 0; $i < $this->numTableShards; $i++ ) {
 					$db->newDeleteQueryBuilder()
-						->delete( $this->getTableNameByShard( $i ) )
+						->deleteFrom( $this->getTableNameByShard( $i ) )
 						->where( $db::ALL_ROWS )
 						->caller( __METHOD__ )->execute();
 				}

@@ -41,7 +41,6 @@ use UserGroupExpiryJob;
 use UserGroupMembership;
 use Wikimedia\Assert\Assert;
 use Wikimedia\IPUtils;
-use Wikimedia\Rdbms\ConfiguredReadOnlyMode;
 use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Rdbms\ILBFactory;
 use Wikimedia\Rdbms\IReadableDatabase;
@@ -156,7 +155,7 @@ class UserGroupManager implements IDBAccessObject {
 
 	/**
 	 * @param ServiceOptions $options
-	 * @param ConfiguredReadOnlyMode $configuredReadOnlyMode
+	 * @param ReadOnlyMode $readOnlyMode
 	 * @param ILBFactory $lbFactory
 	 * @param HookContainer $hookContainer
 	 * @param UserEditTracker $userEditTracker
@@ -169,7 +168,7 @@ class UserGroupManager implements IDBAccessObject {
 	 */
 	public function __construct(
 		ServiceOptions $options,
-		ConfiguredReadOnlyMode $configuredReadOnlyMode,
+		ReadOnlyMode $readOnlyMode,
 		ILBFactory $lbFactory,
 		HookContainer $hookContainer,
 		UserEditTracker $userEditTracker,
@@ -190,8 +189,7 @@ class UserGroupManager implements IDBAccessObject {
 		$this->jobQueueGroup = $jobQueueGroup;
 		$this->logger = $logger;
 		$this->tempUserConfig = $tempUserConfig;
-		// Can't inject ReadOnlyMode service, this can be a foreign wiki (T343917)
-		$this->readOnlyMode = new ReadOnlyMode( $configuredReadOnlyMode, $lbFactory->getMainLB( $wikiId ) );
+		$this->readOnlyMode = $readOnlyMode;
 		$this->clearCacheCallbacks = $clearCacheCallbacks;
 		$this->wikiId = $wikiId;
 	}
@@ -691,7 +689,7 @@ class UserGroupManager implements IDBAccessObject {
 		);
 
 		if (
-			$this->readOnlyMode->isReadOnly() ||
+			$this->readOnlyMode->isReadOnly( $this->wikiId ) ||
 			!$user->isRegistered() ||
 			$this->tempUserConfig->isTempName( $user->getName() )
 		) {
@@ -824,7 +822,7 @@ class UserGroupManager implements IDBAccessObject {
 		bool $allowUpdate = false
 	): bool {
 		$user->assertWiki( $this->wikiId );
-		if ( $this->readOnlyMode->isReadOnly() ) {
+		if ( $this->readOnlyMode->isReadOnly( $this->wikiId ) ) {
 			return false;
 		}
 
@@ -860,7 +858,7 @@ class UserGroupManager implements IDBAccessObject {
 
 		$dbw->startAtomic( __METHOD__ );
 		$dbw->newInsertQueryBuilder()
-			->insert( 'user_groups' )
+			->insertInto( 'user_groups' )
 			->ignore()
 			->row( [
 				'ug_user' => $user->getId( $this->wikiId ),
@@ -972,7 +970,7 @@ class UserGroupManager implements IDBAccessObject {
 			}
 		}
 
-		if ( $this->readOnlyMode->isReadOnly() ) {
+		if ( $this->readOnlyMode->isReadOnly( $this->wikiId ) ) {
 			return false;
 		}
 
@@ -987,7 +985,7 @@ class UserGroupManager implements IDBAccessObject {
 		$oldFormerGroups = $this->getUserFormerGroups( $user, self::READ_LATEST );
 		$dbw = $this->dbProvider->getPrimaryDatabase( $this->wikiId );
 		$dbw->newDeleteQueryBuilder()
-			->delete( 'user_groups' )
+			->deleteFrom( 'user_groups' )
 			->where( [ 'ug_user' => $user->getId( $this->wikiId ), 'ug_group' => $group ] )
 			->caller( __METHOD__ )->execute();
 
@@ -996,7 +994,7 @@ class UserGroupManager implements IDBAccessObject {
 		}
 		// Remember that the user was in this group
 		$dbw->newInsertQueryBuilder()
-			->insert( 'user_former_groups' )
+			->insertInto( 'user_former_groups' )
 			->ignore()
 			->row( [ 'ufg_user' => $user->getId( $this->wikiId ), 'ufg_group' => $group ] )
 			->caller( __METHOD__ )->execute();
@@ -1038,7 +1036,7 @@ class UserGroupManager implements IDBAccessObject {
 	 *  readonly), the number of rows purged (might be 0) otherwise
 	 */
 	public function purgeExpired() {
-		if ( $this->readOnlyMode->isReadOnly() ) {
+		if ( $this->readOnlyMode->isReadOnly( $this->wikiId ) ) {
 			return false;
 		}
 
@@ -1074,12 +1072,12 @@ class UserGroupManager implements IDBAccessObject {
 				}
 				// Delete the rows we're about to move
 				$dbw->newDeleteQueryBuilder()
-					->delete( 'user_groups' )
+					->deleteFrom( 'user_groups' )
 					->where( $dbw->makeList( $deleteCond, $dbw::LIST_OR ) )
 					->caller( __METHOD__ )->execute();
 				// Push the groups to user_former_groups
 				$dbw->newInsertQueryBuilder()
-					->insert( 'user_former_groups' )
+					->insertInto( 'user_former_groups' )
 					->ignore()
 					->rows( $insertData )
 					->caller( __METHOD__ )->execute();

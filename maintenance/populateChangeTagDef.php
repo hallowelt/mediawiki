@@ -83,7 +83,7 @@ class PopulateChangeTagDef extends LoggedUpdateMaintenance {
 				->caller( __METHOD__ )->fetchFieldValues();
 		}
 
-		if ( empty( $userTags ) ) {
+		if ( !$userTags ) {
 			$this->output( "No user defined tags to set, moving on...\n" );
 			return;
 		}
@@ -162,7 +162,7 @@ class PopulateChangeTagDef extends LoggedUpdateMaintenance {
 				continue;
 			}
 			$dbw->newInsertQueryBuilder()
-				->insert( 'change_tag_def' )
+				->insertInto( 'change_tag_def' )
 				->row( [
 					'ctd_name' => $row->ct_tag,
 					'ctd_user_defined' => 0,

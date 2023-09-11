@@ -114,7 +114,7 @@ class BlockRestrictionStore {
 		$dbw = $this->dbProvider->getPrimaryDatabase( $this->wikiId );
 
 		$dbw->newInsertQueryBuilder()
-			->insert( 'ipblocks_restrictions' )
+			->insertInto( 'ipblocks_restrictions' )
 			->ignore()
 			->rows( $rows )
 			->caller( __METHOD__ )->execute();
@@ -144,7 +144,7 @@ class BlockRestrictionStore {
 		// different.
 		$existingList = [];
 		$blockIds = array_keys( $restrictionList );
-		if ( !empty( $blockIds ) ) {
+		if ( $blockIds ) {
 			$result = $dbw->newSelectQueryBuilder()
 				->select( [ 'ir_ipb_id', 'ir_type', 'ir_value' ] )
 				->forUpdate()
@@ -170,7 +170,7 @@ class BlockRestrictionStore {
 				$restrictions
 			);
 
-			if ( empty( $restrictionsToRemove ) ) {
+			if ( !$restrictionsToRemove ) {
 				continue;
 			}
 
@@ -208,7 +208,7 @@ class BlockRestrictionStore {
 		}
 
 		// If removing all of the restrictions, then just delete them all.
-		if ( empty( $restrictions ) ) {
+		if ( !$restrictions ) {
 			$blockIds = array_map( 'intval', $blockIds );
 			return $this->deleteByBlockId( $blockIds );
 		}
@@ -241,7 +241,7 @@ class BlockRestrictionStore {
 			}
 
 			$dbw->newDeleteQueryBuilder()
-				->delete( 'ipblocks_restrictions' )
+				->deleteFrom( 'ipblocks_restrictions' )
 				// The restriction row is made up of a compound primary key. Therefore,
 				// the row and the delete conditions are the same.
 				->where( $restriction->toRow() )
@@ -261,7 +261,7 @@ class BlockRestrictionStore {
 	public function deleteByBlockId( $blockId ) {
 		$this->dbProvider->getPrimaryDatabase( $this->wikiId )
 			->newDeleteQueryBuilder()
-			->delete( 'ipblocks_restrictions' )
+			->deleteFrom( 'ipblocks_restrictions' )
 			->where( [ 'ir_ipb_id' => $blockId ] )
 			->caller( __METHOD__ )->execute();
 		return true;

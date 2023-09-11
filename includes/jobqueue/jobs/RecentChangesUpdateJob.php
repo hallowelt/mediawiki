@@ -108,7 +108,7 @@ class RecentChangesUpdateJob extends Job {
 			}
 			if ( $rcIds ) {
 				$dbw->newDeleteQueryBuilder()
-					->delete( 'recentchanges' )
+					->deleteFrom( 'recentchanges' )
 					->where( [ 'rc_id' => $rcIds ] )
 					->caller( __METHOD__ )->execute();
 				$hookRunner->onRecentChangesPurgeRows( $rows );
@@ -227,17 +227,18 @@ class RecentChangesUpdateJob extends Job {
 		$asOfTimestamp = min( $eTimestamp, (int)$dbw->trxTimestamp() );
 
 		// Touch the data freshness timestamp
-		$dbw->replace(
-			'querycache_info',
-			'qci_type',
-			[ 'qci_type' => 'activeusers',
-				'qci_timestamp' => $dbw->timestamp( $asOfTimestamp ) ], // not always $now
-			__METHOD__
-		);
+		$dbw->newReplaceQueryBuilder()
+			->replaceInto( 'querycache_info' )
+			->rows( [
+				'qci_type' => 'activeusers',
+				'qci_timestamp' => $dbw->timestamp( $asOfTimestamp ) , // not always $now
+			] )
+			->uniqueIndexFields( [ 'qci_type' ] )
+			->caller( __METHOD__ )->execute();
 
 		// Rotate out users that have not edited in too long (according to old data set)
 		$dbw->newDeleteQueryBuilder()
-			->delete( 'querycachetwo' )
+			->deleteFrom( 'querycachetwo' )
 			->where( [
 				'qcc_type' => 'activeusers',
 				$dbw->buildComparison( '<', [ 'qcc_value' => $nowUnix - $days * 86400 ] ) // TS_UNIX

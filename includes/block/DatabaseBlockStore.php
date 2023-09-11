@@ -128,7 +128,7 @@ class DatabaseBlockStore {
 	 * @internal only public for use in DatabaseBlock
 	 */
 	public function purgeExpiredBlocks() {
-		if ( $this->readOnlyMode->isReadOnly() ) {
+		if ( $this->readOnlyMode->isReadOnly( $this->wikiId ) ) {
 			return;
 		}
 
@@ -151,7 +151,7 @@ class DatabaseBlockStore {
 					$ids = array_map( 'intval', $ids );
 					$store->deleteByBlockId( $ids );
 					$dbw->newDeleteQueryBuilder()
-						->delete( 'ipblocks' )
+						->deleteFrom( 'ipblocks' )
 						->where( [ 'ipb_id' => $ids ] )
 						->caller( $fname )->execute();
 				}
@@ -222,7 +222,7 @@ class DatabaseBlockStore {
 		$row = $this->getArrayForDatabaseBlock( $block, $dbw );
 
 		$dbw->newInsertQueryBuilder()
-			->insert( 'ipblocks' )
+			->insertInto( 'ipblocks' )
 			->ignore()
 			->row( $row )
 			->caller( __METHOD__ )->execute();
@@ -250,12 +250,12 @@ class DatabaseBlockStore {
 			if ( $ids ) {
 				$ids = array_map( 'intval', $ids );
 				$dbw->newDeleteQueryBuilder()
-					->delete( 'ipblocks' )
+					->deleteFrom( 'ipblocks' )
 					->where( [ 'ipb_id' => $ids ] )
 					->caller( __METHOD__ )->execute();
 				$this->blockRestrictionStore->deleteByBlockId( $ids );
 				$dbw->newInsertQueryBuilder()
-					->insert( 'ipblocks' )
+					->insertInto( 'ipblocks' )
 					->ignore()
 					->row( $row )
 					->caller( __METHOD__ )->execute();
@@ -327,7 +327,7 @@ class DatabaseBlockStore {
 		$restrictions = $block->getRawRestrictions();
 		if ( $restrictions !== null ) {
 			// An empty array should remove all of the restrictions.
-			if ( empty( $restrictions ) ) {
+			if ( $restrictions === [] ) {
 				$result = $this->blockRestrictionStore->deleteByBlockId( $blockId );
 			} else {
 				$result = $this->blockRestrictionStore->update( $restrictions );
@@ -360,7 +360,7 @@ class DatabaseBlockStore {
 				$ids = array_map( 'intval', $ids );
 				$this->blockRestrictionStore->deleteByBlockId( $ids );
 				$dbw->newDeleteQueryBuilder()
-					->delete( 'ipblocks' )
+					->deleteFrom( 'ipblocks' )
 					->where( [ 'ipb_id' => $ids ] )
 					->caller( __METHOD__ )->execute();
 			}
@@ -383,7 +383,7 @@ class DatabaseBlockStore {
 	 * @return bool whether it was deleted
 	 */
 	public function deleteBlock( DatabaseBlock $block ): bool {
-		if ( $this->readOnlyMode->isReadOnly() ) {
+		if ( $this->readOnlyMode->isReadOnly( $this->wikiId ) ) {
 			return false;
 		}
 
@@ -407,7 +407,7 @@ class DatabaseBlockStore {
 
 		$this->blockRestrictionStore->deleteByBlockId( $ids );
 		$dbw->newDeleteQueryBuilder()
-			->delete( 'ipblocks' )
+			->deleteFrom( 'ipblocks' )
 			->where( [ 'ipb_id' => $ids ] )
 			->caller( __METHOD__ )->execute();
 

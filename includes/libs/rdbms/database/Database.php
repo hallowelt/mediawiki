@@ -1309,6 +1309,16 @@ abstract class Database implements IDatabase, IMaintainableDatabase, LoggerAware
 		return new InsertQueryBuilder( $this );
 	}
 
+	/**
+	 * Get a ReplaceQueryBuilder bound to this connection. This is overridden by
+	 * DBConnRef.
+	 *
+	 * @return ReplaceQueryBuilder
+	 */
+	public function newReplaceQueryBuilder(): ReplaceQueryBuilder {
+		return new ReplaceQueryBuilder( $this );
+	}
+
 	public function selectField(
 		$table, $var, $cond = '', $fname = __METHOD__, $options = [], $join_conds = []
 	) {
@@ -3264,20 +3274,14 @@ abstract class Database implements IDatabase, IMaintainableDatabase, LoggerAware
 	}
 
 	public function __toString() {
-		// spl_object_id is PHP >= 7.2
-		$id = function_exists( 'spl_object_id' )
-			? spl_object_id( $this )
-			: spl_object_hash( $this );
+		$id = spl_object_id( $this );
 
 		$description = $this->getType() . ' object #' . $id;
 		// phpcs:ignore MediaWiki.Usage.ForbiddenFunctions.is_resource
 		if ( is_resource( $this->conn ) ) {
 			$description .= ' (' . (string)$this->conn . ')'; // "resource id #<ID>"
 		} elseif ( is_object( $this->conn ) ) {
-			// spl_object_id is PHP >= 7.2
-			$handleId = function_exists( 'spl_object_id' )
-				? spl_object_id( $this->conn )
-				: spl_object_hash( $this->conn );
+			$handleId = spl_object_id( $this->conn );
 			$description .= " (handle id #$handleId)";
 		}
 
