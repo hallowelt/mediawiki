@@ -2127,18 +2127,13 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	}
 
 	/**
-	 * @see ParserOutput::hasReducedExpiry
-	 * @return bool
-	 * @since 1.25
-	 * @deprecated since 1.38: use ::hasReducedExpiry()
-	 */
-	public function hasDynamicContent(): bool {
-		wfDeprecated( __METHOD__, '1.38' );
-		return $this->hasReducedExpiry();
-	}
-
-	/**
-	 * Set the prevent-clickjacking flag
+	 * Set the prevent-clickjacking flag.  If set this will cause an
+	 * `X-Frame-Options` header appropriate for edit pages to be sent.
+	 * The header value is controlled by `$wgEditPageFrameOptions`.
+	 *
+	 * This is the default for special pages.  If you display a CSRF-protected
+	 * form on an ordinary view page, then you need to call this function
+	 * with `$flag = true`.
 	 *
 	 * @param bool $flag New flag value
 	 * @since 1.38
@@ -2148,31 +2143,14 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	}
 
 	/**
-	 * Get the prevent-clickjacking flag
+	 * Get the prevent-clickjacking flag.
 	 *
 	 * @return bool Flag value
 	 * @since 1.38
+	 * @see ::setPreventClickjacking
 	 */
 	public function getPreventClickjacking(): bool {
 		return $this->mPreventClickjacking;
-	}
-
-	/**
-	 * Get or set the prevent-clickjacking flag
-	 *
-	 * @since 1.24
-	 * @param bool|null $flag New flag value, or null to leave it unchanged
-	 * @return bool Old flag value
-	 * @deprecated since 1.38:
-	 *   use ::setPreventClickjacking() or ::getPreventClickjacking()
-	 */
-	public function preventClickjacking( $flag ): bool {
-		wfDeprecated( __METHOD__, '1.38' );
-		$old = $this->getPreventClickjacking();
-		if ( $flag !== null ) {
-			$this->setPreventClickjacking( $flag );
-		}
-		return $old;
 	}
 
 	/**
