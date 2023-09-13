@@ -461,6 +461,8 @@ because of Phabricator reports.
    - ResultWrapper (use Wikimedia\Rdbms\ResultWrapper)
 * $CHANGEDORCREATED argument of 'enotif_body' message was removed.
   It wasn't used in the default messages since 1.21.
+* WikiPage::doDeleteUpdates() and ::getDeletionUpdates(), deprecated in 1.37,
+  have been removed.
 * …
 
 === Deprecations in 1.41 ===
@@ -548,6 +550,20 @@ because of Phabricator reports.
   - SpecialNewFiles
   - SpecialNewPages (and capitalisation corrected)
   - SpecialNewSection
+  - SpecialPageData
+  - SpecialPageHistory
+  - SpecialPageInfo
+  - SpecialPageLanguage
+  - SpecialPagesWithProp
+  - SpecialPasswordPolicies
+  - SpecialPasswordReset
+  - SpecialPermanentLink
+  - SpecialPreferences
+  - SpecialPrefixIndex (and capitalisation corrected)
+  - SpecialProtectedPages (and capitalisation corrected)
+  - SpecialProtectedTitles (and capitalisation corrected)
+  - SpecialProtectPage
+  - SpecialPurge
 * Various mediawiki.ui variables have been deprecated in favor of
   'mediawiki.skin.variables.less' Codex design tokens featuring replacements.
 * Hook handlers must now be specified either as a PHP callable, or as a PHP
@@ -749,6 +765,8 @@ because of Phabricator reports.
   - AbstractContent::getNativeData(), deprecated since 1.33
   - TablePager::getBody(), deprecated since 1.24
   - ContentHandler::getSlotDiffRendererInternal(), deprecated since 1.35
+* WikiPage::doDeleteArticleBatched, deprecated in 1.37, now emits deprecation
+  notices.
 * …
 
 === Other changes in 1.41 ===
