@@ -339,7 +339,7 @@ abstract class ParsoidHandler extends Handler {
 	/**
 	 * @param array $attribs
 	 * @param ?string $source
-	 * @param PageConfig $page
+	 * @param PageIdentity $page
 	 * @param ?int $revId
 	 *
 	 * @return HtmlOutputRendererHelper
@@ -347,14 +347,10 @@ abstract class ParsoidHandler extends Handler {
 	private function getHtmlOutputRendererHelper(
 		array $attribs,
 		?string $source,
-		PageConfig $page,
+		PageIdentity $page,
 		?int $revId
 	): HtmlOutputRendererHelper {
 		$services = MediaWikiServices::getInstance();
-
-		// TODO: This method (and wt2html) should take a PageIdentity + revId,
-		//       to reduce the usage of PageConfig in MW core.
-		$page = $this->getPageConfigToIdentity( $page );
 
 		$helper = $services->getPageRestHelperFactory()->newHtmlOutputRendererHelper();
 
@@ -397,22 +393,16 @@ abstract class ParsoidHandler extends Handler {
 	/**
 	 * @param array $attribs
 	 * @param string $html
-	 * @param PageConfig|PageIdentity $page
+	 * @param PageIdentity $page
 	 *
 	 * @return HtmlInputTransformHelper
 	 */
 	protected function getHtmlInputTransformHelper(
 		array $attribs,
 		string $html,
-		$page
+		PageIdentity $page
 	): HtmlInputTransformHelper {
 		$services = MediaWikiServices::getInstance();
-
-		// Support PageConfig for backwards compatibility.
-		// We should leave it to lower level code to create it.
-		if ( $page instanceof PageConfig ) {
-			$page = $this->getPageConfigToIdentity( $page );
-		}
 
 		$helper = $services->getPageRestHelperFactory()->newHtmlInputTransformHelper(
 			$attribs['envOptions']
@@ -569,7 +559,7 @@ abstract class ParsoidHandler extends Handler {
 	protected function tryToCreatePageConfig(
 		array $attribs, ?string $wikitextOverride = null, bool $html2WtMode = false
 	): PageConfig {
-		$revision = $attribs['oldid'];
+		$revId = $attribs['oldid'];
 		$pagelanguageOverride = $attribs['pagelanguage'];
 		$title = $attribs['pageName'];
 
@@ -586,8 +576,8 @@ abstract class ParsoidHandler extends Handler {
 			// Create a mutable revision record point to the same revision
 			// and set to the desired wikitext.
 			$revisionRecord = new MutableRevisionRecord( $title );
-			if ( $revision !== null ) {
-				$revisionRecord->setId( $revision );
+			if ( $revId !== null ) {
+				$revisionRecord->setId( $revId );
 			}
 			$revisionRecord->setSlot(
 				SlotRecord::newUnsaved(
@@ -597,7 +587,7 @@ abstract class ParsoidHandler extends Handler {
 			);
 		}
 
-		$hasOldId = ( $revision !== null );
+		$hasOldId = ( $revId !== null );
 		$ensureAccessibleContent = !$html2WtMode || $hasOldId;
 
 		try {
@@ -608,7 +598,7 @@ abstract class ParsoidHandler extends Handler {
 			// corner cases; see PageConfigFactory::create() for more.
 			// @phan-suppress-next-line PhanUndeclaredMethod method defined in subtype
 			$pageConfig = $this->pageConfigFactory->create(
-				$title, $user, $revisionRecord ?? $revision, null, $pagelanguageOverride,
+				$title, $user, $revisionRecord ?? $revId, null, $pagelanguageOverride,
 				$this->parsoidSettings, $ensureAccessibleContent
 			);
 		} catch ( SuppressedDataException $e ) {
@@ -857,10 +847,12 @@ abstract class ParsoidHandler extends Handler {
 		$metrics = $this->metrics;
 		$timing = Timing::start( $metrics );
 
+		// TODO: This method should take a PageIdentity + revId,
+		//       to reduce the usage of PageConfig in MW core.
 		$helper = $this->getHtmlOutputRendererHelper(
 			$attribs,
 			$wikitext,
-			$pageConfig,
+			$this->pageConfigToPageIdentity( $pageConfig ),
 			$pageConfig->getRevisionId()
 		);
 
@@ -875,7 +867,7 @@ abstract class ParsoidHandler extends Handler {
 			!empty( $this->parsoidSettings['devAPI'] ) &&
 			( $request->getQueryParams()['follow_redirects'] ?? false )
 		) {
-			$page = $this->getPageConfigToIdentity( $pageConfig );
+			$page = $this->pageConfigToPageIdentity( $pageConfig );
 			$redirectLookup = MediaWikiServices::getInstance()->getRedirectLookup();
 			$redirectTarget = $redirectLookup->getRedirectTarget( $page );
 			if ( $redirectTarget ) {
@@ -1267,7 +1259,7 @@ abstract class ParsoidHandler extends Handler {
 	 * @return ProperPageIdentity
 	 * @throws HttpException
 	 */
-	private function getPageConfigToIdentity( PageConfig $page ): ProperPageIdentity {
+	private function pageConfigToPageIdentity( PageConfig $page ): ProperPageIdentity {
 		$services = MediaWikiServices::getInstance();
 
 		$title = $page->getTitle();
