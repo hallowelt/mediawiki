@@ -847,6 +847,14 @@ return [
 				],
 			],
 			'CentralIdLookupProvider' => 'local',
+			'UserRegistrationProviders' => [
+				'local' => [
+					'class' => 'MediaWiki\\User\\Registration\\LocalUserRegistrationProvider',
+					'services' => [
+						0 => 'UserFactory',
+					],
+				],
+			],
 			'PasswordPolicy' => [
 				'policies' => [
 					'bureaucrat' => [
@@ -1050,6 +1058,7 @@ return [
 				'extendwatchlist' => 1,
 				'fancysig' => 0,
 				'forceeditsummary' => 0,
+				'forcesafemode' => 0,
 				'gender' => 'unknown',
 				'hidecategorization' => 1,
 				'hideminor' => 0,
@@ -2726,6 +2735,7 @@ return [
 			'RevertedTagMaxDepth' => 'integer',
 			'CentralIdLookupProviders' => 'object',
 			'CentralIdLookupProvider' => 'string',
+			'UserRegistrationProviders' => 'object',
 			'PasswordPolicy' => 'object',
 			'AuthManagerConfig' => [
 				0 => 'object',

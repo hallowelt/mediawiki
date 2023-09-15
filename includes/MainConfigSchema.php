@@ -49,6 +49,7 @@ use LocalRepo;
 use LogFormatter;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Settings\Source\JsonSchemaTrait;
+use MediaWiki\User\Registration\LocalUserRegistrationProvider;
 use MediaWikiSite;
 use MemcachedPeclBagOStuff;
 use MemcachedPhpBagOStuff;
@@ -6846,6 +6847,22 @@ class MainConfigSchema {
 	];
 
 	/**
+	 * User registration timestamp provider classes
+	 * @since 1.41
+	 */
+	public const UserRegistrationProviders = [
+		'default' => [
+			LocalUserRegistrationProvider::TYPE => [
+				'class' => LocalUserRegistrationProvider::class,
+				'services' => [
+					'UserFactory'
+				]
+			]
+		],
+		'type' => 'map',
+	];
+
+	/**
 	 * Password policy for the wiki.
 	 *
 	 * Structured as
@@ -7406,6 +7423,7 @@ class MainConfigSchema {
 				'extendwatchlist' => 1,
 				'fancysig' => 0,
 				'forceeditsummary' => 0,
+				'forcesafemode' => 0,
 				'gender' => 'unknown',
 				'hidecategorization' => 1,
 				'hideminor' => 0,
