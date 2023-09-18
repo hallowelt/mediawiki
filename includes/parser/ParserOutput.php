@@ -12,7 +12,6 @@ use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
-use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\ParserOutputFlags;
 use MediaWiki\Parser\ParserOutputStringSets;
 use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
@@ -189,11 +188,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @var array JavaScript config variable for mw.config combined with this page.
 	 */
 	private $mJsConfigVars = [];
-
-	/**
-	 * @var array[] Hook tags as per $wgParserOutputHooks.
-	 */
-	private $mOutputHooks = [];
 
 	/**
 	 * @var array<string,int> Warning text to be returned to the user.
@@ -690,16 +684,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/**
 	 * Return the names of the categories on this page.
-	 * @return array<string>
-	 * @deprecated since 1.38, use ::getCategoryNames() instead.
-	 */
-	public function getCategoryLinks() {
-		wfDeprecated( __METHOD__, '1.38' );
-		return $this->getCategoryNames();
-	}
-
-	/**
-	 * Return the names of the categories on this page.
 	 * Unlike ::getCategories(), sort keys are *not* included in the
 	 * return value.
 	 * @return array<string> The names of the categories
@@ -838,15 +822,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		return $result;
 	}
 
-	/**
-	 * @return array
-	 * @deprecated since 1.38; should be done in the OutputPageParserOutput
-	 * hook (T292321).
-	 */
-	public function getOutputHooks(): array {
-		return (array)$this->mOutputHooks;
-	}
-
 	public function getWarnings(): array {
 		return array_keys( $this->mWarnings );
 	}
@@ -940,14 +915,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	public function setLanguageLinks( $ll ) {
 		return wfSetVar( $this->mLanguageLinks, $ll );
-	}
-
-	/**
-	 * @deprecated since 1.38, use ::setCategories() instead.
-	 */
-	public function setCategoryLinks( $cl ) {
-		wfDeprecated( __METHOD__, '1.38' );
-		return wfSetVar( $this->mCategories, $cl );
 	}
 
 	public function setTitleText( $t ) {
@@ -1067,17 +1034,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			->inContentLanguage() // because this ends up in cache
 			->text();
 		$this->mWarnings[$s] = 1;
-	}
-
-	/**
-	 * @param callable $hook
-	 * @param mixed $data
-	 * @deprecated since 1.38; should be done in the OutputPageParserOutput
-	 * hook (T292321).
-	 */
-	public function addOutputHook( $hook, $data = false ): void {
-		wfDeprecated( __METHOD__, '1.38' );
-		$this->mOutputHooks[] = [ $hook, $data ];
 	}
 
 	public function setNewSection( $value ): void {
@@ -1364,29 +1320,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	}
 
 	/**
-	 * Add a tracking category, getting the title from a system message,
-	 * or print a debug message if the title is invalid.
-	 *
-	 * Any message used with this function should be registered so it will
-	 * show up on Special:TrackingCategories. Core messages should be added
-	 * to TrackingCategories::CORE_TRACKING_CATEGORIES, and extensions
-	 * should add to "TrackingCategories" in their extension.json.
-	 *
-	 * @param string $msg Message key
-	 * @param PageReference $page the page which is being tracked
-	 *        (used to require a Title until 1.38)
-	 * @return bool Whether the addition was successful
-	 * @since 1.25
-	 * @deprecated since 1.38, use Parser::addTrackingCategory or
-	 *   TrackingCategories::addTrackingCategory() instead
-	 */
-	public function addTrackingCategory( $msg, PageReference $page ): bool {
-		wfDeprecated( __METHOD__, '1.38' );
-		$trackingCategories = MediaWikiServices::getInstance()->getTrackingCategories();
-		return $trackingCategories->addTrackingCategory( $this, $msg, $page );
-	}
-
-	/**
 	 * Override the title to be used for display
 	 *
 	 * @note this is assumed to have been validated
@@ -1515,50 +1448,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 */
 	public function getAllFlags(): array {
 		return array_keys( $this->mFlags );
-	}
-
-	/**
-	 * Sets a page property to be stored in the page_props database table.
-	 * @param string $name
-	 * @param int|float|string|bool|null $value
-	 * @deprecated since 1.38, renamed to ::setPageProperty()
-	 */
-	public function setProperty( $name, $value ): void {
-		wfDeprecated( __METHOD__, '1.38' );
-		$this->setPageProperty( $name, $value );
-	}
-
-	/**
-	 * @param string $name The property name to look up.
-	 *
-	 * @return mixed|bool The value previously set using setPageProperty(). False if null or no value
-	 * was set for the given property name.
-	 *
-	 * @note You need to use getPageProperties() to check for boolean and null properties.
-	 * @deprecated since 1.38, renamed to ::getPageProperty() and returns `null`
-	 *  if no value was set.
-	 */
-	public function getProperty( $name ) {
-		wfDeprecated( __METHOD__, '1.38' );
-		return $this->getPageProperty( $name ) ?? false;
-	}
-
-	/**
-	 * @param string $name
-	 * @deprecated since 1.38, renamed to ::unsetPageProperty()
-	 */
-	public function unsetProperty( $name ): void {
-		wfDeprecated( __METHOD__, '1.38' );
-		$this->unsetPageProperty( $name );
-	}
-
-	/**
-	 * @return array
-	 * @deprecated since 1.38, renamed to ::getPageProperties()
-	 */
-	public function getProperties() {
-		wfDeprecated( __METHOD__, '1.38' );
-		return $this->getPageProperties();
 	}
 
 	/**
@@ -2271,7 +2160,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @param ParserOutput $source
 	 */
 	public function mergeInternalMetaDataFrom( ParserOutput $source ): void {
-		$this->mOutputHooks = self::mergeList( $this->mOutputHooks, $source->getOutputHooks() );
 		$this->mWarnings = self::mergeMap( $this->mWarnings, $source->mWarnings ); // don't use getter
 		$this->mTimestamp = $this->useMaxValue( $this->mTimestamp, $source->getTimestamp() );
 
@@ -2681,7 +2569,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			'Modules' => $this->mModules,
 			'ModuleStyles' => $this->mModuleStyles,
 			'JsConfigVars' => $this->mJsConfigVars,
-			'OutputHooks' => $this->mOutputHooks,
 			'Warnings' => $this->mWarnings,
 			'Sections' => $this->getSections(),
 			'Properties' => self::detectAndEncodeBinary( $this->mProperties ),
@@ -2771,7 +2658,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		$this->mModules = $jsonData['Modules'];
 		$this->mModuleStyles = $jsonData['ModuleStyles'];
 		$this->mJsConfigVars = $jsonData['JsConfigVars'];
-		$this->mOutputHooks = $jsonData['OutputHooks'];
 		$this->mWarnings = $jsonData['Warnings'];
 		$this->mFlags = $jsonData['Flags'];
 		if (
