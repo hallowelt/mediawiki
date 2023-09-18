@@ -23,10 +23,10 @@
 
 namespace MediaWiki\Specials;
 
-use CategoryPager;
 use MediaWiki\Cache\LinkBatchFactory;
 use MediaWiki\Html\Html;
-use SpecialPage;
+use MediaWiki\Pager\CategoryPager;
+use MediaWiki\SpecialPage\SpecialPage;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

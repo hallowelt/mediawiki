@@ -23,7 +23,6 @@
 
 namespace MediaWiki\Specials;
 
-use BlockListPager;
 use HTMLForm;
 use MediaWiki\Block\BlockActionInfo;
 use MediaWiki\Block\BlockRestrictionStore;
@@ -32,7 +31,8 @@ use MediaWiki\Cache\LinkBatchFactory;
 use MediaWiki\CommentFormatter\RowCommentFormatter;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Html\Html;
-use SpecialPage;
+use MediaWiki\Pager\BlockListPager;
+use MediaWiki\SpecialPage\SpecialPage;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

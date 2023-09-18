@@ -32,12 +32,12 @@ use MediaWiki\CommentFormatter\CommentFormatter;
 use MediaWiki\Html\Html;
 use MediaWiki\Linker\Linker;
 use MediaWiki\Page\MergeHistoryFactory;
+use MediaWiki\Pager\MergeHistoryPager;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\RevisionStore;
+use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
-use MergeHistoryPager;
-use SpecialPage;
 use Wikimedia\Rdbms\IConnectionProvider;
 use Xml;
 

@@ -23,11 +23,9 @@
 
 namespace MediaWiki\Specials;
 
-use ContribsPager;
 use ExternalUserNames;
 use HTMLForm;
 use HTMLMultiSelectField;
-use IncludableSpecialPage;
 use LogEventsList;
 use MediaWiki\Block\DatabaseBlock;
 use MediaWiki\Cache\LinkBatchFactory;
@@ -36,8 +34,11 @@ use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Html\Html;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Pager\ContribsPager;
 use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Revision\RevisionStore;
+use MediaWiki\SpecialPage\IncludableSpecialPage;
+use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Specials\Contribute\ContributeFactory;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
@@ -51,7 +52,6 @@ use MediaWiki\User\UserRigorOptions;
 use MWException;
 use NamespaceInfo;
 use PoolCounterWorkViaCallback;
-use SpecialPage;
 use User;
 use Wikimedia\IPUtils;
 use Wikimedia\Rdbms\IConnectionProvider;

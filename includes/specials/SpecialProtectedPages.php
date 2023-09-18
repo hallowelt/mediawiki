@@ -31,9 +31,9 @@ use MediaWiki\Cache\LinkBatchFactory;
 use MediaWiki\CommentFormatter\RowCommentFormatter;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Pager\ProtectedPagesPager;
 use MediaWiki\Permissions\RestrictionStore;
-use ProtectedPagesPager;
-use SpecialPage;
+use MediaWiki\SpecialPage\SpecialPage;
 use UserCache;
 use Wikimedia\Rdbms\IConnectionProvider;
 

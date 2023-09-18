@@ -23,7 +23,6 @@
 
 namespace MediaWiki\Specials;
 
-use DeletedContribsPager;
 use HTMLForm;
 use LogEventsList;
 use MediaWiki\Block\DatabaseBlock;
@@ -31,14 +30,15 @@ use MediaWiki\Cache\LinkBatchFactory;
 use MediaWiki\CommentFormatter\CommentFormatter;
 use MediaWiki\Html\FormOptions;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Pager\DeletedContribsPager;
 use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Revision\RevisionFactory;
+use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserNamePrefixSearch;
 use MediaWiki\User\UserNameUtils;
 use MediaWiki\User\UserRigorOptions;
 use NamespaceInfo;
-use SpecialPage;
 use User;
 use Wikimedia\IPUtils;
 use Wikimedia\Rdbms\IConnectionProvider;
