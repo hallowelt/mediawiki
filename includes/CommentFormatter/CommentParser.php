@@ -7,21 +7,21 @@ use HtmlArmor;
 use Language;
 use LinkBatch;
 use LinkCache;
-use MalformedTitleException;
 use MediaWiki\Cache\LinkBatchFactory;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Linker\Linker;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
+use MediaWiki\Title\MalformedTitleException;
+use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleParser;
 use MediaWiki\Title\TitleValue;
 use MediaWiki\WikiMap\WikiMap;
-use NamespaceInfo;
 use Parser;
 use RepoGroup;
 use StringUtils;
-use TitleParser;
 
 /**
  * The text processing backend for CommentFormatter.

@@ -11,7 +11,9 @@ use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\Parser\MagicWord;
 use MediaWiki\Parser\MagicWordFactory;
 use MediaWiki\Preferences\SignatureValidatorFactory;
+use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleFormatter;
 use MediaWiki\User\UserNameUtils;
 use MediaWiki\Utils\UrlUtils;
 
@@ -86,7 +88,7 @@ class ParserTest extends MediaWikiIntegrationTestCase {
 		foreach ( $refObject->getProperties() as $prop ) {
 			$prop->setAccessible( true );
 			foreach ( $args as $idx => $mockTest ) {
-				if ( $prop->getValue( $parser ) === $mockTest ) {
+				if ( $prop->isInitialized( $parser ) && $prop->getValue( $parser ) === $mockTest ) {
 					unset( $args[$idx] );
 				}
 			}
