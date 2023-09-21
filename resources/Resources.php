@@ -20,10 +20,12 @@
  * @file
  */
 
+use MediaWiki\Config\Config;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Languages\LanguageNameUtils;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Parser\Sanitizer;
 use MediaWiki\ResourceLoader as RL;
 use MediaWiki\ResourceLoader\CodexModule;
 use MediaWiki\ResourceLoader\Context;

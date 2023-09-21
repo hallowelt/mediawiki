@@ -1,7 +1,9 @@
 <?php
 
+use MediaWiki\Config\HashConfig;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Parser\Sanitizer;
 
 class RemexDriverTest extends MediaWikiUnitTestCase {
 	private static $remexTidyTestData = [
