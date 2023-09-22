@@ -100,14 +100,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	private $mPageIsRedirectField = false;
 
 	/**
-	 * Boolean if the redirect status is definitively known.
-	 * If this is true, getRedirectTarget() must return non-null.
-	 *
-	 * @var bool|null
-	 */
-	private $mHasRedirectTarget = null;
-
-	/**
 	 * The cache of the redirect target
 	 *
 	 * @var Title|null
@@ -118,11 +110,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	 * @var bool
 	 */
 	private $mIsNew = false;
-
-	/**
-	 * @var bool
-	 */
-	private $mIsRedirect = false;
 
 	/**
 	 * @var int|false False means "not loaded"
@@ -290,7 +277,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	protected function clearCacheFields() {
 		$this->mId = null;
 		$this->mRedirectTarget = null; // Title object if set
-		$this->mHasRedirectTarget = null;
 		$this->mPageIsRedirectField = false;
 		$this->mLastRevision = null; // Latest revision
 		$this->mTouched = '19700101000000';
@@ -298,7 +284,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 		$this->mLinksUpdated = '19700101000000';
 		$this->mTimestamp = '';
 		$this->mIsNew = false;
-		$this->mIsRedirect = false;
 		$this->mLatest = false;
 		// T59026: do not clear $this->derivedDataUpdater since getDerivedDataUpdater() already
 		// checks the requested rev ID and content against the cached one. For most
@@ -514,7 +499,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 				: MWTimestamp::convert( TS_MW, $data->page_links_updated );
 			$this->mPageIsRedirectField = (bool)$data->page_is_redirect;
 			$this->mIsNew = (bool)( $data->page_is_new ?? 0 );
-			$this->mIsRedirect = (bool)( $data->page_is_redirect ?? 0 );
 			$this->mLatest = intval( $data->page_latest );
 			// T39225: $latest may no longer match the cached latest RevisionRecord object.
 			// Double-check the ID of any cached latest RevisionRecord object for consistency.
@@ -579,11 +563,7 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	 * @return bool
 	 */
 	public function isRedirect() {
-		if ( !$this->mDataLoaded ) {
-			$this->loadPageData();
-		}
-
-		return $this->mIsRedirect;
+		return $this->getRedirectTarget() !== null;
 	}
 
 	/**
@@ -984,7 +964,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	 * If this page is a redirect, get its target
 	 *
 	 * The target will be fetched from the redirect table if possible.
-	 * If this page doesn't have an entry there, call insertRedirect()
 	 *
 	 * @deprecated since 1.38 Use RedirectLookup::getRedirectTarget() instead.
 	 *
@@ -993,9 +972,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	public function getRedirectTarget() {
 		if ( $this->mRedirectTarget !== null ) {
 			return $this->mRedirectTarget;
-		}
-		if ( $this->mHasRedirectTarget === false ) {
-			return null;
 		}
 		if ( !$this->mDataLoaded ) {
 			$this->loadPageData();
@@ -1012,31 +988,37 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 			->where( [ 'rd_from' => $this->getId() ] )
 			->caller( __METHOD__ )->fetchRow();
 
-		// rd_fragment and rd_interwiki were added later, populate them if empty
-		if ( $row && $row->rd_fragment !== null && $row->rd_interwiki !== null ) {
-			// (T203942) We can't redirect to Media namespace because it's virtual.
-			// We don't want to modify Title objects farther down the
-			// line. So, let's fix this here by changing to File namespace.
-			if ( $row->rd_namespace == NS_MEDIA ) {
-				$namespace = NS_FILE;
-			} else {
-				$namespace = $row->rd_namespace;
-			}
-			// T261347: be defensive when fetching data from the redirect table.
-			// Use Title::makeTitleSafe(), and if that returns null, ignore the
-			// row. In an ideal world, the DB would be cleaned up after a
-			// namespace change, but nobody could be bothered to do that.
-			$this->mRedirectTarget = Title::makeTitleSafe(
-				$namespace, $row->rd_title,
-				$row->rd_fragment, $row->rd_interwiki
-			);
-			$this->mHasRedirectTarget = $this->mRedirectTarget !== null;
+		if ( !$row ) {
+			// Incomplete database migration from 2008 due to database corruption (T346290).
+			$this->mRedirectTarget = null;
 			return $this->mRedirectTarget;
 		}
 
-		// This page doesn't have an entry in the redirect table
-		$this->mRedirectTarget = $this->insertRedirect();
-		$this->mHasRedirectTarget = $this->mRedirectTarget !== null;
+		if ( $row->rd_fragment === null && $row->rd_interwiki === null ) {
+			// Incomplete database migration from 2011 due to database corruption (T346290).
+			// We could still return the title from this row, but let's not do it, as these rows
+			// should be dropped when these fields are made NOT NULL in a future database migration.
+			$this->mRedirectTarget = null;
+			return $this->mRedirectTarget;
+		}
+
+		// (T203942) We can't redirect to Media namespace because it's virtual.
+		// We don't want to modify Title objects farther down the
+		// line. So, let's fix this here by changing to File namespace.
+		if ( $row->rd_namespace == NS_MEDIA ) {
+			$namespace = NS_FILE;
+		} else {
+			$namespace = $row->rd_namespace;
+		}
+
+		// T261347: be defensive when fetching data from the redirect table.
+		// Use Title::makeTitleSafe(), and if that returns null, ignore the
+		// row. In an ideal world, the DB would be cleaned up after a
+		// namespace change, but nobody could be bothered to do that.
+		$this->mRedirectTarget = Title::makeTitleSafe(
+			$namespace, $row->rd_title,
+			$row->rd_fragment, $row->rd_interwiki
+		);
 		return $this->mRedirectTarget;
 	}
 
@@ -1046,9 +1028,13 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	 * The database update will be deferred via DeferredUpdates
 	 *
 	 * Don't call this function directly unless you know what you're doing.
+	 *
+	 * @deprecated since 1.41
 	 * @return Title|null Title object or null if not a redirect
 	 */
 	public function insertRedirect() {
+		wfDeprecated( __METHOD__, '1.41' );
+
 		$content = $this->getContent();
 		$retval = $content ? $content->getRedirectTarget() : null;
 		if ( !$retval ) {
@@ -1464,10 +1450,8 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 			$this->updateRedirectOn( $dbw, $rt, $lastRevIsRedirect );
 			$this->setLastEdit( $revision );
 			$this->mRedirectTarget = null;
-			$this->mHasRedirectTarget = null;
 			$this->mPageIsRedirectField = (bool)$rt;
 			$this->mIsNew = $isNew;
-			$this->mIsRedirect = $isRedirect;
 
 			// Update the LinkCache.
 			$linkCache = MediaWikiServices::getInstance()->getLinkCache();
@@ -3253,7 +3237,7 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 				'page_title' => $this->mTitle->getDBkey(),
 				'page_latest' => $this->mLatest,
 				'page_is_new' => $this->mIsNew ? 1 : 0,
-				'page_is_redirect' => $this->mIsRedirect ? 1 : 0,
+				'page_is_redirect' => $this->mPageIsRedirectField ? 1 : 0,
 				'page_touched' => $this->getTouched(),
 				'page_lang' => $this->getLanguage()
 			],
