@@ -34,12 +34,8 @@ use UploadBase;
  * Functions related to the output of file content
  */
 class StreamFile {
-	// Do not send any HTTP headers unless requested by caller (e.g. body only)
-	/** @deprecated since 1.34 */
-	public const STREAM_HEADLESS = HTTPFileStreamer::STREAM_HEADLESS;
-	// Do not try to tear down any PHP output buffers
-	/** @deprecated since 1.34 */
-	public const STREAM_ALLOW_OB = HTTPFileStreamer::STREAM_ALLOW_OB;
+	/** @var string */
+	private const UNKNOWN_CONTENT_TYPE = 'unknown/unknown';
 
 	/**
 	 * Stream a file to the browser, adding all the headings and fun stuff.
@@ -102,7 +98,7 @@ class StreamFile {
 					return 'image/jpeg';
 			}
 
-			return 'unknown/unknown';
+			return self::UNKNOWN_CONTENT_TYPE;
 		}
 
 		$magic = MediaWikiServices::getInstance()->getMimeAnalyzer();
@@ -125,17 +121,17 @@ class StreamFile {
 			$mimeTypeExclusions = $mainConfig->get( MainConfigNames::MimeTypeExclusions );
 			[ , $extList ] = UploadBase::splitExtensions( $filename );
 			if ( UploadBase::checkFileExtensionList( $extList, $prohibitedFileExtensions ) ) {
-				return 'unknown/unknown';
+				return self::UNKNOWN_CONTENT_TYPE;
 			}
 			if (
 				$checkFileExtensions &&
 				$strictFileExtensions &&
 				!UploadBase::checkFileExtensionList( $extList, $fileExtensions )
 			) {
-				return 'unknown/unknown';
+				return self::UNKNOWN_CONTENT_TYPE;
 			}
 			if ( $verifyMimeType && $type !== null && in_array( strtolower( $type ), $mimeTypeExclusions ) ) {
-				return 'unknown/unknown';
+				return self::UNKNOWN_CONTENT_TYPE;
 			}
 		}
 		return $type;
