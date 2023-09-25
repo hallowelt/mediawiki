@@ -225,12 +225,16 @@ class Html {
 	 * content model.
 	 *
 	 * @param string $element The element's name, e.g., 'a'
+	 * @param-taint $element tainted
 	 * @param array $attribs Associative array of attributes, e.g., [
 	 *   'href' => 'https://www.mediawiki.org/' ]. See expandAttributes() for
 	 *   further documentation.
+	 * @param-taint $attribs escapes_html
 	 * @param string $contents The raw HTML contents of the element: *not*
 	 *   escaped!
+	 * @param-taint $contents tainted
 	 * @return string Raw HTML
+	 * @return-taint escaped
 	 */
 	public static function rawElement( $element, $attribs = [], $contents = '' ) {
 		$start = self::openElement( $element, $attribs );
@@ -246,12 +250,16 @@ class Html {
 	 * Xml::element()).
 	 *
 	 * @param string $element Name of the element, e.g., 'a'
+	 * @param-taint $element tainted
 	 * @param array $attribs Associative array of attributes, e.g., [
 	 *   'href' => 'https://www.mediawiki.org/' ]. See expandAttributes() for
 	 *   further documentation.
+	 * @param-taint $attribs escapes_html
 	 * @param string $contents
+	 * @param-taint $contents escapes_html
 	 *
 	 * @return string
+	 * @return-taint escaped
 	 */
 	public static function element( $element, $attribs = [], $contents = '' ) {
 		return self::rawElement(
@@ -1153,8 +1161,10 @@ class Html {
 	 *
 	 * @since 1.41 (previously on {@link Xml})
 	 * @param mixed $value The value being encoded. Can be any type except a resource.
+	 * @param-taint $value escapes_html
 	 * @param bool $pretty If true, add non-significant whitespace to improve readability.
 	 * @return string|false String if successful; false upon failure
+	 * @return-taint none
 	 */
 	public static function encodeJsVar( $value, $pretty = false ) {
 		if ( $value instanceof HtmlJsCode ) {
@@ -1170,9 +1180,12 @@ class Html {
 	 * @since 1.41 (previously on {@link Xml} since 1.17)
 	 * @param string $name The name of the function to call, or a JavaScript expression
 	 *    which evaluates to a function object which is called.
+	 * @param-taint $name tainted
 	 * @param array $args The arguments to pass to the function.
+	 * @param-taint $args escapes_html
 	 * @param bool $pretty If true, add non-significant whitespace to improve readability.
 	 * @return string|false String if successful; false upon failure
+	 * @return-taint none
 	 */
 	public static function encodeJsCall( $name, $args, $pretty = false ) {
 		$encodedArgs = self::encodeJsList( $args, $pretty );
