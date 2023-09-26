@@ -1398,12 +1398,8 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 		// NOTE: when doing that, make sure cached fields get reset in doUserEditContent,
 		// and in the compat stub!
 
-		// Assertion to try to catch T92046
-		if ( (int)$revision->getId() === 0 ) {
-			throw new InvalidArgumentException(
-				__METHOD__ . ': revision has ID ' . var_export( $revision->getId(), true )
-			);
-		}
+		$revId = $revision->getId();
+		Assert::parameter( $revId > 0, '$revision->getId()', 'must be > 0' );
 
 		$content = $revision->getContent( SlotRecord::MAIN );
 		$len = $content ? $content->getSize() : 0;
@@ -1417,9 +1413,6 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 			// An extra check against threads stepping on each other
 			$conditions['page_latest'] = $lastRevision;
 		}
-
-		$revId = $revision->getId();
-		Assert::parameter( $revId > 0, '$revision->getId()', 'must be > 0' );
 
 		$model = $revision->getSlot( SlotRecord::MAIN, RevisionRecord::RAW )->getModel();
 
@@ -1473,9 +1466,8 @@ class WikiPage implements Page, IDBAccessObject, PageRecord {
 	 * @param null|bool $lastRevIsRedirect If given, will optimize adding and
 	 *   removing rows in redirect table.
 	 * @return bool True on success, false on failure
-	 * @internal
 	 */
-	public function updateRedirectOn( $dbw, $redirectTitle, $lastRevIsRedirect = null ) {
+	private function updateRedirectOn( $dbw, $redirectTitle, $lastRevIsRedirect = null ) {
 		// Always update redirects (target link might have changed)
 		// Update/Insert if we don't know if the last revision was a redirect or not
 		// Delete if changing from redirect to non-redirect
