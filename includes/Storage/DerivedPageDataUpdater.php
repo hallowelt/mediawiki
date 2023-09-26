@@ -1361,11 +1361,8 @@ class DerivedPageDataUpdater implements IDBAccessObject, LoggerAwareInterface, P
 			if ( $this->options['changed'] ) {
 				// The edit created a new revision
 				$this->pageState['oldId'] = $revision->getParentId();
-
-				if ( isset( $this->options['oldrevision'] ) ) {
-					$rev = $this->options['oldrevision'];
-					$this->pageState['oldRevision'] = $rev;
-				}
+				// Old revision is null if this is a page creation
+				$this->pageState['oldRevision'] = $this->options['oldrevision'] ?? null;
 			} else {
 				// This is a null-edit, so the old revision IS the new revision!
 				$this->pageState['oldId'] = $revision->getId();
@@ -1501,7 +1498,10 @@ class DerivedPageDataUpdater implements IDBAccessObject, LoggerAwareInterface, P
 		$linksUpdate = new LinksUpdate(
 			$title,
 			$parserOutput,
-			$recursive
+			$recursive,
+			// Redirect target may have changed if the page is or was a redirect.
+			// (We can't check if it was definitely changed without additional queries.)
+			$this->isRedirect() || $this->wasRedirect()
 		);
 		if ( $this->options['moved'] ) {
 			// @phan-suppress-next-line PhanTypeMismatchArgument Oldtitle is set along with moved
