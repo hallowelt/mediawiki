@@ -1263,7 +1263,7 @@ class MediaWiki {
 			$query, $this->config->get( MainConfigNames::SecretKey ) );
 
 		$errno = $errstr = null;
-		$info = wfParseUrl( $this->config->get( MainConfigNames::CanonicalServer ) );
+		$info = $services->getUrlUtils()->parse( $this->config->get( MainConfigNames::CanonicalServer ) );
 		$host = $info ? $info['host'] : null;
 		$port = 80;
 		if ( isset( $info['scheme'] ) && $info['scheme'] == 'https' ) {
@@ -1291,7 +1291,7 @@ class MediaWiki {
 			$url = $special->getPageTitle()->getCanonicalURL( $query );
 			$req = (
 				"POST $url HTTP/1.1\r\n" .
-				"Host: {$info['host']}\r\n" .
+				"Host: $host\r\n" .
 				"Connection: Close\r\n" .
 				"Content-Length: 0\r\n\r\n"
 			);
