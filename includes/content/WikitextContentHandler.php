@@ -27,6 +27,7 @@ use MediaWiki\Content\Renderer\ContentParseParams;
 use MediaWiki\Content\Transform\PreloadTransformParams;
 use MediaWiki\Content\Transform\PreSaveTransformParams;
 use MediaWiki\Languages\LanguageNameUtils;
+use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Parser\MagicWordFactory;
 use MediaWiki\Parser\ParserOutputFlags;
 use MediaWiki\Parser\Parsoid\ParsoidParserFactory;
@@ -54,6 +55,9 @@ class WikitextContentHandler extends TextContentHandler {
 	/** @var LanguageNameUtils */
 	private $languageNameUtils;
 
+	/** @var LinkRenderer */
+	private $linkRenderer;
+
 	/** @var MagicWordFactory */
 	private $magicWordFactory;
 
@@ -66,6 +70,7 @@ class WikitextContentHandler extends TextContentHandler {
 	 * @param ParserFactory $parserFactory
 	 * @param GlobalIdGenerator $globalIdGenerator
 	 * @param LanguageNameUtils $languageNameUtils
+	 * @param LinkRenderer $linkRenderer
 	 * @param MagicWordFactory $magicWordFactory
 	 * @param ParsoidParserFactory $parsoidParserFactory
 	 */
@@ -75,6 +80,7 @@ class WikitextContentHandler extends TextContentHandler {
 		ParserFactory $parserFactory,
 		GlobalIdGenerator $globalIdGenerator,
 		LanguageNameUtils $languageNameUtils,
+		LinkRenderer $linkRenderer,
 		MagicWordFactory $magicWordFactory,
 		ParsoidParserFactory $parsoidParserFactory
 	) {
@@ -84,6 +90,7 @@ class WikitextContentHandler extends TextContentHandler {
 		$this->parserFactory = $parserFactory;
 		$this->globalIdGenerator = $globalIdGenerator;
 		$this->languageNameUtils = $languageNameUtils;
+		$this->linkRenderer = $linkRenderer;
 		$this->magicWordFactory = $magicWordFactory;
 		$this->parsoidParserFactory = $parsoidParserFactory;
 	}
@@ -183,6 +190,7 @@ class WikitextContentHandler extends TextContentHandler {
 			$this->parserFactory,
 			$this->globalIdGenerator,
 			$this->languageNameUtils,
+			$this->linkRenderer,
 			$this->magicWordFactory,
 			$this->parsoidParserFactory
 		);
@@ -332,6 +340,48 @@ class WikitextContentHandler extends TextContentHandler {
 	}
 
 	/**
+	 * Extract the redirect target and the remaining text on the page.
+	 *
+	 * @since 1.41 (used to be a method on WikitextContent since 1.23)
+	 *
+	 * @return array List of two elements: LinkTarget|null and WikitextContent object.
+	 */
+	public function extractRedirectTargetAndText( WikitextContent $content ): array {
+		$redir = $this->magicWordFactory->get( 'redirect' );
+		$text = ltrim( $content->getText() );
+
+		if ( !$redir->matchStartAndRemove( $text ) ) {
+			return [ null, $content ];
+		}
+
+		// Extract the first link and see if it's usable
+		// Ensure that it really does come directly after #REDIRECT
+		// Some older redirects included a colon, so don't freak about that!
+		$m = [];
+		if ( preg_match( '!^\s*:?\s*\[{2}(.*?)(?:\|.*?)?\]{2}\s*!', $text, $m ) ) {
+			// Strip preceding colon used to "escape" categories, etc.
+			// and URL-decode links
+			if ( strpos( $m[1], '%' ) !== false ) {
+				// Match behavior of inline link parsing here;
+				$m[1] = rawurldecode( ltrim( $m[1], ':' ) );
+			}
+
+			// TODO: Move isValidRedirectTarget() out Title, so we can use a TitleValue here.
+			$title = $this->titleFactory->newFromText( $m[1] );
+
+			// If the title is a redirect to bad special pages or is invalid, return null
+			if ( !$title instanceof Title || !$title->isValidRedirectTarget() ) {
+				return [ null, $content ];
+			}
+
+			$remainingContent = new WikitextContent( substr( $text, strlen( $m[0] ) ) );
+			return [ $title, $remainingContent ];
+		}
+
+		return [ null, $content ];
+	}
+
+	/**
 	 * Returns a ParserOutput object resulting from parsing the content's text
 	 * using the global Parser service.
 	 *
@@ -350,12 +400,14 @@ class WikitextContentHandler extends TextContentHandler {
 		$parserOptions = $cpoParams->getParserOptions();
 		$revId = $cpoParams->getRevId();
 
-		[ $redir, $text ] = $content->getRedirectTargetAndText();
-		if ( $parserOptions->getUseParsoid() && !$redir ) {
+		[ $redir, $contentWithoutRedirect ] = $this->extractRedirectTargetAndText( $content );
+		if ( $parserOptions->getUseParsoid() ) {
 			$parser = $this->parsoidParserFactory->create();
 		} else {
 			$parser = $this->parserFactory->getInstance();
 		}
+
+		$text = $contentWithoutRedirect->getText();
 		$parserOutput = $parser
 			->parse( $text, $title, $parserOptions, true, true, $revId );
 
@@ -371,9 +423,10 @@ class WikitextContentHandler extends TextContentHandler {
 			// Make sure to include the redirect link in pagelinks
 			$parserOutput->addLink( $redir );
 			if ( $cpoParams->getGenerateHtml() ) {
-				$redirTarget = $content->getRedirectTarget();
 				$parserOutput->setRedirectHeader(
-					Article::getRedirectHeaderHtml( $title->getPageLanguage(), $redirTarget, false )
+					$this->linkRenderer->makeRedirectHeader(
+						$title->getPageLanguage(), $redir, false
+					)
 				);
 				$parserOutput->addModuleStyles( [ 'mediawiki.action.view.redirectPage' ] );
 			} else {
