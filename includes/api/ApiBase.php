@@ -25,7 +25,6 @@ use MediaWiki\Api\Validator\SubmoduleDef;
 use MediaWiki\Block\Block;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\Language\RawMessage;
-use MediaWiki\Linker\LinkTarget;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageIdentity;
@@ -1625,18 +1624,12 @@ abstract class ApiBase extends ContextSource {
 	 *
 	 * @since 1.29
 	 * @param string|string[] $rights
-	 * @param User|null $user deprecated since 1.36
 	 * @throws ApiUsageException if the user doesn't have any of the rights.
 	 *  The error message is based on $rights[0].
 	 */
-	public function checkUserRightsAny( $rights, $user = null ) {
-		$authority = $this->getAuthority();
-		if ( $user !== null ) {
-			wfDeprecatedMsg( __METHOD__ . ': $user parameter is deprecated', '1.36' );
-			$authority = $user;
-		}
+	public function checkUserRightsAny( $rights ) {
 		$rights = (array)$rights;
-		if ( !$authority->isAllowedAny( ...$rights ) ) {
+		if ( !$this->getAuthority()->isAllowedAny( ...$rights ) ) {
 			$this->dieWithError( [ 'apierror-permissiondenied', $this->msg( "action-{$rights[0]}" ) ] );
 		}
 	}
@@ -1644,7 +1637,7 @@ abstract class ApiBase extends ContextSource {
 	/**
 	 * Helper function for permission-denied errors.
 	 *
-	 * @param PageIdentity|LinkTarget $pageIdentity deprecated passing LinkTarget since 1.36
+	 * @param PageIdentity $pageIdentity
 	 * @param string|string[] $actions
 	 * @param array $options Additional options
 	 *  - user: (User) User to use rather than $this->getUser().
@@ -1658,15 +1651,10 @@ abstract class ApiBase extends ContextSource {
 	 * @since 1.36 deprecated passing LinkTarget as first parameter
 	 */
 	public function checkTitleUserPermissions(
-		$pageIdentity,
+		PageIdentity $pageIdentity,
 		$actions,
 		array $options = []
 	) {
-		if ( !$pageIdentity instanceof PageIdentity ) {
-			wfDeprecatedMsg( __METHOD__ . ': passing LinkTarget as $pageIdentity parameter is deprecated',
-				'1.36' );
-			$pageIdentity = Title::newFromLinkTarget( $pageIdentity );
-		}
 		$authority = $options['user'] ?? $this->getAuthority();
 		$status = new PermissionStatus();
 		foreach ( (array)$actions as $action ) {
