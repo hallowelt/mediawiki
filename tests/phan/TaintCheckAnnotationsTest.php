@@ -29,7 +29,10 @@ use MediaWiki\Status\Status;
 use MediaWiki\Title\TitleValue;
 use Shellbox\Command\UnboxedResult;
 use Shellbox\Shellbox;
+use Wikimedia\Rdbms\DeleteQueryBuilder;
+use Wikimedia\Rdbms\InsertQueryBuilder;
 use Wikimedia\Rdbms\SelectQueryBuilder;
+use Wikimedia\Rdbms\UpdateQueryBuilder;
 
 die( 'This file should never be loaded' );
 
@@ -348,10 +351,80 @@ class TaintCheckAnnotationsTest {
 		$sqb->conds( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
 		$sqb->conds( [ 'foo' => $_GET['a'] ] );// Safe
 
+		$sqb->caller( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+
 		echo $sqb->fetchResultSet();// @phan-suppress-current-line SecurityCheck-XSS
 		echo $sqb->fetchField();// @phan-suppress-current-line SecurityCheck-XSS
 		echo $sqb->fetchFieldValues();// @phan-suppress-current-line SecurityCheck-XSS
 		echo $sqb->fetchRow();// @phan-suppress-current-line SecurityCheck-XSS
+	}
+
+	function testInsertQueryBuilder( InsertQueryBuilder $iqb ) {
+		$iqb->table( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$iqb->insert( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$iqb->insertInto( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+
+		$iqb->row( $_GET['a'] );// TODO: Unsafe
+		$iqb->row( [ 'bar' => $_GET['a'] ] );// Safe
+		$iqb->row( [ $_GET['a'] => 'foo' ] );// TODO: Unsafe
+
+		$iqb->rows( $_GET['a'] );// TODO: Unsafe
+		$iqb->rows( [ $_GET['a'] ] );// TODO: Unsafe
+		$iqb->rows( [ $_GET['a'] => [] ] );// Safe
+		$iqb->rows( [ $_GET['a'] => [ 'foo' => $_GET['a'] ] ] );// Safe
+		$iqb->rows( [ $_GET['a'] => [ $_GET['a'] => 'foo' ] ] );// TODO: Unsafe
+
+		$iqb->set( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$iqb->set( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$iqb->set( [ 'x' => $_GET['a'] ] );// Safe
+
+		$iqb->andSet( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$iqb->andSet( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$iqb->andSet( [ 'x' => $_GET['a'] ] );// Safe
+
+		$iqb->caller( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+	}
+
+	function testUpdateQueryBuilder( UpdateQueryBuilder $uqb ) {
+		$uqb->table( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->update( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+
+		$uqb->where( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->where( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->where( [ 'foo' => $_GET['a'] ] );// Safe
+		$uqb->andWhere( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->andWhere( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->andWhere( [ 'foo' => $_GET['a'] ] );// Safe
+		$uqb->conds( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->conds( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->conds( [ 'foo' => $_GET['a'] ] );// Safe
+
+		$uqb->set( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->set( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->set( [ 'x' => $_GET['a'] ] );// Safe
+		$uqb->andSet( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->andSet( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$uqb->andSet( [ 'x' => $_GET['a'] ] );// Safe
+
+		$uqb->caller( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+	}
+
+	function testDeleteQueryBuilder( DeleteQueryBuilder $dqb ) {
+		$dqb->table( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->deleteFrom( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->delete( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+
+		$dqb->where( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->where( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->where( [ 'foo' => $_GET['a'] ] );// Safe
+		$dqb->andWhere( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->andWhere( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->andWhere( [ 'foo' => $_GET['a'] ] );// Safe
+		$dqb->conds( [ $_GET['a'] ] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->conds( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
+		$dqb->conds( [ 'foo' => $_GET['a'] ] );// Safe
+
+		$dqb->caller( $_GET['a'] );// @phan-suppress-current-line SecurityCheck-SQLInjection
 	}
 
 	function testMessage( Message $msg ) {
