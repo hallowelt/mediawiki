@@ -1613,7 +1613,9 @@ class MainConfigSchema {
 			# Other types that may be interpreted by some servers
 			'shtml', 'jhtml', 'pl', 'py', 'cgi',
 			# May contain harmful executables for Windows victims
-			'exe', 'scr', 'dll', 'msi', 'vbs', 'bat', 'com', 'pif', 'cmd', 'vxd', 'cpl'
+			'exe', 'scr', 'dll', 'msi', 'vbs', 'bat', 'com', 'pif', 'cmd', 'vxd', 'cpl',
+			# T341565
+			'xml',
 		],
 		'type' => 'list',
 	];
@@ -1639,7 +1641,9 @@ class MainConfigSchema {
 			# Windows metafile, client-side vulnerability on some systems
 			'application/x-msmetafile',
 			# Files that look like java files
-			'application/java'
+			'application/java',
+			# XML files generally - T341565
+			'application/xml', 'text/xml',
 		],
 		'type' => 'list',
 	];
@@ -4846,6 +4850,8 @@ class MainConfigSchema {
 			'copyright',
 			'history_copyright',
 			'googlesearch',
+			'youhavenewmessagesmanyusers',
+			'youhavenewmessages',
 		],
 		'type' => 'list',
 		'items' => [ 'type' => 'string', ],
