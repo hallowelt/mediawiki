@@ -812,6 +812,8 @@ because of Phabricator reports.
   warnings, use TitleArrayFromResults instead.
 * The MediaWikiIntegrationTestCase::$users has been deprecated. Use Authority
   if possible, or call ::getTestUser() or ::getTestSysop() directly.
+* WebRequest::isSafeRequest() and ::markAsSafeRequest() has been deprecated
+  and now emits deprecation warnings. Use ::hasSafeMethod() instead.
 * The tests/phpunit/phpunit.php entrypoint has been deprecated. PHPUnit
   tests should be run with composer, for example with the
   `composer phpunit:entrypoint` command.
@@ -1010,6 +1012,7 @@ because of Phabricator reports.
   - AbstractContent::getNativeData(), deprecated since 1.33
   - TablePager::getBody(), deprecated since 1.24
   - ContentHandler::getSlotDiffRendererInternal(), deprecated since 1.35
+  - ParserOutput::getCategories(), deprecated since 1.40
 * WikitextContent::getRedirectTargetAndText has been deprecated, use
   WikitextContentHandler::extractRedirectTargetAndText instead.
 * WikiPage::doDeleteArticleBatched, deprecated in 1.37, now emits deprecation
