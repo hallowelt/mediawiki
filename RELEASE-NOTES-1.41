@@ -106,8 +106,8 @@ For notes on 1.40.x and older releases, see HISTORY.
 * When $wgUseXssLanguage is set to true (enabled by default in
   DevelopmentSettings.php), ?uselang=x-xss can be used to easily test
   whether all messages are being escaped correctly.
-* Html::noticeBox accepts new optional parameters heading and iconClassName.
-  heading allows to pass an string as title and iconClassName overwrites the
+* Html::noticeBox accepts new optional parameters, 'heading' & 'iconClassName'.
+  'heading' allows to pass an string as title; 'iconClassName' overwrites the
   default info icon.
 * …
 
@@ -976,9 +976,6 @@ because of Phabricator reports.
   deprecation warnings from its factory functions.
 * MediaWiki\ResourceLoader\Module::getDeprecationInformation() is deprecated.
   Use ::getDeprecationWarning() instead.
-* Calling ParserOutput::setTOCHTML() inside the OutputPageParserOutput hook
-  as a means to toggle display of the TOC is deprecated.  Setting the
-  ParserOutputFlags::NO_TOC flag is a supported alternative.
 * Passing a Message to OutputPage::setPageTitle() is deprecated.
   Use ::setPageTitleMsg() instead (which escapes HTML metacharacters).
 * Passing arguments to OutputPage::prepareErrorPage() is deprecated.
