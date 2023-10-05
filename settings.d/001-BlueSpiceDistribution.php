@@ -96,10 +96,16 @@ if ( array_key_exists( 'semanticmediawiki', $GLOBALS['wgFooterIcons']['poweredby
 	$GLOBALS['wgFooterIcons']['poweredby'] = $footerIcons;
 }
 
-$defaultLogoPath = $GLOBALS['wgResourceBasePath'] . '/resources/assets/change-your-logo.svg';
+/**
+ * The name of the default logo changed with REL1_39 from
+ * wiki.png to change-your-logo.svg.
+ * The old name may be set in LocalSetings.php. This caused an issue
+ * when trying to set the BlueSpice logo.
+ */
+$assetsDir = $GLOBALS['wgResourceBasePath'] . '/resources/assets/';
 $blueSpiceLogoPath = "$bsImagesPath/bs_logo.png";
 
-if ( $GLOBALS['wgLogos']['1x'] === $defaultLogoPath ) {
+if ( strpos( $GLOBALS['wgLogos']['1x'], $assetsDir ) === 0 ) {
 	$GLOBALS['wgLogos'] = [ '1x' => $blueSpiceLogoPath ];
 }
 
@@ -108,7 +114,7 @@ if ( $GLOBALS['wgFavicon'] == '/favicon.ico' ){
 }
 
 unset( $bsImagesPath );
-unset( $defaultLogoPath );
+unset( $assetsDir );
 unset( $blueSpiceLogoPath );
 
 $GLOBALS['wgReservedUsernames'][] = 'BSMaintenance';
