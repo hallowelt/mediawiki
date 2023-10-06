@@ -709,7 +709,8 @@ return [
 			$srvCache,
 			$wanCache,
 			$services->getCriticalSectionProvider(),
-			$services->getStatsdDataFactory()
+			$services->getStatsdDataFactory(),
+			ExtensionRegistry::getInstance()->getAttribute( 'DatabaseVirtualDomains' )
 		);
 	},
 
@@ -2358,7 +2359,7 @@ return [
 	'WatchedItemQueryService' =>
 	static function ( MediaWikiServices $services ): WatchedItemQueryService {
 		return new WatchedItemQueryService(
-			$services->getDBLoadBalancer(),
+			$services->getDBLoadBalancerFactory(),
 			$services->getCommentStore(),
 			$services->getWatchedItemStore(),
 			$services->getHookContainer(),
