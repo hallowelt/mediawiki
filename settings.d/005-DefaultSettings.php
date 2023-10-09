@@ -4,7 +4,6 @@ if ( !wfIsWindows() ) {
 	$wgLocalTZoffset = date("Z") / 60;
 }
 $wgLocaltimezone = 'Europe/Berlin';
-$wgUrlProtocols[] = 'file://';
 $wgNamespacesWithSubpages[NS_MAIN] = true;
 $wgBlockDisablesLogin = true;
 $wgEnableUploads = true;
@@ -24,6 +23,8 @@ $GLOBALS['wgAllowJavaUploads'] = true;
 $GLOBALS['wgParserCacheType'] = CACHE_NONE;
 $GLOBALS['wgMetaNamespace'] = "Site";
 $GLOBALS['wgJobRunRate'] = 0;
+$GLOBALS['wgMaxUploadSize'] = 1024 * 1024 * 1024;
+$GLOBALS['wgAllowHTMLEmail'] = true;
 
 /**
  * Allow authentication extensions like "Auth_remoteuser", "SimpleSAMLphp" or
