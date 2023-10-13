@@ -482,12 +482,14 @@
 			{
 				"name": "rd_interwiki",
 				"type": "string",
-				"options": { "notnull": false, "length": 32, "default": null }
+				"options": { "notnull": false, "length": 32, "default": null },
+				"comment": "After T346290 all values have been computed and this field is never null. TODO: Mark as not null (T348029)."
 			},
 			{
 				"name": "rd_fragment",
 				"type": "binary",
-				"options": { "notnull": false, "length": 255, "default": null }
+				"options": { "notnull": false, "length": 255, "default": null },
+				"comment": "After T346290 all values have been computed and this field is never null. TODO: Mark as not null (T348029)."
 			}
 		],
 		"indexes": [
@@ -3292,7 +3294,7 @@
 			},
 			{
 				"name": "page_is_redirect",
-				"comment": "1 indicates the article is a redirect.",
+				"comment": "1 indicates the article is a redirect. If so, there is a row in the `redirect` table with rd_from=page_id, which contains the redirect target.",
 				"type": "mwtinyint",
 				"options": { "notnull": true, "unsigned": true, "default": 0 }
 			},
