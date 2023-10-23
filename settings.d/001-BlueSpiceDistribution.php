@@ -34,6 +34,7 @@ $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
 wfLoadExtension( 'ContentDroplets' );
 wfLoadExtension( 'FontAwesome' );
+wfLoadExtension( 'VisualEditorPlus' );
 
 $GLOBALS['wgGroupTypes'] = [
 	'*'                => 'implicit',
