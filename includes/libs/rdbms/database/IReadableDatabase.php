@@ -666,6 +666,20 @@ interface IReadableDatabase extends ISQLPlatform, DbQuoter, IDatabaseFlags {
 	public function decodeBlob( $b );
 
 	/**
+	 * See Expression::__construct()
+	 *
+	 * @since 1.42
+	 * @param string $field
+	 * @param-taint $field exec_sql
+	 * @param string $op One of '>', '<', '!=', '=', '>=', '<='
+	 * @param-taint $op exec_sql
+	 * @param string|int|float|null|bool|Blob|array $value
+	 * @param-taint $value escapes_sql
+	 * @return Expression
+	 */
+	public function expr( string $field, string $op, $value ): Expression;
+
+	/**
 	 * Get a debugging string that mentions the database type, the ID of this instance,
 	 * and the ID of any underlying connection resource or driver object if one is present
 	 *
