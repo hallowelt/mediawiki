@@ -51,49 +51,19 @@ class ParsoidOutputAccess {
 	 */
 	public const PARSOID_PARSER_CACHE_NAME = 'parsoid';
 
-	/**
-	 * @deprecated since 1.42 use ParserOutputAccess::OPT_NO_UPDATE_CACHE instead
-	 * Temporarily needed while we migrate extensions and other codebases
-	 * to use the ParserOutputAccess constant directly
-	 */
-	public const OPT_NO_UPDATE_CACHE = ParserOutputAccess::OPT_NO_UPDATE_CACHE;
-
-	/**
-	 * @deprecated Parsoid will always lint at this point. This option
-	 * has no effect and will be removed once all callers are fixed.
-	 *
-	 * @var int Collect linter data for the ParserLogLinterData hook.
-	 */
-	public const OPT_LOG_LINT_DATA = 64;
-
 	public const CONSTRUCTOR_OPTIONS = [
 		MainConfigNames::ParsoidCacheConfig,
 		'ParsoidWikiID'
 	];
 
-	/** @var ParsoidParserFactory */
-	private $parsoidParserFactory;
-
-	/** @var PageLookup */
-	private $pageLookup;
-
-	/** @var RevisionLookup */
-	private $revisionLookup;
-
-	/** @var ParserOutputAccess */
-	private $parserOutputAccess;
-
-	/** @var SiteConfig */
-	private $siteConfig;
-
-	/** @var ServiceOptions */
-	private $options;
-
-	/** @var string */
-	private $parsoidWikiId;
-
-	/** @var IContentHandlerFactory */
-	private $contentHandlerFactory;
+	private ParsoidParserFactory $parsoidParserFactory;
+	private PageLookup $pageLookup;
+	private RevisionLookup $revisionLookup;
+	private ParserOutputAccess $parserOutputAccess;
+	private SiteConfig $siteConfig;
+	private ServiceOptions $options;
+	private string $parsoidWikiId;
+	private IContentHandlerFactory $contentHandlerFactory;
 
 	/**
 	 * @param ServiceOptions $options
@@ -197,6 +167,7 @@ class ParsoidOutputAccess {
 	 * @param ParserOptions $parserOpts
 	 * @param RevisionRecord|int|null $revision
 	 * @param int $options See the OPT_XXX constants
+	 * @param bool $lenientRevHandling
 	 *
 	 * @return Status<ParserOutput>
 	 */
@@ -204,15 +175,19 @@ class ParsoidOutputAccess {
 		PageIdentity $page,
 		ParserOptions $parserOpts,
 		$revision = null,
-		int $options = 0
+		int $options = 0,
+		bool $lenientRevHandling = false
 	): Status {
-		[ $page, $revision ] = $this->resolveRevision( $page, $revision );
+		[ $page, $revision, $uncacheable ] = $this->resolveRevision( $page, $revision, $lenientRevHandling );
 		$status = $this->handleUnsupportedContentModel( $revision );
 		if ( $status ) {
 			return $status;
 		}
 
 		try {
+			if ( $uncacheable ) {
+				$options = $options | ParserOutputAccess::OPT_NO_UPDATE_CACHE;
+			}
 			// Since we know we are generating Parsoid output, explicitly
 			// call ParserOptions::setUseParsoid. This ensures that when
 			// we query the parser-cache, the right cache key is computed.
@@ -233,15 +208,17 @@ class ParsoidOutputAccess {
 	 * @param PageIdentity $page
 	 * @param ParserOptions $parserOpts
 	 * @param RevisionRecord|int|null $revision
+	 * @param bool $lenientRevHandling
 	 *
 	 * @return ?ParserOutput
 	 */
 	public function getCachedParserOutput(
 		PageIdentity $page,
 		ParserOptions $parserOpts,
-		$revision = null
+		$revision = null,
+		bool $lenientRevHandling = false
 	): ?ParserOutput {
-		[ $page, $revision ] = $this->resolveRevision( $page, $revision );
+		[ $page, $revision, $ignored ] = $this->resolveRevision( $page, $revision, $lenientRevHandling );
 		$mainSlot = $revision->getSlot( SlotRecord::MAIN );
 		$contentModel = $mainSlot->getModel();
 		if ( $this->supportsContentModel( $contentModel ) ) {
@@ -280,18 +257,20 @@ class ParsoidOutputAccess {
 	 * @param PageIdentity $page
 	 * @param ParserOptions $parserOpts
 	 * @param RevisionRecord|int|null $revision
+	 * @param bool $lenientRevHandling
 	 *
 	 * @return Status
 	 */
 	public function parseUncacheable(
 		PageIdentity $page,
 		ParserOptions $parserOpts,
-		$revision
+		$revision,
+		bool $lenientRevHandling = false
 	): Status {
 		// NOTE: If we have a RevisionRecord already, just use it, there is no need to resolve $page to
 		//       a PageRecord (and it may not be possible if the page doesn't exist).
 		if ( !$revision instanceof RevisionRecord ) {
-			[ $page, $revision ] = $this->resolveRevision( $page, $revision );
+			[ $page, $revision, $ignored ] = $this->resolveRevision( $page, $revision, $lenientRevHandling );
 		}
 
 		// Enforce caller expectation
@@ -327,10 +306,12 @@ class ParsoidOutputAccess {
 	/**
 	 * @param PageIdentity $page
 	 * @param RevisionRecord|int|null $revision
+	 * @param bool $lenientRevHandling
 	 *
 	 * @return array [ PageRecord $page, RevisionRecord $revision ]
 	 */
-	private function resolveRevision( PageIdentity $page, $revision ): array {
+	private function resolveRevision( PageIdentity $page, $revision, bool $lenientRevHandling = false ): array {
+		$uncacheable = false;
 		if ( !$page instanceof PageRecord ) {
 			$name = "$page";
 			$page = $this->pageLookup->getPageByReference( $page );
@@ -358,6 +339,26 @@ class ParsoidOutputAccess {
 			}
 		}
 
-		return [ $page, $revision ];
+		if ( $page->getId() !== $revision->getPageId() ) {
+			if ( $lenientRevHandling ) {
+				$page = $this->pageLookup->getPageById( $revision->getPageId() );
+				if ( !$page ) {
+					// This should ideally never trigger!
+					throw new \RuntimeException(
+						"Unexpected NULL page for pageid " . $revision->getPageId() .
+						" from revision " . $revision->getId()
+					);
+				}
+				// Don't cache this!
+				$uncacheable = true;
+			} else {
+				throw new RevisionAccessException(
+					'Revision {revId} does not belong to page {name}',
+					[ 'name' => $page->getDBkey(), 'revId' => $revision->getId() ]
+				);
+			}
+		}
+
+		return [ $page, $revision, $uncacheable ];
 	}
 }

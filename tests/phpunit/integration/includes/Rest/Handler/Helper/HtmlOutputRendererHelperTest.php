@@ -8,7 +8,6 @@ use DeferredUpdates;
 use EmptyBagOStuff;
 use Exception;
 use HashBagOStuff;
-use Language;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\IContentHandlerFactory;
 use MediaWiki\Edit\SimpleParsoidOutputStash;
@@ -137,9 +136,9 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 				PageIdentity $page,
 				ParserOptions $parserOpts,
 				$rev,
-				array $envOptions = []
+				bool $lenientRevHandling
 			) {
-				$html = $this->getMockHtml( $rev, $envOptions );
+				$html = $this->getMockHtml( $rev );
 
 				$pout = $this->makeParserOutput(
 					$parserOpts,
@@ -158,17 +157,13 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		return $parsoid;
 	}
 
-	private function getMockHtml( $rev, array $envOptions = null ) {
+	private function getMockHtml( $rev ) {
 		if ( $rev instanceof RevisionRecord ) {
 			$html = '<p>' . $rev->getContent( SlotRecord::MAIN )->getText() . '</p>';
 		} elseif ( is_int( $rev ) ) {
 			$html = '<p>rev:' . $rev . '</p>';
 		} else {
 			$html = self::MOCK_HTML;
-		}
-
-		if ( $envOptions ) {
-			$html .= "\n<!--" . json_encode( $envOptions ) . "\n-->";
 		}
 
 		return $html;
@@ -616,12 +611,12 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 				PageIdentity $page,
 				ParserOptions $parserOpts,
 				$rev,
-				array $envOptions = []
+				bool $lenientRevHandling
 			) use ( $fakePage, $fakeRevision ) {
 				self::assertSame( $page, $fakePage, '$page and $fakePage should be the same' );
 				self::assertSame( $rev, $fakeRevision, '$rev and $fakeRevision should be the same' );
 
-				$html = $this->getMockHtml( $rev, $envOptions );
+				$html = $this->getMockHtml( $rev );
 				$pout = $this->makeParserOutput( $parserOpts, $html, $rev, $page );
 				return Status::newGood( $pout );
 			} );
@@ -966,12 +961,10 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 			[],
 			$user,
 			null,
-			null,
 			[
 				'page' => $page,
 				'user' => $user,
 				'revisionOrId' => null,
-				'pageLanguage' => null,
 				'stash' => false,
 				'flavor' => 'view',
 			]
@@ -980,16 +973,13 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$rev = $this->createNoOpMock( RevisionRecord::class, [ 'getId' ] );
 		$rev->method( 'getId' )->willReturn( 7 );
 
-		$lang = $this->createNoOpMock( Language::class );
 		yield 'Revision and Language' => [
 			$page,
 			[],
 			$user,
 			$rev,
-			$lang,
 			[
 				'revisionOrId' => $rev,
-				'pageLanguage' => $lang,
 			]
 		];
 
@@ -998,7 +988,6 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 			[ 'stash' => true ],
 			$user,
 			8,
-			null,
 			[
 				'stash' => true,
 				'flavor' => 'stash',
@@ -1011,7 +1000,6 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 			[ 'flavor' => 'fragment' ],
 			$user,
 			8,
-			null,
 			[
 				'flavor' => 'fragment',
 			]
@@ -1022,7 +1010,6 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 			[ 'flavor' => 'fragment', 'stash' => true ],
 			$user,
 			8,
-			null,
 			[
 				'flavor' => 'stash',
 			]
@@ -1037,7 +1024,6 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 	 * @param array $parameters
 	 * @param User $user
 	 * @param RevisionRecord|int|null $revision
-	 * @param Language|null $pageLanguage
 	 * @param array $expected
 	 *
 	 * @dataProvider provideInit
@@ -1047,12 +1033,11 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		array $parameters,
 		User $user,
 		$revision,
-		?Language $pageLanguage,
 		array $expected
 	) {
 		$helper = $this->newHelper();
 
-		$helper->init( $page, $parameters, $user, $revision, $pageLanguage );
+		$helper->init( $page, $parameters, $user, $revision );
 
 		$wrapper = TestingAccessWrapper::newFromObject( $helper );
 		foreach ( $expected as $name => $value ) {
