@@ -12,7 +12,7 @@
 		"universal-omega/dynamic-page-list3": "3.5.*",
 		"mediawiki/echo": "dev-REL1_39",
 		"starcitizenwiki/embedvideo": "3.2.*",
-		"mediawiki/flexiskin": "2.0.*",
+		"mediawiki/flexiskin": "2.1.*",
 		"mediawiki/hit-counters": "dev-REL1_39",
 		"mediawiki/image-map-edit": "2.1.*",
 		"mediawiki/lingo": "3.2.*",
