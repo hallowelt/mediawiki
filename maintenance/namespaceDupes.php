@@ -402,7 +402,7 @@ class NamespaceDupes extends Maintenance {
 				break;
 			}
 
-			$rowsToDeleteIfStillExists = [];
+			$rowsToDelete = [];
 
 			foreach ( $res as $row ) {
 				$logTitle = "from={$row->$fromField} ns={$row->$namespaceField} " .
@@ -455,20 +455,23 @@ class NamespaceDupes extends Maintenance {
 					->caller( __METHOD__ )
 					->execute();
 
-				$rowsToDeleteIfStillExists[] = $dbw->makeList(
-					array_merge( [ $fromField => $row->$fromField ], $deleteCondition ),
-					IDatabase::LIST_AND
-				);
+				// When there is a key conflict on UPDATE IGNORE, delete the row
+				if ( !$dbw->affectedRows() ) {
+					$rowsToDelete[] = $dbw->makeList(
+						array_merge( [ $fromField => $row->$fromField ], $deleteCondition ),
+						IDatabase::LIST_AND
+					);
+				}
 
 				$this->output( "$table $logTitle -> " .
 					$destTitle->getPrefixedDBkey() . "\n"
 				);
 			}
 
-			if ( $options['fix'] && count( $rowsToDeleteIfStillExists ) > 0 ) {
+			if ( $options['fix'] && count( $rowsToDelete ) > 0 ) {
 				$dbw->newDeleteQueryBuilder()
 					->deleteFrom( $table )
-					->where( $dbw->makeList( $rowsToDeleteIfStillExists, IDatabase::LIST_OR ) )
+					->where( $dbw->makeList( $rowsToDelete, IDatabase::LIST_OR ) )
 					->caller( __METHOD__ )
 					->execute();
 
@@ -619,17 +622,42 @@ class NamespaceDupes extends Maintenance {
 
 		// Update *_from_namespace in links tables
 		$fromNamespaceTables = [
-			[ 'pagelinks', 'pl' ],
-			[ 'templatelinks', 'tl' ],
-			[ 'imagelinks', 'il' ]
+			[ 'pagelinks', 'pl', [ 'pl_namespace', 'pl_title' ] ],
+			[ 'templatelinks', 'tl', [ 'tl_target_id' ] ],
+			[ 'imagelinks', 'il', [ 'il_to' ] ]
 		];
-		foreach ( $fromNamespaceTables as [ $table, $fieldPrefix ] ) {
-			$dbw->newUpdateQueryBuilder()
-				->update( $table )
-				->set( [ "{$fieldPrefix}_from_namespace" => $newLinkTarget->getNamespace() ] )
-				->where( [ "{$fieldPrefix}_from" => $id ] )
+		$updateRowsPerQuery = $this->getConfig()->get( MainConfigNames::UpdateRowsPerQuery );
+		foreach ( $fromNamespaceTables as [ $table, $fieldPrefix, $additionalPrimaryKeyFields ] ) {
+			$fromField = "{$fieldPrefix}_from";
+			$fromNamespaceField = "{$fieldPrefix}_from_namespace";
+
+			$res = $dbw->newSelectQueryBuilder()
+				->select( $additionalPrimaryKeyFields )
+				->from( $table )
+				->where( [ $fromField => $id ] )
+				->andWhere( $dbw->expr( $fromNamespaceField, '!=', $newLinkTarget->getNamespace() ) )
 				->caller( __METHOD__ )
-				->execute();
+				->fetchResultSet();
+			if ( !$res ) {
+				continue;
+			}
+
+			$updateConds = [];
+			foreach ( $res as $row ) {
+				$updateConds[] = array_merge( [ $fromField => $id ], (array)$row );
+			}
+			$updateBatches = array_chunk( $updateConds, $updateRowsPerQuery );
+			foreach ( $updateBatches as $updateBatch ) {
+				$dbw->newUpdateQueryBuilder()
+					->update( $table )
+					->set( [ $fromNamespaceField => $newLinkTarget->getNamespace() ] )
+					->where( $dbw->factorConds( $updateBatch ) )
+					->caller( __METHOD__ )
+					->execute();
+				if ( count( $updateBatches ) > 1 ) {
+					$this->waitForReplication();
+				}
+			}
 		}
 
 		return true;
@@ -670,6 +698,7 @@ class NamespaceDupes extends Maintenance {
 	 */
 	private function mergePage( $row, Title $newTitle ) {
 		$dbw = $this->getDB( DB_PRIMARY );
+		$updateRowsPerQuery = $this->getConfig()->get( MainConfigNames::UpdateRowsPerQuery );
 
 		$id = $row->page_id;
 
@@ -683,12 +712,24 @@ class NamespaceDupes extends Maintenance {
 
 		$destId = $newTitle->getArticleID();
 		$this->beginTransaction( $dbw, __METHOD__ );
-		$dbw->newUpdateQueryBuilder()
-			->update( 'revision' )
-			->set( [ 'rev_page' => $destId ] )
+		$revIds = $dbw->newSelectQueryBuilder()
+			->select( 'rev_id' )
+			->from( 'revision' )
 			->where( [ 'rev_page' => $id ] )
 			->caller( __METHOD__ )
-			->execute();
+			->fetchFieldValues();
+		$updateBatches = array_chunk( array_map( 'intval', $revIds ), $updateRowsPerQuery );
+		foreach ( $updateBatches as $updateBatch ) {
+			$dbw->newUpdateQueryBuilder()
+				->update( 'revision' )
+				->set( [ 'rev_page' => $destId ] )
+				->where( [ 'rev_id' => $updateBatch ] )
+				->caller( __METHOD__ )
+				->execute();
+			if ( count( $updateBatches ) > 1 ) {
+				$this->waitForReplication();
+			}
+		}
 
 		$dbw->newDeleteQueryBuilder()
 			->deleteFrom( 'page' )
