@@ -9,7 +9,10 @@ $wgEnableUploads = true;
 
 //Default MediaWiki settings needed for BlueSpice
 $GLOBALS['wgNamespacesWithSubpages'][NS_MAIN] = true;
-$GLOBALS['wgCSPHeader'] = true;
+$GLOBALS['wgCSPHeader'] = [
+	// Single quotes around 'self' are required!
+	'object-src' => "'self'"
+];
 $GLOBALS['wgBreakFrames'] = true;
 $GLOBALS['bsgRSSUrlWhitelist'] = array(
 	"https://blog.bluespice.com/feed/",
