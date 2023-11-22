@@ -4,7 +4,6 @@ if ( !wfIsWindows() ) {
 	$wgLocalTZoffset = date("Z") / 60;
 }
 $wgLocaltimezone = 'Europe/Berlin';
-$wgNamespacesWithSubpages[NS_MAIN] = true;
 $wgBlockDisablesLogin = true;
 $wgEnableUploads = true;
 
