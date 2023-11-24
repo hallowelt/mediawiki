@@ -38,6 +38,8 @@ wfLoadExtension( 'ContentDroplets' );
 wfLoadExtension( 'FontAwesome' );
 wfLoadExtension( 'VisualEditorPlus' );
 
+wfLoadExtension( 'Notifications' );
+
 $GLOBALS['wgGroupTypes'] = [
 	'*'                => 'implicit',
 	'user'             => 'implicit',
