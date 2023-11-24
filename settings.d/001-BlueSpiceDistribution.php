@@ -6,7 +6,6 @@ wfLoadExtension( 'DynamicPageList3' );
 wfLoadExtension( 'HitCounters' );
 require_once __DIR__ . "/../extensions/ImageMapEdit/ImageMapEdit.php";
 wfLoadExtension( 'RSS' );
-wfLoadExtension( 'Echo');
 wfLoadExtension( 'TitleKey');
 wfLoadExtension( 'EmbedVideo');
 $GLOBALS['wgEmbedVideoFetchExternalThumbnails'] = false;
@@ -15,7 +14,6 @@ wfLoadExtension( 'UserMerge' );
 $wgUserMergeProtectedGroups = [];
 $wgUserMergeUnmergeable = [];
 wfLoadExtension( 'Variables' );
-wfLoadExtension( 'BlueSpiceEchoConnector' );
 wfLoadExtension( 'BlueSpiceDistributionConnector' );
 wfLoadExtension( 'UserFunctions' );
 $GLOBALS['wgUFAllowedNamespaces'] = array_fill( 0, 5000, true );
@@ -35,6 +33,8 @@ $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 wfLoadExtension( 'ContentDroplets' );
 wfLoadExtension( 'FontAwesome' );
 wfLoadExtension( 'VisualEditorPlus' );
+
+wfLoadExtension( 'Notifications' );
 
 $GLOBALS['wgGroupTypes'] = [
 	'*'                => 'implicit',
