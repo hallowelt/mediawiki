@@ -95,6 +95,7 @@ because of Phabricator reports.
 * …
 
 === Breaking changes in 1.42 ===
+* TitleArray, deprecated since 1.41, has been removed.
 * UserRightsProxy, deprecated since 1.38, has been removed.
 * UserLoginCompleteHook is always called with its $direct parameter set to
   boolean true. The false case has been removed.
@@ -123,6 +124,9 @@ because of Phabricator reports.
 * Support for setting dynamic property on StatusValue object has been removed.
   To pass your arbitrary data along the object, use StatusValue::statusData
   property (which is always declared).
+* The global function wfReportTime(), deprecated since 1.40, has been removed.
+* The skin template parameter 'reporttime', deprecated since 1.41, has been
+  removed.
 * …
 
 === Deprecations in 1.42 ===
@@ -181,6 +185,8 @@ because of Phabricator reports.
 * ParserOutput::setLanguageLinks() has been deprecated.
 * The module `mediawiki.icon` has been deprecated. Use the Codex mixin instead
  (T351681).
+* Passing a WikiPage to PageEditStash::parseAndCache() has been deprecated.
+  Use PageUpdater instance.
 * …
 
 === Other changes in 1.42 ===
