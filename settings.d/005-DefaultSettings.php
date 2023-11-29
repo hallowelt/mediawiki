@@ -58,18 +58,13 @@ $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'BlueSpice defau
 
 // Set default Permissions-Policy header
 $GLOBALS['bsgDefaultPermissionsPolicyHeader'] = [
-	'accelerometer' => '',
 	'autoplay' => '',
 	'camera' => '',
 	'display-capture' => '',
 	'document-domain' => '',
 	'encrypted-media' => '',
-	'fullscreen' => '',
 	'geolocation' => '',
-	'gyroscope' => '',
-	'magnetometer' => '',
 	'microphone' => '',
-	'midi' => '',
 	'payment' => '',
 	'picture-in-picture' => '',
 	'publickey-credentials-get' => '',
