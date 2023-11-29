@@ -55,3 +55,31 @@ $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'BSMaintenance';
 $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'DynamicPageList3 extension';
 $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'Maintenance script';
 $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'BlueSpice default';
+
+// Set default Permissions-Policy header
+$GLOBALS['bsgDefaultPermissionsPolicyHeader'] = [
+	'autoplay' => '',
+	'camera' => '',
+	'display-capture' => '',
+	'document-domain' => '',
+	'encrypted-media' => '',
+	'geolocation' => '',
+	'microphone' => '',
+	'payment' => '',
+	'picture-in-picture' => '',
+	'publickey-credentials-get' => '',
+	'screen-wake-lock' => '',
+	// Required for ExtJS class loader
+	'sync-xhr' => 'self',
+	'usb' => '',
+	'web-share' => '',
+	'xr-spatial-tracking' => ''
+];
+$GLOBALS['wgHooks']['BeforePageDisplay'][] = function() {
+	$policies = $GLOBALS['bsgDefaultPermissionsPolicyHeader'];
+	$response = RequestContext::getMain()->getOutput()->getRequest()->response();
+	$policiesText = implode( ',', array_map( function( $key, $value ) {
+		return "$key=($value)";
+	}, array_keys( $policies ), $policies ) );
+	$response->header( "Permissions-Policy: $policiesText" );
+};
