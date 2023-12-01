@@ -15,5 +15,7 @@ $GLOBALS['bsgTagCloudTypeCategoryExclude'] = [
 	'BPMN StartEvent',
 	'BPMN SubProcess',
 	'BPMN TextAnnotation',
-	'Imported vocabulary'
+	'Imported vocabulary',
+	'Pages using Tabber parser tag',
+	'Pages using TabberTransclude parser tag'
 ];
