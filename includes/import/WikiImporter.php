@@ -32,7 +32,6 @@ use MediaWiki\Deferred\SiteStatsUpdate;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\MainConfigNames;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\WikiPageFactory;
 use MediaWiki\Permissions\PermissionManager;
@@ -105,14 +104,8 @@ class WikiImporter {
 	/** @var int */
 	private $pageOffset = 0;
 
-	/** @var Config */
-	private $config;
-
-	/** @var ImportTitleFactory */
-	private $importTitleFactory;
-
-	/** @var HookRunner */
-	private $hookRunner;
+	private ImportTitleFactory $importTitleFactory;
+	private ExternalUserNames $externalUserNames;
 
 	/** @var array */
 	private $countableCache = [];
@@ -120,46 +113,19 @@ class WikiImporter {
 	/** @var bool */
 	private $disableStatisticsUpdate = false;
 
-	/** @var ExternalUserNames */
-	private $externalUserNames;
-
-	/** @var Language */
-	private $contentLanguage;
-
-	/** @var NamespaceInfo */
-	private $namespaceInfo;
-
-	/** @var TitleFactory */
-	private $titleFactory;
-
-	/** @var WikiPageFactory */
-	private $wikiPageFactory;
-
-	/** @var UploadRevisionImporter */
-	private $uploadRevisionImporter;
-
-	/** @var PermissionManager */
-	private $permissionManager;
-
-	/** @var IContentHandlerFactory */
-	private $contentHandlerFactory;
-
-	/** @var SlotRoleRegistry */
-	private $slotRoleRegistry;
+	private Config $config;
+	private HookRunner $hookRunner;
+	private Language $contentLanguage;
+	private NamespaceInfo $namespaceInfo;
+	private TitleFactory $titleFactory;
+	private WikiPageFactory $wikiPageFactory;
+	private UploadRevisionImporter $uploadRevisionImporter;
+	private PermissionManager $permissionManager;
+	private IContentHandlerFactory $contentHandlerFactory;
+	private SlotRoleRegistry $slotRoleRegistry;
 
 	/**
 	 * Creates an ImportXMLReader drawing from the source provided
-	 * @param ImportSource $source
-	 * @param Config $config
-	 * @param HookContainer $hookContainer
-	 * @param Language $contentLanguage
-	 * @param NamespaceInfo $namespaceInfo
-	 * @param TitleFactory $titleFactory
-	 * @param WikiPageFactory $wikiPageFactory
-	 * @param UploadRevisionImporter $uploadRevisionImporter
-	 * @param PermissionManager $permissionManager
-	 * @param IContentHandlerFactory $contentHandlerFactory
-	 * @param SlotRoleRegistry $slotRoleRegistry
 	 * @throws MWException
 	 */
 	public function __construct(
@@ -1049,8 +1015,7 @@ class WikiImporter {
 	 * @throws MWException
 	 */
 	private function makeContent( Title $title, $revisionId, $contentInfo ) {
-		$maxArticleSize = MediaWikiServices::getInstance()->getMainConfig()->get(
-			MainConfigNames::MaxArticleSize );
+		$maxArticleSize = $this->config->get( MainConfigNames::MaxArticleSize );
 
 		if ( !isset( $contentInfo['text'] ) ) {
 			throw new MWException( 'Missing text field in import.' );
