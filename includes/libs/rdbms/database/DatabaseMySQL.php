@@ -634,9 +634,9 @@ class DatabaseMySQL extends Database {
 		$query = new Query(
 			"CREATE $tmp TABLE $newNameQuoted (LIKE $oldNameQuoted)",
 			self::QUERY_PSEUDO_PERMANENT | self::QUERY_CHANGE_SCHEMA,
-			$tmp ? 'CREATE TEMPORARY' : 'CREATE',
+			$temporary ? 'CREATE TEMPORARY' : 'CREATE',
 			// Use a dot to avoid double-prefixing in Database::getTempTableWrites()
-			[ '.' . $newName ]
+			'.' . $newName
 		);
 		return $this->query( $query, $fname );
 	}
