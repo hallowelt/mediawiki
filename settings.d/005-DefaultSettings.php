@@ -24,7 +24,9 @@ $GLOBALS['wgRestrictDisplayTitle'] = false; //Otherwise only titles that normali
 $GLOBALS['wgUrlProtocols'][] = "file://";
 $GLOBALS['wgAllowJavaUploads'] = true;
 $GLOBALS['wgParserCacheType'] = CACHE_NONE;
-$GLOBALS['wgMetaNamespace'] = "Site";
+$GLOBALS['wgExtensionFunctions'][] = function() {
+	$GLOBALS['wgMetaNamespace'] = "Site";
+};
 $GLOBALS['wgJobRunRate'] = 0;
 $GLOBALS['wgMaxUploadSize'] = 1024 * 1024 * 1024;
 $GLOBALS['wgAllowHTMLEmail'] = true;
