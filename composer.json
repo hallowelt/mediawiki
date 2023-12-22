@@ -86,8 +86,8 @@
 	},
 	"require-dev": {
 		"composer/spdx-licenses": "1.5.8",
-		"doctrine/dbal": "3.4.2",
-		"doctrine/sql-formatter": "1.1.1",
+		"doctrine/dbal": "3.7.2",
+		"doctrine/sql-formatter": "1.1.3",
 		"ext-simplexml": "*",
 		"giorgiosironi/eris": "^0.14.0",
 		"hamcrest/hamcrest-php": "^2.0",
@@ -99,7 +99,7 @@
 		"php-parallel-lint/php-parallel-lint": "1.3.2",
 		"phpunit/phpunit": "9.5.28",
 		"psy/psysh": "^0.12.0",
-		"seld/jsonlint": "1.8.3",
+		"seld/jsonlint": "1.10.1",
 		"wikimedia/alea": "1.0.0",
 		"wikimedia/langconv": "^0.4.2",
 		"wikimedia/testing-access-wrapper": "^3.0.0",
@@ -142,6 +142,8 @@
 		"mw-install:sqlite": "php maintenance/run.php install --server=http://localhost:4000 --dbtype sqlite --with-developmentsettings --dbpath cache/ --scriptpath= --pass adminpassword MediaWiki Admin",
 		"serve": [
 			"Composer\\Config::disableProcessTimeout",
+			"@putenv MW_LOG_DIR=logs",
+			"@putenv MW_LOG_STDERR=1",
 			"@putenv PHP_CLI_SERVER_WORKERS=8",
 			"php -S 127.0.0.1:4000"
 		],
