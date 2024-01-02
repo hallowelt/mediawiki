@@ -31,8 +31,8 @@ namespace MediaWiki\User\TempUser;
  */
 class ScrambleMapping implements SerialMapping {
 	/**
-	 * Appropriately sized prime moduli and their associated largest primitive
-	 * root. Generated with this GP/PARI script:
+	 * Appropriately sized prime moduli and primitive roots. Generated with
+	 * this GP/PARI script:
 	 * s=0; \
 	 * for(q = 2, 10, \
 	 *   p=precprime(10^q - s); \
@@ -76,6 +76,9 @@ class ScrambleMapping implements SerialMapping {
 			return (string)$index;
 		}
 		$offset = $this->offset;
+		if ( $index - $offset < 0 ) {
+			throw new \MWException( __METHOD__ . ": The configured offset $offset is too large." );
+		}
 		foreach ( self::GENERATORS as [ $g, $p ] ) {
 			if ( $index - $offset < $p ) {
 				return (string)( $offset + $this->powmod( $g, $index - $offset, $p ) );
