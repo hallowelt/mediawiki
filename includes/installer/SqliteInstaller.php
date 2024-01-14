@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Sqlite-specific installer.
  *
@@ -20,6 +21,8 @@
  * @file
  * @ingroup Installer
  */
+
+namespace MediaWiki\Installer;
 
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Status\Status;

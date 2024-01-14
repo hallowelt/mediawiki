@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MySQL-specific installer.
  *
@@ -20,6 +21,8 @@
  * @file
  * @ingroup Installer
  */
+
+namespace MediaWiki\Installer;
 
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
