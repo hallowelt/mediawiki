@@ -284,9 +284,9 @@ class UserFactory implements IDBAccessObject, UserRigorOptions {
 	 */
 	public function newFromConfirmationCode(
 		string $confirmationCode,
-		int $flags = self::READ_NORMAL
+		int $flags = IDBAccessObject::READ_NORMAL
 	) {
-		[ $index, $options ] = DBAccessObjectUtils::getDBOptions( $flags );
+		[ $index, ] = DBAccessObjectUtils::getDBOptions( $flags );
 
 		$db = $this->loadBalancer->getConnectionRef( $index );
 
@@ -295,7 +295,7 @@ class UserFactory implements IDBAccessObject, UserRigorOptions {
 			->from( 'user' )
 			->where( [ 'user_email_token' => md5( $confirmationCode ) ] )
 			->andWhere( $db->expr( 'user_email_token_expires', '>', $db->timestamp() ) )
-			->options( $options )
+			->recency( $flags )
 			->caller( __METHOD__ )->fetchField();
 
 		if ( !$id ) {

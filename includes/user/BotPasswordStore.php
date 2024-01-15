@@ -104,7 +104,7 @@ class BotPasswordStore implements IDBAccessObject {
 	public function getByUser(
 		UserIdentity $userIdentity,
 		string $appId,
-		int $flags = self::READ_NORMAL
+		int $flags = IDBAccessObject::READ_NORMAL
 	): ?BotPassword {
 		if ( !$this->options->get( MainConfigNames::EnableBotPasswords ) ) {
 			return null;
@@ -128,19 +128,19 @@ class BotPasswordStore implements IDBAccessObject {
 	public function getByCentralId(
 		int $centralId,
 		string $appId,
-		int $flags = self::READ_NORMAL
+		int $flags = IDBAccessObject::READ_NORMAL
 	): ?BotPassword {
 		if ( !$this->options->get( MainConfigNames::EnableBotPasswords ) ) {
 			return null;
 		}
 
-		[ $index, $options ] = DBAccessObjectUtils::getDBOptions( $flags );
+		[ $index, ] = DBAccessObjectUtils::getDBOptions( $flags );
 		$db = $this->getDatabase( $index );
 		$row = $db->newSelectQueryBuilder()
 			->select( [ 'bp_user', 'bp_app_id', 'bp_token', 'bp_restrictions', 'bp_grants' ] )
 			->from( 'bot_passwords' )
 			->where( [ 'bp_user' => $centralId, 'bp_app_id' => $appId ] )
-			->options( $options )
+			->recency( $flags )
 			->caller( __METHOD__ )->fetchRow();
 		return $row ? new BotPassword( $row, true, $flags ) : null;
 	}
@@ -159,7 +159,7 @@ class BotPasswordStore implements IDBAccessObject {
 	 */
 	public function newUnsavedBotPassword(
 		array $data,
-		int $flags = self::READ_NORMAL
+		int $flags = IDBAccessObject::READ_NORMAL
 	): ?BotPassword {
 		if ( isset( $data['user'] ) && ( !$data['user'] instanceof UserIdentity ) ) {
 			return null;
