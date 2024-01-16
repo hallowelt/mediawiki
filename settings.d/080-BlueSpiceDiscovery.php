@@ -10,4 +10,4 @@ $GLOBALS['wgSkipSkins'] = [
 ];
 
 $GLOBALS['bsgDiscoveryMetaItemsHeader'] = [ "page-sentence" ];
-$GLOBALS['bsgDiscoveryMetaItemsFooter'] = [ "categories", "rating", "recommendations" ];
+$GLOBALS['bsgDiscoveryMetaItemsFooter'] = [ "categories" ];
