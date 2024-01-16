@@ -15,6 +15,10 @@ $wgUserMergeProtectedGroups = [];
 $wgUserMergeUnmergeable = [];
 wfLoadExtension( 'Variables' );
 wfLoadExtension( 'BlueSpiceEchoConnector' );
+// BlueSpice does not support plaintext mails anymore. Their content may be unmaintained.
+$GLOBALS['wgAllowHTMLEmail'] = true;
+$GLOBALS['wgDefaultUserOptions']['echo-email-format'] = 'html';
+$GLOBALS['wgHiddenPrefs'][] = 'echo-email-format';
 wfLoadExtension( 'BlueSpiceDistributionConnector' );
 wfLoadExtension( 'UserFunctions' );
 $GLOBALS['wgUFAllowedNamespaces'] = array_fill( 0, 5000, true );
