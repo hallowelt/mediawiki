@@ -22,15 +22,17 @@ class CodexModuleTest extends ResourceLoaderTestCase {
 				[
 					'packageFiles' => [
 						'codex.js',
-						'_codex/useModelWrapper.js',
 						'_codex/constants.js',
-						'_codex/useSlotContents.js',
+						'_codex/useSlotContents2.js',
 						'_codex/useWarnOnce.js',
 						'_codex/useIconOnlyButton.js',
 						'_codex/_plugin-vue_export-helper.js',
 						'_codex/CdxButton.js',
+						'_codex/useComputedDirection.js',
+						'_codex/useComputedLanguage.js',
 						'_codex/Icon.js',
-						'_codex/CdxMessage.js'
+						'_codex/CdxMessage.js',
+						'_codex/useModelWrapper.js'
 					],
 					'styles' => [ 'CdxButton.css', 'CdxIcon.css', 'CdxMessage.css' ]
 				]
@@ -55,15 +57,17 @@ class CodexModuleTest extends ResourceLoaderTestCase {
 				[
 					'packageFiles' => [
 						'codex.js',
-						'_codex/useModelWrapper.js',
 						'_codex/constants.js',
-						'_codex/useSlotContents.js',
+						'_codex/useSlotContents2.js',
 						'_codex/useWarnOnce.js',
 						'_codex/useIconOnlyButton.js',
 						'_codex/_plugin-vue_export-helper.js',
 						'_codex/CdxButton.js',
+						'_codex/useComputedDirection.js',
+						'_codex/useComputedLanguage.js',
 						'_codex/Icon.js',
-						'_codex/CdxMessage.js'
+						'_codex/CdxMessage.js',
+						'_codex/useModelWrapper.js'
 					],
 					'styles' => []
 				]
@@ -97,5 +101,31 @@ class CodexModuleTest extends ResourceLoaderTestCase {
 			}, $styleFiles[ 'all' ] );
 		}
 		$this->assertEquals( $expected[ 'styles' ], $styleFilenames, 'Correct styleFiles added for ' . $testCase );
+	}
+
+	public function testMissingCodexComponentsDefinition() {
+		$moduleDefinition = [
+			'codexComponents' => [ 'CdxButton', 'CdxMessage' ]
+		];
+
+		$testModule = new class( $moduleDefinition ) extends CodexModule {
+			public const CODEX_MODULE_DIR = 'tests/phpunit/data/resourceloader/codexModules/';
+		};
+
+		$context = $this->getResourceLoaderContext();
+		$config = $context->getResourceLoader()->getConfig();
+		$testModule->setConfig( $config );
+
+		$packageFiles = $testModule->getPackageFiles( $context );
+
+		$codexPackageFileContent = $packageFiles[ 'files' ][ 'codex.js' ][ 'content' ];
+		$expectedProxiedExports = '{"CdxButton":require( "./_codex/CdxButton.js" ),'
+			. '"CdxMessage":require( "./_codex/CdxMessage.js" )}';
+
+		// Components defined in the 'codexComponents' array should be proxied in the codex.js
+		// package file so that missing components will throw a custom error when required.
+		// By asserting what components are proxied, we are indirectly asserting that missing
+		// components would throw an error when required.
+		$this->assertStringContainsString( $expectedProxiedExports, $codexPackageFileContent );
 	}
 }
