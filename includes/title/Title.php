@@ -2520,23 +2520,23 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 */
 	public function getDeletedEditsCount() {
 		if ( $this->mNamespace < 0 ) {
-			$n = 0;
-		} else {
-			$dbr = $this->getDbProvider()->getReplicaDatabase();
-			$n = $dbr->newSelectQueryBuilder()
-				->select( 'COUNT(*)' )
-				->from( 'archive' )
-				->where( [ 'ar_namespace' => $this->mNamespace, 'ar_title' => $this->mDbkeyform ] )
-				->caller( __METHOD__ )->fetchField();
-			if ( $this->mNamespace === NS_FILE ) {
-				$n += $dbr->newSelectQueryBuilder()
-					->select( 'COUNT(*)' )
-					->from( 'filearchive' )
-					->where( [ 'fa_name' => $this->mDbkeyform ] )
-					->caller( __METHOD__ )->fetchField();
-			}
+			return 0;
 		}
-		return (int)$n;
+
+		$dbr = $this->getDbProvider()->getReplicaDatabase();
+		$n = (int)$dbr->newSelectQueryBuilder()
+			->select( 'COUNT(*)' )
+			->from( 'archive' )
+			->where( [ 'ar_namespace' => $this->mNamespace, 'ar_title' => $this->mDbkeyform ] )
+			->caller( __METHOD__ )->fetchField();
+		if ( $this->mNamespace === NS_FILE ) {
+			$n += $dbr->newSelectQueryBuilder()
+				->select( 'COUNT(*)' )
+				->from( 'filearchive' )
+				->where( [ 'fa_name' => $this->mDbkeyform ] )
+				->caller( __METHOD__ )->fetchField();
+		}
+		return $n;
 	}
 
 	/**
@@ -3143,43 +3143,29 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 *       and from isSamePageAs(), which takes into account the page ID.
 	 *
 	 * @phpcs:disable MediaWiki.Commenting.FunctionComment.ObjectTypeHintParam
-	 * @param object $other
+	 * @param Title|object $other
 	 *
 	 * @return bool true if $other is a Title and refers to the same page.
 	 */
 	public function equals( object $other ) {
-		if ( $other instanceof Title ) {
-			// NOTE: In contrast to isSameLinkAs(), this ignores the fragment part!
-			// NOTE: In contrast to isSamePageAs(), this ignores the page ID!
-			// NOTE: === is necessary for proper matching of number-like titles
-			return $this->getInterwiki() === $other->getInterwiki()
-				&& $this->getNamespace() === $other->getNamespace()
-				&& $this->getDBkey() === $other->getDBkey();
-		} else {
-			return false;
-		}
+		// NOTE: In contrast to isSameLinkAs(), this ignores the fragment part!
+		// NOTE: In contrast to isSamePageAs(), this ignores the page ID!
+		// NOTE: === is necessary for proper matching of number-like titles
+		return $other instanceof Title
+			&& $this->getInterwiki() === $other->getInterwiki()
+			&& $this->getNamespace() === $other->getNamespace()
+			&& $this->getDBkey() === $other->getDBkey();
 	}
 
 	/**
-	 * @see PageReference::isSamePageAs()
+	 * @inheritDoc
 	 * @since 1.36
-	 *
-	 * @param PageReference $other
-	 * @return bool
 	 */
 	public function isSamePageAs( PageReference $other ): bool {
-		// NOTE: keep in sync with PageIdentityValue::isSamePageAs()!
-
-		if ( $other->getWikiId() !== $this->getWikiId() ) {
-			return false;
-		}
-
-		if ( $other->getNamespace() !== $this->getNamespace()
-			|| $other->getDBkey() !== $this->getDBkey() ) {
-			return false;
-		}
-
-		return true;
+		// NOTE: keep in sync with PageReferenceValue::isSamePageAs()!
+		return $this->getWikiId() === $other->getWikiId()
+			&& $this->getNamespace() === $other->getNamespace()
+			&& $this->getDBkey() === $other->getDBkey();
 	}
 
 	/**
@@ -3506,13 +3492,12 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 			->select( [ 'page_namespace', 'page_title' ] )
 			->from( 'redirect' )
 			->join( 'page', null, 'rd_from = page_id' )
-			->where( [ 'rd_namespace' => $this->mNamespace, 'rd_title' => $this->mDbkeyform ] );
+			->where( [
+				'rd_namespace' => $this->mNamespace,
+				'rd_title' => $this->mDbkeyform,
+				'rd_interwiki' => $this->isExternal() ? $this->mInterwiki : '',
+			] );
 
-		if ( $this->isExternal() ) {
-			$queryBuilder->andWhere( [ 'rd_interwiki' => $this->mInterwiki ] );
-		} else {
-			$queryBuilder->andWhere( [ 'rd_interwiki' => '' ] );
-		}
 		if ( $ns !== null ) {
 			$queryBuilder->andWhere( [ 'page_namespace' => $ns ] );
 		}
@@ -3535,23 +3520,16 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 
 		if ( $this->isSpecialPage() ) {
 			// invalid redirect targets are stored in a global array, but explicitly disallow Userlogout here
-			if ( $this->isSpecial( 'Userlogout' ) ) {
-				return false;
-			}
-
-			foreach ( $wgInvalidRedirectTargets as $target ) {
+			foreach ( [ 'Userlogout', ...$wgInvalidRedirectTargets ] as $target ) {
 				if ( $this->isSpecial( $target ) ) {
 					return false;
 				}
 			}
-
 			return true;
-		} elseif ( $this->getDBkey() === '' ) {
-			// relative section links are not valid redirect targets (T278367)
-			return false;
 		}
 
-		return $this->isValid();
+		// relative section links are not valid redirect targets (T278367)
+		return $this->getDBkey() !== '' && $this->isValid();
 	}
 
 	/**
