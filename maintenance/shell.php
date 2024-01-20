@@ -73,6 +73,10 @@ class MediaWikiShell extends Maintenance {
 		);
 	}
 
+	public function canExecuteWithoutLocalSettings() {
+		return true;
+	}
+
 	public function execute() {
 		if ( !class_exists( \Psy\Shell::class ) ) {
 			$this->fatalError( 'PsySH not found. Please run composer with the --dev option.' );
@@ -128,8 +132,8 @@ class MediaWikiShell extends Maintenance {
 			MediaWikiServices::resetGlobalInstance();
 		}
 		if ( $this->hasOption( 'dbo-debug' ) ) {
-			$this->getDB( DB_PRIMARY )->setFlag( DBO_DEBUG );
-			$this->getDB( DB_REPLICA )->setFlag( DBO_DEBUG );
+			$this->getPrimaryDB()->setFlag( DBO_DEBUG );
+			$this->getReplicaDB()->setFlag( DBO_DEBUG );
 		}
 	}
 
@@ -145,8 +149,8 @@ class MediaWikiShell extends Maintenance {
 		}
 		if ( $d > 1 ) {
 			# Set DBO_DEBUG (equivalent of $wgDebugDumpSql)
-			$this->getDB( DB_PRIMARY )->setFlag( DBO_DEBUG );
-			$this->getDB( DB_REPLICA )->setFlag( DBO_DEBUG );
+			$this->getPrimaryDB()->setFlag( DBO_DEBUG );
+			$this->getReplicaDB()->setFlag( DBO_DEBUG );
 		}
 	}
 
