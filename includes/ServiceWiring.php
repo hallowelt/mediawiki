@@ -453,7 +453,8 @@ return [
 		return new CentralIdLookupFactory(
 			new ServiceOptions( CentralIdLookupFactory::CONSTRUCTOR_OPTIONS, $services->getMainConfig() ),
 			$services->getObjectFactory(),
-			$services->getUserIdentityLookup()
+			$services->getUserIdentityLookup(),
+			$services->getUserFactory()
 		);
 	},
 
@@ -960,7 +961,8 @@ return [
 	'IframeSandboxFactory' => static function ( MediaWikiServices $services ): IframeSandboxFactory {
 		return new IframeSandboxFactory(
 			$services->getTitleFactory(),
-			$services->getSkinFactory()
+			$services->getSkinFactory(),
+			$services->getUserFactory()
 		);
 	},
 
