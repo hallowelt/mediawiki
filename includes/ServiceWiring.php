@@ -788,6 +788,10 @@ return [
 		return new EventRelayerGroup( $services->getMainConfig()->get( MainConfigNames::EventRelayerConfig ) );
 	},
 
+	'ExtensionRegistry' => static function ( MediaWikiServices $services ): ExtensionRegistry {
+		return ExtensionRegistry::getInstance();
+	},
+
 	'ExternalStoreAccess' => static function ( MediaWikiServices $services ): ExternalStoreAccess {
 		return new ExternalStoreAccess(
 			$services->getExternalStoreFactory(),
@@ -1386,7 +1390,7 @@ return [
 			true,
 			LoggerFactory::getInstance( 'OldRevisionImporter' ),
 			$services->getConnectionProvider(),
-			$services->getRevisionStore(),
+			$services->getRevisionStoreFactory()->getRevisionStoreForImport(),
 			$services->getSlotRoleRegistry(),
 			$services->getWikiPageFactory(),
 			$services->getPageUpdaterFactory(),
@@ -2512,7 +2516,7 @@ return [
 			false,
 			LoggerFactory::getInstance( 'OldRevisionImporter' ),
 			$services->getConnectionProvider(),
-			$services->getRevisionStore(),
+			$services->getRevisionStoreFactory()->getRevisionStoreForImport(),
 			$services->getSlotRoleRegistry(),
 			$services->getWikiPageFactory(),
 			$services->getPageUpdaterFactory(),
