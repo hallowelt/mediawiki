@@ -625,7 +625,6 @@ return [
 			'MimeType' => 'text/html',
 			'Html5Version' => null,
 			'HTMLFormAllowTableFormat' => true,
-			'UseMediaWikiUIEverywhere' => false,
 			'EditSubmitButtonLabelPublish' => false,
 			'XhtmlNamespaces' => [
 			],
@@ -1774,7 +1773,7 @@ return [
 				'mergehistory' => 'vandalism',
 				'import' => 'security',
 				'highvolume' => 'low',
-				'privateinfo' => 'security',
+				'privateinfo' => 'low',
 			],
 			'EnableBotPasswords' => true,
 			'BotPasswordsCluster' => false,
