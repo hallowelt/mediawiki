@@ -25,7 +25,6 @@
 namespace MediaWiki\Title;
 
 use DBAccessObjectUtils;
-use DeprecationHelper;
 use HTMLCacheUpdateJob;
 use IDBAccessObject;
 use ILanguageConverter;
@@ -77,7 +76,6 @@ use WikiPage;
  *       and does not rely on global state or the database.
  */
 class Title implements LinkTarget, PageIdentity, IDBAccessObject {
-	use DeprecationHelper;
 	use WikiAwareEntityTrait;
 	use LinkTargetTrait;
 
@@ -90,13 +88,6 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * if not bounded.
 	 */
 	private const CACHE_MAX = 1000;
-
-	/**
-	 * Used to be GAID_FOR_UPDATE define(). Used with getArticleID() and friends
-	 * to use the primary DB and inject it into link cache.
-	 * @deprecated since 1.34, use IDBAccessObject::READ_LATEST instead.
-	 */
-	public const GAID_FOR_UPDATE = 512;
 
 	/**
 	 * Flag for use with factory methods like newFromLinkTarget() that have
@@ -258,15 +249,6 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	}
 
 	private function __construct() {
-		$this->deprecatePublicProperty( 'mTextform', '1.37', __CLASS__ );
-		$this->deprecatePublicProperty( 'mUrlform', '1.37', __CLASS__ );
-		$this->deprecatePublicProperty( 'mDbkeyform', '1.37', __CLASS__ );
-		$this->deprecatePublicProperty( 'mNamespace', '1.37', __CLASS__ );
-		$this->deprecatePublicProperty( 'mInterwiki', '1.37', __CLASS__ );
-
-		// Phan is being silly about callable|string, see T297352.
-		// @phan-suppress-next-line PhanUndeclaredFunctionInCallable
-		$this->deprecatePublicPropertyFallback( 'mFragment', '1.37', 'getFragment', 'setFragment' );
 	}
 
 	/**
@@ -544,7 +526,6 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * @return Title|null The new object, or null on an error
 	 */
 	public static function newFromID( $id, $flags = 0 ) {
-		$flags |= ( $flags & self::GAID_FOR_UPDATE ) ? IDBAccessObject::READ_LATEST : 0; // b/c
 		$pageStore = MediaWikiServices::getInstance()->getPageStore();
 		$dbr = DBAccessObjectUtils::getDBFromRecency(
 			MediaWikiServices::getInstance()->getConnectionProvider(),
@@ -1071,7 +1052,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 *         read from the primary database, bypassing caches.
 	 */
 	private function shouldReadLatest( int $flags ) {
-		return ( $flags & ( IDBAccessObject::READ_LATEST | self::GAID_FOR_UPDATE ) ) > 0;
+		return ( $flags & ( IDBAccessObject::READ_LATEST ) ) > 0;
 	}
 
 	/**
@@ -1079,7 +1060,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 *
 	 * @todo Deprecate this in favor of SlotRecord::getModel()
 	 *
-	 * @param int $flags Either a bitfield of IDBAccessObject::READ_* constants or GAID_FOR_UPDATE
+	 * @param int $flags A bitfield of IDBAccessObject::READ_* constants
 	 * @return string Content model id
 	 */
 	public function getContentModel( $flags = 0 ) {
@@ -2584,7 +2565,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * Get the article ID for this Title from the link cache,
 	 * adding it if necessary
 	 *
-	 * @param int $flags Either a bitfield of IDBAccessObject::READ_* constants or GAID_FOR_UPDATE
+	 * @param int $flags A bitfield of IDBAccessObject::READ_* constants
 	 * @return int The ID
 	 */
 	public function getArticleID( $flags = 0 ) {
@@ -2612,7 +2593,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * To find a redirect target, just call WikiPage::getRedirectTarget() and
 	 * check if it returns null, there's no need to call this first.
 	 *
-	 * @param int $flags Either a bitfield of IDBAccessObject::READ_* constants or GAID_FOR_UPDATE
+	 * @param int $flags A bitfield of IDBAccessObject::READ_* constants
 	 * @return bool
 	 */
 	public function isRedirect( $flags = 0 ) {
@@ -2627,7 +2608,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * What is the length of this page?
 	 * Uses link cache, adding it if necessary
 	 *
-	 * @param int $flags Either a bitfield of IDBAccessObject::READ_* constants or GAID_FOR_UPDATE
+	 * @param int $flags A bitfield of IDBAccessObject::READ_* constants
 	 * @return int
 	 */
 	public function getLength( $flags = 0 ) {
@@ -2645,7 +2626,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	/**
 	 * What is the page_latest field for this page?
 	 *
-	 * @param int $flags Either a bitfield of IDBAccessObject::READ_* constants or GAID_FOR_UPDATE
+	 * @param int $flags A bitfield of IDBAccessObject::READ_* constants
 	 * @return int Int or 0 if the page doesn't exist
 	 */
 	public function getLatestRevID( $flags = 0 ) {
@@ -3193,7 +3174,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * If you want to know if a title can be meaningfully viewed, you should
 	 * probably call the isKnown() method instead.
 	 *
-	 * @param int $flags Either a bitfield of IDBAccessObject::READ_* constants or GAID_FOR_UPDATE
+	 * @param int $flags A bitfield of IDBAccessObject::READ_* constants
 	 * @return bool
 	 */
 	public function exists( $flags = 0 ): bool {
@@ -3782,8 +3763,6 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * @return string|false
 	 */
 	private function getFieldFromPageStore( $field, $flags ) {
-		$flags |= ( $flags & self::GAID_FOR_UPDATE ) ? IDBAccessObject::READ_LATEST : 0; // b/c
-
 		$pageStore = MediaWikiServices::getInstance()->getPageStore();
 
 		if ( !in_array( $field, $pageStore->getSelectFields(), true ) ) {
@@ -3923,7 +3902,7 @@ class Title implements LinkTarget, PageIdentity, IDBAccessObject {
 	 * @note For now, this method queries the database on every call.
 	 * @since 1.36
 	 *
-	 * @param int $flags Either a bitfield of IDBAccessObject::READ_* constants or GAID_FOR_UPDATE
+	 * @param int $flags A bitfield of IDBAccessObject::READ_* constants
 	 *
 	 * @return ExistingPageRecord
 	 * @throws PreconditionException if the page does not exist, or is not a proper page,

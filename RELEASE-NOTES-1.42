@@ -380,6 +380,16 @@ because of Phabricator reports.
   - VueComponentParser – use MediaWiki\ResourceLoader\VueComponentParser
 * (T318989) Skin::lastModified, deprecated since 1.40, has been removed.
 * Composer 1.x is no longer supported, and can no longer be used with MediaWiki.
+* Title::GAID_FOR_UPDATE, deprecated in 1.34, has been removed. Instead, your
+  code should use IDBAccessObject::READ_LATEST.
+* Six private Title class members, deprecated in 1.37, are now fully private;
+  use their corresponding accessor methods:
+   - $mTextform   -> getText()
+   - $mUrlform    -> getPartialURL()
+   - $mDbkeyform  -> getDBkey()
+   - $mNamespace  -> getNamespace()
+   - $mInterwiki  -> getInterwiki()
+   - $mFragment   -> getFragment()
 * …
 
 === Deprecations in 1.42 ===
@@ -529,6 +539,8 @@ because of Phabricator reports.
 * $wgUseSameSiteLegacyCookies has been deprecated and will be ignored.
 * WebRequest::getCrossSiteCookie() has been deprecated. It will emit deprecation
   warnings. Use WebRequest::getCookie().
+* Using the array_merge_recursive merge strategy in extension.json and skin.json
+  has been hard deprecated
 * …
 
 === Other changes in 1.42 ===
