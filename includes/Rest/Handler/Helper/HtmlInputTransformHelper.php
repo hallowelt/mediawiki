@@ -24,6 +24,7 @@ use InvalidArgumentException;
 use LanguageCode;
 use Liuggio\StatsdClient\Factory\StatsdDataFactoryInterface;
 use MediaWiki\Edit\ParsoidOutputStash;
+use MediaWiki\Edit\ParsoidRenderID;
 use MediaWiki\Edit\SelserContext;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageIdentity;
@@ -32,7 +33,6 @@ use MediaWiki\Parser\Parsoid\HtmlToContentTransform;
 use MediaWiki\Parser\Parsoid\HtmlTransformFactory;
 use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
 use MediaWiki\Parser\Parsoid\ParsoidOutputAccess;
-use MediaWiki\Parser\Parsoid\ParsoidRenderID;
 use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
@@ -635,7 +635,7 @@ class HtmlInputTransformHelper {
 					return null;
 				}
 
-				$cachedRenderID = $this->parsoidOutputAccess->getParsoidRenderID( $parserOutput );
+				$cachedRenderID = ParsoidRenderID::newFromParserOutput( $parserOutput );
 				if ( $cachedRenderID->getKey() !== $renderID->getKey() ) {
 					$this->stats->increment( 'html_input_transform.original_html.given.as_renderid.' .
 						'stash_miss_pc_fallback.not_found.mismatch' );

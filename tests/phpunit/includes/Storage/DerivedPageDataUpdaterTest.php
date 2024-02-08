@@ -12,6 +12,7 @@ use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Deferred\LinksUpdate\LinksUpdate;
 use MediaWiki\Deferred\MWCallableUpdate;
+use MediaWiki\Edit\ParsoidRenderID;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageIdentityValue;
@@ -1333,8 +1334,9 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$this->assertGreaterThan( $rev->getTimestamp(), $parsoidCached->getCacheTime() );
 		$this->assertSame( $rev->getId(), $parsoidCached->getCacheRevisionId() );
 
-		// Check that getParsoidRenderID() doesn't throw, so we know that $parsoidCached is valid.
-		$this->getServiceContainer()->getParsoidOutputAccess()->getParsoidRenderID( $parsoidCached );
+		// Check that ParsoidRenderID::newFromParserOutput() doesn't throw,
+		// so we know that $parsoidCached is valid.
+		ParsoidRenderID::newFromParserOutput( $parsoidCached );
 
 		// The cached ParserOutput should not use the revision timestamp
 		// Create nwe ParserOptions object since we setUseParsoid() above
