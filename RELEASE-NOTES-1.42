@@ -428,6 +428,10 @@ because of Phabricator reports.
   - MediaWiki\Installer:
     - DatabaseUpdater
     - MysqlUpdater
+  - MediaWiki\LinkedData:
+    - PageDataRequestHandler
+  - MediaWiki\Maintenance:
+    - Version
   - MediaWiki\Parser:
     - ParserOutput
   - MediaWiki\PoolCounter:
