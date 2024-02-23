@@ -11,9 +11,12 @@ $wgEnableUploads = true;
 $GLOBALS['wgNamespacesWithSubpages'][NS_MAIN] = true;
 $GLOBALS['wgCSPHeader'] = [
 	// Single quotes around 'self' are required!
-	'object-src' => "'self'"
+	'object-src' => "'self'",
+	'script-src' => [
+		''
+	]
 ];
-$GLOBALS['wgBreakFrames'] = true;
+
 $GLOBALS['bsgRSSUrlWhitelist'] = array(
 	"https://blog.bluespice.com/feed/",
 	"https://blog.hallowelt.com/feed/",
