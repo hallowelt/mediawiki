@@ -850,7 +850,7 @@ return [
 		],
 		'dependencies' => [
 			'mediawiki.util',
-			'jquery.lengthLimit',
+			'mediawiki.widgets.visibleLengthLimit',
 		],
 		'messages' => [
 			'htmlform-chosen-placeholder',
@@ -1308,9 +1308,13 @@ return [
 		],
 		'dependencies' => [
 			'oojs-ui-core',
-			'jquery.lengthLimit'
+			'mediawiki.widgets.visibleLengthLimit',
 		],
-		'messages' => [ 'protect-unchain-permissions' ]
+		'messages' => [
+			'protect-unchain-permissions',
+			// @todo Load this message in content language
+			'colon-separator',
+		],
 	],
 	'mediawiki.action.view.metadata' => [
 		'styles' => 'resources/src/mediawiki.action/mediawiki.action.view.metadata.css',
