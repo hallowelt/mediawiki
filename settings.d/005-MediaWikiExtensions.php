@@ -1,6 +1,7 @@
 <?php
 
 wfLoadExtension( 'Cite' );
+$GLOBALS['wgCiteVisualEditorOtherGroup'] = true;
 wfLoadExtension( 'CiteThisPage' );
 wfLoadExtension( 'Gadgets' );
 wfLoadExtension( 'ImageMap' );
