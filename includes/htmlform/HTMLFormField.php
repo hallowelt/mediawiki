@@ -86,6 +86,22 @@ abstract class HTMLFormField {
 	}
 
 	/**
+	 * Same as getInputHTML, but for Codex. This is called by CodexHTMLForm.
+	 *
+	 * If not overridden, falls back to getInputHTML.
+	 *
+	 * @param string $value The value to set the input to
+	 * @param bool $hasErrors Whether there are validation errors. If set to true, this method
+	 *   should apply a CSS class for the error status (e.g. cdx-text-input--status-error)
+	 *   if the component used supports that.
+	 * @return string HTML
+	 */
+	public function getInputCodex( $value, $hasErrors ) {
+		// If not overridden, fall back to getInputHTML()
+		return $this->getInputHTML( $value );
+	}
+
+	/**
 	 * True if this field type is able to display errors; false if validation errors need to be
 	 * displayed in the main HTMLForm error area.
 	 * @stable to override
@@ -786,6 +802,86 @@ abstract class HTMLFormField {
 	}
 
 	/**
+	 * Get the Codex version of the div.
+	 * @since 1.42
+	 *
+	 * @param string $value The value to set the input to.
+	 * @return string HTML
+	 */
+	public function getCodex( $value ) {
+		$isDisabled = ( $this->mParams['disabled'] ?? false );
+
+		// Label
+		$labelDiv = '';
+		$labelValue = trim( $this->getLabel() );
+		// For weird historical reasons, a non-breaking space is treated as an empty label
+		// Check for both a literal nbsp ("\u{00A0}") and the HTML-encoded version
+		if ( $labelValue !== '' && $labelValue !== "\u{00A0}" && $labelValue !== '&#160;' ) {
+			$labelFor = $this->needsLabel() ? [ 'for' => $this->mID ] : [];
+			$labelClasses = [ 'cdx-label' ];
+			if ( $isDisabled ) {
+				$labelClasses[] = 'cdx-label--disabled';
+			}
+			// <div class="cdx-label">
+			$labelDiv = Html::rawElement( 'div', [ 'class' => $labelClasses ],
+				// <label class="cdx-label__label" for="ID">
+				Html::rawElement( 'label', [ 'class' => 'cdx-label__label' ] + $labelFor,
+					// <span class="cdx-label__label__text">
+					Html::element( 'span', [ 'class' => 'cdx-label__label__text' ],
+						$labelValue
+					)
+				)
+			);
+		}
+
+		// Help text
+		// <div class="cdx-field__help-text">
+		$helptext = $this->getHelpTextHtmlDiv( $this->getHelpText(), [ 'cdx-field__help-text' ] );
+
+		// Validation message
+		// <div class="cdx-field__validation-message">
+		// $errors is a <div class="cdx-message">
+		// FIXME right now this generates a block message (cdx-message--block), we want an inline message instead
+		$validationMessage = '';
+		[ $errors, $errorClass ] = $this->getErrorsAndErrorClass( $value );
+		if ( $errors !== '' ) {
+			$validationMessage = Html::rawElement( 'div', [ 'class' => 'cdx-field__validation-message' ],
+				$errors
+			);
+		}
+
+		// Control
+		$inputHtml = $this->getInputCodex( $value, $errors !== '' );
+		// <div class="cdx-field__control cdx-field__control--has-help-text">
+		$controlClasses = [ 'cdx-field__control' ];
+		if ( $helptext ) {
+			$controlClasses[] = 'cdx-field__control--has-help-text';
+		}
+		$control = Html::rawElement( 'div', [ 'class' => $controlClasses ], $inputHtml );
+
+		// <div class="cdx-field">
+		$fieldClasses = [
+			"mw-htmlform-field-{$this->getClassName()}",
+			$this->mClass,
+			$errorClass,
+			'cdx-field'
+		];
+		if ( $isDisabled ) {
+			$fieldClasses[] = 'cdx-field--disabled';
+		}
+		$fieldAttributes = [];
+		// Set data attribute and CSS class for client side handling of hide-if / disable-if
+		if ( $this->mCondState ) {
+			$fieldAttributes['data-cond-state'] = FormatJson::encode( $this->parseCondStateForClient() );
+			$fieldClasses = array_merge( $fieldClasses, $this->mCondStateClass );
+		}
+
+		return Html::rawElement( 'div', [ 'class' => $fieldClasses ] + $fieldAttributes,
+			$labelDiv . $control . $helptext . $validationMessage
+		);
+	}
+
+	/**
 	 * Gets the non namespaced class name
 	 *
 	 * @since 1.36
@@ -921,16 +1017,17 @@ abstract class HTMLFormField {
 	 * @since 1.20
 	 *
 	 * @param string|null $helptext
+	 * @param string[] $cssClasses
 	 *
 	 * @return string
 	 */
-	public function getHelpTextHtmlDiv( $helptext ) {
+	public function getHelpTextHtmlDiv( $helptext, $cssClasses = [] ) {
 		if ( $helptext === null ) {
 			return '';
 		}
 
 		$wrapperAttributes = [
-			'class' => [ 'htmlform-tip' ],
+			'class' => array_merge( $cssClasses, [ 'htmlform-tip' ] ),
 		];
 		if ( $this->mHelpClass !== false ) {
 			$wrapperAttributes['class'][] = $this->mHelpClass;
