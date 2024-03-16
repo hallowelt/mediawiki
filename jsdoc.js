@@ -22,9 +22,7 @@ module.exports = {
 			 got round to reviewing them and incorporating them into the documentation page yet. */
 			'resources/src/mediawiki.router',
 			'resources/src/mediawiki.language.specialCharacters',
-			'resources/src/moment',
 			'resources/src/oojs-global.js',
-			'resources/src/mediawiki.notification.convertmessagebox.js',
 			'resources/src/ooui-local.js'
 		]
 	},
