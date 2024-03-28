@@ -9,6 +9,7 @@ use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\RequestInterface;
+use Wikimedia\Message\DataMessageValue;
 use Wikimedia\ObjectFactory\ObjectFactory;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\BooleanDef;
@@ -32,11 +33,20 @@ use Wikimedia\ParamValidator\ValidationException;
 class Validator {
 
 	/**
-	 * (string) ParamValidator constant to specify the source of the parameter.
-	 * Value must be 'path', 'query', or 'body' ('post' is accepted as an alias for 'body').
+	 * (array) ParamValidator array to specify the known sources of the parameter.
 	 * 'post' refers to application/x-www-form-urlencoded or multipart/form-data encoded parameters
 	 * in the body of a POST request (in other words, parameters in PHP's $_POST). For other kinds
 	 * of POST parameters, such as JSON fields, use BodyValidator instead of ParamValidator.
+	 * This list must correspond to the switch statement in ParamValidatorCallbacks::getParamsFromSource.
+	 *
+	 * @since 1.42
+	 */
+	public const KNOWN_PARAM_SOURCES = [ 'path', 'query', 'body', 'post' ];
+
+	/**
+	 * (string) ParamValidator constant for use as a key in a param settings array
+	 * to specify the source of the parameter.
+	 * Value must be one of the values in KNOWN_PARAM_SOURCES.
 	 */
 	public const PARAM_SOURCE = 'rest-param-source';
 
@@ -113,7 +123,11 @@ class Validator {
 	}
 
 	/**
-	 * Validate parameters
+	 * Validate parameters.
+	 * Params with the source specified as 'body' will be ignored.
+	 * Use validateBodyParams() for these.
+	 *
+	 * @see validateBodyParams
 	 * @param array[] $paramSettings Parameter settings
 	 * @return array Validated parameters
 	 * @throws HttpException on validation failure
@@ -122,11 +136,62 @@ class Validator {
 		$validatedParams = [];
 		foreach ( $paramSettings as $name => $settings ) {
 			try {
+				$source = $settings[Handler::PARAM_SOURCE] ?? 'unspecified';
+				if ( $source === 'body' ) {
+					continue;
+				}
+
 				$validatedParams[$name] = $this->paramValidator->getValue( $name, $settings, [
-					'source' => $settings[Handler::PARAM_SOURCE] ?? 'unspecified',
+					'source' => $source,
 				] );
 			} catch ( ValidationException $e ) {
 				throw new LocalizedHttpException( $e->getFailureMessage(), 400, [
+					'error' => 'parameter-validation-failed',
+					'name' => $e->getParamName(),
+					'value' => $e->getParamValue(),
+					'failureCode' => $e->getFailureMessage()->getCode(),
+					'failureData' => $e->getFailureMessage()->getData(),
+				] );
+			}
+		}
+		return $validatedParams;
+	}
+
+	/**
+	 * Validate body fields.
+	 * Only params with the source specified as 'body' will be processed,
+	 * use validateParams() for parameters coming from the path, from query, etc.
+	 *
+	 * @since 1.42
+	 *
+	 * @see validateParams
+	 * @see validateBody
+	 * @param array[] $paramSettings Parameter settings.
+	 * @return array Validated parameters
+	 * @throws HttpException on validation failure
+	 */
+	public function validateBodyParams( array $paramSettings ) {
+		$validatedParams = [];
+		foreach ( $paramSettings as $name => $settings ) {
+			$source = $settings[Handler::PARAM_SOURCE] ?? 'body';
+			if ( $source !== 'body' ) {
+				continue;
+			}
+
+			try {
+				$validatedParams[$name] = $this->paramValidator->getValue( $name, $settings, [
+					'source' => $source,
+				] );
+			} catch ( ValidationException $e ) {
+				$msg = $e->getFailureMessage();
+				$wrappedMsg = new DataMessageValue(
+					'rest-body-validation-error',
+					[ $e->getFailureMessage() ],
+					$msg->getCode(),
+					$msg->getData()
+				);
+
+				throw new LocalizedHttpException( $wrappedMsg, 400, [
 					'error' => 'parameter-validation-failed',
 					'name' => $e->getParamName(),
 					'value' => $e->getParamValue(),
