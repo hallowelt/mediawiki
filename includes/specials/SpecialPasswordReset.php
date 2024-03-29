@@ -196,11 +196,11 @@ class SpecialPasswordReset extends FormSpecialPage {
 	 * @return bool
 	 */
 	public function isListed() {
-		if ( $this->passwordReset->isAllowed( $this->getUser() )->isGood() ) {
-			return parent::isListed();
+		if ( !$this->passwordReset->isEnabled()->isGood() ) {
+			return false;
 		}
 
-		return false;
+		return parent::isListed();
 	}
 
 	protected function getGroupName() {
