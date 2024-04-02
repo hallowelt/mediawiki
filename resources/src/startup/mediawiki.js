@@ -9,35 +9,6 @@
 	var con = window.console;
 
 	/**
-	 * Log a message to window.console.
-	 *
-	 * Useful to force logging of some errors that are otherwise hard to detect (i.e., this logs
-	 * also in production mode).
-	 *
-	 * @private
-	 * @param {string} topic Stream name passed by mw.track
-	 * @param {Object} data Data passed by mw.track
-	 * @param {Error} [data.exception]
-	 * @param {string} data.source Error source
-	 * @param {string} [data.module] Name of module which caused the error
-	 */
-	function logError( topic, data ) {
-		var e = data.exception;
-		var msg = ( e ? 'Exception' : 'Error' ) +
-			' in ' + data.source +
-			( data.module ? ' in module ' + data.module : '' ) +
-			( e ? ':' : '.' );
-
-		con.log( msg );
-
-		// If we have an exception object, log it to the warning channel to trigger
-		// proper stacktraces in browsers that support it.
-		if ( e ) {
-			con.warn( e );
-		}
-	}
-
-	/**
 	 * ES3 compatible class similar to [ES6 Map]{@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map}.
 	 *
 	 * @class mw.Map
@@ -210,29 +181,39 @@
 		trackQueue: [],
 
 		/**
-		 * Re-implements the mw.track method in
-		 * resources/src/mediawiki.base/mediawiki.base.js. Thus ignored
-		 * from public documentation.
+		 * Track `'resourceloader.exception'` event and send it to the window console.
 		 *
-		 * @ignore
-		 * @param {any} topic that is being tracked
-		 * @param {any} data data that is passed to the callback
-		 */
-		track: function ( topic, data ) {
-			mw.trackQueue.push( { topic: topic, data: data } );
-			// This method is extended by mediawiki.base to also fire events.
-		},
-
-		/**
-		 * Track an early error event via mw.track and send it to the window console.
+		 * This exists for internal use by mw.loader only, to remember and buffer
+		 * very early events for `mw.trackSubscribe( 'resourceloader.exception' )`
+		 * even while `mediawiki.base` and `mw.track` are still in-flight.
 		 *
 		 * @private
-		 * @param {string} topic Topic name
-		 * @param {Object} data Data describing the event, encoded as an object; see mw#logError
+		 * @param {Object} data
+		 * @param {Error} [data.exception]
+		 * @param {string} data.source Error source
+		 * @param {string} [data.module] Name of module which caused the error
 		 */
-		trackError: function ( topic, data ) {
-			mw.track( topic, data );
-			logError( topic, data );
+		trackError: function ( data ) {
+			if ( mw.track ) {
+				mw.track( 'resourceloader.exception', data );
+			} else {
+				mw.trackQueue.push( { topic: 'resourceloader.exception', data: data } );
+			}
+
+			// Log an error message to window.console, even in production mode.
+			var e = data.exception;
+			var msg = ( e ? 'Exception' : 'Error' ) +
+				' in ' + data.source +
+				( data.module ? ' in module ' + data.module : '' ) +
+				( e ? ':' : '.' );
+
+			con.log( msg );
+
+			// If we have an exception object, log it to the warning channel to trigger
+			// proper stacktraces in browsers that support it.
+			if ( e ) {
+				con.warn( e );
+			}
 		},
 
 		/**
