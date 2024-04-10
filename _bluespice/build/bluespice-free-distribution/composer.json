@@ -4,17 +4,17 @@
 		"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"bluespice/visualeditorconnector": "dev-REL1_39",
-		"mediawiki/content-droplets": "dev-master",
-		"hallowelt/filter-special-pages": "dev-REL1_39",
+		"bluespice/visualeditorconnector": "4.5.*",
+		"mediawiki/content-droplets": "1.0.*",
+		"hallowelt/filter-special-pages": "2.0.*",
 		"mediawiki/invite-signup": "dev-REL1_39",
 		"mediawiki/arrays": "dev-REL1_39",
-		"universal-omega/dynamic-page-list3": "dev-master",
+		"universal-omega/dynamic-page-list3": "3.5.*",
 		"starcitizenwiki/embedvideo": "3.2.*",
-		"mediawiki/flexiskin": "dev-REL1_39",
+		"mediawiki/flexiskin": "2.1.*",
 		"mediawiki/hit-counters": "dev-REL1_39",
-		"mediawiki/image-map-edit": "dev-REL1_39",
-		"mediawiki/lingo": "~3.2",
+		"mediawiki/image-map-edit": "2.1.*",
+		"mediawiki/lingo": "3.2.*",
 		"mediawiki/loops": "dev-REL1_39",
 		"mediawiki/rss": "dev-REL1_39",
 		"mediawiki/template-styles": "dev-REL1_39",
@@ -24,12 +24,12 @@
 		"mediawiki/user-merge": "dev-REL1_39",
 		"mediawiki/variables": "2.5.3",
 		"mediawiki/url-get-parameters": "dev-REL1_39",
-		"mediawiki/standard-dialogs": "dev-REL1_39",
-		"mediawiki/page-header": "dev-REL1_39",
-		"mediawiki/menu-editor": "dev-REL1_39",
-		"mediawiki/enhanced-upload": "dev-REL1_39",
-		"mediawiki/notifications": "dev-main",
+		"mediawiki/standard-dialogs": "2.0.*",
+		"mediawiki/page-header": "2.1.*",
+		"mediawiki/menu-editor": "2.0.*",
+		"mediawiki/enhanced-upload": "2.0.*",
+		"mediawiki/notifications": "1.0.*",
 		"mediawiki/font-awesome": "2.0.*",
-		"mediawiki/visual-editor-plus": "dev-REL1_39"
+		"mediawiki/visual-editor-plus": "1.0.*"
 	}
 }
