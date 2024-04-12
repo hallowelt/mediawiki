@@ -44,14 +44,51 @@ use Wikimedia\Parsoid\Core\TOCData;
 use Wikimedia\Reflection\GhostFieldAccessTrait;
 
 /**
- * Rendered output of a wiki page, as parsed from wikitext.
+ * ParserOutput is a rendering of a Content object or a message.
+ * Content objects and messages often contain wikitext, but not always.
  *
- * ParserOutput objects are created by the ParserOutputAccess service,
- * which automatically caches them via ParserCache when possible,
- * and produces new output from the Parser (or Parsoid) as-needed.
+ * `ParserOutput` object combine the HTML rendering of Content objects
+ * or messages, available via `::getRawText()`, with various bits of
+ * metadata generated during rendering, which may include categories,
+ * links, page properties, and extension data, among others.
  *
- * Higher-level access is also available via the ContentHandler class,
- * with as its main consumers our APIs and OutputPage/Skin frontend.
+ * `ParserOutput` objects corresponding to the content of page revisions
+ * are created by the `ParserOutputAccess` service, which
+ * automatically caches them via `ParserCache` where appropriate and
+ * produces new output via `ContentHandler` as needed.
+ *
+ * In addition, wikitext from system messages as well as odd bits of
+ * wikitext rendered to create special pages and other UX elements are
+ * rendered to `ParserOutput` objects.  In these cases the metadata
+ * from the `ParserOutput` is generally discarded and the
+ * `ParserOutput` is not cached.  These bits of wikitext are generally
+ * rendered with `ParserOptions::setInterfaceMessage(true)` when
+ * content is intended to be in the user interface language, but
+ * sometimes rendered to the content language and displayed in the
+ * content area instead.
+ *
+ * A `ParserOutput` object corresponding to a given revision may be a
+ * combination of the renderings of multiple "slots":
+ * the Multi-Content Revisions (MCR) work allows articles to be
+ * composed from multiple `Content` objects.  Each `Content` renders
+ * to a `ParserOutput`, and those `ParserOutput`s are merged by
+ * `RevisionRenderer::combineSlotOutput()` to create the final article
+ * output.
+ *
+ * Similarly, `OutputPage` maintains metadata overlapping
+ * with the metadata kept by `ParserOutput` (T301020) and may merge
+ * several `ParserOutput`s using `OutputPage::addParserOutput()` to
+ * create the final output page.  Parsoid parses certain transclusions
+ * in independent top-level contexts using
+ * `Parser::parseExtensionTagAsTopLevelDoc()` and these also result in
+ * `ParserOutput`s which are merged via
+ * `ParserOutput::collectMetadata()`.
+ *
+ * Future plans for incremental parsing and asynchronous rendering may
+ * result in several of these component `ParserOutput` objects being
+ * cached independently and then recombined asynchronously, so
+ * operations on `ParserOutput` objects should be compatible with that
+ * model (T300979).
  *
  * @ingroup Parser
  */
@@ -608,7 +645,12 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/**
 	 * Return the sort key for a given category name, or `null` if the
-	 * category is not present in this ParserOutput.
+	 * category is not present in this ParserOutput.  Returns the
+	 * empty string if the category is to use the default sort key.
+	 *
+	 * @note The effective sort key in the database may vary from what
+	 * is returned here; see note in ParserOutput::addCategory().
+	 *
 	 * @param string $name The category name
 	 * @return ?string The sort key for the category, or `null` if the
 	 *  category is not present in this ParserOutput
@@ -905,8 +947,18 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/**
 	 * Add a category.
+	 *
+	 * Although ParserOutput::getCategorySortKey() will return exactly
+	 * the sort key you specify here, before storing in the database
+	 * all sort keys will be language converted, HTML entities will be
+	 * decoded, newlines stripped, and then they will be truncated to
+	 * 255 bytes. Thus the "effective" sort key in the DB may be different
+	 * from what is passed to `$sort` here and returned by
+	 * ::getCategorySortKey().
+	 *
 	 * @param string|ParsoidLinkTarget $c The category name
-	 * @param string $sort The sort key
+	 * @param string $sort The sort key; an empty string indicates
+	 *  that the default sort key for the page should be used.
 	 */
 	public function addCategory( $c, $sort = '' ): void {
 		if ( $c instanceof ParsoidLinkTarget ) {
@@ -1439,7 +1491,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * for efficient "top k" queries of pages wrt a given property.
 	 * This only works if the value is passed as a int, float, or
 	 * bool. Since 1.42 you should use ::setIndexedPageProperty()
-	 * if you want your page property to be indexed, which will ensure
+	 * if you want your page property value to be indexed, which will ensure
 	 * that the value is of the proper type.
 	 *
 	 * setPageProperty() is thus used to propagate properties from the parsed
@@ -1522,7 +1574,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	}
 
 	/**
-	 * Set a page property which is intended to be indexed.
+	 * Set a page property whose value is intended to be indexed.
 	 *
 	 * See `::setPageProperty()` for details.
 	 *
@@ -1539,15 +1591,18 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	}
 
 	/**
-	 * Set a page property which is *not* intended to be indexed.
+	 * Set a page property whose value is *not* intended to be indexed.
 	 *
-	 * See `::setPageProperty()` for details.
+	 * See `::setPageProperty()` for details.  It is recommended to
+	 * use the empty string if you need a placeholder value.
+	 * It is still possible to efficiently look up all the pages with a certain property
+	 * (the "presence" of it *is* indexed; see Special:PagesWithProp, list=pageswithprop).
 	 *
 	 * @param string $name
-	 * @param string $value
+	 * @param string $value Optional value; defaults to the empty string.
 	 * @since 1.42
 	 */
-	public function setUnindexedPageProperty( string $name, string $value ): void {
+	public function setUnindexedPageProperty( string $name, string $value = '' ): void {
 		$this->mProperties[$name] = $value;
 	}
 
