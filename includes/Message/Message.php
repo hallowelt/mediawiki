@@ -42,6 +42,7 @@ use RuntimeException;
 use Serializable;
 use Stringable;
 use Wikimedia\Assert\Assert;
+use Wikimedia\Bcp47Code\Bcp47Code;
 
 /**
  * The Message class deals with fetching and processing of interface message
@@ -190,7 +191,7 @@ class Message implements MessageSpecifier, Serializable {
 	 *
 	 * @var Language|null Explicit language object, or null for user language
 	 */
-	protected $language = null;
+	protected ?Language $language = null;
 
 	/**
 	 * @var callable|null A callable which returns the current user language,
@@ -404,7 +405,7 @@ class Message implements MessageSpecifier, Serializable {
 	 *
 	 * @return Language
 	 */
-	public function getLanguage() {
+	public function getLanguage(): Language {
 		// Defaults to null which means current user language
 		if ( $this->language !== null ) {
 			return $this->language;
@@ -859,7 +860,7 @@ class Message implements MessageSpecifier, Serializable {
 	 * turned off.
 	 *
 	 * @since 1.17
-	 * @param Language|StubUserLang|string $lang Language code or Language object.
+	 * @param Bcp47Code|StubUserLang|string $lang Language code or language object.
 	 * @return self $this
 	 */
 	public function inLanguage( $lang ) {
@@ -867,16 +868,21 @@ class Message implements MessageSpecifier, Serializable {
 
 		if ( $lang instanceof Language ) {
 			$this->language = $lang;
-		} elseif ( is_string( $lang ) ) {
-			if ( !$this->language instanceof Language || $this->language->getCode() != $lang ) {
+		} elseif ( $lang instanceof StubUserLang ) {
+			$this->language = null;
+		} elseif ( $lang instanceof Bcp47Code ) {
+			if ( $this->language === null || !$this->language->isSameCodeAs( $lang ) ) {
 				$this->language = MediaWikiServices::getInstance()->getLanguageFactory()
 					->getLanguage( $lang );
 			}
-		} elseif ( $lang instanceof StubUserLang ) {
-			$this->language = null;
+		} elseif ( is_string( $lang ) ) {
+			if ( $this->language === null || $this->language->getCode() != $lang ) {
+				$this->language = MediaWikiServices::getInstance()->getLanguageFactory()
+					->getLanguage( $lang );
+			}
 		} else {
 			// Always throws. Moved here as an optimization.
-			Assert::parameterType( [ Language::class, StubUserLang::class, 'string' ], $lang, '$lang' );
+			Assert::parameterType( [ Bcp47Code::class, StubUserLang::class, 'string' ], $lang, '$lang' );
 		}
 
 		if ( $this->language !== $previousLanguage ) {
