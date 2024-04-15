@@ -712,6 +712,15 @@ because of Phabricator reports.
 * ParserOutput::addTemplate() will emit a deprecation warning if it is called
   with a non-local title, such as an interwiki link.  In a future release
   it will throw InvalidArgumentException.
+* The following deprecated public properties of Parser will emit deprecation
+  warnings:
+  - Parser::$ot, deprecated since 1.35
+  - Parser::$mTitle, deprecated since 1.35
+  - Parser::$mOptions, deprecated since 1.35
+* The following deprecated public properties of Parser are now marked
+  for internal use only:
+  - Parser::$mPPNodeCount, deprecated since 1.35
+  - Parser::$mHighestExpansionDepth, deprecated since 1.35
 * ApiQueryBlockInfoTrait::addBlockInfoToQuery() will emit deprecation warnings
   and will soon stop working due to schema changes. Instead use
   addDeletedUserFilter() or getBlockDetailsForRows().

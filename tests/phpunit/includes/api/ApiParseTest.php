@@ -147,18 +147,18 @@ class ApiParseTest extends ApiTestCase {
 	 * Set up an interwiki entry for testing.
 	 */
 	protected function setupInterwiki() {
-		$this->getDb()->insert(
-			'interwiki',
-			[
+		$this->getDb()->newInsertQueryBuilder()
+			->insertInto( 'interwiki' )
+			->ignore()
+			->row( [
 				'iw_prefix' => 'madeuplanguage',
 				'iw_url' => "https://example.com/wiki/$1",
 				'iw_api' => '',
 				'iw_wikiid' => '',
 				'iw_local' => false,
-			],
-			__METHOD__,
-			'IGNORE'
-		);
+			] )
+			->caller( __METHOD__ )
+			->execute();
 
 		$this->overrideConfigValue(
 			MainConfigNames::ExtraInterlanguageLinkPrefixes,
@@ -309,7 +309,11 @@ class ApiParseTest extends ApiTestCase {
 
 		$this->expectApiErrorCode( 'missingcontent-pageid' );
 
-		$this->db->delete( 'revision', [ 'rev_id' => $status->getNewRevision()->getId() ] );
+		$this->db->newDeleteQueryBuilder()
+			->deleteFrom( 'revision' )
+			->where( [ 'rev_id' => $status->getNewRevision()->getId() ] )
+			->caller( __METHOD__ )
+			->execute();
 
 		// Ignore warning from WikiPage::getContentModel
 		@$this->doApiRequest( [
