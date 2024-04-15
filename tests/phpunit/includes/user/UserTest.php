@@ -734,7 +734,11 @@ class UserTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$ip = '192.168.12.34';
-		$this->db->delete( 'actor', [ 'actor_name' => $ip ], __METHOD__ );
+		$this->db->newDeleteQueryBuilder()
+			->deleteFrom( 'actor' )
+			->where( [ 'actor_name' => $ip ] )
+			->caller( __METHOD__ )
+			->execute();
 
 		$user = User::newFromName( $ip, false );
 		$this->assertSame( 0, $user->getActorId(), 'Anonymous user has no actor ID by default' );
@@ -1306,7 +1310,11 @@ class UserTest extends MediaWikiIntegrationTestCase {
 
 			case 'actor':
 				$name = 'TestNewSystemUser ' . TestUserRegistry::getNextId();
-				$this->db->insert( 'actor', [ 'actor_name' => $name ] );
+				$this->db->newInsertQueryBuilder()
+					->insertInto( 'actor' )
+					->row( [ 'actor_name' => $name ] )
+					->caller( __METHOD__ )
+					->execute();
 				$actorId = (int)$this->db->insertId();
 				break;
 

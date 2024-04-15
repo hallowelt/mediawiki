@@ -28,6 +28,7 @@ use BlockLevelPass;
 use CoreMagicVariables;
 use CoreParserFunctions;
 use CoreTagHooks;
+use DeprecationHelper;
 use Exception;
 use File;
 use HtmlArmor;
@@ -153,6 +154,7 @@ use Xml;
  */
 #[\AllowDynamicProperties]
 class Parser {
+	use DeprecationHelper;
 
 	# Flags for Parser::setFunctionHook
 	public const SFH_NO_HASH = 1;
@@ -279,9 +281,9 @@ class Parser {
 	private LinkHolderArray $mLinkHolders;
 	private int $mLinkID = 0;
 	private array $mIncludeSizes;
-	/** @deprecated since 1.35 */
+	/** @internal */
 	public $mPPNodeCount;
-	/** @deprecated since 1.35 */
+	/** @internal */
 	public $mHighestExpansionDepth;
 	private array $mTplRedirCache;
 	/** @internal */
@@ -305,21 +307,41 @@ class Parser {
 	 * @var ParserOptions|null
 	 * @deprecated since 1.35, use Parser::getOptions()
 	 */
-	public $mOptions;
+	private $mOptions;
+
+	# Deprecated "dynamic" properties
+	# These used to be dynamic properties added to the parser, but these
+	# have been deprecated since 1.42.
+	/** @deprecated since 1.42: T343229 */
+	public $scribunto_engine;
+	/** @deprecated since 1.42: T343230 */
+	public $extCite;
+	/** @deprecated since 1.42: T343226 */
+	public $extTemplateStylesCache;
+	/** @deprecated since 1.42: T357838 */
+	public $static_tag_buf;
+	/** @deprecated since 1.42: T203531 */
+	public $mExtVariables;
+	/** @deprecated since 1.42: T203532 */
+	public $mExtArrays;
+	/** @deprecated since 1.42: T359887 */
+	public $mExtHashTables;
+	/** @deprecated since 1.42: T203563 */
+	public $mExtLoopsCounter;
 
 	/**
 	 * Title context, used for self-link rendering and similar things
 	 *
 	 * @deprecated since 1.35, use Parser::getPage()
 	 */
-	public Title $mTitle;
+	private Title $mTitle;
 	/** Output type, one of the OT_xxx constants */
 	private int $mOutputType;
 	/**
 	 * Shortcut alias, see Parser::setOutputType()
 	 * @deprecated since 1.35
 	 */
-	public $ot;
+	private array $ot;
 	/** ID to display in {{REVISIONID}} tags */
 	private ?int $mRevisionId = null;
 	/** The timestamp of the specified revision ID */
@@ -462,6 +484,11 @@ class Parser {
 		SignatureValidatorFactory $signatureValidatorFactory,
 		UserNameUtils $userNameUtils
 	) {
+		$this->deprecateDynamicPropertiesAccess( '1.42', __CLASS__ );
+		$this->deprecatePublicProperty( 'ot', '1.35', __CLASS__ );
+		$this->deprecatePublicProperty( 'mTitle', '1.35', __CLASS__ );
+		$this->deprecatePublicProperty( 'mOptions', '1.35', __CLASS__ );
+
 		if ( ParserFactory::$inParserFactory === 0 ) {
 			// Direct construction of Parser was deprecated in 1.34 and
 			// removed in 1.36; use a ParserFactory instead.

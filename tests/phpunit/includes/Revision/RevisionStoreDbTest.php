@@ -1515,10 +1515,14 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		];
 
 		// create an actor row for the empty user name (see also T225469)
-		$this->getDb()->insert( 'actor', [ [
-			'actor_user' => $row->ar_user,
-			'actor_name' => $row->ar_user_text,
-		] ] );
+		$this->getDb()->newInsertQueryBuilder()
+			->insertInto( 'actor' )
+			->row( [
+				'actor_user' => $row->ar_user,
+				'actor_name' => $row->ar_user_text,
+			] )
+			->caller( __METHOD__ )
+			->execute();
 
 		$row->ar_actor = $this->getDb()->insertId();
 
@@ -2023,12 +2027,18 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 
 		// Change the user name in the database, "behind the back" of the cache
 		$newUserName = "Renamed $userNameBefore";
-		$this->getDb()->update( 'user',
-			[ 'user_name' => $newUserName ],
-			[ 'user_id' => $rev->getUser()->getId() ] );
-		$this->getDb()->update( 'actor',
-			[ 'actor_name' => $newUserName ],
-			[ 'actor_user' => $rev->getUser()->getId() ] );
+		$this->getDb()->newUpdateQueryBuilder()
+			->update( 'user' )
+			->set( [ 'user_name' => $newUserName ] )
+			->where( [ 'user_id' => $rev->getUser()->getId() ] )
+			->caller( __METHOD__ )
+			->execute();
+		$this->getDb()->newUpdateQueryBuilder()
+			->update( 'actor' )
+			->set( [ 'actor_name' => $newUserName ] )
+			->where( [ 'actor_user' => $rev->getUser()->getId() ] )
+			->caller( __METHOD__ )
+			->execute();
 
 		// Reload the revision and regrab the user name.
 		$revAfter = $store->getKnownCurrentRevision( $page->getTitle(), $rev->getId() );
@@ -2096,9 +2106,12 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		$deletedBefore = $rev->getVisibility();
 
 		// Change the deleted bitmask in the database, "behind the back" of the cache
-		$this->getDb()->update( 'revision',
-			[ 'rev_deleted' => RevisionRecord::DELETED_TEXT ],
-			[ 'rev_id' => $rev->getId() ] );
+		$this->getDb()->newUpdateQueryBuilder()
+			->update( 'revision' )
+			->set( [ 'rev_deleted' => RevisionRecord::DELETED_TEXT ] )
+			->where( [ 'rev_id' => $rev->getId() ] )
+			->caller( __METHOD__ )
+			->execute();
 
 		// Reload the revision and regrab the visibility flag.
 		$revAfter = $store->getKnownCurrentRevision( $page->getTitle(), $rev->getId() );
@@ -2136,12 +2149,18 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 
 		// Change the user name in the database
 		$newUserName = "Renamed $userNameBefore";
-		$this->getDb()->update( 'user',
-			[ 'user_name' => $newUserName ],
-			[ 'user_id' => $storeRecord->getUser()->getId() ] );
-		$this->getDb()->update( 'actor',
-			[ 'actor_name' => $newUserName ],
-			[ 'actor_user' => $storeRecord->getUser()->getId() ] );
+		$this->getDb()->newUpdateQueryBuilder()
+			->update( 'user' )
+			->set( [ 'user_name' => $newUserName ] )
+			->where( [ 'user_id' => $storeRecord->getUser()->getId() ] )
+			->caller( __METHOD__ )
+			->execute();
+		$this->getDb()->newUpdateQueryBuilder()
+			->update( 'actor' )
+			->set( [ 'actor_name' => $newUserName ] )
+			->where( [ 'actor_user' => $storeRecord->getUser()->getId() ] )
+			->caller( __METHOD__ )
+			->execute();
 
 		// Reload the record, passing $fromCache as true to force fresh info from the db,
 		// and regrab the user name
@@ -2184,9 +2203,12 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		$deletedBefore = $storeRecord->getVisibility();
 
 		// Change the deleted bitmask in the database
-		$this->getDb()->update( 'revision',
-			[ 'rev_deleted' => RevisionRecord::DELETED_TEXT ],
-			[ 'rev_id' => $storeRecord->getId() ] );
+		$this->getDb()->newUpdateQueryBuilder()
+			->update( 'revision' )
+			->set( [ 'rev_deleted' => RevisionRecord::DELETED_TEXT ] )
+			->where( [ 'rev_id' => $storeRecord->getId() ] )
+			->caller( __METHOD__ )
+			->execute();
 
 		// Reload the record, passing $fromCache as true to force fresh info from the db,
 		// and regrab the deleted bitmask
@@ -3006,12 +3028,16 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		// Construct a slot row that will conflict with the insertion of the next revision ID,
 		// to emulate the failure mode described in T202032. Nothing will ever read this row,
 		// we just need it to trigger a primary key conflict.
-		$this->getDb()->insert( 'slots', [
-			'slot_revision_id' => $maxRevId + 1,
-			'slot_role_id' => 1,
-			'slot_content_id' => 0,
-			'slot_origin' => 0
-		], __METHOD__ );
+		$this->getDb()->newInsertQueryBuilder()
+			->insertInto( 'slots' )
+			->row( [
+				'slot_revision_id' => $maxRevId + 1,
+				'slot_role_id' => 1,
+				'slot_content_id' => 0,
+				'slot_origin' => 0
+			] )
+			->caller( __METHOD__ )
+			->execute();
 
 		$rev = new MutableRevisionRecord( $page->getTitle() );
 		$rev->setTimestamp( '20180101000000' )
