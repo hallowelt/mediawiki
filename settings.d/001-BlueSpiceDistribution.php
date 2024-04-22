@@ -3,22 +3,21 @@
 wfLoadExtension( 'Arrays' );
 wfLoadExtension( 'CategoryTree' );
 wfLoadExtension( 'DynamicPageList3' );
-require_once __DIR__ . "/../extensions/HitCounters/HitCounters.php";
+wfLoadExtension( 'HitCounters' );
 require_once __DIR__ . "/../extensions/ImageMapEdit/ImageMapEdit.php";
 wfLoadExtension( 'RSS' );
 wfLoadExtension( 'TitleKey');
 wfLoadExtension( 'EmbedVideo');
 $GLOBALS['wgEmbedVideoFetchExternalThumbnails'] = false;
 wfLoadExtension( 'FilterSpecialPages' );
-wfLoadExtension( 'Notifications' );
 wfLoadExtension( 'UserMerge' );
 $wgUserMergeProtectedGroups = [];
 $wgUserMergeUnmergeable = [];
 wfLoadExtension( 'Variables' );
 wfLoadExtension( 'BlueSpiceDistributionConnector' );
-require_once __DIR__ . "/../extensions/UserFunctions/UserFunctions.php";
+wfLoadExtension( 'UserFunctions' );
 $GLOBALS['wgUFAllowedNamespaces'] = array_fill( 0, 5000, true );
-require_once __DIR__ . "/../extensions/UrlGetParameters/UrlGetParameters.php";
+wfLoadExtension( 'UrlGetParameters' );
 wfLoadExtension( 'FlexiSkin' );
 wfLoadExtension( 'Loops' );
 wfLoadExtension( 'InviteSignup' );
@@ -28,9 +27,6 @@ $GLOBALS['bsgPermissionConfig']['invitesignup'] = [
 	'roles' => [ 'admin' ]
 ];
 wfLoadExtension( 'MenuEditor' );
-$GLOBALS['wgHooks']['SetupAfterCache'][] = function() {
-	$GLOBALS[ 'wgMenuEditorMediawikiSidebarAllowedKeywords' ] = [];
-};
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
