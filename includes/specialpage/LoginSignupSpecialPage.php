@@ -559,10 +559,6 @@ abstract class LoginSignupSpecialPage extends AuthManagerSpecialPage {
 			'mediawiki.special.userlogin.common.styles'
 		] );
 		if ( $this->isSignup() ) {
-			// XXX hack pending RL or JS parse() support for complex content messages T27349
-			$out->addJsConfigVars( 'wgCreateacctImgcaptchaHelp',
-				$this->msg( 'createacct-imgcaptcha-help' )->parse() );
-
 			// Additional styles and scripts for signup form
 			$out->addModules( 'mediawiki.special.createaccount' );
 			$out->addModuleStyles( [
@@ -853,14 +849,6 @@ abstract class LoginSignupSpecialPage extends AuthManagerSpecialPage {
 			$config = $this->getConfig();
 			$hideIf = isset( $fieldInfo['mailpassword'] ) ? [ 'hide-if' => [ '===', 'mailpassword', '1' ] ] : [];
 			$fieldDefinitions = [
-				'statusarea' => [
-					// Used by the mediawiki.special.createaccount module for error display.
-					// FIXME: Merge this with HTMLForm's normal status (error) area
-					'type' => 'info',
-					'raw' => true,
-					'default' => Html::element( 'div', [ 'id' => 'mw-createacct-status-area' ] ),
-					'weight' => -105,
-				],
 				'username' => [
 					'label-raw' => $this->msg( 'userlogin-yourname' )->escaped() . $usernameHelpLink,
 					'id' => 'wpName2',
