@@ -212,6 +212,13 @@ class StatusValue {
 	 */
 	private function addError( array $newError ) {
 		if ( $newError[ 'message' ] instanceof MessageSpecifier ) {
+			if ( $newError['params'] ) {
+				// Deprecate code like `Status::newFatal( wfMessage( 'foo' ), 'param' )`
+				// - the parameters have always been ignored, so this is usually a mistake.
+				wfDeprecatedMsg( 'Combining MessageSpecifier and parameters array' .
+					' was deprecated in MediaWiki 1.43', '1.43' );
+			}
+
 			$isEqual = static function ( $key, $params ) use ( $newError ) {
 				if ( $key instanceof MessageSpecifier ) {
 					// compare attributes of both MessageSpecifiers
@@ -368,14 +375,21 @@ class StatusValue {
 	}
 
 	/**
-	 * Returns true if the specified message is present as a warning or error
+	 * Returns true if the specified message is present as a warning or error.
+	 * Any message using the same key will be found (ignoring the message parameters).
 	 *
-	 * @param string|MessageSpecifier|MessageValue $message Message key or object to search for
-	 *
+	 * @param string $message Message key to search for
+	 *   (this parameter used to allow MessageSpecifier|MessageValue too, deprecated since 1.43)
 	 * @return bool
 	 */
 	public function hasMessage( $message ) {
-		if ( $message instanceof MessageSpecifier || $message instanceof MessageValue ) {
+		if ( $message instanceof MessageSpecifier ) {
+			wfDeprecatedMsg( 'Passing MessageSpecifier to hasMessage()' .
+				' was deprecated in MediaWiki 1.43', '1.43' );
+			$message = $message->getKey();
+		} elseif ( $message instanceof MessageValue ) {
+			wfDeprecatedMsg( 'Passing MessageValue to hasMessage()' .
+				' was deprecated in MediaWiki 1.43', '1.43' );
 			$message = $message->getKey();
 		}
 
@@ -391,16 +405,23 @@ class StatusValue {
 	}
 
 	/**
-	 * Returns true if any other message than the specified ones  is present as a warning or error.
+	 * Returns true if any other message than the specified ones is present as a warning or error.
+	 * Any messages using the same keys will be found (ignoring the message parameters).
 	 *
-	 * @param string|MessageSpecifier|MessageValue ...$messages Messages to search for.
-	 *
+	 * @param string ...$messages Message keys to search for
+	 *   (this parameter used to allow MessageSpecifier|MessageValue too, deprecated since 1.43)
 	 * @return bool
 	 */
 	public function hasMessagesExcept( ...$messages ) {
 		$exceptedKeys = [];
 		foreach ( $messages as $message ) {
-			if ( $message instanceof MessageSpecifier || $message instanceof MessageValue ) {
+			if ( $message instanceof MessageSpecifier ) {
+				wfDeprecatedMsg( 'Passing MessageSpecifier to hasMessagesExcept()' .
+					' was deprecated in MediaWiki 1.43', '1.43' );
+				$message = $message->getKey();
+			} elseif ( $message instanceof MessageValue ) {
+				wfDeprecatedMsg( 'Passing MessageValue to hasMessagesExcept()' .
+					' was deprecated in MediaWiki 1.43', '1.43' );
 				$message = $message->getKey();
 			}
 			$exceptedKeys[] = $message;
@@ -422,24 +443,46 @@ class StatusValue {
 	 * If the specified source message exists, replace it with the specified
 	 * destination message, but keep the same parameters as in the original error.
 	 *
-	 * Note, due to the lack of tools for comparing IStatusMessage objects, this
-	 * function will not work when using such an object as the search parameter.
+	 * When using a string as the `$source` parameter, any message using the same key will be replaced
+	 * (regardless of whether it was stored as string or as MessageSpecifier, and ignoring the
+	 * message parameters).
 	 *
-	 * @param MessageSpecifier|MessageValue|string $source Message key or object to search for
+	 * When using a MessageValue as the `$source` parameter, this function does not work. This is a
+	 * bug, but it's impractical to fix. Therefore, passing a MessageValue is deprecated (since 1.43).
+	 *
+	 * When using a MessageSpecifier as the `$source` parameter, the message will only be replaced
+	 * when the same MessageSpecifier object was stored in the StatusValue (compared with `===`).
+	 * Since the only reliable way to obtain one is to use getErrors(), which is deprecated,
+	 * passing a MessageSpecifier is deprecated as well (since 1.43).
+	 *
+	 * @param string $source Message key to search for
+	 *   (this parameter used to allow MessageSpecifier|MessageValue too, deprecated since 1.43)
 	 * @param MessageSpecifier|MessageValue|string $dest Replacement message key or object
 	 * @return bool Return true if the replacement was done, false otherwise.
 	 */
 	public function replaceMessage( $source, $dest ) {
 		$replaced = false;
 
-		$source = $this->normalizeMessage( $source );
+		if ( $source instanceof MessageSpecifier ) {
+			wfDeprecatedMsg( 'Passing MessageSpecifier as $source to replaceMessage()' .
+				' was deprecated in MediaWiki 1.43', '1.43' );
+		} elseif ( $source instanceof MessageValue ) {
+			wfDeprecatedMsg( 'Passing MessageValue as $source to replaceMessage()' .
+				' was deprecated in MediaWiki 1.43', '1.43' );
+			$source = $this->normalizeMessage( $source );
+		}
+
 		$dest = $this->normalizeMessage( $dest );
 
-		foreach ( $this->errors as [ 'message' => &$message ] ) {
+		foreach ( $this->errors as [ 'message' => &$message, 'params' => &$params ] ) {
 			if ( $message === $source ||
 				( $message instanceof MessageSpecifier && $message->getKey() === $source )
 			) {
 				$message = $dest;
+				if ( $dest instanceof MessageSpecifier ) {
+					// 'params' will be ignored now, so remove them from the internal array
+					$params = [];
+				}
 				$replaced = true;
 			}
 		}
