@@ -72,12 +72,16 @@ For notes on 1.42.x and older releases, see HISTORY.
   from v1.3.6 to v1.5.0.
 * Updated guzzlehttp/guzzle from 7.7.1 to 7.8.1.
 * Updated pear/net_smtp from 1.11.1 to 1.12.1.
+* Updated monolog/monolog from 2.9.2 to 2.9.3.
+* Updated symfony/yaml from 5.4.35 to 5.4.39.
 * …
 
 ===== Changed development-only external libraries =====
 
 * Upgraded eslint-config-wikimedia from 0.26.0 to 0.27.0.
 * Updated seld/jsonlint from 1.10.1 to 1.10.2.
+* Updated doctrine/dbal from 3.7.2 to 3.8.4.
+* Updated phpunit/phpunit from 9.6.16 to 9.6.19.
 * …
 
 ==== Removed external libraries ====
@@ -151,6 +155,7 @@ because of Phabricator reports.
 * The $type parameter to Skin::getCopyright(), deprecated in 1.40, has been
   removed.
 * Skin::footerLink(), deprecated in 1.40, has been removed.
+* Skin::getAction(), deprecated in 1.39, has been removed.
 * …
 
 === Deprecations in 1.43 ===
