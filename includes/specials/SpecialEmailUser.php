@@ -24,7 +24,6 @@
 namespace MediaWiki\Specials;
 
 use ErrorPageError;
-use MediaWiki\Context\IContextSource;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Mail\EmailUserFactory;
 use MediaWiki\MainConfigNames;
@@ -200,31 +199,6 @@ class SpecialEmailUser extends SpecialPage {
 	}
 
 	/**
-	 * Validate target User
-	 *
-	 * @param User $target Target user
-	 * @param User $sender User sending the email
-	 * @return string Error message or empty string if valid.
-	 * @since 1.30
-	 * @deprecated since 1.41 Use EmailUser::validateTarget()
-	 */
-	public static function validateTarget( $target, User $sender ) {
-		if ( !$target instanceof User ) {
-			return 'notarget';
-		}
-		$status = MediaWikiServices::getInstance()->getEmailUserFactory()
-			->newEmailUser( $sender )
-			->validateTarget( $target );
-		if ( $status->isGood() ) {
-			$ret = '';
-		} else {
-			$msg = $status->getErrors()[0]['message'];
-			$ret = $msg === 'emailnotarget' ? 'notarget' : preg_replace( '/text$/', '', $msg );
-		}
-		return $ret;
-	}
-
-	/**
 	 * Form to ask for target user name.
 	 *
 	 * @param string $name User name submitted.
@@ -340,45 +314,6 @@ class SpecialEmailUser extends SpecialPage {
 			$res = Status::wrap( $res );
 		}
 		return $res;
-	}
-
-	/**
-	 * Really send a mail. Permissions should have been checked using
-	 * getPermissionsError(). It is probably also a good
-	 * idea to check the edit token and ping limiter in advance.
-	 *
-	 * @param array $data
-	 * @param IContextSource $context
-	 * @return Status|false
-	 * @deprecated since 1.41 Use EmailUser::sendEmailUnsafe()
-	 */
-	public static function submit( array $data, IContextSource $context ) {
-		$target = MediaWikiServices::getInstance()->getUserFactory()->newFromName( (string)$data['Target'] );
-		if ( !$target instanceof User ) {
-			return Status::newFatal( 'emailnotarget' );
-		}
-
-		$emailUser = MediaWikiServices::getInstance()->getEmailUserFactory()
-			->newEmailUserBC( $context->getAuthority(), $context->getConfig() );
-
-		$ret = $emailUser->sendEmailUnsafe(
-			$target,
-			(string)$data['Subject'],
-			(string)$data['Text'],
-			(bool)$data['CCMe'],
-			$context->getLanguage()->getCode()
-		);
-		if ( $ret->hasMessage( 'hookaborted' ) ) {
-			// BC: The method could previously return false if the EmailUser hook set the error to false.
-			$ret = false;
-		} elseif ( $ret->hasMessage( 'noemailtarget' ) ) {
-			// BC: The previous implementation would use notargettext even if noemailtarget would be the right
-			// message to use here.
-			return Status::newFatal( 'notargettext' );
-		} else {
-			$ret = Status::wrap( $ret );
-		}
-		return $ret;
 	}
 
 	/**
