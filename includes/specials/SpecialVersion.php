@@ -857,13 +857,13 @@ class SpecialVersion extends SpecialPage {
 
 		array_walk( $tags, static function ( &$value ) {
 			// Bidirectional isolation improves readability in RTL wikis
-			$value = Html::element(
+			$value = Html::rawElement(
 				'bdi',
 				// Prevent < and > from slipping to another line
 				[
 					'style' => 'white-space: nowrap;',
 				],
-				"<$value>"
+				Html::element( 'code', [], "<$value>" )
 			);
 		} );
 
@@ -897,6 +897,15 @@ class SpecialVersion extends SpecialPage {
 				)
 			)
 		);
+
+		array_walk( $funcHooks, static function ( &$value ) {
+			// Bidirectional isolation ensures it displays as {{#ns}} and not {{ns#}} in RTL wikis
+			$value = Html::rawElement(
+				'bdi',
+				[],
+				Html::element( 'code', [], "{{#$value}}" )
+			);
+		} );
 
 		$out .= $this->listToText( $funcHooks );
 
