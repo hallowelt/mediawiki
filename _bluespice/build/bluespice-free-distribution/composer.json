@@ -4,7 +4,7 @@
 		"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"bluespice/visualeditorconnector": "dev-REL1_39",
+		"bluespice/visualeditorconnector": "dev-REL1_39-4.5.x",
 		"mediawiki/content-droplets": "dev-master",
 		"hallowelt/filter-special-pages": "dev-REL1_39",
 		"mediawiki/invite-signup": "dev-REL1_39",
@@ -24,12 +24,12 @@
 		"mediawiki/user-merge": "dev-REL1_39",
 		"mediawiki/variables": "2.5.3",
 		"mediawiki/url-get-parameters": "dev-REL1_39",
-		"mediawiki/standard-dialogs": "dev-REL1_39",
-		"mediawiki/page-header": "dev-REL1_39",
-		"mediawiki/menu-editor": "dev-REL1_39",
-		"mediawiki/enhanced-upload": "dev-REL1_39",
-		"mediawiki/notifications": "dev-main",
+		"mediawiki/standard-dialogs": "REL1_39-2.1.x",
+		"mediawiki/page-header": "dev-REL1_39-2.1.x",
+		"mediawiki/menu-editor": "dev-REL1_39-2.1.x",
+		"mediawiki/enhanced-upload": "dev-REL1_39-2.0.x",
+		"mediawiki/notifications": "dev-REL1_39-1.0.x",
 		"mediawiki/font-awesome": "2.0.*",
-		"mediawiki/visual-editor-plus": "dev-REL1_39"
+		"mediawiki/visual-editor-plus": "dev-REL1_39-1.0.x"
 	}
 }
