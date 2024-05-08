@@ -1,5 +1,10 @@
 <?php
 
+// If $wgDebugToolbar is enabled the custom $wgMWLoggerDefaultSpi would eat up all the output
+if ( !$GLOBALS['wgDebugToolbar'] ) {
+	$bsgDebugLogGroups['exception'] = $bsgDebugLogGroups['exception'] ?? true;
+}
+
 if ( !isset( $bsgDebugLogGroups ) ) {
 	return;
 }
@@ -12,11 +17,26 @@ foreach( $bsgDebugLogGroups as $group => $file ) {
 		'processors' => [ 'wiki', 'psr' ],
 		'handlers' => [ $handlerName ]
 	];
-	$handlers[$handlerName] = [
+
+	$handler = [
 		'class' => '\\Monolog\\Handler\\StreamHandler',
 		'args' => [ $file ],
 		'formatter' => 'line'
 	];
+
+	if ( $file === true ) {
+		$handler = [
+			'class' => '\\Monolog\\Handler\\ErrorLogHandler',
+			'args' => [
+				/* $messageType */       0, /* Monolog\Handler\ErrorLogHandler::OPERATING_SYSTEM */
+				/* $level */           100, /* Monolog\Logger::DEBUG */
+				/* $bubble */         true,
+				/* $expandNewlines */ true
+			]
+		];
+	}
+
+	$handlers[$handlerName] = $handler;
 }
 
 $GLOBALS['wgMWLoggerDefaultSpi'] = [
