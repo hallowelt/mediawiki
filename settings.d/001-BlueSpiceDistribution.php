@@ -27,6 +27,7 @@ $GLOBALS['bsgPermissionConfig']['invitesignup'] = [
 	'roles' => [ 'admin' ]
 ];
 wfLoadExtension( 'MenuEditor' );
+$GLOBALS['wgMenuEditorToolbarOffset'] = 153;
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
