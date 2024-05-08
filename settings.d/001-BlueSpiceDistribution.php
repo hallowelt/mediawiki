@@ -4,7 +4,7 @@ wfLoadExtension( 'Arrays' );
 wfLoadExtension( 'CategoryTree' );
 wfLoadExtension( 'DynamicPageList3' );
 wfLoadExtension( 'HitCounters' );
-wfLoadExtension( 'ImageMapEdit' );
+require_once __DIR__ . "/../extensions/ImageMapEdit/ImageMapEdit.php";
 wfLoadExtension( 'RSS' );
 wfLoadExtension( 'TitleKey');
 wfLoadExtension( 'EmbedVideo');
@@ -27,6 +27,9 @@ $GLOBALS['bsgPermissionConfig']['invitesignup'] = [
 	'roles' => [ 'admin' ]
 ];
 wfLoadExtension( 'MenuEditor' );
+$GLOBALS['wgHooks']['SetupAfterCache'][] = function() {
+	$GLOBALS[ 'wgMenuEditorMediawikiSidebarAllowedKeywords' ] = [];
+};
 $GLOBALS['wgMenuEditorToolbarOffset'] = 153;
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;

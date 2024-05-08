@@ -11,7 +11,13 @@ $wgEnableUploads = true;
 $GLOBALS['wgNamespacesWithSubpages'][NS_MAIN] = true;
 $GLOBALS['wgCSPHeader'] = [
 	// Single quotes around 'self' are required!
-	'object-src' => "'self'"
+	'object-src' => "'self'",
+	'script-src' => [
+		'*.unpkg.com',
+		// Services from Extension:EmbedVideo (StarCitizen fork)
+		// do not need to be set explicitly, as they will be set
+		// dynamically. See https://github.com/StarCitizenWiki/mediawiki-extensions-EmbedVideo/commit/e9735f53a5fab4e6d513bcb901e98951e7dccf10
+	]
 ];
 $GLOBALS['wgBreakFrames'] = true;
 $GLOBALS['bsgRSSUrlWhitelist'] = array(
