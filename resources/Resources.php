@@ -636,6 +636,8 @@ return [
 	],
 
 	'@wikimedia/codex-search' => [
+		'deprecated' => '[1.43] Use a CodexModule with codexComponents to set your specific components used: '
+			. 'https://www.mediawiki.org/wiki/Codex#Using_a_limited_subset_of_components',
 		'class' => CodexModule::class,
 		'codexComponents' => [ 'CdxTypeaheadSearch' ],
 		'codexScriptOnly' => true,
@@ -645,6 +647,8 @@ return [
 	],
 
 	'codex-search-styles' => [
+		'deprecated' => '[1.43] Use a CodexModule with codexComponents to set your specific components used: '
+		. 'https://www.mediawiki.org/wiki/Codex#Using_a_limited_subset_of_components',
 		'class' => CodexModule::class,
 		'codexComponents' => [ 'CdxTypeaheadSearch' ],
 		'codexStyleOnly' => true,
@@ -1316,11 +1320,16 @@ return [
 		'scripts' => 'resources/src/mediawiki.action/mediawiki.action.history.js',
 		'styles' => 'resources/src/mediawiki.action/mediawiki.action.history.css',
 	],
+
 	'mediawiki.action.history.styles' => [
+		'class' => CodexModule::class,
+		'codexComponents' => [ 'CdxButton' ],
+		'codexStyleOnly' => true,
 		'skinStyles' => [
 			'default' => 'resources/src/mediawiki.action/mediawiki.action.history.styles.less',
 		],
 	],
+
 	'mediawiki.action.protect' => [
 		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.action',
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.action",
