@@ -1,12 +1,14 @@
-/*!
- * OOjs Router v0.5.0
- * https://www.mediawiki.org/wiki/OOjs_Router
+'use strict';
+
+/**
+ * Provide navigation routing and location information.
  *
- * Copyright 2011-2024 OOjs Team and other contributors.
+ * A router responds to hashchange and popstate events.
+ *
+ * OOjs Router Copyright 2011-2024 OOjs Team and other contributors.
  * Released under the MIT license
  * http://oojs.mit-license.org
  *
- * Date: 2024-03-04T20:48:16Z
  * @author Ed Sanders <esanders@wikimedia.org>
  * @author James D. Forrester <jforrester@wikimedia.org>
  * @author Jon Robson <jdlrobson@gmail.com>
@@ -14,16 +16,8 @@
  * @author MarcoAurelio <maurelio@tools.wmflabs.org>
  * @author Prateek Saxena <prtksxna@gmail.com>
  * @author Timo Tijhof <krinklemail@gmail.com>
- */
-'use strict';
-
-/**
- * Create an instance of a router that responds to hashchange and popstate events.
  *
- * @classdesc Provides navigation routing and location information.
- *
- * @class OO.Router
- * @extends OO.Registry
+ * @exports mediawiki.router
  */
 OO.Router = function OoRouter() {
 	const router = this;
@@ -75,40 +69,17 @@ OO.inheritClass( OO.Router, OO.Registry );
 /* Events */
 
 /**
- * @event popstate
- * @memberof OO.Router
+ * @event module:mediawiki.router#popstate
  */
 
 /**
- * @event hashchange
- * @memberof OO.Router
+ * @event module:mediawiki.router#hashchange
  */
 
 /**
- * @event route
+ * @event module:mediawiki.router#route
  * @param {jQuery.Event} routeEvent
- * @memberof OO.Router
  */
-/**
- * @typedef {Object} OO.Router~Static
- * @property {Function} isSupported Determine if current browser supports this router.
- */
-
-/**
- * Static Methods.
- *
- * @name OO.Router.static
- * @type {OO.Router~Static}
- */
-
-/**
- * Determine if current browser supports this router.
- *
- * @return {boolean} The browser is supported
- */
-OO.Router.static.isSupported = function () {
-	return 'onhashchange' in window;
-};
 
 /* Methods */
 
@@ -157,7 +128,8 @@ OO.Router.prototype.addRoute = function ( path, callback ) {
 };
 
 /**
- * @deprecated Use {@link OO.Router#addRoute}
+ * @method route
+ * @deprecated Use {@link module:mediawiki.router#addRoute}
  */
 OO.Router.prototype.route = OO.Router.prototype.addRoute;
 
@@ -182,7 +154,7 @@ OO.Router.prototype.navigateTo = function ( title, options ) {
  * Navigate to a specific 'hash fragment' route.
  *
  * @param {string} path String with a route (hash without #).
- * @deprecated Use {@link OO.Router#navigateTo} instead
+ * @deprecated Use {@link module:mediawiki.router#navigateTo} instead
  */
 OO.Router.prototype.navigate = function ( path ) {
 	// Take advantage of `pushState` when available, to clear the hash and
@@ -240,12 +212,13 @@ OO.Router.prototype.getPath = function () {
 };
 
 /**
- * Deprecated alias for OO.Router.static.isSupported.
+ * Whether the current browser supports 'hashchange' events.
  *
- * @deprecated Use static method
+ * @deprecated No longer needed
+ * @return {boolean} Always true
  */
-OO.Router.prototype.isSupported = OO.Router.static.isSupported;
+OO.Router.prototype.isSupported = function () {
+	return true;
+};
 
-if ( typeof module !== 'undefined' && module.exports ) {
-	module.exports = OO.Router;
-}
+module.exports = new OO.Router();
