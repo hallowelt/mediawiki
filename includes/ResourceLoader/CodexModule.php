@@ -37,7 +37,7 @@ use MediaWiki\MainConfigNames;
  * @internal
  */
 class CodexModule extends FileModule {
-	protected const CODEX_MODULE_DIR = 'resources/lib/codex/modules/';
+	protected const CODEX_LIBRARY_DIR = 'resources/lib/codex/';
 	private const CODEX_MODULE_DEPENDENCIES = [ 'vue' ];
 
 	/** @var array<string,string>|null */
@@ -181,15 +181,24 @@ class CodexModule extends FileModule {
 		return parent::getStyleFiles( $context );
 	}
 
+	protected function processStyle( $style, $styleLang, $path, Context $context ) {
+		$pathAsString = $path instanceof FilePath ? $path->getPath() : $path;
+		if ( str_starts_with( $pathAsString, static::CODEX_LIBRARY_DIR ) ) {
+			// This is a Codex style file, don't do any processing.
+			// We need to avoid CSSJanus flipping in particular, because we're using RTL-specific
+			// files instead. Note that we're bypassing all of processStyle() when we really just
+			// care about bypassing flipping; that's fine for now, but could be a problem if
+			// processStyle() is ever expanded to do more than Less compilation, RTL flipping and
+			// image URL remapping.
+			return $style;
+		}
+
+		return parent::processStyle( $style, $styleLang, $path, $context );
+	}
+
 	public function getDefinitionSummary( Context $context ) {
 		$this->setupCodex( $context );
 		return parent::getDefinitionSummary( $context );
-	}
-
-	public function getFlip( Context $context ) {
-		// Never flip styles for Codex modules, because we already provide separate style files
-		// for LTR vs RTL
-		return false;
 	}
 
 	public function supportsURLLoading() {
@@ -245,7 +254,7 @@ class CodexModule extends FileModule {
 			throw new InvalidArgumentException( "Unknown Codex theme $theme" );
 		}
 		$manifestFile = $themeManifestNames[ $theme ][ $direction ];
-		$manifestFilePath = MW_INSTALL_PATH . '/' . static::CODEX_MODULE_DIR . $manifestFile;
+		$manifestFilePath = MW_INSTALL_PATH . '/' . static::CODEX_LIBRARY_DIR . 'modules/' . $manifestFile;
 		return $manifestFilePath;
 	}
 
@@ -409,7 +418,7 @@ class CodexModule extends FileModule {
 		// Add the CSS files to the module's package file (unless this is a script-only module)
 		if ( !$this->isScriptOnly ) {
 			foreach ( $styles as $fileName ) {
-				$this->styles[] = new FilePath( static::CODEX_MODULE_DIR .
+				$this->styles[] = new FilePath( static::CODEX_LIBRARY_DIR . 'modules/' .
 					$fileName, MW_INSTALL_PATH, $remoteBasePath );
 			}
 		}
@@ -453,7 +462,10 @@ class CodexModule extends FileModule {
 			foreach ( $scripts as $fileName ) {
 				$this->packageFiles[] = [
 					'name' => "_codex/$fileName",
-					'file' => new FilePath( static::CODEX_MODULE_DIR . $fileName, MW_INSTALL_PATH, $remoteBasePath )
+					'file' => new FilePath(
+						static::CODEX_LIBRARY_DIR . 'modules/' . $fileName,
+						MW_INSTALL_PATH, $remoteBasePath
+					)
 				];
 			}
 		}
@@ -471,7 +483,10 @@ class CodexModule extends FileModule {
 		if ( !$this->isStyleOnly ) {
 			$this->packageFiles[] = [
 				'name' => 'codex.js',
-				'file' => new FilePath( 'resources/lib/codex/codex.umd.cjs', MW_INSTALL_PATH, $remoteBasePath )
+				'file' => new FilePath(
+					static::CODEX_LIBRARY_DIR . 'codex.umd.cjs',
+					MW_INSTALL_PATH, $remoteBasePath
+				)
 			];
 		}
 
@@ -480,16 +495,16 @@ class CodexModule extends FileModule {
 			// Theme-specific + direction style files
 			$themeStyles = [
 				'wikimedia-ui' => [
-					'ltr' => 'resources/lib/codex/codex.style.css',
-					'rtl' => 'resources/lib/codex/codex.style-rtl.css'
+					'ltr' => 'codex.style.css',
+					'rtl' => 'codex.style-rtl.css'
 				],
 				'wikimedia-ui-legacy' => [
-					'ltr' => 'resources/lib/codex/codex.style.css',
-					'rtl' => 'resources/lib/codex/codex.style-rtl.css'
+					'ltr' => 'codex.style.css',
+					'rtl' => 'codex.style-rtl.css'
 				],
 				'experimental' => [
-					'ltr' => 'resources/lib/codex/codex.style.css',
-					'rtl' => 'resources/lib/codex/codex.style-rtl.css'
+					'ltr' => 'codex.style.css',
+					'rtl' => 'codex.style-rtl.css'
 				]
 			];
 
@@ -497,7 +512,7 @@ class CodexModule extends FileModule {
 			$direction = $context->getDirection();
 			$styleFile = $themeStyles[ $theme ][ $direction ];
 			$this->styles[] = new FilePath(
-				$styleFile,
+				static::CODEX_LIBRARY_DIR . $styleFile,
 				MW_INSTALL_PATH,
 				$remoteBasePath
 			);
