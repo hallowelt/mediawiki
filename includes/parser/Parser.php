@@ -2244,6 +2244,7 @@ class Parser {
 			# This means that users can paste URLs directly into the text
 			# Funny characters like ö aren't valid in URLs anyway
 			# This was changed in August 2004
+			// @phan-suppress-next-line SecurityCheck-DoubleEscaped
 			$s .= Linker::makeExternalLink( $url, $text, false, $linktype,
 				$this->getExternalLinkAttribs( $url ), $this->getTitle() ) . $dtrail . $trail;
 
@@ -2955,9 +2956,10 @@ class Parser {
 		if ( $frame === false ) {
 			$frame = $this->getPreprocessor()->newFrame();
 		} elseif ( !( $frame instanceof PPFrame ) ) {
-			$this->logger->debug(
+			wfDeprecated(
 				__METHOD__ . " called using plain parameters instead of " .
-				"a PPFrame instance. Creating custom frame."
+				"a PPFrame instance. Creating custom frame.",
+				'1.43'
 			);
 			$frame = $this->getPreprocessor()->newCustomFrame( $frame );
 		}
@@ -3344,9 +3346,11 @@ class Parser {
 
 		# Replace raw HTML by a placeholder
 		if ( $isHTML ) {
+			// @phan-suppress-next-line SecurityCheck-XSS
 			$text = $this->insertStripItem( $text );
 		} elseif ( $nowiki && ( $this->ot['html'] || $this->ot['pre'] ) ) {
 			# Escape nowiki-style return values
+			// @phan-suppress-next-line SecurityCheck-DoubleEscaped
 			$text = wfEscapeWikiText( $text );
 		} elseif ( is_string( $text )
 			&& !$piece['lineStart']
