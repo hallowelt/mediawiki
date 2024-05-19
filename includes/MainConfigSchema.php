@@ -11,7 +11,6 @@
 // phpcs:disable Generic.Files.LineLength.TooLong
 namespace MediaWiki;
 
-use ActivityUpdateJob;
 use APCUBagOStuff;
 use AssembleUploadChunksJob;
 use BlockLogFormatter;
@@ -59,6 +58,7 @@ use MediaWiki\Password\MWOldPassword;
 use MediaWiki\Password\MWSaltedPassword;
 use MediaWiki\Password\PasswordPolicyChecks;
 use MediaWiki\Permissions\GrantsInfo;
+use MediaWiki\RCFeed\RedisPubSubFeedEngine;
 use MediaWiki\RenameUser\RenameUserJob;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Settings\Source\JsonSchemaTrait;
@@ -67,6 +67,7 @@ use MediaWiki\Storage\SqlBlobStore;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\User\CentralId\LocalIdLookup;
 use MediaWiki\User\Registration\LocalUserRegistrationProvider;
+use MediaWiki\Watchlist\ActivityUpdateJob;
 use MediaWiki\Watchlist\WatchlistExpiryJob;
 use MemcachedPeclBagOStuff;
 use MemcachedPhpBagOStuff;
@@ -78,7 +79,6 @@ use PatrolLogFormatter;
 use ProtectLogFormatter;
 use PublishStashedFileJob;
 use RecentChangesUpdateJob;
-use RedisPubSubFeedEngine;
 use ReflectionClass;
 use RefreshLinksJob;
 use RenameuserLogFormatter;
