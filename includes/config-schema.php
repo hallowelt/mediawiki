@@ -411,7 +411,7 @@ return [
 				'javascript' => 'MediaWiki\\Content\\JavaScriptContentHandler',
 				'json' => 'JsonContentHandler',
 				'css' => 'MediaWiki\\Content\\CssContentHandler',
-				'text' => 'TextContentHandler',
+				'text' => 'MediaWiki\\Content\\TextContentHandler',
 				'unknown' => 'FallbackContentHandler',
 			],
 			'NamespaceContentModels' => [
@@ -1987,7 +1987,7 @@ return [
 			],
 			'RCEngines' => [
 				'redis' => 'MediaWiki\\RCFeed\\RedisPubSubFeedEngine',
-				'udp' => 'UDPRCFeedEngine',
+				'udp' => 'MediaWiki\\RCFeed\\UDPRCFeedEngine',
 			],
 			'RCWatchCategoryMembership' => false,
 			'UseRCPatrol' => true,
