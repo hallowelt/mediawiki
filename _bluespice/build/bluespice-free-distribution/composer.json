@@ -24,7 +24,7 @@
 		"mediawiki/user-merge": "dev-REL1_39",
 		"mediawiki/variables": "2.5.3",
 		"mediawiki/url-get-parameters": "dev-REL1_39",
-		"mediawiki/standard-dialogs": "REL1_39-2.1.x",
+		"mediawiki/standard-dialogs": "dev-REL1_39-2.1.x",
 		"mediawiki/page-header": "dev-REL1_39-2.1.x",
 		"mediawiki/menu-editor": "dev-REL1_39-2.1.x",
 		"mediawiki/enhanced-upload": "dev-REL1_39-2.0.x",
