@@ -26,6 +26,7 @@ use Wikimedia\Rdbms\ChronologyProtector;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\DatabaseDomain;
 use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IDatabaseForOwner;
 use Wikimedia\Rdbms\ILBFactory;
 use Wikimedia\Rdbms\IMaintainableDatabase;
 use Wikimedia\Rdbms\IReadableDatabase;
@@ -74,12 +75,9 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 		$lb = $factory->getMainLB();
 
 		$dbw = $lb->getConnection( DB_PRIMARY );
-		$this->assertEquals(
-			$dbw::ROLE_STREAMING_MASTER, $dbw->getTopologyRole(), 'master shows as master' );
-
+		$this->assertNotFalse( $dbw );
 		$dbr = $lb->getConnection( DB_REPLICA );
-		$this->assertEquals(
-			$dbr::ROLE_STREAMING_MASTER, $dbw->getTopologyRole(), 'replica shows as replica' );
+		$this->assertNotFalse( $dbr );
 
 		$this->assertSame( 'DEFAULT', $lb->getClusterName() );
 
@@ -102,16 +100,9 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 		$lb = $factory->getMainLB();
 
 		$dbw = $lb->getConnection( DB_PRIMARY );
-		$dbw->ensureConnection();
-
-		$this->assertEquals(
-			$dbw::ROLE_STREAMING_MASTER, $dbw->getTopologyRole(), 'primary shows as primary' );
-
+		$this->assertNotFalse( $dbw );
 		$dbr = $lb->getConnection( DB_REPLICA );
-		$dbr->ensureConnection();
-
-		$this->assertEquals(
-			$dbr::ROLE_STREAMING_REPLICA, $dbr->getTopologyRole(), 'replica shows as replica' );
+		$this->assertNotFalse( $dbr );
 
 		$factory->shutdown();
 	}
@@ -121,13 +112,11 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( 's3', $factory->getMainLB()->getClusterName() );
 
-		$dbw = $factory->getMainLB()->getConnection( DB_PRIMARY );
-		$this->assertEquals(
-			$dbw::ROLE_STREAMING_MASTER, $dbw->getTopologyRole(), 'master shows as master' );
-
-		$dbr = $factory->getMainLB()->getConnection( DB_REPLICA );
-		$this->assertEquals(
-			$dbr::ROLE_STREAMING_REPLICA, $dbr->getTopologyRole(), 'replica shows as replica' );
+		$lb = $factory->getMainLB();
+		$dbw = $lb->getConnection( DB_PRIMARY );
+		$this->assertNotFalse( $dbw );
+		$dbr = $lb->getConnection( DB_REPLICA );
+		$this->assertNotFalse( $dbr );
 
 		// Destructor should trigger without round stage errors
 		unset( $factory );
@@ -257,8 +246,8 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 		$m2Pos = new MySQLPrimaryPos( 'db1064-bin.002400/794074907', $now );
 
 		// Primary DB 1
-		/** @var IDatabase|\PHPUnit\Framework\MockObject\MockObject $mockDB1 */
-		$mockDB1 = $this->createMock( IDatabase::class );
+		/** @var IDatabaseForOwner|\PHPUnit\Framework\MockObject\MockObject $mockDB1 */
+		$mockDB1 = $this->createMock( IDatabaseForOwner::class );
 		$mockDB1->method( 'writesOrCallbacksPending' )->willReturn( true );
 		$mockDB1->method( 'lastDoneWrites' )->willReturn( $now );
 		// Load balancer for primary DB 1
@@ -276,8 +265,8 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 		$lb1->method( 'getPrimaryPos' )->willReturn( $m1Pos );
 		$lb1->method( 'getServerName' )->with( 0 )->willReturn( 'master1' );
 		// Primary DB 2
-		/** @var IDatabase|\PHPUnit\Framework\MockObject\MockObject $mockDB2 */
-		$mockDB2 = $this->createMock( IDatabase::class );
+		/** @var IDatabaseForOwner|\PHPUnit\Framework\MockObject\MockObject $mockDB2 */
+		$mockDB2 = $this->createMock( IDatabaseForOwner::class );
 		$mockDB2->method( 'writesOrCallbacksPending' )->willReturn( true );
 		$mockDB2->method( 'lastDoneWrites' )->willReturn( $now );
 		// Load balancer for primary DB 2
@@ -669,11 +658,19 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 			'extdomain',
 			$db1->getDomainID()
 		);
+		$this->assertEquals(
+			'extension1',
+			$factory->getLoadBalancer( 'virtualdomain1' )->getClusterName()
+		);
 
 		$db2 = $factory->getPrimaryDatabase( 'virtualdomain2' );
 		$this->assertEquals(
 			'localdomain',
 			$db2->getDomainID()
+		);
+		$this->assertEquals(
+			'extension1',
+			$factory->getLoadBalancer( 'virtualdomain2' )->getClusterName()
 		);
 
 		$db3 = $factory->getPrimaryDatabase( 'virtualdomain3' );
@@ -681,11 +678,19 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 			'shareddb',
 			$db3->getDomainID()
 		);
+		$this->assertEquals(
+			'DEFAULT',
+			$factory->getLoadBalancer( 'virtualdomain3' )->getClusterName()
+		);
 
 		$db3 = $factory->getPrimaryDatabase( 'virtualdomain4' );
 		$this->assertEquals(
 			'localdomain',
 			$db3->getDomainID()
+		);
+		$this->assertEquals(
+			'DEFAULT',
+			$factory->getLoadBalancer( 'virtualdomain4' )->getClusterName()
 		);
 	}
 
@@ -766,7 +771,6 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 		// Connection refs should detect the config change, close the old connection,
 		// and get a new connection.
 		$this->assertTrue( $ref->isOpen() );
-		$this->assertSame( IDatabase::ROLE_STREAMING_MASTER, $ref->getTopologyRole() );
 
 		// The old connection should have been closed by DBConnRef.
 		$this->assertFalse( $con->isOpen() );
@@ -831,7 +835,6 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 		// Connection refs should detect the config change, close the old connection,
 		// and get a new connection.
 		$this->assertTrue( $ref->isOpen() );
-		$this->assertSame( IDatabase::ROLE_STREAMING_REPLICA, $ref->getTopologyRole() );
 		// The old connection should have been closed by DBConnRef.
 		$this->assertFalse( $con->isOpen() );
 	}
@@ -888,7 +891,6 @@ class LBFactoryTest extends MediaWikiIntegrationTestCase {
 		// Connection refs should detect the config change, close the old connection,
 		// and get a new connection.
 		$this->assertTrue( $ref->isOpen() );
-		$this->assertSame( IDatabase::ROLE_STREAMING_MASTER, $ref->getTopologyRole() );
 
 		// The old connection should have been called by DBConnRef.
 		$this->assertFalse( $con->isOpen() );

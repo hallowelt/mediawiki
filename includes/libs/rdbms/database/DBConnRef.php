@@ -33,7 +33,7 @@ use InvalidArgumentException;
  * @ingroup Database
  * @since 1.22
  */
-class DBConnRef implements IMaintainableDatabase {
+class DBConnRef implements IMaintainableDatabase, IDatabaseForOwner {
 	/** @var ILoadBalancer */
 	private $lb;
 	/** @var Database|null Live connection handle */
@@ -135,10 +135,6 @@ class DBConnRef implements IMaintainableDatabase {
 	}
 
 	public function getServerInfo() {
-		return $this->__call( __FUNCTION__, func_get_args() );
-	}
-
-	public function getTopologyRole() {
 		return $this->__call( __FUNCTION__, func_get_args() );
 	}
 
