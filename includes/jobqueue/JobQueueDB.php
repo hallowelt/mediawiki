@@ -23,6 +23,7 @@ use Wikimedia\Rdbms\DBError;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IMaintainableDatabase;
 use Wikimedia\Rdbms\IReadableDatabase;
+use Wikimedia\Rdbms\RawSQLValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\ScopedCallback;
 
@@ -424,7 +425,7 @@ class JobQueueDB extends JobQueue {
 				->set( [
 					'job_token' => $uuid,
 					'job_token_timestamp' => $dbw->timestamp(),
-					'job_attempts = job_attempts+1'
+					'job_attempts' => new RawSQLValue( 'job_attempts+1' ),
 				] )
 				->where( [
 					'job_cmd' => $this->type,
@@ -487,9 +488,9 @@ class JobQueueDB extends JobQueue {
 					->set( [
 						'job_token' => $uuid,
 						'job_token_timestamp' => $dbw->timestamp(),
-						'job_attempts = job_attempts+1'
+						'job_attempts' => new RawSQLValue( 'job_attempts+1' ),
 					] )
-					->where( [ 'job_id = (' . $qb->getSQL() . ')' ] )
+					->where( [ 'job_id' => new RawSQLValue( '(' . $qb->getSQL() . ')' ) ] )
 					->caller( __METHOD__ )->execute();
 			}
 
