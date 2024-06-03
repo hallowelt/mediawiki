@@ -30,6 +30,6 @@
 		"mediawiki/enhanced-upload": "dev-REL1_39-2.0.x",
 		"mediawiki/notifications": "dev-REL1_39-1.0.x",
 		"mediawiki/font-awesome": "2.0.*",
-		"mediawiki/visual-editor-plus": "dev-REL1_39-1.0.x"
+		"mediawiki/visual-editor-plus": "dev-REL1_39-1.1.x"
 	}
 }
