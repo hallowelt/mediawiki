@@ -409,7 +409,9 @@ abstract class ParsoidHandler extends Handler {
 		$services = MediaWikiServices::getInstance();
 
 		$helper = $services->getPageRestHelperFactory()->newHtmlInputTransformHelper(
-			$attribs['envOptions']
+			$attribs['envOptions'] + [
+				'offsetType' => $attribs['offsetType'],
+			]
 		);
 
 		$metrics = $this->siteConfig->metrics();
@@ -652,11 +654,12 @@ abstract class ParsoidHandler extends Handler {
 		return '/v1/revision/{revision}/html';
 	}
 
-	public function wtLint(
+	private function wtLint(
 		PageConfig $pageConfig, array $attribs, ?array $linterOverrides = []
 	) {
 		$envOptions = $attribs['envOptions'] + [
 			'linterOverrides' => $linterOverrides,
+			'offsetType' => $attribs['offsetType'],
 		];
 		try {
 			$parsoid = $this->newParsoid();
