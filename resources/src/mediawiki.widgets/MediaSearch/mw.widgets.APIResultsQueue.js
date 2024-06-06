@@ -61,24 +61,20 @@
 	mw.widgets.APIResultsQueue.prototype.get = function ( howMany ) {
 		let fetchingPromise = null;
 
-		const me = this;
-
 		howMany = howMany || this.limit;
 
 		// Check if the queue has enough items
 		if ( this.queue.length < howMany + this.threshold ) {
 			// Call for more results
 			fetchingPromise = this.queryProviders( howMany + this.threshold )
-				.then( function ( items ) {
+				.then( ( items ) => {
 					// Add to the queue
-					me.queue = me.queue.concat.apply( me.queue, items );
+					this.queue = this.queue.concat.apply( this.queue, items );
 				} );
 		}
 
 		return $.when( fetchingPromise )
-			.then( function () {
-				return me.queue.splice( 0, howMany );
-			} );
+			.then( () => this.queue.splice( 0, howMany ) );
 
 	};
 
@@ -91,26 +87,24 @@
 	 *  of fetched items. Note: The promise must have an .abort() functionality.
 	 */
 	mw.widgets.APIResultsQueue.prototype.queryProviders = function ( howMany ) {
-		const queue = this;
-
 		// Make sure there are resources set up
 		return this.setup()
-			.then( function () {
+			.then( () => {
 				// Abort previous requests
-				for ( let i = 0, iLen = queue.providerPromises.length; i < iLen; i++ ) {
-					queue.providerPromises[ i ].abort();
+				for ( let i = 0, iLen = this.providerPromises.length; i < iLen; i++ ) {
+					this.providerPromises[ i ].abort();
 				}
-				queue.providerPromises = [];
+				this.providerPromises = [];
 				// Set up the query to all providers
-				for ( let j = 0, jLen = queue.providers.length; j < jLen; j++ ) {
-					if ( !queue.providers[ j ].isDepleted() ) {
-						queue.providerPromises.push(
-							queue.providers[ j ].getResults( howMany )
+				for ( let j = 0, jLen = this.providers.length; j < jLen; j++ ) {
+					if ( !this.providers[ j ].isDepleted() ) {
+						this.providerPromises.push(
+							this.providers[ j ].getResults( howMany )
 						);
 					}
 				}
 
-				return $.when.apply( $, queue.providerPromises )
+				return $.when.apply( $, this.providerPromises )
 					.then( Array.prototype.concat.bind( [] ) );
 			} );
 	};

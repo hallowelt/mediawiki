@@ -203,7 +203,7 @@
 			$overlay.append( this.calendar.$element );
 
 			// The text input and calendar are not in DOM order, so fix up focus transitions.
-			this.textInput.$input.on( 'keydown', function ( e ) {
+			this.textInput.$input.on( 'keydown', ( e ) => {
 				if ( e.which === OO.ui.Keys.TAB ) {
 					if ( e.shiftKey ) {
 						// Tabbing backward from text input: normal browser behavior
@@ -213,8 +213,8 @@
 						return false;
 					}
 				}
-			}.bind( this ) );
-			this.calendar.$element.on( 'keydown', function ( e ) {
+			} );
+			this.calendar.$element.on( 'keydown', ( e ) => {
 				if ( e.which === OO.ui.Keys.TAB ) {
 					if ( e.shiftKey ) {
 						// Tabbing backward from calendar: just focus the text input
@@ -226,7 +226,7 @@
 						this.textInput.$input.trigger( 'focus' );
 					}
 				}
-			}.bind( this ) );
+			} );
 		}
 
 		// Set handle label and hide stuff
@@ -341,16 +341,15 @@
 	 * @private
 	 */
 	mw.widgets.DateInputWidget.prototype.onBlur = function () {
-		const widget = this;
-		setTimeout( function () {
+		setTimeout( () => {
 			const $focussed = $( ':focus' );
 			// Deactivate unless the focus moved to something else inside this widget
 			if (
-				!OO.ui.contains( widget.$element[ 0 ], $focussed[ 0 ], true ) &&
+				!OO.ui.contains( this.$element[ 0 ], $focussed[ 0 ], true ) &&
 				// Calendar might be in an $overlay
-				!OO.ui.contains( widget.calendar.$element[ 0 ], $focussed[ 0 ], true )
+				!OO.ui.contains( this.calendar.$element[ 0 ], $focussed[ 0 ], true )
 			) {
-				widget.deactivate();
+				this.deactivate();
 			}
 		}, 0 );
 	};
@@ -687,9 +686,9 @@
 		if ( isValid !== undefined ) {
 			setFlag( isValid );
 		} else {
-			this.getValidity().then( function () {
+			this.getValidity().then( () => {
 				setFlag( true );
-			}, function () {
+			}, () => {
 				setFlag( false );
 			} );
 		}

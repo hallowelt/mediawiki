@@ -51,7 +51,7 @@
 		}
 		this.setLookupsDisabled( !this.suggestions );
 
-		$form.on( 'submit', function () {
+		$form.on( 'submit', () => {
 			mw.track( 'mw.widgets.SearchInputWidget', {
 				action: 'submit-form',
 				numberOfResults: this.lastLookupItems.length,
@@ -61,7 +61,7 @@
 					this.$input.val()
 				)
 			} );
-		}.bind( this ) );
+		} );
 
 		this.connect( this, {
 			change: 'onChange'
@@ -143,8 +143,7 @@
 	 * @inheritdoc
 	 */
 	mw.widgets.SearchInputWidget.prototype.getSuggestionsPromise = function () {
-		const api = this.getApi(),
-			self = this;
+		const api = this.getApi();
 
 		// While the name is, for historical reasons, 'session-start', this indicates
 		// a new backend request is being performed.
@@ -153,12 +152,12 @@
 		} );
 
 		// reuse the searchSuggest function from mw.searchSuggest
-		const promise = mw.searchSuggest.request( api, this.getQueryValue(), function () {}, this.limit, this.getNamespace() );
+		const promise = mw.searchSuggest.request( api, this.getQueryValue(), () => {}, this.limit, this.getNamespace() );
 
 		// tracking purposes
-		promise.done( function ( data, jqXHR ) {
-			self.requestType = jqXHR.getResponseHeader( 'X-OpenSearch-Type' );
-			self.searchId = jqXHR.getResponseHeader( 'X-Search-ID' );
+		promise.done( ( data, jqXHR ) => {
+			this.requestType = jqXHR.getResponseHeader( 'X-OpenSearch-Type' );
+			this.searchId = jqXHR.getResponseHeader( 'X-Search-ID' );
 		} );
 
 		return promise;
@@ -191,13 +190,12 @@
 		const items = [],
 			titles = data.data[ 1 ],
 			descriptions = data.data[ 2 ],
-			urls = data.data[ 3 ],
-			self = this;
+			urls = data.data[ 3 ];
 
 		// eslint-disable-next-line no-jquery/no-each-util
-		$.each( titles, function ( i, result ) {
+		$.each( titles, ( i, result ) => {
 			items.push( new mw.widgets.TitleOptionWidget(
-				self.getOptionWidgetData(
+				this.getOptionWidgetData(
 					result,
 					// Create a result object that looks like the one from
 					// the parent's API query.
@@ -245,9 +243,7 @@
 			this, arguments
 		);
 
-		this.lastLookupItems = items.map( function ( item ) {
-			return item.data;
-		} );
+		this.lastLookupItems = items.map( ( item ) => item.data );
 
 		return items;
 	};
