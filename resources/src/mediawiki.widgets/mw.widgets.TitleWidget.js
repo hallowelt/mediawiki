@@ -132,11 +132,7 @@
 				smaxage: 60 * 60 * 24,
 				// Workaround T97096 by setting uselang=content
 				uselang: 'content'
-			} ).then( function ( data ) {
-				return data.query.interwikimap.map( function ( interwiki ) {
-					return interwiki.prefix;
-				} );
-			} );
+			} ).then( ( data ) => data.query.interwikimap.map( ( interwiki ) => interwiki.prefix ) );
 		}
 		return cache[ key ];
 	};
@@ -149,7 +145,6 @@
 	 * @return {jQuery.Promise} Suggestions promise
 	 */
 	mw.widgets.TitleWidget.prototype.getSectionSuggestions = function ( title, fragmentQuery ) {
-		const widget = this;
 		const normalizedTitle = mw.Title.newFromText( title || mw.config.get( 'wgRelevantPageName' ) );
 		if ( !normalizedTitle ) {
 			return $.Deferred().resolve( [] ).promise();
@@ -165,12 +160,10 @@
 			return fragment.toLowerCase().replace( /_/g, ' ' );
 		}
 
-		return this.sectionsCache[ normalizedTitleText ].then( function ( response ) {
+		return this.sectionsCache[ normalizedTitleText ].then( ( response ) => {
 			const sections = OO.getProp( response, 'parse', 'sections' ) || [];
 			const normalizedFragmentQuery = normalizeFragment( fragmentQuery );
-			const results = sections.filter( function ( section ) {
-				return normalizeFragment( section.line ).indexOf( normalizedFragmentQuery ) !== -1;
-			} ).map( function ( section ) {
+			const results = sections.filter( ( section ) => normalizeFragment( section.line ).indexOf( normalizedFragmentQuery ) !== -1 ).map( ( section ) => {
 				const fragment = section.linkAnchor.replace( /_/g, ' ' );
 				// TODO: Make promise abortable
 				return {
@@ -184,13 +177,11 @@
 				};
 			} );
 			// Sorting also happens later, but we need to do it now before we truncate
-			results.sort( function ( a, b ) {
-				return a.index - b.index;
-			} );
+			results.sort( ( a, b ) => a.index - b.index );
 			// Fake query result
 			return {
 				query: {
-					pages: results.slice( 0, widget.limit )
+					pages: results.slice( 0, this.limit )
 				}
 			};
 		} ).promise( { abort: function () {} } );
@@ -205,7 +196,6 @@
 	mw.widgets.TitleWidget.prototype.getSuggestionsPromise = function () {
 		const api = this.getApi(),
 			query = this.getQueryValue(),
-			widget = this,
 			promiseAbortObject = { abort: function () {
 				// Do nothing. This is just so OOUI doesn't break due to abort being undefined.
 			} };
@@ -223,7 +213,7 @@
 			return $.Deferred().resolve( {} ).promise( promiseAbortObject );
 		}
 
-		return this.getInterwikiPrefixesPromise().then( function ( interwikiPrefixes ) {
+		return this.getInterwikiPrefixesPromise().then( ( interwikiPrefixes ) => {
 			// Optimization: check we have any prefixes.
 			if ( interwikiPrefixes.length ) {
 				const interwiki = query.slice( 0, Math.max( 0, query.indexOf( ':' ) ) );
@@ -241,20 +231,20 @@
 				}
 			}
 			// Not a interwiki: do a prefix-search API lookup of the query.
-			const prefixSearchRequest = api.get( widget.getApiParams( query ) );
+			const prefixSearchRequest = api.get( this.getApiParams( query ) );
 			promiseAbortObject.abort = prefixSearchRequest.abort.bind( prefixSearchRequest ); // TODO ew
-			return prefixSearchRequest.then( function ( prefixSearchResponse ) {
-				if ( !widget.showMissing ) {
+			return prefixSearchRequest.then( ( prefixSearchResponse ) => {
+				if ( !this.showMissing ) {
 					return prefixSearchResponse;
 				}
-				const title = widget.namespace && widget.getMWTitle( query );
+				const title = this.namespace && this.getMWTitle( query );
 				// Add the query title as the first result, after looking up its details.
 				const queryTitleRequest = api.get( {
 					action: 'query',
 					titles: title ? title.getPrefixedDb() : query
 				} );
 				promiseAbortObject.abort = queryTitleRequest.abort.bind( queryTitleRequest );
-				return queryTitleRequest.then( function ( queryTitleResponse ) {
+				return queryTitleRequest.then( ( queryTitleResponse ) => {
 					// By default, return the prefix-search result.
 					const result = prefixSearchResponse;
 					if ( prefixSearchResponse.query === undefined ) {
@@ -262,7 +252,7 @@
 						// The API response structures are identical because both API calls are action=query.
 						result.query = queryTitleResponse.query;
 					} else if ( queryTitleResponse.query.pages && queryTitleResponse.query.pages[ -1 ] !== undefined &&
-						!widget.responseContainsNonExistingTitle( prefixSearchResponse, queryTitleResponse.query.pages[ -1 ].title )
+						!this.responseContainsNonExistingTitle( prefixSearchResponse, queryTitleResponse.query.pages[ -1 ].title )
 					) {
 						// There are prefix-search results, but the query title isn't in them,
 						// so add it as a new result. It's under the new key 'queryTitle', because
@@ -416,9 +406,7 @@
 			}
 		}
 
-		titles.sort( function ( a, b ) {
-			return pageData[ a ].index - pageData[ b ].index;
-		} );
+		titles.sort( ( a, b ) => pageData[ a ].index - pageData[ b ].index );
 
 		// If not found, run value through mw.Title to avoid treating a match as a
 		// mismatch where normalisation would make them matching (T50476)

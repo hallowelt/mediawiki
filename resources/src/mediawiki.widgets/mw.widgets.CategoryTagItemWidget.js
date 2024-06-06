@@ -27,22 +27,21 @@
 	 * @private
 	 */
 	PageExistenceCache.prototype.processExistenceCheckQueue = function () {
-		const cache = this;
 		if ( this.currentRequest ) {
 			// Don't fire off a million requests at the same time
-			this.currentRequest.always( function () {
-				cache.currentRequest = null;
-				cache.processExistenceCheckQueueDebounced();
+			this.currentRequest.always( () => {
+				this.currentRequest = null;
+				this.processExistenceCheckQueueDebounced();
 			} );
 			return;
 		}
 		const queue = this.existenceCheckQueue;
 		this.existenceCheckQueue = {};
-		const titles = Object.keys( queue ).filter( function ( title ) {
-			if ( hasOwn.call( cache.existenceCache, title ) ) {
-				queue[ title ].resolve( cache.existenceCache[ title ] );
+		const titles = Object.keys( queue ).filter( ( title ) => {
+			if ( hasOwn.call( this.existenceCache, title ) ) {
+				queue[ title ].resolve( this.existenceCache[ title ] );
 			}
-			return !hasOwn.call( cache.existenceCache, title );
+			return !hasOwn.call( this.existenceCache, title );
 		} );
 		if ( !titles.length ) {
 			return;
@@ -52,23 +51,23 @@
 			action: 'query',
 			prop: [ 'info' ],
 			titles: titles
-		} ).done( function ( response ) {
+		} ).done( ( response ) => {
 			const
 				normalized = {},
 				pages = {};
-			( response.query.normalized || [] ).forEach( function ( data ) {
+			( response.query.normalized || [] ).forEach( ( data ) => {
 				normalized[ data.fromencoded ? decodeURIComponent( data.from ) : data.from ] = data.to;
 			} );
-			response.query.pages.forEach( function ( page ) {
+			response.query.pages.forEach( ( page ) => {
 				pages[ page.title ] = !page.missing;
 			} );
-			titles.forEach( function ( title ) {
+			titles.forEach( ( title ) => {
 				let normalizedTitle = title;
 				while ( hasOwn.call( normalized, normalizedTitle ) ) {
 					normalizedTitle = normalized[ normalizedTitle ];
 				}
-				cache.existenceCache[ title ] = pages[ normalizedTitle ];
-				queue[ title ].resolve( cache.existenceCache[ title ] );
+				this.existenceCache[ title ] = pages[ normalizedTitle ];
+				queue[ title ].resolve( this.existenceCache[ title ] );
 			} );
 		} );
 	};
@@ -125,7 +124,6 @@
 	 * @param {string} [config.apiUrl] API URL, if not the current wiki's API
 	 */
 	mw.widgets.CategoryTagItemWidget = function MWWCategoryTagItemWidget( config ) {
-		const widget = this;
 		// Parent constructor
 		mw.widgets.CategoryTagItemWidget.super.call( this, $.extend( {
 			data: config.title.getMainText(),
@@ -138,7 +136,7 @@
 		this.$link = $( '<a>' )
 			.text( this.label )
 			.attr( 'target', '_blank' )
-			.on( 'click', function ( e ) {
+			.on( 'click', ( e ) => {
 				// TagMultiselectWidget really wants to prevent you from clicking the link, don't let it
 				e.stopPropagation();
 			} );
@@ -154,8 +152,8 @@
 		}
 		this.constructor.static.pageExistenceCaches[ this.apiUrl ]
 			.checkPageExistence( new ForeignTitle( this.title.getPrefixedText() ) )
-			.done( function ( exists ) {
-				widget.setMissing( !exists );
+			.done( ( exists ) => {
+				this.setMissing( !exists );
 			} );
 	};
 
