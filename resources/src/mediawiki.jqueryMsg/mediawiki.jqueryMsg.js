@@ -180,7 +180,7 @@ function getFailableParserFn( options ) {
  * @param {Object} data New data to extend parser defaults with
  */
 const setParserDefaults = function ( data ) {
-	$.extend( parserDefaults, data );
+	Object.assign( parserDefaults, data );
 };
 
 /**
@@ -192,7 +192,7 @@ const setParserDefaults = function ( data ) {
  * @return {Object}
  */
 const getParserDefaults = function () {
-	return $.extend( {}, parserDefaults );
+	return Object.assign( {}, parserDefaults );
 };
 
 /**
@@ -280,7 +280,7 @@ const getPlugin = function ( options ) {
  * @param {Object} options
  */
 function Parser( options ) {
-	this.settings = $.extend( {}, parserDefaults, options );
+	this.settings = Object.assign( {}, parserDefaults, options );
 	this.settings.onlyCurlyBraceTransform = ( this.settings.format === 'text' || this.settings.format === 'escaped' );
 	this.astCache = {};
 
@@ -924,7 +924,7 @@ Parser.prototype = {
 function HtmlEmitter( language, magic ) {
 	var jmsg = this;
 	this.language = language;
-	Object.keys( magic || {} ).forEach( function ( key ) {
+	Object.keys( magic || {} ).forEach( ( key ) => {
 		var val = magic[ key ];
 		jmsg[ key.toLowerCase() ] = function () {
 			return val;
@@ -949,9 +949,7 @@ function HtmlEmitter( language, magic ) {
 			case 'object':
 				// node is an array of nodes
 				// eslint-disable-next-line no-jquery/no-map-util
-				var subnodes = $.map( node.slice( 1 ), function ( n ) {
-					return jmsg.emit( n, replacements );
-				} );
+				var subnodes = $.map( node.slice( 1 ), ( n ) => jmsg.emit( n, replacements ) );
 				var operation = node[ 0 ].toLowerCase();
 				if ( typeof jmsg[ operation ] === 'function' ) {
 					return jmsg[ operation ]( subnodes, replacements );
@@ -1034,7 +1032,7 @@ HtmlEmitter.prototype = {
 	concat: function ( nodes ) {
 		var $span = $( '<span>' ).addClass( 'mediaWiki_htmlEmitter' );
 		// Use Array.from since mixed parameter.
-		Array.from( nodes ).forEach( function ( node ) {
+		Array.from( nodes ).forEach( ( node ) => {
 			// Let jQuery append nodes, arrays of nodes and jQuery objects
 			// other things (strings, numbers, ..) are appended as text nodes (not as HTML strings)
 			appendWithoutParsing( $span, node );
@@ -1201,7 +1199,7 @@ HtmlEmitter.prototype = {
 				} );
 			} else {
 				var target = textify( arg );
-				// eslint-disable-next-line security/detect-non-literal-regexp
+
 				if ( target.search( new RegExp( '^(/|' + mw.config.get( 'wgUrlProtocols' ) + ')' ) ) !== -1 ) {
 					$el.attr( 'href', target );
 					if ( target.search( '^' + mw.config.get( 'wgArticlePath' ).replace( /\$1/g, '.+?' ) + '$' ) === -1 ) {
@@ -1260,9 +1258,7 @@ HtmlEmitter.prototype = {
 
 		// Remove explicit plural forms from the forms. They were set undefined in the above loop.
 		// eslint-disable-next-line no-jquery/no-map-util
-		forms = $.map( forms, function ( f ) {
-			return f;
-		} );
+		forms = $.map( forms, ( f ) => f );
 
 		return this.language.convertPlural( count, forms, explicitPluralForms );
 	},
@@ -1479,9 +1475,7 @@ mw.Message.prototype.parser = function ( format ) {
 			// jqueryMsg parser is needed for messages containing wikitext
 			!/\{\{|[<>[&]/.test( this.map.get( this.key ) ) &&
 			// jqueryMsg parser is needed when jQuery objects or DOM nodes are passed in as parameters
-			!this.parameters.some( function ( param ) {
-				return param instanceof $ || ( param && param.nodeType !== undefined );
-			} )
+			!this.parameters.some( ( param ) => param instanceof $ || ( param && param.nodeType !== undefined ) )
 		)
 	) {
 		return oldParser.call( this, format );

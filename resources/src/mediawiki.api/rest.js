@@ -26,7 +26,7 @@
 	 * @private
 	 */
 	function objectKeysToLowerCase( headers ) {
-		return Object.keys( headers || {} ).reduce( function ( updatedHeaders, key ) {
+		return Object.keys( headers || {} ).reduce( ( updatedHeaders, key ) => {
 			updatedHeaders[ key.toLowerCase() ] = headers[ key ];
 			return updatedHeaders;
 		}, {} );
@@ -62,8 +62,8 @@
 	 * @param {mw.Rest.Options} [options] See {@link mw.Rest.Options}
 	 */
 	mw.Rest = function ( options ) {
-		var defaults = $.extend( {}, options );
-		defaults.ajax = $.extend( {}, defaultOptions.ajax, defaults.ajax );
+		var defaults = Object.assign( {}, options );
+		defaults.ajax = Object.assign( {}, defaultOptions.ajax, defaults.ajax );
 
 		this.url = defaults.ajax.url;
 		delete defaults.ajax.url;
@@ -79,7 +79,7 @@
 		 * @method
 		 */
 		abort: function () {
-			this.requests.forEach( function ( request ) {
+			this.requests.forEach( ( request ) => {
 				if ( request ) {
 					request.abort();
 				}
@@ -122,7 +122,7 @@
 			headers = objectKeysToLowerCase( headers );
 			return this.ajax( path, {
 				type: 'POST',
-				headers: $.extend( headers, { 'content-type': 'application/json' } ),
+				headers: Object.assign( headers, { 'content-type': 'application/json' } ),
 				data: JSON.stringify( body )
 			} );
 		},
@@ -142,7 +142,7 @@
 			headers = objectKeysToLowerCase( headers );
 			return this.ajax( path, {
 				type: 'PUT',
-				headers: $.extend( headers, { 'content-type': 'application/json' } ),
+				headers: Object.assign( headers, { 'content-type': 'application/json' } ),
 				data: JSON.stringify( body )
 			} );
 		},
@@ -162,7 +162,7 @@
 			headers = objectKeysToLowerCase( headers );
 			return this.ajax( path, {
 				type: 'DELETE',
-				headers: $.extend( headers, { 'content-type': 'application/json' } ),
+				headers: Object.assign( headers, { 'content-type': 'application/json' } ),
 				data: JSON.stringify( body )
 			} );
 		},
@@ -181,7 +181,7 @@
 				apiDeferred = $.Deferred(),
 				xhr, requestIndex;
 
-			ajaxOptions = $.extend( {}, this.defaults.ajax, ajaxOptions );
+			ajaxOptions = Object.assign( {}, this.defaults.ajax, ajaxOptions );
 			ajaxOptions.url = this.url + path;
 
 			// Make the AJAX request.
@@ -190,18 +190,18 @@
 			// Save it to make it possible to abort.
 			requestIndex = this.requests.length;
 			this.requests.push( xhr );
-			xhr.always( function () {
+			xhr.always( () => {
 				self.requests[ requestIndex ] = null;
 			} );
 
 			xhr.then(
 				// AJAX success just means "200 OK" response.
-				function ( result, textStatus, jqXHR ) {
+				( result, textStatus, jqXHR ) => {
 					apiDeferred.resolve( result, jqXHR );
 				},
 				// If AJAX fails, reject API call with error code 'http'
 				// and details in second argument.
-				function ( jqXHR, textStatus, exception ) {
+				( jqXHR, textStatus, exception ) => {
 					apiDeferred.reject( 'http', {
 						xhr: jqXHR,
 						textStatus: textStatus,

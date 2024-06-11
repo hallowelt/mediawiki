@@ -25,7 +25,7 @@ var TagItemWidget = function MwRcfiltersUiTagItemWidget(
 	this.itemModel = itemModel;
 	this.selected = false;
 
-	TagItemWidget.super.call( this, $.extend( {
+	TagItemWidget.super.call( this, Object.assign( {
 		data: this.itemModel.getName()
 	}, config ) );
 
@@ -33,7 +33,7 @@ var TagItemWidget = function MwRcfiltersUiTagItemWidget(
 	this.popupLabel = new OO.ui.LabelWidget();
 
 	// Mixin constructors
-	OO.ui.mixin.PopupElement.call( this, $.extend( {
+	OO.ui.mixin.PopupElement.call( this, Object.assign( {
 		popup: {
 			padded: false,
 			align: 'center',
@@ -137,9 +137,9 @@ TagItemWidget.prototype.onMouseEnter = function () {
 		this.popupLabel.setLabel( labelText );
 
 		// Set timeout for the popup to show
-		this.popupTimeoutShow = setTimeout( function () {
+		this.popupTimeoutShow = setTimeout( () => {
 			this.popup.toggle( true );
-		}.bind( this ), 500 );
+		}, 500 );
 
 		// Cancel the hide timeout
 		clearTimeout( this.popupTimeoutHide );
@@ -151,9 +151,9 @@ TagItemWidget.prototype.onMouseEnter = function () {
  * Respond to mouse leave event
  */
 TagItemWidget.prototype.onMouseLeave = function () {
-	this.popupTimeoutHide = setTimeout( function () {
+	this.popupTimeoutHide = setTimeout( () => {
 		this.popup.toggle( false );
-	}.bind( this ), 250 );
+	}, 250 );
 
 	// Clear the show timeout
 	clearTimeout( this.popupTimeoutShow );

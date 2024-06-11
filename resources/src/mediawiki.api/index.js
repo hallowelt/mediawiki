@@ -56,11 +56,11 @@
 	 *  [ajax()]{@link mw.Api#ajax}) later on.
 	 */
 	mw.Api = function ( options ) {
-		var defaults = $.extend( {}, options ),
+		var defaults = Object.assign( {}, options ),
 			setsUrl = options && options.ajax && options.ajax.url !== undefined;
 
-		defaults.parameters = $.extend( {}, defaultOptions.parameters, defaults.parameters );
-		defaults.ajax = $.extend( {}, defaultOptions.ajax, defaults.ajax );
+		defaults.parameters = Object.assign( {}, defaultOptions.parameters, defaults.parameters );
+		defaults.ajax = Object.assign( {}, defaultOptions.ajax, defaults.ajax );
 
 		// Force a string if we got a mw.Uri object
 		if ( setsUrl ) {
@@ -134,7 +134,7 @@
 		 * @method
 		 */
 		abort: function () {
-			this.requests.forEach( function ( request ) {
+			this.requests.forEach( ( request ) => {
 				if ( request ) {
 					request.abort();
 				}
@@ -230,8 +230,8 @@
 				apiDeferred = $.Deferred(),
 				xhr, key, formData;
 
-			parameters = $.extend( {}, this.defaults.parameters, parameters );
-			ajaxOptions = $.extend( {}, this.defaults.ajax, ajaxOptions );
+			parameters = Object.assign( {}, this.defaults.parameters, parameters );
+			ajaxOptions = Object.assign( {}, this.defaults.ajax, ajaxOptions );
 
 			// Ensure that token parameter is last (per [[mw:API:Edit#Token]]).
 			if ( parameters.token ) {
@@ -283,7 +283,7 @@
 			xhr = $.ajax( ajaxOptions )
 				// If AJAX fails, reject API call with error code 'http'
 				// and the details in the second argument.
-				.fail( function ( jqXHR, textStatus, exception ) {
+				.fail( ( jqXHR, textStatus, exception ) => {
 					apiDeferred.reject( 'http', {
 						xhr: jqXHR,
 						textStatus: textStatus,
@@ -291,7 +291,7 @@
 					} );
 				} )
 				// AJAX success just means "200 OK" response, also check API error codes
-				.done( function ( result, textStatus, jqXHR ) {
+				.done( ( result, textStatus, jqXHR ) => {
 					var code;
 					if ( result === undefined || result === null || result === '' ) {
 						apiDeferred.reject( 'ok-but-empty',
@@ -314,11 +314,11 @@
 
 			requestIndex = this.requests.length;
 			this.requests.push( xhr );
-			xhr.always( function () {
+			xhr.always( () => {
 				api.requests[ requestIndex ] = null;
 			} );
 			// Return the Promise
-			return apiDeferred.promise( { abort: xhr.abort } ).fail( function ( code, details ) {
+			return apiDeferred.promise( { abort: xhr.abort } ).fail( ( code, details ) => {
 				if ( !( code === 'http' && details && details.textStatus === 'abort' ) ) {
 					mw.log( 'mw.Api error: ', code, details );
 				}
@@ -354,7 +354,7 @@
 				abortable,
 				aborted;
 
-			return api.getToken( tokenType, assertParams ).then( function ( token ) {
+			return api.getToken( tokenType, assertParams ).then( ( token ) => {
 				params.token = token;
 				// Request was aborted while token request was running, but we
 				// don't want to unnecessarily abort token requests, so abort
@@ -371,7 +371,7 @@
 							// Try again, once
 							params.token = undefined;
 							abortable = null;
-							return api.getToken( tokenType, assertParams ).then( function ( t ) {
+							return api.getToken( tokenType, assertParams ).then( ( t ) => {
 								params.token = t;
 								if ( aborted ) {
 									return abortedPromise;
@@ -418,7 +418,7 @@
 			}
 
 			if ( !d ) {
-				apiPromise = this.get( $.extend( {
+				apiPromise = this.get( Object.assign( {
 					action: 'query',
 					meta: 'tokens',
 					type: type
@@ -431,7 +431,7 @@
 					return $.Deferred().rejectWith( this, arguments );
 				};
 				d = apiPromise
-					.then( function ( res ) {
+					.then( ( res ) => {
 						if ( !res.query ) {
 							return reject( 'query-missing', res );
 						}
@@ -539,7 +539,7 @@
 
 			} else if ( data.errors ) {
 				// errorformat: 'html'
-				return $( data.errors.map( function ( err ) {
+				return $( data.errors.map( ( err ) => {
 					// formatversion: 1 / 2
 					var $node = $( '<div>' ).html( err[ '*' ] || err.html );
 					return $node[ 0 ];

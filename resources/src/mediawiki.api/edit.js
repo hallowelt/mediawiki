@@ -46,16 +46,14 @@
 		 * @return {jQuery.Promise} API response
 		 */
 		create: function ( title, params, content ) {
-			return this.postWithEditToken( $.extend( this.assertCurrentUser( {
+			return this.postWithEditToken( Object.assign( this.assertCurrentUser( {
 				action: 'edit',
 				title: String( title ),
 				text: content,
 				formatversion: '2',
 				// Protect against conflicts
 				createonly: true
-			} ), params ) ).then( function ( data ) {
-				return data.edit;
-			} );
+			} ), params ) ).then( ( data ) => data.edit );
 		},
 
 		/**
@@ -129,7 +127,7 @@
 				formatversion: '2',
 				curtimestamp: true
 			} )
-				.then( function ( data ) {
+				.then( ( data ) => {
 					var page, revision;
 					if ( !data.query || !data.query.pages ) {
 						return $.Deferred().reject( 'unknown' );
@@ -149,9 +147,9 @@
 						content: revision.content
 					} );
 				} )
-				.then( function ( params ) {
+				.then( ( params ) => {
 					var editParams = typeof params === 'object' ? params : { text: String( params ) };
-					return api.postWithEditToken( $.extend( {
+					return api.postWithEditToken( Object.assign( {
 						action: 'edit',
 						title: title,
 						formatversion: '2',
@@ -163,9 +161,7 @@
 						nocreate: true
 					}, editParams ) );
 				} )
-				.then( function ( data ) {
-					return data.edit;
-				} );
+				.then( ( data ) => data.edit );
 		},
 
 		/**
@@ -179,7 +175,7 @@
 		 * @return {jQuery.Promise}
 		 */
 		newSection: function ( title, header, message, additionalParams ) {
-			return this.postWithEditToken( $.extend( {
+			return this.postWithEditToken( Object.assign( {
 				action: 'edit',
 				section: 'new',
 				title: String( title ),

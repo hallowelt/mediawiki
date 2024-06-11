@@ -33,7 +33,7 @@ ItemMenuOptionWidget = function MwRcfiltersUiItemMenuOptionWidget(
 	this.itemModel = itemModel;
 
 	// Parent
-	ItemMenuOptionWidget.super.call( this, $.extend( {
+	ItemMenuOptionWidget.super.call( this, Object.assign( {
 		// Override the 'check' icon that OOUI defines
 		icon: '',
 		data: this.itemModel.getName(),
@@ -119,9 +119,7 @@ ItemMenuOptionWidget = function MwRcfiltersUiItemMenuOptionWidget(
 		);
 	}
 
-	classes = this.itemModel.getIdentifiers().map( function ( ident ) {
-		return 'mw-rcfilters-ui-itemMenuOptionWidget-identifier-' + ident;
-	} ).concat(
+	classes = this.itemModel.getIdentifiers().map( ( ident ) => 'mw-rcfilters-ui-itemMenuOptionWidget-identifier-' + ident ).concat(
 		'mw-rcfilters-ui-itemMenuOptionWidget',
 		'mw-rcfilters-ui-itemMenuOptionWidget-view-' + this.itemModel.getGroupModel().getView()
 	);

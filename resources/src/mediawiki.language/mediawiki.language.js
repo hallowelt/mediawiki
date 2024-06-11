@@ -117,7 +117,6 @@
 					continue;
 				}
 
-				// eslint-disable-next-line security/detect-non-literal-regexp
 				regexp = new RegExp( sourcePattern );
 				replacement = rule[ 1 ];
 
@@ -173,7 +172,7 @@
 			}
 
 			segments = languageTag.split( '-' );
-			formatted = segments.map( function ( segment ) {
+			formatted = segments.map( ( segment ) => {
 				var newSegment;
 
 				// when previous segment is x, it is a private segment and should be lc
