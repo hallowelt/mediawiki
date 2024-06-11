@@ -23,7 +23,7 @@ FilterItem = function MwRcfiltersDmFilterItem( param, groupModel, config ) {
 	this.groupModel = groupModel;
 
 	// Parent
-	FilterItem.super.call( this, param, $.extend( {
+	FilterItem.super.call( this, param, Object.assign( {
 		namePrefix: this.groupModel.getNamePrefix()
 	}, config ) );
 	// Mixin constructor
@@ -97,7 +97,7 @@ FilterItem.prototype.getConflictDetails = function ( conflicts, key ) {
 	key = key || 'contextDescription';
 
 	// eslint-disable-next-line no-jquery/no-each-util
-	$.each( conflicts, function ( filterName, conflict ) {
+	$.each( conflicts, ( filterName, conflict ) => {
 		if ( !conflict.item.isSelected() ) {
 			return;
 		}
@@ -143,19 +143,13 @@ FilterItem.prototype.getStateMessage = function () {
 			superset = this.getSuperset();
 			// For this message we need to collect the affecting superset
 			affectingItems = this.getGroupModel().findSelectedItems( this )
-				.filter( function ( item ) {
-					return superset.indexOf( item.getName() ) !== -1;
-				} )
-				.map( function ( item ) {
-					return mw.msg( 'quotation-marks', item.getLabel() );
-				} );
+				.filter( ( item ) => superset.indexOf( item.getName() ) !== -1 )
+				.map( ( item ) => mw.msg( 'quotation-marks', item.getLabel() ) );
 
 			messageKey = 'rcfilters-state-message-subset';
 		} else if ( this.isFullyCovered() && !this.isHighlighted() ) {
 			affectingItems = this.getGroupModel().findSelectedItems( this )
-				.map( function ( item ) {
-					return mw.msg( 'quotation-marks', item.getLabel() );
-				} );
+				.map( ( item ) => mw.msg( 'quotation-marks', item.getLabel() ) );
 
 			messageKey = 'rcfilters-state-message-fullcoverage';
 		}
@@ -270,7 +264,7 @@ FilterItem.prototype.isFullyCovered = function () {
  * @return {Object} Filter conflicts
  */
 FilterItem.prototype.getConflicts = function () {
-	return $.extend( {}, this.conflicts, this.getGroupModel().getConflicts() );
+	return Object.assign( {}, this.conflicts, this.getGroupModel().getConflicts() );
 };
 
 /**

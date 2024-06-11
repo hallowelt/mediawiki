@@ -19,7 +19,7 @@
 				action: 'query',
 				meta: 'userinfo',
 				uiprop: [ 'groups', 'rights' ]
-			} ).then( function ( data ) {
+			} ).then( ( data ) => {
 				if ( data.query && data.query.userinfo ) {
 					return data.query.userinfo;
 				}
@@ -63,7 +63,7 @@
 				assertParams.assert = 'anon';
 			}
 
-			return $.extend( assertParams, query );
+			return Object.assign( assertParams, query );
 		}
 
 	} );

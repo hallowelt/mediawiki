@@ -38,7 +38,7 @@
 	 */
 	mw.Upload.Dialog = function ( config ) {
 		// Config initialization
-		config = $.extend( {
+		config = Object.assign( {
 			bookletClass: mw.Upload.BookletLayout
 		}, config );
 
@@ -133,7 +133,7 @@
 	 */
 	mw.Upload.Dialog.prototype.createUploadBooklet = function () {
 		// eslint-disable-next-line new-cap
-		return new this.bookletClass( $.extend( {
+		return new this.bookletClass( Object.assign( {
 			$overlay: this.$overlay
 		}, this.bookletConfig ) );
 	};
@@ -208,7 +208,7 @@
 			return new OO.ui.Process( this.uploadBooklet.saveFile() );
 		}
 		if ( action === 'insert' ) {
-			return new OO.ui.Process( function () {
+			return new OO.ui.Process( () => {
 				dialog.close( dialog.upload );
 			} );
 		}
