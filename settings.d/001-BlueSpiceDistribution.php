@@ -4,7 +4,7 @@ wfLoadExtension( 'Arrays' );
 wfLoadExtension( 'CategoryTree' );
 wfLoadExtension( 'DynamicPageList3' );
 wfLoadExtension( 'HitCounters' );
-require_once __DIR__ . "/../extensions/ImageMapEdit/ImageMapEdit.php";
+wfLoadExtension( 'ImageMapEdit' );
 wfLoadExtension( 'RSS' );
 wfLoadExtension( 'TitleKey');
 wfLoadExtension( 'EmbedVideo');
