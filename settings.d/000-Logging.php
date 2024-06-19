@@ -1,7 +1,7 @@
 <?php
 
 // If $wgDebugToolbar is enabled the custom $wgMWLoggerDefaultSpi would eat up all the output
-if ( !$GLOBALS['wgDebugToolbar'] ) {
+if ( !$GLOBALS['wgDebugToolbar'] && !$GLOBALS['wgDebugLogFile'] ) {
 	$bsgDebugLogGroups['exception'] = $bsgDebugLogGroups['exception'] ?? true;
 }
 
