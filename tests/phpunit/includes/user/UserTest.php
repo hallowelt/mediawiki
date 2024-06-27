@@ -736,6 +736,8 @@ class UserTest extends MediaWikiIntegrationTestCase {
 			->caller( __METHOD__ )
 			->execute();
 
+		// Next tests require disabling temp user feature.
+		$this->disableAutoCreateTempUser();
 		$user = User::newFromName( $ip, false );
 		$this->assertSame( 0, $user->getActorId(), 'Anonymous user has no actor ID by default' );
 		$this->filterDeprecated( '/Passing parameter of type IDatabase/' );
@@ -786,6 +788,7 @@ class UserTest extends MediaWikiIntegrationTestCase {
 	 * @covers \MediaWiki\User\User::newFromAnyId
 	 */
 	public function testNewFromAnyId() {
+		$this->disableAutoCreateTempUser();
 		// Registered user
 		$user = $this->user;
 		for ( $i = 1; $i <= 7; $i++ ) {
