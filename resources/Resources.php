@@ -2972,7 +2972,7 @@ return [
 		],
 	],
 	'mediawiki.widgets.SelectWithInputWidget.styles' => [
-		'styles' => 'resources/src/mediawiki.widgets/mw.widgets.SelectWithInputWidget.base.css',
+		'styles' => 'resources/src/mediawiki.widgets/mw.widgets.SelectWithInputWidget.base.less',
 	],
 	'mediawiki.widgets.SizeFilterWidget' => [
 		'scripts' => 'resources/src/mediawiki.widgets/mw.widgets.SizeFilterWidget.js',
@@ -3028,8 +3028,8 @@ return [
 			'resources/src/mediawiki.widgets/Table/mw.widgets.TableWidgetModel.js'
 		],
 		'styles' => [
-			'resources/src/mediawiki.widgets/Table/mw.widgets.RowWidget.css',
-			'resources/src/mediawiki.widgets/Table/mw.widgets.TableWidget.css',
+			'resources/src/mediawiki.widgets/Table/mw.widgets.RowWidget.less',
+			'resources/src/mediawiki.widgets/Table/mw.widgets.TableWidget.less',
 		],
 		'dependencies' => [
 			'oojs-ui-widgets'
