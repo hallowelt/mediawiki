@@ -2394,12 +2394,13 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 	/**
 	 * Load restrictions from the page_restrictions table
 	 *
-	 * @deprecated since 1.37, no public replacement
+	 * @deprecated since 1.37, no public replacement; hard-deprecated since 1.43
 	 *
 	 * @param int $flags A bit field. If IDBAccessObject::READ_LATEST is set, skip replicas and read
 	 *  from the primary DB.
 	 */
 	public function loadRestrictions( $flags = 0 ) {
+		wfDeprecated( __METHOD__, '1.37' );
 		MediaWikiServices::getInstance()->getRestrictionStore()->loadRestrictions( $this, $flags );
 	}
 
@@ -2407,9 +2408,10 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 	 * Flush the protection cache in this object and force reload from the database.
 	 * This is used when updating protection from WikiPage::doUpdateRestrictions().
 	 *
-	 * @deprecated since 1.37, now internal
+	 * @deprecated since 1.37, now internal; hard-deprecated since 1.43
 	 */
 	public function flushRestrictions() {
+		wfDeprecated( __METHOD__, '1.37' );
 		MediaWikiServices::getInstance()->getRestrictionStore()->flushRestrictions( $this );
 	}
 
@@ -3608,10 +3610,12 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 	 * e.g. the user language (such as special pages).
 	 *
 	 * @deprecated since 1.42 Use ParserOutput::getLanguage instead. See also OutputPage::getContLangForJS.
+	 *   Hard-deprecated since 1.43.
 	 * @since 1.20
 	 * @return Language
 	 */
 	public function getPageViewLanguage() {
+		wfDeprecated( __METHOD__, '1.42' );
 		$services = MediaWikiServices::getInstance();
 
 		if ( $this->isSpecialPage() ) {
