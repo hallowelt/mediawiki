@@ -42,6 +42,7 @@ class ExistingSectionEditConstraintTest extends MediaWikiUnitTestCase {
 			->method( 'isRedirect' )
 			->willReturn( false );
 		$constraint = new ExistingSectionEditConstraint(
+			'notnew',
 			'UserSummary',
 			'AutoSummary',
 			false,
@@ -51,7 +52,19 @@ class ExistingSectionEditConstraintTest extends MediaWikiUnitTestCase {
 		$this->assertConstraintPassed( $constraint );
 	}
 
-	public function testFailure() {
+	public function testPass_newSection() {
+		$constraint = new ExistingSectionEditConstraint(
+			'new',
+			'UserSummary',
+			md5( 'UserSummary' ),
+			false,
+			$this->createNoOpMock( Content::class ),
+			null
+		);
+		$this->assertConstraintPassed( $constraint );
+	}
+
+	public function testFailure_autoSummary() {
 		$originalContent = $this->createMock( Content::class );
 		$newContent = $this->createMock( Content::class );
 		$newContent->expects( $this->once() )
@@ -62,6 +75,7 @@ class ExistingSectionEditConstraintTest extends MediaWikiUnitTestCase {
 			->method( 'isRedirect' )
 			->willReturn( false );
 		$constraint = new ExistingSectionEditConstraint(
+			'notnew',
 			'UserSummary',
 			md5( 'UserSummary' ),
 			false,
@@ -69,6 +83,18 @@ class ExistingSectionEditConstraintTest extends MediaWikiUnitTestCase {
 			$originalContent
 		);
 		$this->assertConstraintFailed( $constraint, IEditConstraint::AS_SUMMARY_NEEDED );
+	}
+
+	public function testFailure_revisionDeleted() {
+		$constraint = new ExistingSectionEditConstraint(
+			'notnew',
+			'UserSummary',
+			md5( 'UserSummary' ),
+			false,
+			$this->createNoOpMock( Content::class ),
+			null
+		);
+		$this->assertConstraintFailed( $constraint, IEditConstraint::AS_REVISION_WAS_DELETED );
 	}
 
 }
