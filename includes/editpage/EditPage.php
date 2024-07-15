@@ -2394,29 +2394,16 @@ class EditPage implements IEditObject {
 			$constraintRunner->addConstraint(
 				new MissingCommentConstraint( $this->section, $this->textbox1 )
 			);
-
-			if ( $this->section !== 'new' ) {
-				$originalContent = $this->getOriginalContent( $authority );
-
-				if ( $originalContent === null ) {
-					// T301947: User loses access to revision after loading
-					// The error message, rev-deleted-text-permission, is not really in use currently.
-					// It's added for completeness and in case any code path wants to know the error.
-					$status = Status::newFatal( 'rev-deleted-text-permission' );
-					$status->value = self::AS_REVISION_WAS_DELETED;
-					return $status;
-				}
-
-				$constraintRunner->addConstraint(
-					new ExistingSectionEditConstraint(
-						$this->summary,
-						$this->autoSumm,
-						$this->allowBlankSummary,
-						$content,
-						$originalContent
-					)
-				);
-			}
+			$constraintRunner->addConstraint(
+				new ExistingSectionEditConstraint(
+					$this->section,
+					$this->summary,
+					$this->autoSumm,
+					$this->allowBlankSummary,
+					$content,
+					$this->getOriginalContent( $authority )
+				)
+			);
 			// Check the constraints
 			if ( !$constraintRunner->checkConstraints() ) {
 				$failed = $constraintRunner->getFailedConstraint();
@@ -2574,7 +2561,12 @@ class EditPage implements IEditObject {
 		} elseif ( $failed instanceof EditFilterMergedContentHookConstraint ) {
 			$this->hookError = $failed->getHookError();
 		} elseif (
-			$failed instanceof ExistingSectionEditConstraint ||
+			// ExistingSectionEditConstraint also checks for revisions deleted
+			// since the edit was loaded, which doesn't indicate a missing summary
+			(
+				$failed instanceof ExistingSectionEditConstraint
+				&& $failed->getLegacyStatus()->value === self::AS_SUMMARY_NEEDED
+			) ||
 			$failed instanceof NewSectionMissingSubjectConstraint
 		) {
 			$this->missingSummary = true;
