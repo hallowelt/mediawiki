@@ -23,6 +23,7 @@
 
 use MediaWiki\Category\Category;
 use MediaWiki\Config\ServiceOptions;
+use MediaWiki\Languages\LanguageNameUtils;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
@@ -120,6 +121,7 @@ class CoreParserFunctions {
 
 			# These magic words already contain the hash, and the no-args form
 			# is the same as passing an empty first argument
+			'bcp47',
 			'dir',
 		];
 		foreach ( $noHashFunctions as $func ) {
@@ -999,12 +1001,17 @@ class CoreParserFunctions {
 	 * Gives language names.
 	 * @param Parser $parser
 	 * @param string $code Language code (of which to get name)
-	 * @param string $inLanguage Language code (in which to get name)
+	 * @param string $inLanguage Language code (in which to get name);
+	 *   if missing or empty, the language's autonym will be returned.
 	 * @return string
 	 */
 	public static function language( $parser, $code = '', $inLanguage = '' ) {
-		$code = strtolower( $code );
-		$inLanguage = strtolower( $inLanguage );
+		if ( $code === '' ) {
+			$code = $parser->getTargetLanguage()->getCode();
+		}
+		if ( $inLanguage === '' ) {
+			$inLanguage = LanguageNameUtils::AUTONYMS;
+		}
 		$lang = MediaWikiServices::getInstance()
 			->getLanguageNameUtils()
 			->getLanguageName( $code, $inLanguage );
@@ -1046,6 +1053,22 @@ class CoreParserFunctions {
 			}
 		}
 		return $lang->getDir();
+	}
+
+	/**
+	 * Gives the BCP-47 code for a language given the mediawiki internal
+	 * language code.
+	 * @param Parser $parser
+	 * @param string $code a language code. If missing, the parser target
+	 *  language will be used.
+	 * @return string the corresponding BCP-47 code
+	 */
+	public static function bcp47( Parser $parser, string $code = '' ): string {
+		if ( $code === '' ) {
+			return $parser->getTargetLanguage()->toBcp47Code();
+		} else {
+			return LanguageCode::bcp47( $code );
+		}
 	}
 
 	/**
