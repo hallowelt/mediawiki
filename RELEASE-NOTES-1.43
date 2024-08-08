@@ -451,6 +451,8 @@ because of Phabricator reports.
 * Passing a Message argument to OutputPage::setPageTitle(), which was
   deprecated in 1.41, now emits warnings.
 * OutputPage::showFatalError() is deprecated, use showErrorPage() instead.
+* OutputPage::showPermissionsErrorPage() is deprecated,
+  use showPermissionStatus() instead.
 * LoadBalancer::getConnectionRef(), deprecated since 1.39, now emits deprecation
   warnings. Use ::getConnection() instead.
 * DBAccessObjectUtils::getDBOptions() is deprecated, use
@@ -477,6 +479,7 @@ because of Phabricator reports.
 * BagOStuff::getSegmentationSize() and ::getSegmentedValueMaxSize() no longer
   have any usage. The subclass' method in MediumSpecificBagOStuff overrides also
   have no usage as well.
+* ApiBase::errorArrayToStatus() is deprecated with no replacement.
 * ApiTestCase::setExpectedApiException() has been deprecated; instead, use
   ::expectApiErrorCode() to test error codes instead of messages.
 * ApiPageSet::getTitles(), ApiPageSet::getGoodTitles(),
