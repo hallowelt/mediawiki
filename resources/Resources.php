@@ -916,10 +916,6 @@ return [
 			'resources/src/mediawiki.htmlform.ooui.styles.less'
 		],
 	],
-	'mediawiki.icon' => [
-		'deprecated' => '[1.42] Use @cdx-icon-down-triangle and cdx-mixin-css-icon instead.',
-		'styles' => 'resources/src/mediawiki.icon/icon.less',
-	],
 	'mediawiki.inspect' => [
 		'scripts' => 'resources/src/mediawiki.inspect.js',
 		'dependencies' => [
@@ -965,13 +961,6 @@ return [
 			'default' => [
 				'resources/src/mediawiki.pager.styles/IndexPager.less',
 			]
-		],
-	],
-	'mediawiki.pager.tablePager' => [
-		'deprecated' => 'Deprecated in 1.38. Use `mediawiki.pager.styles`',
-		'styles' => [
-			'resources/src/mediawiki.pager.styles/TablePager.less',
-			'resources/src/mediawiki.pager.styles/DataTable.less',
 		],
 	],
 	'mediawiki.pulsatingdot' => [
