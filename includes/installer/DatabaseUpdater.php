@@ -23,12 +23,10 @@
 
 namespace MediaWiki\Installer;
 
-use AddRFCandPMIDInterwiki;
 use AutoLoader;
 use CleanupEmptyCategories;
 use DeleteDefaultMessages;
 use FakeMaintenance;
-use FixDefaultJsonContentPages;
 use LogicException;
 use Maintenance;
 use MediaWiki\HookContainer\HookContainer;
@@ -40,8 +38,6 @@ use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\ResourceLoader\MessageBlobStore;
 use MediaWiki\SiteStats\SiteStatsInit;
 use MigrateLinksTable;
-use PopulateBacklinkNamespace;
-use PopulatePPSortKey;
 use RebuildLocalisationCache;
 use RefreshImageMetadata;
 use RuntimeException;
@@ -111,11 +107,7 @@ abstract class DatabaseUpdater {
 	 */
 	protected $postDatabaseUpdateMaintenance = [
 		DeleteDefaultMessages::class,
-		PopulateBacklinkNamespace::class,
-		FixDefaultJsonContentPages::class,
 		CleanupEmptyCategories::class,
-		AddRFCandPMIDInterwiki::class,
-		PopulatePPSortKey::class,
 	];
 
 	/**
