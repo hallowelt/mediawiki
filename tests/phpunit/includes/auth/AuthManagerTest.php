@@ -21,6 +21,7 @@ use MediaWiki\Auth\CreatedAccountAuthenticationRequest;
 use MediaWiki\Auth\CreateFromLoginAuthenticationRequest;
 use MediaWiki\Auth\CreationReasonAuthenticationRequest;
 use MediaWiki\Auth\Hook\AuthManagerLoginAuthenticateAuditHook;
+use MediaWiki\Auth\Hook\AuthManagerVerifyAuthenticationHook;
 use MediaWiki\Auth\Hook\LocalUserCreatedHook;
 use MediaWiki\Auth\Hook\SecuritySensitiveOperationStatusHook;
 use MediaWiki\Auth\Hook\UserLoggedInHook;
@@ -111,7 +112,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 
 	/** @var AuthManager */
 	protected $manager;
-	/** @var TestingAccessWrapper */
+	/** @var TestingAccessWrapper|AuthManager */
 	protected $managerPriv;
 
 	/** @var BlockManager */
@@ -145,7 +146,8 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 	private $objectCacheFactory;
 
 	/**
-	 * Sets a mock on a hook
+	 * Registers a mock hook.
+	 * Note this should be called after initializeManager( true ) as that removes mock hooks.
 	 * @param string $hook
 	 * @param string $hookInterface
 	 * @param InvocationOrder $expect From $this->once(), $this->never(), etc.
@@ -339,8 +341,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			$this->botPasswordStore,
 			$this->userFactory,
 			$this->userIdentityLookup,
-			$this->userOptionsManager,
-			$this->objectCacheFactory
+			$this->userOptionsManager
 		);
 		$this->manager->setLogger( $this->logger );
 		$this->managerPriv = TestingAccessWrapper::newFromObject( $this->manager );
@@ -713,7 +714,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			$class1 = get_class( $mock1 );
 			$class2 = get_class( $mock2 );
 			$this->assertSame(
-				"Duplicate specifications for id X (classes $class1 and $class2)", $ex->getMessage()
+				"Duplicate specifications for id X (classes $class2 and $class1)", $ex->getMessage()
 			);
 		}
 
@@ -722,8 +723,8 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$mock->method( 'getUniqueId' )->willReturn( 'X' );
 		$class = get_class( $mock );
 		$this->preauthMocks = [ $mock ];
-		$this->primaryauthMocks = [ $mock ];
-		$this->secondaryauthMocks = [ $mock ];
+		$this->primaryauthMocks = [];
+		$this->secondaryauthMocks = [];
 		$this->initializeManager( true );
 		try {
 			$this->managerPriv->getPreAuthenticationProviders();
@@ -734,6 +735,10 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 				$ex->getMessage()
 			);
 		}
+		$this->preauthMocks = [];
+		$this->primaryauthMocks = [ $mock ];
+		$this->secondaryauthMocks = [];
+		$this->initializeManager( true );
 		try {
 			$this->managerPriv->getPrimaryAuthenticationProviders();
 			$this->fail( 'Expected exception not thrown' );
@@ -743,6 +748,10 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 				$ex->getMessage()
 			);
 		}
+		$this->preauthMocks = [];
+		$this->primaryauthMocks = [];
+		$this->secondaryauthMocks = [ $mock ];
+		$this->initializeManager( true );
 		try {
 			$this->managerPriv->getSecondaryAuthenticationProviders();
 			$this->fail( 'Expected exception not thrown' );
@@ -780,6 +789,33 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			[ 'C' => $mock3, 'B' => $mock2, 'A' => $mock1 ],
 			$this->managerPriv->getPrimaryAuthenticationProviders()
 		);
+
+		// filtering
+		$mockPreAuth1 = $this->createMock( AbstractPreAuthenticationProvider::class );
+		$mockPreAuth2 = $this->createMock( AbstractPreAuthenticationProvider::class );
+		$mockPrimary1 = $this->createMock( AbstractPrimaryAuthenticationProvider::class );
+		$mockPrimary2 = $this->createMock( AbstractPrimaryAuthenticationProvider::class );
+		$mockSecondary1 = $this->createMock( AbstractSecondaryAuthenticationProvider::class );
+		$mockSecondary2 = $this->createMock( AbstractSecondaryAuthenticationProvider::class );
+		$mockPreAuth1->method( 'getUniqueId' )->willReturn( 'pre1' );
+		$mockPreAuth2->method( 'getUniqueId' )->willReturn( 'pre2' );
+		$mockPrimary1->method( 'getUniqueId' )->willReturn( 'primary1' );
+		$mockPrimary2->method( 'getUniqueId' )->willReturn( 'primary2' );
+		$mockSecondary1->method( 'getUniqueId' )->willReturn( 'secondary1' );
+		$mockSecondary2->method( 'getUniqueId' )->willReturn( 'secondary2' );
+		$this->preauthMocks = [ $mockPreAuth1, $mockPreAuth2 ];
+		$this->primaryauthMocks = [ $mockPrimary1, $mockPrimary2 ];
+		$this->secondaryauthMocks = [ $mockSecondary1, $mockSecondary2 ];
+		$this->initializeConfig();
+		$this->initializeManager( true );
+		$this->hookContainer->register( 'AuthManagerFilterProviders', static function ( &$providers ) {
+			unset( $providers['preauth']['pre1'] );
+			$providers['primaryauth']['primary2'] = false;
+			$providers['secondaryauth'] = [ 'secondary2' => true ];
+		} );
+		$this->assertSame( [ 'pre2' => $mockPreAuth2 ], $this->managerPriv->getPreAuthenticationProviders() );
+		$this->assertSame( [ 'primary1' => $mockPrimary1 ], $this->managerPriv->getPrimaryAuthenticationProviders() );
+		$this->assertSame( [ 'secondary2' => $mockSecondary2 ], $this->managerPriv->getSecondaryAuthenticationProviders() );
 	}
 
 	/**
@@ -1445,6 +1481,122 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		];
 	}
 
+	public function testAuthentication_AuthManagerVerifyAuthentication() {
+		$this->logger = new NullLogger();
+		$this->initializeManager();
+
+		$primaryConfig = [
+			'getUniqueId' => 'primary',
+			'testUserForCreation' => StatusValue::newGood(),
+			'getAuthenticationRequests' => [],
+			'beginPrimaryAuthentication' => AuthenticationResponse::newPass( 'UTDummy' ),
+		];
+		$secondaryConfig = [
+			'getUniqueId' => 'secondary',
+			'testUserForCreation' => StatusValue::newGood(),
+			'getAuthenticationRequests' => [],
+			'beginSecondaryAuthentication' => AuthenticationResponse::newAbstain(),
+		];
+		$updateManager = function () use ( &$primaryConfig, &$secondaryConfig ) {
+			$primaryMock = $this->createConfiguredMock( AbstractPrimaryAuthenticationProvider::class, $primaryConfig );
+			foreach ( [ 'beginPrimaryAuthentication', 'continuePrimaryAuthentication' ] as $method ) {
+				$primaryMock->expects(
+					array_key_exists( $method, $primaryConfig ) ? $this->once() : $this->never()
+				)->method( $method );
+			}
+			$secondaryMock = $this->createConfiguredMock( AbstractSecondaryAuthenticationProvider::class, $secondaryConfig );
+			foreach ( [ 'beginSecondaryAuthentication', 'continueSecondaryAuthentication' ] as $method ) {
+				$secondaryMock->expects(
+					array_key_exists( $method, $secondaryConfig ) ? $this->once() : $this->never()
+				)->method( $method );
+			}
+			$this->primaryauthMocks = [ $primaryMock ];
+			$this->secondaryauthMocks = [ $secondaryMock ];
+			$this->initializeManager( true );
+		};
+		$req = new RememberMeAuthenticationRequest();
+		$req->rememberMe = true;
+
+		// Gets expected data
+		$updateManager();
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( function ( $user, &$response, $authManager, $info ) {
+			$this->assertSame( 'UTDummy', $user->getName() );
+			$this->assertSame( AuthenticationResponse::PASS, $response->status );
+			$this->assertSame( $this->manager, $authManager );
+			$this->assertSame( AuthManager::ACTION_LOGIN, $info['action'] );
+			$this->assertSame( 'primary', $info['primaryId'] );
+		} );
+		$response = $this->manager->beginAuthentication( [ $req ], 'http://localhost/' );
+		$this->assertEquals( AuthenticationResponse::newPass( 'UTDummy' ), $response );
+		$this->assertNotNull( $this->manager->getRequest()->getSession()->getUser() );
+		$this->assertSame( 'UTDummy', $this->manager->getRequest()->getSession()->getUser()->getName() );
+
+		// Will prevent login
+		$updateManager();
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( static function ( $user, &$response, $authManager, $info ) {
+			$response = AuthenticationResponse::newFail( wfMessage( 'hook-fail' ) );
+			return false;
+		} );
+		$response = $this->manager->beginAuthentication( [ $req ], 'http://localhost/' );
+		$this->assertEquals( AuthenticationResponse::newFail( wfMessage( 'hook-fail' ) ), $response );
+		$this->assertTrue( $this->manager->getRequest()->getSession()->getUser()->isAnon() );
+
+		// Will not allow invalid responses
+		$updateManager();
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( static function ( $user, &$response, $authManager, $info ) {
+			$response = 'invalid';
+			return false;
+		} );
+		try {
+			$this->manager->beginAuthentication( [ $req ], 'http://localhost/' );
+			$this->fail( 'Expected exception not thrown' );
+		} catch ( LogicException $ex ) {
+			$this->assertSame( '$response must be an AuthenticationResponse', $ex->getMessage() );
+		}
+
+		$updateManager();
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( static function ( $user, &$response, $authManager, $info ) {
+			$response = AuthenticationResponse::newPass( 'UTDummy' );
+		} );
+		try {
+			$this->manager->beginAuthentication( [ $req ], 'http://localhost/' );
+			$this->fail( 'Expected exception not thrown' );
+		} catch ( LogicException $ex ) {
+			$this->assertSame( 'AuthManagerVerifyAuthenticationHook must not modify the response unless it returns false', $ex->getMessage() );
+		}
+
+		$updateManager();
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( static function ( $user, &$response, $authManager, $info ) {
+			return false;
+		} );
+		try {
+			$this->manager->beginAuthentication( [ $req ], 'http://localhost/' );
+			$this->fail( 'Expected exception not thrown' );
+		} catch ( LogicException $ex ) {
+			$this->assertSame( 'AuthManagerVerifyAuthenticationHook must set the response to FAIL if it returns false', $ex->getMessage() );
+		}
+
+		// Will prevent restart
+		$primaryConfig['beginPrimaryAuthentication'] = AuthenticationResponse::newPass( null );
+		unset( $secondaryConfig['beginSecondaryAuthentication'] );
+		$updateManager();
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( function ( $user, &$response, $authManager, $info ) {
+			$this->assertSame( AuthenticationResponse::RESTART, $response->status );
+			$response = AuthenticationResponse::newFail( wfMessage( 'hook-fail' ) );
+			return false;
+		} );
+		$response = $this->manager->beginAuthentication( [ $req ], 'http://localhost/' );
+		$this->assertEquals( AuthenticationResponse::newFail( wfMessage( 'hook-fail' ) ), $response );
+		$this->assertTrue( $this->manager->getRequest()->getSession()->getUser()->isAnon() );
+		$this->assertNull( $this->manager->getRequest()->getSession()->get( AuthManager::AUTHN_STATE ) );
+	}
+
 	/**
 	 * @dataProvider provideUserExists
 	 * @param bool $primary1Exists
@@ -2013,6 +2165,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			'creatorid' => 0,
 			'creatorname' => $username,
 			'reqs' => [],
+			'providerIds' => [ 'preauth' => [], 'primaryauth' => [], 'secondaryauth' => [] ],
 			'primary' => null,
 			'primaryResponse' => null,
 			'secondary' => [],
@@ -2036,6 +2189,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$mock->method( 'beginPrimaryAccountCreation' )
 			->willReturn( AuthenticationResponse::newFail( $this->message( 'fail' ) ) );
 		$this->primaryauthMocks = [ $mock ];
+		$session['providerIds']['primaryauth'][] = 'X';
 		$this->initializeManager( true );
 
 		$this->request->getSession()->setSecret( AuthManager::ACCOUNT_CREATION_STATE, null );
@@ -2632,6 +2786,79 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			[ false, null ],
 			[ false, 'byemail' ],
 		];
+	}
+
+	public function testAccountCreation_AuthManagerVerifyAuthentication() {
+		$this->logger = new NullLogger();
+		$this->initializeManager();
+
+		$primaryConfig = [
+			'getUniqueId' => 'primary',
+			'accountCreationType' => PrimaryAuthenticationProvider::TYPE_CREATE,
+			'testUserForCreation' => StatusValue::newGood(),
+			'testForAccountCreation' => StatusValue::newGood(),
+			'getAuthenticationRequests' => [],
+			'beginPrimaryAccountCreation' => AuthenticationResponse::newPass(),
+		];
+		$secondaryConfig = [
+			'getUniqueId' => 'secondary',
+			'testUserForCreation' => StatusValue::newGood(),
+			'testForAccountCreation' => StatusValue::newGood(),
+			'getAuthenticationRequests' => [],
+			'beginSecondaryAccountCreation' => AuthenticationResponse::newAbstain(),
+		];
+		$updateManager = function () use ( &$primaryConfig, &$secondaryConfig ) {
+			$primaryMock = $this->createConfiguredMock( AbstractPrimaryAuthenticationProvider::class, $primaryConfig );
+			foreach ( [ 'beginPrimaryAccountCreation', 'continuePrimaryAccountCreation' ] as $method ) {
+				$primaryMock->expects(
+					array_key_exists( $method, $primaryConfig ) ? $this->once() : $this->never()
+				)->method( $method );
+			}
+			$secondaryMock = $this->createConfiguredMock( AbstractSecondaryAuthenticationProvider::class, $secondaryConfig );
+			foreach ( [ 'beginSecondaryAccountCreation', 'continueSecondaryAccountCreation' ] as $method ) {
+				$secondaryMock->expects(
+					array_key_exists( $method, $secondaryConfig ) ? $this->once() : $this->never()
+				)->method( $method );
+			}
+			$this->primaryauthMocks = [ $primaryMock ];
+			$this->secondaryauthMocks = [ $secondaryMock ];
+			$this->initializeManager( true );
+		};
+		$req = new UsernameAuthenticationRequest();
+		$req->username = 'UTDummy';
+
+		// Gets expected data
+		$updateManager();
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( function ( $user, &$response, $authManager, $info ) {
+			$this->assertSame( 'UTDummy', $user->getName() );
+			$this->assertSame( AuthenticationResponse::PASS, $response->status );
+			$this->assertSame( $this->manager, $authManager );
+			$this->assertSame( AuthManager::ACTION_CREATE, $info['action'] );
+			$this->assertSame( 'primary', $info['primaryId'] );
+		} );
+		$response = $this->manager->beginAccountCreation( new User(), [ $req ], 'http://localhost/' );
+		// Simplify verifying $response, loginRequest would include the user ID
+		$response->loginRequest = null;
+		$this->assertEquals( AuthenticationResponse::newPass( 'UTDummy' ), $response );
+		$this->assertNotNull( $this->manager->getRequest()->getSession()->getUser() );
+		$this->assertTrue( $this->getServiceContainer()->getUserFactory()->newFromName( 'UTDummy' )->isRegistered() );
+
+		// Will prevent login
+		unset( $secondaryConfig['beginSecondaryAccountCreation'] );
+		$updateManager();
+		$req = new UsernameAuthenticationRequest();
+		$req->username = 'UTDummy2';
+		$hook = $this->hook( 'AuthManagerVerifyAuthentication', AuthManagerVerifyAuthenticationHook::class, $this->once() );
+		$hook->willReturnCallback( static function ( $user, &$response, $authManager, $info ) {
+			$response = AuthenticationResponse::newFail( wfMessage( 'hook-fail' ) );
+			return false;
+		} );
+		$response = $this->manager->beginAccountCreation( new User(), [ $req ], 'http://localhost/' );
+		$this->assertEquals( AuthenticationResponse::newFail( wfMessage( 'hook-fail' ) ), $response );
+		$this->assertFalse( $this->getServiceContainer()->getUserFactory()->newFromName( 'UTDummy2' )->isRegistered() );
+
+		// the LogicError paths are already tested under testAuthentication_AuthManagerVerifyAuthentication
 	}
 
 	public function testAutoAccountCreation() {

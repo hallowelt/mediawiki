@@ -6,6 +6,8 @@ use Article;
 use File;
 use MailAddress;
 use ManualLogEntry;
+use MediaWiki\Auth\AuthenticationResponse;
+use MediaWiki\Auth\AuthManager;
 use MediaWiki\Content\JsonContent;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Linker\LinkRenderer;
@@ -43,7 +45,9 @@ use Wikimedia\Rdbms\SelectQueryBuilder;
  */
 class HookRunner implements
 	\MediaWiki\Actions\Hook\GetActionNameHook,
+	\MediaWiki\Auth\Hook\AuthManagerFilterProvidersHook,
 	\MediaWiki\Auth\Hook\AuthManagerLoginAuthenticateAuditHook,
+	\MediaWiki\Auth\Hook\AuthManagerVerifyAuthenticationHook,
 	\MediaWiki\Auth\Hook\AuthPreserveQueryParamsHook,
 	\MediaWiki\Auth\Hook\ExemptFromAccountCreationThrottleHook,
 	\MediaWiki\Auth\Hook\LocalUserCreatedHook,
@@ -886,12 +890,32 @@ class HookRunner implements
 		);
 	}
 
+	public function onAuthManagerFilterProviders( array &$providers ): void {
+		$this->container->run(
+			'AuthManagerFilterProviders',
+			[ &$providers ],
+			[ 'abortable' => false ]
+		);
+	}
+
 	public function onAuthManagerLoginAuthenticateAudit( $response, $user,
 		$username, $extraData
 	) {
 		return $this->container->run(
 			'AuthManagerLoginAuthenticateAudit',
 			[ $response, $user, $username, $extraData ]
+		);
+	}
+
+	public function onAuthManagerVerifyAuthentication(
+		?UserIdentity $user,
+		AuthenticationResponse &$response,
+		AuthManager $authManager,
+		array $info
+	): bool {
+		return $this->container->run(
+			'AuthManagerVerifyAuthentication',
+			[ $user, &$response, $authManager, $info ],
 		);
 	}
 
