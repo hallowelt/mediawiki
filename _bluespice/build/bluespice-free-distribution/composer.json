@@ -28,7 +28,7 @@
 		"mediawiki/page-header": "dev-master",
 		"mediawiki/menu-editor": "dev-master",
 		"mediawiki/enhanced-upload": "dev-master",
-		"mediawiki/notifications": "dev-main",
+		"mediawiki/notify-me": "dev-main",
 		"mediawiki/font-awesome": "2.0.*",
 		"mediawiki/visual-editor-plus": "dev-REL1_39"
 	}
