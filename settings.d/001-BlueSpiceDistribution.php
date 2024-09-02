@@ -38,7 +38,7 @@ wfLoadExtension( 'ContentDroplets' );
 wfLoadExtension( 'FontAwesome' );
 wfLoadExtension( 'VisualEditorPlus' );
 
-wfLoadExtension( 'Notifications' );
+wfLoadExtension( 'NotifyMe' );
 
 $GLOBALS['wgGroupTypes'] = [
 	'*'                => 'implicit',
