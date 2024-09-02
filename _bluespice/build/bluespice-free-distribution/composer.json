@@ -28,7 +28,7 @@
 		"mediawiki/page-header": "2.1.*",
 		"mediawiki/menu-editor": "2.1.*",
 		"mediawiki/enhanced-upload": "2.0.*",
-		"mediawiki/notifications": "1.0.*",
+		"mediawiki/notify-me": "1.0.*",
 		"mediawiki/font-awesome": "2.0.*",
 		"mediawiki/visual-editor-plus": "1.1.*"
 	}
