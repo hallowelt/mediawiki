@@ -511,7 +511,7 @@ function wfGetUrlUtils(): UrlUtils {
  * specifies a protocol, PROTO_HTTP, PROTO_HTTPS, PROTO_RELATIVE and
  * PROTO_CURRENT do not change that.
  *
- * Parent references (/../) in the path are resolved (as in wfRemoveDotSegments).
+ * Parent references (/../) in the path are resolved (as in UrlUtils::removeDotSegments()).
  *
  * @deprecated since 1.39, use UrlUtils::expand()
  * @param string $url An URL; can be absolute (e.g. http://example.com/foo/bar),
@@ -528,12 +528,14 @@ function wfExpandUrl( $url, $defaultProto = PROTO_CURRENT ) {
  * Get the wiki's "server", i.e. the protocol and host part of the URL, with a
  * protocol specified using a PROTO_* constant as in wfExpandUrl()
  *
- * @deprecated since 1.39, use UrlUtils::getServer()
+ * @deprecated since 1.39, use UrlUtils::getServer(); hard-deprecated since 1.43
  * @since 1.32
  * @param string|int|null $proto One of the PROTO_* constants.
  * @return string The URL
  */
 function wfGetServerUrl( $proto ) {
+	wfDeprecated( __FUNCTION__, '1.39' );
+
 	return wfGetUrlUtils()->getServer( $proto ) ?? '';
 }
 
@@ -551,20 +553,6 @@ function wfGetServerUrl( $proto ) {
  */
 function wfAssembleUrl( $urlParts ) {
 	return UrlUtils::assemble( (array)$urlParts );
-}
-
-/**
- * Remove all dot-segments in the provided URL path.  For example,
- * '/a/./b/../c/' becomes '/a/c/'.  For details on the algorithm, please see
- * RFC3986 section 5.2.4.
- *
- * @deprecated since 1.39, use UrlUtils::removeDotSegments()
- * @since 1.19
- * @param string $urlPath URL path, potentially containing dot-segments
- * @return string URL path with all dot-segments removed
- */
-function wfRemoveDotSegments( $urlPath ) {
-	return UrlUtils::removeDotSegments( (string)$urlPath );
 }
 
 /**
