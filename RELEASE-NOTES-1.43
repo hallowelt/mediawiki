@@ -246,6 +246,8 @@ because of Phabricator reports.
   provides is specific to certain handlers implemented in MediaWiki core.
 * MediaWikiIntegrationTestCase::addCoreDBData(), deprecated since 1.41, has
   been removed.
+* wfUnpack(), deprecated since 1.42, has been removed in favor of
+  StringUtils::unpack().
 * UIDGenerator, deprecated since 1.35, has been removed.
 * TablePager::getBody(), final and deprecated since 1.24, has been removed.
   Use ::getBodyOutput() or ::getFullOutput() instead.
@@ -530,6 +532,7 @@ because of Phabricator reports.
 * Title::getPageViewLanguage(), deprecated in 1.42, now emits warnings.
 * wfUrlProtocols(), deprecated in 1.39, now emits warnings.
 * wfGetServerUrl(), deprecated in 1.39, now emits warnings.
+* wfExpandIRI(), deprecated in 1.39, now emits warnings.
 * The following methods, previously deprecated, now emit deprecation warnings:
   - ContentHandler::getDefaultModelFor(), deprecated since 1.33
   - ContentHandler::getAllContentFormats(), deprecated since 1.35
