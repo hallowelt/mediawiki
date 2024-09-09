@@ -13,7 +13,7 @@
 		"starcitizenwiki/embedvideo": "3.2.*",
 		"mediawiki/flexiskin": "dev-REL1_39-2.2.x",
 		"mediawiki/hit-counters": "dev-REL1_39",
-		"mediawiki/image-map-edit": "dev-REL1_39",
+		"mediawiki/image-map-edit": "dev-REL1_39-2.1.x",
 		"mediawiki/lingo": "~3.2",
 		"mediawiki/loops": "dev-REL1_39",
 		"mediawiki/rss": "dev-REL1_39",
