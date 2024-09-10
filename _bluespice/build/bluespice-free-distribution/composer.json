@@ -25,7 +25,7 @@
 		"mediawiki/variables": "2.5.3",
 		"mediawiki/url-get-parameters": "dev-REL1_39",
 		"mediawiki/standard-dialogs": "dev-REL1_39-2.1.x",
-		"mediawiki/page-header": "dev-REL1_39-2.1.x",
+		"mediawiki/page-header": "dev-REL1_39-2.2.x",
 		"mediawiki/menu-editor": "dev-REL1_39-2.1.x",
 		"mediawiki/enhanced-upload": "dev-REL1_39-2.0.x",
 		"mediawiki/notify-me": "dev-REL1_39-1.0.x",
