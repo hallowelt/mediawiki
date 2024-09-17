@@ -93,7 +93,6 @@ class GuzzleHttpRequest extends MWHttpRequest {
 	 * This function overrides any 'sink' or 'callback' constructor option.
 	 *
 	 * @param callable|null $callback
-	 * @throws InvalidArgumentException
 	 */
 	public function setCallback( $callback ) {
 		$this->sink = null;
@@ -108,7 +107,6 @@ class GuzzleHttpRequest extends MWHttpRequest {
 	 * option to override the 'callback' constructor option.
 	 *
 	 * @param callable|null $callback
-	 * @throws InvalidArgumentException
 	 */
 	protected function doSetCallback( $callback ) {
 		if ( !$this->sink ) {
@@ -192,7 +190,7 @@ class GuzzleHttpRequest extends MWHttpRequest {
 				// TODO {error} will be 'NULL' on success which is unfortunate, but
 				//   doesn't seem fixable without a custom formatter. Same for using
 				//   PSR-3 variable replacement instead of raw strings.
-				'[{ts}] {method} {uri} HTTP/{version} - {code} {error}'
+				'{method} {uri} HTTP/{version} - {code} {error}'
 			) ), 'logger' );
 		}
 
