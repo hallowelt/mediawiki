@@ -15,6 +15,7 @@ $wgUserMergeProtectedGroups = [];
 $wgUserMergeUnmergeable = [];
 wfLoadExtension( 'Variables' );
 wfLoadExtension( 'BlueSpiceDistributionConnector' );
+$GLOBALS['wgAutoloadClasses']['EchoEvent'] = "$IP/extensions/BlueSpiceDistributionConnector/src/EchoEvent.php";
 wfLoadExtension( 'UserFunctions' );
 $GLOBALS['wgUFAllowedNamespaces'] = array_fill( 0, 5000, true );
 wfLoadExtension( 'UrlGetParameters' );
