@@ -20,12 +20,14 @@
 
 use MediaWiki\Config\ServiceOptions;
 use Wikimedia\ObjectCache\EmptyBagOStuff;
+use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\ChronologyProtector;
 use Wikimedia\Rdbms\ConfiguredReadOnlyMode;
 use Wikimedia\Rdbms\DatabaseDomain;
 use Wikimedia\Rdbms\LBFactorySimple;
 use Wikimedia\RequestTimeout\CriticalSectionProvider;
 use Wikimedia\RequestTimeout\RequestTimeout;
+use Wikimedia\Stats\NullStatsdDataFactory;
 
 /**
  * @covers \Wikimedia\Rdbms\LBFactory

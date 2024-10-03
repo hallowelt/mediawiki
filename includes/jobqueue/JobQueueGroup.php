@@ -21,7 +21,9 @@
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Deferred\JobQueueEnqueueUpdate;
 use MediaWiki\MediaWikiServices;
+use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\ReadOnlyMode;
+use Wikimedia\Stats\IBufferingStatsdDataFactory;
 use Wikimedia\UUID\GlobalIdGenerator;
 
 /**

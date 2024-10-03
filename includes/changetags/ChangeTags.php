@@ -22,6 +22,7 @@ use MediaWiki\Context\IContextSource;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Html\Html;
+use MediaWiki\Language\Language;
 use MediaWiki\Language\RawMessage;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -34,6 +35,7 @@ use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\Xml\XmlSelect;
+use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\IReadableDatabase;
 
 /**
@@ -254,7 +256,7 @@ class ChangeTags {
 	public static function tagHelpLink( $tag, MessageLocalizer $context ) {
 		$msg = $context->msg( "tag-$tag-helppage" )->inContentLanguage();
 		if ( $msg->exists() && !$msg->isDisabled() ) {
-			$url = Skin::makeInternalOrExternalUrl( $msg->plain() );
+			$url = Skin::makeInternalOrExternalUrl( $msg->text() );
 			if ( $url ) {
 				return $url;
 			}
