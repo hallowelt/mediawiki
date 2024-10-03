@@ -21,6 +21,7 @@
  * @ingroup Upload
  */
 
+use MediaWiki\Api\ApiUpload;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\HookContainer\ProtectedHookAccessorTrait;
@@ -39,6 +40,8 @@ use MediaWiki\User\User;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\AtEase\AtEase;
 use Wikimedia\FileBackend\FileBackend;
+use Wikimedia\FileBackend\FSFile\FSFile;
+use Wikimedia\FileBackend\FSFile\TempFSFile;
 use Wikimedia\Mime\XmlTypeCheck;
 use Wikimedia\ObjectCache\BagOStuff;
 use Wikimedia\Rdbms\IDBAccessObject;
