@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 ( function () {
 	const rcfilters = require( 'mediawiki.rcfilters.filters.ui' );
-	var filterDefinition = [ {
+	const filterDefinition = [ {
 			name: 'group1',
 			type: 'send_unselected_if_any',
 			filters: [
@@ -277,7 +277,7 @@
 	} ) );
 
 	QUnit.test( 'Setting up filters', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		const model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
@@ -310,7 +310,7 @@
 	} );
 
 	QUnit.test( 'Default filters', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		const model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
@@ -323,7 +323,7 @@
 	} );
 
 	QUnit.test( 'Parameter minimal state', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel(),
+		const model = new rcfilters.dm.FiltersViewModel(),
 			cases = [
 				{
 					input: {},
@@ -397,16 +397,15 @@
 		// Some groups / params have their defaults immediately applied
 		// to their state. These include single_option which can never
 		// be empty, etc. These are these states:
-		var parametersWithoutExcluded,
-			appliedDefaultParameters = {
-				group4: 'option2',
-				group5: 'option1',
-				// Sticky, their defaults apply immediately
-				group6option2: '1',
-				group6option3: '1',
-				group7: 'group7option2'
-			},
-			model = new rcfilters.dm.FiltersViewModel();
+		const appliedDefaultParameters = {
+			group4: 'option2',
+			group5: 'option1',
+			// Sticky, their defaults apply immediately
+			group6option2: '1',
+			group6option3: '1',
+			group7: 'group7option2'
+		};
+		let model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 		assert.deepEqual(
@@ -437,7 +436,7 @@
 		model = new rcfilters.dm.FiltersViewModel();
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
-		parametersWithoutExcluded = $.extend( true, {}, appliedDefaultParameters );
+		const parametersWithoutExcluded = $.extend( true, {}, appliedDefaultParameters );
 		delete parametersWithoutExcluded.group7;
 		delete parametersWithoutExcluded.group6option2;
 		delete parametersWithoutExcluded.group6option3;
@@ -450,7 +449,7 @@
 	} );
 
 	QUnit.test( 'Cleaning up parameter states', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel(),
+		const model = new rcfilters.dm.FiltersViewModel(),
 			cases = [
 				{
 					input: {},
@@ -480,8 +479,7 @@
 	} );
 
 	QUnit.test( 'Finding matching filters', ( assert ) => {
-		var foundMatches,
-			testCases = [
+		const testCases = [
 				{
 					query: 'group',
 					expectedMatches: {
@@ -520,7 +518,7 @@
 			],
 			model = new rcfilters.dm.FiltersViewModel(),
 			extractNames = function ( matches ) {
-				var result = {};
+				const result = {};
 				Object.keys( matches ).forEach( ( groupName ) => {
 					result[ groupName ] = matches[ groupName ].map( ( item ) => item.getName() );
 				} );
@@ -530,7 +528,7 @@
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
 		testCases.forEach( ( testCase ) => {
-			var matches = model.findMatches( testCase.query );
+			const matches = model.findMatches( testCase.query );
 			assert.deepEqual(
 				extractNames( matches ),
 				testCase.expectedMatches,
@@ -538,7 +536,7 @@
 			);
 		} );
 
-		foundMatches = model.findMatches( 'foo' );
+		const foundMatches = model.findMatches( 'foo' );
 		assert.true(
 			$.isEmptyObject( foundMatches ),
 			'findMatches returns an empty object when no results found'
@@ -546,7 +544,7 @@
 	} );
 
 	QUnit.test( 'getParametersFromFilters', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		let model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
@@ -680,8 +678,7 @@
 		// This entire test uses different base definition than the global one
 		// on purpose, to verify that the values inserted as a custom object
 		// are the ones we expect in return
-		var originalState,
-			model = new rcfilters.dm.FiltersViewModel(),
+		const model = new rcfilters.dm.FiltersViewModel(),
 			definition = [ {
 				name: 'group1',
 				title: 'Group 1',
@@ -795,7 +792,7 @@
 
 		model.initializeFilters( definition );
 		// Store original state
-		originalState = model.getSelectedState();
+		const originalState = model.getSelectedState();
 
 		// Test each case
 		cases.forEach( ( test ) => {
@@ -816,7 +813,7 @@
 	} );
 
 	QUnit.test( 'getFiltersFromParameters', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		let model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
@@ -1008,7 +1005,7 @@
 	} );
 
 	QUnit.test( 'sanitizeStringOptionGroup', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		const model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
@@ -1032,7 +1029,7 @@
 	} );
 
 	QUnit.test( 'Filter interaction: subsets', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		const model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
@@ -1101,9 +1098,9 @@
 	} );
 
 	QUnit.test( 'Filter interaction: full coverage', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel(),
+		const model = new rcfilters.dm.FiltersViewModel(),
 			isCapsuleItemMuted = function ( filterName ) {
-				var itemModel = model.getItemByName( filterName ),
+				const itemModel = model.getItemByName( filterName ),
 					groupModel = itemModel.getGroupModel();
 
 				// This is the logic inside the capsule widget
@@ -1202,7 +1199,7 @@
 	} );
 
 	QUnit.test( 'Filter interaction: conflicts', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		let model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( filterDefinition, viewsDefinition );
 
@@ -1406,20 +1403,20 @@
 
 	QUnit.test( 'Filter highlights', ( assert ) => {
 		// We are using a different (smaller) definition here than the global one
-		var definition = [ {
-				name: 'group1',
-				title: 'Group 1',
-				type: 'string_options',
-				filters: [
-					{ name: 'filter1', cssClass: 'class1', label: '1', description: '1' },
-					{ name: 'filter2', cssClass: 'class2', label: '2', description: '2' },
-					{ name: 'filter3', cssClass: 'class3', label: '3', description: '3' },
-					{ name: 'filter4', cssClass: 'class4', label: '4', description: '4' },
-					{ name: 'filter5', cssClass: 'class5', label: '5', description: '5' },
-					{ name: 'filter6', label: '6', description: '6' }
-				]
-			} ],
-			model = new rcfilters.dm.FiltersViewModel();
+		const definition = [ {
+			name: 'group1',
+			title: 'Group 1',
+			type: 'string_options',
+			filters: [
+				{ name: 'filter1', cssClass: 'class1', label: '1', description: '1' },
+				{ name: 'filter2', cssClass: 'class2', label: '2', description: '2' },
+				{ name: 'filter3', cssClass: 'class3', label: '3', description: '3' },
+				{ name: 'filter4', cssClass: 'class4', label: '4', description: '4' },
+				{ name: 'filter5', cssClass: 'class5', label: '5', description: '5' },
+				{ name: 'filter6', label: '6', description: '6' }
+			]
+		} ];
+		let model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( definition );
 
@@ -1511,7 +1508,7 @@
 	} );
 
 	QUnit.test( 'emptyAllFilters', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		const model = new rcfilters.dm.FiltersViewModel();
 
 		model.initializeFilters( shortFilterDefinition, null );
 
@@ -1534,7 +1531,7 @@
 	} );
 
 	QUnit.test( 'areVisibleFiltersEmpty', ( assert ) => {
-		var model = new rcfilters.dm.FiltersViewModel();
+		const model = new rcfilters.dm.FiltersViewModel();
 		model.initializeFilters( shortFilterDefinition, null );
 
 		model.emptyAllFilters();
