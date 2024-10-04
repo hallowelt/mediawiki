@@ -1,8 +1,6 @@
 ( function () {
 	'use strict';
 
-	var grammarTests, bcp47Tests;
-
 	QUnit.module( 'mediawiki.language', QUnit.newMwEnvironment( {
 		beforeEach: function () {
 			this.liveLangData = mw.language.data;
@@ -83,7 +81,7 @@
 		// The test works only if the content language is opt.language
 		// because it requires [lang].js to be loaded.
 		QUnit.test( 'Grammar test for lang=' + langCode, ( assert ) => {
-			var i;
+			let i;
 			for ( i = 0; i < test.length; i++ ) {
 				assert.strictEqual(
 					mw.language.convertGrammar( test[ i ].word, test[ i ].grammarForm ),
@@ -95,7 +93,7 @@
 	}
 
 	// These tests run only for the current UI language.
-	grammarTests = {
+	const grammarTests = {
 		bs: [
 			{
 				word: 'word',
@@ -774,7 +772,7 @@
 		assert.strictEqual( mw.language.listToText( [ 'a', 'b', 'c' ] ), 'a, b and c', 'More than two items' );
 	} );
 
-	bcp47Tests = [
+	const bcp47Tests = [
 		// Extracted from BCP 47 (list not exhaustive)
 		// # 2.1.1
 		[ 'en-ca-x-ca', 'en-CA-x-ca' ],
@@ -900,7 +898,7 @@
 	QUnit.test( 'mw.language.bcp47', function ( assert ) {
 		mw.language.data = this.liveLangData;
 		bcp47Tests.forEach( ( data ) => {
-			var input = data[ 0 ],
+			const input = data[ 0 ],
 				expected = data[ 1 ];
 			assert.strictEqual( mw.language.bcp47( input ), expected );
 			assert.strictEqual( mw.language.bcp47( input.toLowerCase() ), expected );
