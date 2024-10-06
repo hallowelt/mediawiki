@@ -41,6 +41,7 @@ use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
+use MediaWiki\Html\Html;
 use MediaWiki\Json\FormatJson;
 use MediaWiki\Languages\Data\NormalizeAr;
 use MediaWiki\Languages\Data\NormalizeMl;
@@ -3976,6 +3977,12 @@ class Language implements Bcp47Code {
 	 * there is no embedding equivalent of U+2068 FSI (isolation with heuristic
 	 * direction inference). The latter is cleaner but still not widely supported.
 	 *
+	 * Use of hidden control characters when the output allows use of HTML markup
+	 * is discouraged and the recommendation is to use bdi HTML tag which doesn't
+	 * have the issue of hidden characters ending up in user clipboard in text
+	 * copy paste, see T375975.
+	 *
+	 * @deprecated since 1.43, use bdi HTML tag in HTML context where possible.
 	 * @param string $text Text to wrap
 	 * @return string Text, wrapped in LRE...PDF or RLE...PDF or nothing
 	 */
@@ -4432,18 +4439,14 @@ class Language implements Bcp47Code {
 	 *
 	 * @param string $page Page link
 	 * @param string $details HTML safe text between brackets
-	 * @param bool $oppositedm Add the direction mark opposite to your
-	 *   language, to display text properly
 	 * @return string HTML escaped
 	 */
-	public function specialList( $page, $details, $oppositedm = true ) {
+	public function specialList( $page, $details ) {
 		if ( !$details ) {
 			return $page;
 		}
 
-		$dirmark = ( $oppositedm ? $this->getDirMark( true ) : '' ) . $this->getDirMark();
-		return $page .
-			$dirmark .
+		return Html::rawElement( 'bdi', [ 'dir' => $this->getDir() ], $page ) .
 			$this->msg( 'word-separator' )->escaped() .
 			$this->msg( 'parentheses' )->rawParams( $details )->escaped();
 	}
