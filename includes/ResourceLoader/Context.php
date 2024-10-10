@@ -132,16 +132,16 @@ class Context implements MessageLocalizer {
 		$this->variant = $request->getRawVal( 'variant' );
 		$this->format = $request->getRawVal( 'format' );
 
-		$this->skin = $request->getRawVal( 'skin' );
-
+		$skin = $request->getRawVal( 'skin' );
 		if (
-			!$this->skin
-			|| ( is_array( $validSkins ) && !in_array( $this->skin, $validSkins ) )
+			$skin === null
+			|| ( is_array( $validSkins ) && !in_array( $skin, $validSkins ) )
 		) {
 			// For requests without a known skin specified,
 			// use MediaWiki's 'fallback' skin for any skin-specific decisions.
-			$this->skin = self::DEFAULT_SKIN;
+			$skin = self::DEFAULT_SKIN;
 		}
+		$this->skin = $skin;
 	}
 
 	/**
@@ -210,8 +210,7 @@ class Context implements MessageLocalizer {
 		if ( $this->language === null ) {
 			// Must be a valid language code after this point (T64849)
 			// Only support uselang values that follow built-in conventions (T102058)
-			$lang = $this->getRequest()->getRawVal( 'lang', '' );
-			'@phan-var string $lang'; // getRawVal does not return null here
+			$lang = $this->getRequest()->getRawVal( 'lang' ) ?? '';
 			// Stricter version of RequestContext::sanitizeLangCode()
 			$validBuiltinCode = MediaWikiServices::getInstance()->getLanguageNameUtils()
 				->isValidBuiltInCode( $lang );
