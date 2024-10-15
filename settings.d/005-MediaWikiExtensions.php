@@ -19,4 +19,5 @@ wfLoadExtension( 'CodeEditor' );
 //  in the L10N cache if Skin:Vector is not enabled
 wfLoadSkin( 'Vector' );
 $GLOBALS['wgSkipSkins'][] = 'vector';
+$GLOBALS['wgSkipSkins'][] = 'vector-2022';
 
