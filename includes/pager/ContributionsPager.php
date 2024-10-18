@@ -62,7 +62,7 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	/**
 	 * @var string[] Local cache for escaped messages
 	 */
-	private $messages;
+	protected $messages;
 
 	/**
 	 * @var bool Get revisions from the archive table (if true) or the revision table (if false)
@@ -128,6 +128,9 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 
 	/** @var bool */
 	private $preventClickjacking = false;
+
+	protected ?Title $currentPage;
+	protected ?RevisionRecord $currentRevRecord;
 
 	/**
 	 * @var array
@@ -485,18 +488,20 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 		$linkBatch = $this->linkBatchFactory->newLinkBatch();
 		# Give some pointers to make (last) links
 		foreach ( $this->mResult as $row ) {
+			$revisionRecord = $this->tryCreatingRevisionRecord( $row );
+			if ( !$revisionRecord ) {
+				continue;
+			}
 			if ( isset( $row->{$this->revisionParentIdField} ) && $row->{$this->revisionParentIdField} ) {
 				$parentRevIds[] = (int)$row->{$this->revisionParentIdField};
 			}
-			if ( $this->revisionStore->isRevisionRow( $row, $this->isArchive ? 'archive' : 'revision' ) ) {
-				$this->mParentLens[(int)$row->{$this->revisionIdField}] = $row->{$this->revisionLengthField};
-				if ( $this->target !== $row->{$this->userNameField} ) {
-					// If the target does not match the author, batch the author's talk page
-					$linkBatch->add( NS_USER_TALK, $row->{$this->userNameField} );
-				}
-				$linkBatch->add( $row->{$this->pageNamespaceField}, $row->{$this->pageTitleField} );
-				$revisions[$row->{$this->revisionIdField}] = $this->createRevisionRecord( $row );
+			$this->mParentLens[(int)$row->{$this->revisionIdField}] = $row->{$this->revisionLengthField};
+			if ( $this->target !== $row->{$this->userNameField} ) {
+				// If the target does not match the author, batch the author's talk page
+				$linkBatch->add( NS_USER_TALK, $row->{$this->userNameField} );
 			}
+			$linkBatch->add( $row->{$this->pageNamespaceField}, $row->{$this->pageTitleField} );
+			$revisions[$row->{$this->revisionIdField}] = $this->createRevisionRecord( $row );
 		}
 		// Fetch rev_len/ar_len for revisions not already scanned above
 		// TODO: is it possible to make this fully abstract?
@@ -602,19 +607,31 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	}
 
 	/**
+	 * Populate the HTML attributes.
+	 *
+	 * @param mixed $row
+	 * @param string[] &$attributes
+	 */
+	protected function populateAttributes( $row, &$attributes ) {
+		$attributes['data-mw-revid'] = $this->currentRevRecord->getId();
+	}
+
+	/**
 	 * Format a link to an article.
 	 *
 	 * @param mixed $row
-	 * @param Title|null $page
 	 * @return string
 	 */
-	protected function formatArticleLink( $row, $page ) {
+	protected function formatArticleLink( $row ) {
+		if ( !$this->currentPage ) {
+			return '';
+		}
 		$dir = $this->getLanguage()->getDir();
 		return Html::rawElement( 'bdi', [ 'dir' => $dir ], $this->getLinkRenderer()->makeLink(
-			$page,
-			$page->getPrefixedText(),
+			$this->currentPage,
+			$this->currentPage->getPrefixedText(),
 			[ 'class' => 'mw-contributions-title' ],
-			$page->isRedirect() ? [ 'redirect' => 'no' ] : []
+			$this->currentPage->isRedirect() ? [ 'redirect' => 'no' ] : []
 		) );
 	}
 
@@ -622,11 +639,12 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	 * Format diff and history links.
 	 *
 	 * @param mixed $row
-	 * @param RevisionRecord $revRecord
-	 * @param Title|null $page
 	 * @return string
 	 */
-	protected function formatDiffHistLinks( $row, $revRecord, $page ) {
+	protected function formatDiffHistLinks( $row ) {
+		if ( !$this->currentPage || !$this->currentRevRecord ) {
+			return '';
+		}
 		if ( $this->isArchive ) {
 			// Add the same links as DeletedContribsPager::formatRevisionRow
 			$undelete = SpecialPage::getTitleFor( 'Undelete' );
@@ -636,8 +654,8 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 					new HtmlArmor( $this->messages['diff'] ),
 					[],
 					[
-						'target' => $page->getPrefixedText(),
-						'timestamp' => $revRecord->getTimestamp(),
+						'target' => $this->currentPage->getPrefixedText(),
+						'timestamp' => $this->currentRevRecord->getTimestamp(),
 						'diff' => 'prev'
 					]
 				);
@@ -652,12 +670,12 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 				[],
 				[
 					'type' => 'delete',
-					'page' => $page->getPrefixedText()
+					'page' => $this->currentPage->getPrefixedText()
 				]
 			);
 
 			$reviewlink = $this->getLinkRenderer()->makeKnownLink(
-				SpecialPage::getTitleFor( 'Undelete', $page->getPrefixedDBkey() ),
+				SpecialPage::getTitleFor( 'Undelete', $this->currentPage->getPrefixedDBkey() ),
 				new HtmlArmor( $this->messages['undeleteviewlink'] )
 			);
 
@@ -669,11 +687,11 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 			);
 		} else {
 			# Is there a visible previous revision?
-			if ( $revRecord->getParentId() !== 0 &&
-				$revRecord->userCan( RevisionRecord::DELETED_TEXT, $this->getAuthority() )
+			if ( $this->currentRevRecord->getParentId() !== 0 &&
+				$this->currentRevRecord->userCan( RevisionRecord::DELETED_TEXT, $this->getAuthority() )
 			) {
 				$difftext = $this->getLinkRenderer()->makeKnownLink(
-					$page,
+					$this->currentPage,
 					new HtmlArmor( $this->messages['diff'] ),
 					[ 'class' => 'mw-changeslist-diff' ],
 					[
@@ -685,7 +703,7 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 				$difftext = $this->messages['diff'];
 			}
 			$histlink = $this->getLinkRenderer()->makeKnownLink(
-				$page,
+				$this->currentPage,
 				new HtmlArmor( $this->messages['hist'] ),
 				[ 'class' => 'mw-changeslist-history' ],
 				[ 'action' => 'history' ]
@@ -710,34 +728,35 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	 * Format a date link.
 	 *
 	 * @param mixed $row
-	 * @param RevisionRecord $revRecord
-	 * @param Title|null $page
 	 * @return string
 	 */
-	protected function formatDateLink( $row, $revRecord, $page ) {
+	protected function formatDateLink( $row ) {
+		if ( !$this->currentPage || !$this->currentRevRecord ) {
+			return '';
+		}
 		if ( $this->isArchive ) {
 			$date = $this->getLanguage()->userTimeAndDate(
-				$revRecord->getTimestamp(),
+				$this->currentRevRecord->getTimestamp(),
 				$this->getUser()
 			);
 
 			if ( $this->getAuthority()->isAllowed( 'undelete' ) &&
-				$revRecord->userCan( RevisionRecord::DELETED_TEXT, $this->getAuthority() )
+				$this->currentRevRecord->userCan( RevisionRecord::DELETED_TEXT, $this->getAuthority() )
 			) {
 				$dateLink = $this->getLinkRenderer()->makeKnownLink(
 					SpecialPage::getTitleFor( 'Undelete' ),
 					$date,
 					[ 'class' => 'mw-changeslist-date' ],
 					[
-						'target' => $page->getPrefixedText(),
-						'timestamp' => $revRecord->getTimestamp()
+						'target' => $this->currentPage->getPrefixedText(),
+						'timestamp' => $this->currentRevRecord->getTimestamp()
 					]
 				);
 			} else {
 				$dateLink = htmlspecialchars( $date );
 			}
-			if ( $revRecord->isDeleted( RevisionRecord::DELETED_TEXT ) ) {
-				$class = Linker::getRevisionDeletedClass( $revRecord );
+			if ( $this->currentRevRecord->isDeleted( RevisionRecord::DELETED_TEXT ) ) {
+				$class = Linker::getRevisionDeletedClass( $this->currentRevRecord );
 				$dateLink = Html::rawElement(
 					'span',
 					[ 'class' => $class ],
@@ -745,7 +764,12 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 				);
 			}
 		} else {
-			$dateLink = ChangesList::revDateLink( $revRecord, $this->getAuthority(), $this->getLanguage(), $page );
+			$dateLink = ChangesList::revDateLink(
+				$this->currentRevRecord,
+				$this->getAuthority(),
+				$this->getLanguage(),
+				$this->currentPage
+			);
 		}
 		return $dateLink;
 	}
@@ -754,20 +778,21 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	 * Format annotation and add extra class if a row represents a latest revision.
 	 *
 	 * @param mixed $row
-	 * @param RevisionRecord $revRecord
-	 * @param Title|null $page
 	 * @param string[] &$classes
 	 * @return string
 	 */
-	protected function formatTopMarkText( $row, $revRecord, $page, &$classes ) {
+	protected function formatTopMarkText( $row, &$classes ) {
+		if ( !$this->currentPage || !$this->currentRevRecord ) {
+			return '';
+		}
 		$topmarktext = '';
 		if ( !$this->isArchive ) {
 			$pagerTools = new PagerTools(
-				$revRecord,
+				$this->currentRevRecord,
 				null,
 				$row->{$this->revisionIdField} === $row->page_latest && !$row->page_is_new,
 				$this->hookRunner,
-				$page,
+				$this->currentPage,
 				$this->getContext(),
 				$this->getLinkRenderer()
 			);
@@ -836,15 +861,17 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	 * Format a user link.
 	 *
 	 * @param mixed $row
-	 * @param RevisionRecord $revRecord
 	 * @return string
 	 */
-	protected function formatUserLink( $row, $revRecord ) {
+	protected function formatUserLink( $row ) {
+		if ( !$this->currentRevRecord ) {
+			return '';
+		}
 		$dir = $this->getLanguage()->getDir();
 
 		// When the author is different from the target, always show user and user talk links
 		$userlink = '';
-		$revUser = $revRecord->getUser();
+		$revUser = $this->currentRevRecord->getUser();
 		$revUserId = $revUser ? $revUser->getId() : 0;
 		$revUserText = $revUser ? $revUser->getName() : '';
 		if ( $this->target !== $revUserText ) {
@@ -858,16 +885,19 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	}
 
 	/**
-	 * @param RevisionRecord $revRecord
+	 * @param mixed $row
 	 * @return string[]
 	 */
-	protected function formatFlags( $revRecord ) {
+	protected function formatFlags( $row ) {
+		if ( !$this->currentRevRecord ) {
+			return [];
+		}
 		$flags = [];
-		if ( $revRecord->getParentId() === 0 ) {
+		if ( $this->currentRevRecord->getParentId() === 0 ) {
 			$flags[] = ChangesList::flag( 'newpage' );
 		}
 
-		if ( $revRecord->isMinor() ) {
+		if ( $this->currentRevRecord->isMinor() ) {
 			$flags[] = ChangesList::flag( 'minor' );
 		}
 		return $flags;
@@ -876,12 +906,18 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	/**
 	 * Format link for changing visibility.
 	 *
-	 * @param RevisionRecord $revRecord
-	 * @param Title|null $page
+	 * @param mixed $row
 	 * @return string
 	 */
-	protected function formatVisibilityLink( $revRecord, $page ) {
-		$del = Linker::getRevDeleteLink( $this->getAuthority(), $revRecord, $page );
+	protected function formatVisibilityLink( $row ) {
+		if ( !$this->currentPage || !$this->currentRevRecord ) {
+			return '';
+		}
+		$del = Linker::getRevDeleteLink(
+			$this->getAuthority(),
+			$this->currentRevRecord,
+			$this->currentPage
+		);
 		if ( $del !== '' ) {
 			$del .= ' ';
 		}
@@ -912,6 +948,16 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 	}
 
 	/**
+	 * Check whether the revision author is deleted
+	 *
+	 * @param mixed $row
+	 * @return bool
+	 */
+	public function revisionUserIsDeleted( $row ) {
+		return $this->currentRevRecord->isDeleted( RevisionRecord::DELETED_USER );
+	}
+
+	/**
 	 * Generates each row in the contributions list.
 	 *
 	 * Contributions which are marked "top" are currently on top of the history.
@@ -928,11 +974,13 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 		$classes = [];
 		$attribs = [];
 
-		$page = null;
+		$this->currentPage = null;
+		$this->currentRevRecord = null;
+
 		// Create a title for the revision if possible
 		// Rows from the hook may not include title information
 		if ( isset( $row->{$this->pageNamespaceField} ) && isset( $row->{$this->pageTitleField} ) ) {
-			$page = Title::makeTitle( $row->{$this->pageNamespaceField}, $row->{$this->pageTitleField} );
+			$this->currentPage = Title::makeTitle( $row->{$this->pageNamespaceField}, $row->{$this->pageTitleField} );
 		}
 
 		// Flow overrides the ContribsPager::reallyDoQuery hook, causing this
@@ -940,28 +988,27 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 		// skip formatting so that the row can be formatted by the
 		// ContributionsLineEnding hook below.
 		// FIXME: have some better way for extensions to provide formatted rows.
-		$revRecord = $this->tryCreatingRevisionRecord( $row, $page );
-		if ( $revRecord && $page ) {
-			$revRecord = $this->createRevisionRecord( $row, $page );
-			$attribs['data-mw-revid'] = $revRecord->getId();
+		$this->currentRevRecord = $this->tryCreatingRevisionRecord( $row, $this->currentPage );
+		if ( $this->revisionsOnly || ( $this->currentRevRecord && $this->currentPage ) ) {
+			$this->populateAttributes( $row, $attribs );
 
-			$link = $this->formatArticleLink( $row, $page );
+			$link = $this->formatArticleLink( $row );
 
-			$topmarktext = $this->formatTopMarkText( $row, $revRecord, $page, $classes );
+			$topmarktext = $this->formatTopMarkText( $row, $classes );
 
-			$diffHistLinks = $this->formatDiffHistLinks( $row, $revRecord, $page );
+			$diffHistLinks = $this->formatDiffHistLinks( $row );
 
-			$dateLink = $this->formatDateLink( $row, $revRecord, $page );
+			$dateLink = $this->formatDateLink( $row );
 
 			$chardiff = $this->formatCharDiff( $row );
 
 			$comment = $this->formatComment( $row );
 
-			$userlink = $this->formatUserLink( $row, $revRecord );
+			$userlink = $this->formatUserLink( $row );
 
-			$flags = $this->formatFlags( $revRecord );
+			$flags = $this->formatFlags( $row );
 
-			$del = $this->formatVisibilityLink( $revRecord, $page );
+			$del = $this->formatVisibilityLink( $row );
 
 			$tagSummary = $this->formatTags( $row, $classes );
 
@@ -984,7 +1031,7 @@ abstract class ContributionsPager extends RangeChronologicalPager {
 			];
 
 			# Denote if username is redacted for this edit
-			if ( $revRecord->isDeleted( RevisionRecord::DELETED_USER ) ) {
+			if ( $this->revisionUserIsDeleted( $row ) ) {
 				$templateParams['rev-deleted-user-contribs'] =
 					$this->msg( 'rev-deleted-user-contribs' )->escaped();
 			}
