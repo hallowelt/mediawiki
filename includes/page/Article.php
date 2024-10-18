@@ -496,7 +496,7 @@ class Article implements Page {
 
 		$outputPage->setArticleFlag( true );
 		# Allow frames by default
-		$outputPage->setPreventClickjacking( false );
+		$outputPage->getMetadata()->setPreventClickjacking( false );
 
 		$parserOptions = $this->getParserOptions();
 
@@ -895,7 +895,7 @@ class Article implements Page {
 
 		# Check for any __NOINDEX__ tags on the page using $pOutput
 		$policy = $this->getRobotPolicy( 'view', $pOutput ?: null );
-		$outputPage->setIndexPolicy( $policy['index'] );
+		$outputPage->getMetadata()->setIndexPolicy( $policy['index'] );
 		$outputPage->setFollowPolicy( $policy['follow'] ); // FIXME: test this
 
 		$this->mParserOutput = $pOutput;
@@ -1452,7 +1452,7 @@ class Article implements Page {
 			return false;
 		}
 
-		$outputPage->setPreventClickjacking( true );
+		$outputPage->getMetadata()->setPreventClickjacking( true );
 		$outputPage->addModules( 'mediawiki.misc-authed-curate' );
 
 		$link = $this->linkRenderer->makeKnownLink(
@@ -1612,7 +1612,7 @@ class Article implements Page {
 
 		// Also apply the robot policy for nonexisting pages (even if a 404 was used)
 		$policy = $this->getRobotPolicy( 'view' );
-		$outputPage->setIndexPolicy( $policy['index'] );
+		$outputPage->getMetadata()->setIndexPolicy( $policy['index'] );
 		$outputPage->setFollowPolicy( $policy['follow'] );
 
 		$hookResult = $this->getHookRunner()->onBeforeDisplayNoArticleText( $this );
