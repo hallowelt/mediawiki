@@ -555,11 +555,9 @@ class OutputPage extends ContextSource {
 	 * Return a ParserOutput that can be used to set metadata properties
 	 * for the current page.
 	 * @return ParserOutput
-	 * @internal
 	 */
 	public function getMetadata(): ParserOutput {
-		// This is @internal at the moment, but in the future we may
-		// wish to make this public and deprecate the redundant
+		// We can deprecate the redundant
 		// methods on OutputPage which simply turn around
 		// and invoke the corresponding method on the metadata
 		// ParserOutput.
@@ -1007,7 +1005,7 @@ class OutputPage extends ContextSource {
 		$policy = Article::formatRobotPolicy( $policy );
 
 		if ( isset( $policy['index'] ) ) {
-			$this->setIndexPolicy( $policy['index'] );
+			$this->metadata->setIndexPolicy( $policy['index'] );
 		}
 		if ( isset( $policy['follow'] ) ) {
 			$this->setFollowPolicy( $policy['follow'] );
@@ -1086,6 +1084,9 @@ class OutputPage extends ContextSource {
 	 * it does in ParserOutput, where 'noindex' takes precedence.
 	 *
 	 * @param string $policy Either 'index' or 'noindex'.
+	 * @deprecated since 1.43; use ->getMetadata()->setIndexPolicy()
+	 *   but see note above about the change in behavior when setting
+	 *   'index' after 'noindex'.
 	 */
 	public function setIndexPolicy( $policy ) {
 		$policy = trim( $policy );
@@ -1103,6 +1104,7 @@ class OutputPage extends ContextSource {
 	 * Get the current index policy for the page as a string.
 	 *
 	 * @return string
+	 * @deprecated since 1.43; use ->getMetadata()->getIndexPolicy()
 	 */
 	public function getIndexPolicy() {
 		// Unlike ParserOutput, in OutputPage getIndexPolicy() defaults to
@@ -2909,6 +2911,7 @@ class OutputPage extends ContextSource {
 	 *  appropriate for edit pages to be sent.
 	 *
 	 * @since 1.38
+	 * @deprecated since 1.43; use ->getMetadata()->setPreventClickjacking()
 	 */
 	public function setPreventClickjacking( bool $enable ) {
 		$this->metadata->setPreventClickjacking( $enable );
@@ -2919,6 +2922,7 @@ class OutputPage extends ContextSource {
 	 *
 	 * @since 1.24
 	 * @return bool
+	 * @deprecated since 1.43; use ->getMetadata()->getPreventClickjacking()
 	 */
 	public function getPreventClickjacking() {
 		return $this->metadata->getPreventClickjacking();
@@ -2935,7 +2939,10 @@ class OutputPage extends ContextSource {
 		$config = $this->getConfig();
 		if ( $config->get( MainConfigNames::BreakFrames ) ) {
 			return 'DENY';
-		} elseif ( $this->getPreventClickjacking() && $config->get( MainConfigNames::EditPageFrameOptions ) ) {
+		} elseif (
+			$this->metadata->getPreventClickjacking() &&
+			$config->get( MainConfigNames::EditPageFrameOptions )
+		) {
 			return $config->get( MainConfigNames::EditPageFrameOptions );
 		}
 		return false;
