@@ -1,37 +1,38 @@
 diff --git a/includes/libs/http/MultiHttpClient.php b/includes/libs/http/MultiHttpClient.php
-index 04ca96309a..c4dd23912a 100644
+index 4c2734506e3..890fe64dc2d 100644
 --- a/includes/libs/http/MultiHttpClient.php
 +++ b/includes/libs/http/MultiHttpClient.php
-@@ -84,6 +84,10 @@ class MultiHttpClient implements LoggerAwareInterface {
-	protected $userAgent = 'wikimedia/multi-http-client v1.0';
-	/** @var LoggerInterface */
+@@ -89,6 +89,10 @@ class MultiHttpClient implements LoggerAwareInterface {
 	protected $logger;
-+	/** @var boolean */
+	/** @var array */
+	protected array $headers = [];
++	/** @var bool */
 +	protected $sslVerifyCert = false;
-+	/** @var boolean */
++	/** @var bool */
 +	protected $sslVerifyHost = false;
  
 	// In PHP 7 due to https://bugs.php.net/bug.php?id=76480 the request/connect
 	// timeouts are periodically polled instead of being accurately respected.
-@@ -108,6 +112,8 @@ class MultiHttpClient implements LoggerAwareInterface {
-	 *   - userAgent	 : The User-Agent header value to send
-	 *   - logger	    : a \Psr\Log\LoggerInterface instance for debug logging
+@@ -117,6 +121,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 *   - caBundlePath      : path to specific Certificate Authority bundle (if any)
-+	 *   - sslVerifyCert   :
-+	 *   - sslVerifyHost   :
-	 * @throws Exception
+	 *   - headers	   : an array of default headers to send with every request
+	 *   - telemetry	 : a \Wikimedia\Http\RequestTelemetry instance to track telemetry data
++	 *   - sslVerifyCert     :
++	 *   - sslVerifyHost     :
+	 * @throws \Exception
 	 */
 	public function __construct( array $options ) {
-@@ -120,7 +126,7 @@ class MultiHttpClient implements LoggerAwareInterface {
+@@ -129,7 +135,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 		static $opts = [
 			'connTimeout', 'maxConnTimeout', 'reqTimeout', 'maxReqTimeout',
 			'usePipelining', 'maxConnsPerHost', 'proxy', 'userAgent', 'logger',
--			'localProxy', 'localVirtualHosts',
-+			'localProxy', 'localVirtualHosts', 'sslVerifyCert', 'sslVerifyHost'
+-			'localProxy', 'localVirtualHosts', 'headers', 'telemetry'
++			'localProxy', 'localVirtualHosts', 'headers', 'telemetry',
++			'sslVerifyCert', 'sslVerifyHost'
 		];
 		foreach ( $opts as $key ) {
 			if ( isset( $options[$key] ) ) {
-@@ -366,6 +372,12 @@ class MultiHttpClient implements LoggerAwareInterface {
+@@ -373,6 +380,12 @@ class MultiHttpClient implements LoggerAwareInterface {
 			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
 			curl_setopt( $ch, CURLOPT_CAINFO, $this->caBundlePath );
 		}

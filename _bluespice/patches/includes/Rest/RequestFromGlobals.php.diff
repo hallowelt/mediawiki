@@ -1,10 +1,10 @@
 diff --git a/includes/Rest/RequestFromGlobals.php b/includes/Rest/RequestFromGlobals.php
-index 7a07c354aa..8ef7291abe 100644
+index f415142cacb..49b237e3745 100644
 --- a/includes/Rest/RequestFromGlobals.php
 +++ b/includes/Rest/RequestFromGlobals.php
-@@ -35,6 +35,10 @@ class RequestFromGlobals extends RequestBase {
+@@ -42,6 +42,10 @@ class RequestFromGlobals extends RequestBase {
 		if ( $this->uri === null ) {
-			$requestUrl = \WebRequest::getGlobalRequestURL();
+			$requestUrl = WebRequest::getGlobalRequestURL();
  
 +			if ( wfIsWindows() ) {
 +				$requestUrl = mb_convert_encoding( $requestUrl, 'UTF-8', 'ISO-8859-1' );
@@ -12,4 +12,4 @@ index 7a07c354aa..8ef7291abe 100644
 +
 			try {
 				$uriInstance = new Uri( $requestUrl );
-			} catch ( \InvalidArgumentException $e ) {
+			} catch ( InvalidArgumentException $e ) {

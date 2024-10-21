@@ -1,8 +1,8 @@
 diff --git a/includes/ExtractFormatter.php b/includes/ExtractFormatter.php
-index ce2de51..f88717c 100644
+index 2612573..6705ec4 100644
 --- a/includes/ExtractFormatter.php
 +++ b/includes/ExtractFormatter.php
-@@ -55,6 +55,8 @@ class ExtractFormatter extends HtmlFormatter {
+@@ -56,6 +56,8 @@ class ExtractFormatter extends HtmlFormatter {
 			$text = str_replace( "\r", "\n", $text );
 			// normalise newlines
 			$text = preg_replace( "/\n{3,}/", "\n\n", $text );
