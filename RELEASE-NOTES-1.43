@@ -467,6 +467,8 @@ because of Phabricator reports.
   manually sourcing SQL files, but if you are doing this, run
   `update.php --initial` instead of sourcing update-keys.sql.
 * MediaWikiVersionFetcher, deprecated since 1.42 has been removed.
+* Support for using Skin::addToBodyAttributes() method, which was deprecated
+  in 1.35, has been removed. Use OutputPageBodyAttributesHook instead.
 * …
 
 === Deprecations in 1.43 ===
@@ -978,6 +980,9 @@ because of Phabricator reports.
   * HtmlInputTransformHelper::init()
   Similarly, calling the constructor method in PageRestHelperFactory
   without the appropriate initialization arguments is now deprecated.
+* Calling HtmlToContentTransform::setMetrics() and
+  HtmlInputTransformHelper::setMetrics() with a StatsdDataFactoryInterface
+  is deprecated and emits warnings. Pass a StatsFactory instead.
 * HTMLForm methods getPreText, setPreText, addPreText, getPostText,
   setPostText, addPostText, getHeaderText, setHeaderText, addHeaderText,
   getFooterText, setFooterText and addFooterText, deprecated since 1.38, now
