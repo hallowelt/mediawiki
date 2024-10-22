@@ -117,8 +117,8 @@ abstract class Database implements Stringable, IDatabaseForOwner, IMaintainableD
 
 	/** @var float UNIX timestamp of the last server response */
 	private $lastPing = 0.0;
-	/** @var float|false UNIX timestamp of last write query */
-	private $lastWriteTime = false;
+	/** @var float|null UNIX timestamp of the last committed write */
+	private $lastWriteTime;
 	/** @var string|false The last PHP error from a query or connection attempt */
 	private $lastPhpError = false;
 
@@ -370,7 +370,7 @@ abstract class Database implements Stringable, IDatabaseForOwner, IMaintainableD
 	}
 
 	public function lastDoneWrites() {
-		return $this->lastWriteTime ?: false;
+		return $this->lastWriteTime;
 	}
 
 	/**
@@ -762,20 +762,16 @@ abstract class Database implements Stringable, IDatabaseForOwner, IMaintainableD
 			$this->sessionTempTables
 		);
 		// Get the transaction-aware SQL string used for profiling
-		$prefix = (
-			$this->replicationReporter->getTopologyRole() === self::ROLE_STREAMING_MASTER
-		) ? 'role-primary: ' : '';
-
-		// Start profile section
-		if ( $sql->getCleanedSql() ) {
-			$generalizedSql = $sql;
-			$ps = $this->profiler ? ( $this->profiler )( $sql->getCleanedSql() ) : null;
-		} else {
-			$generalizedSql = new GeneralizedSql( $sql->getSQL(), $prefix );
-			$ps = $this->profiler ? ( $this->profiler )( $generalizedSql->stringify() ) : null;
-		}
+		$generalizedSql = GeneralizedSql::newFromQuery(
+			$sql,
+			( $this->replicationReporter->getTopologyRole() === self::ROLE_STREAMING_MASTER )
+				? 'role-primary: '
+				: ''
+		);
 		// Add agent and calling method comments to the SQL
 		$cStatement = $this->makeCommentedSql( $sql->getSQL(), $fname );
+		// Start profile section
+		$ps = $this->profiler ? ( $this->profiler )( $generalizedSql->stringify() ) : null;
 		$startTime = microtime( true );
 
 		// Clear any overrides from a prior "query method". Note that this does not affect
@@ -801,7 +797,6 @@ abstract class Database implements Stringable, IDatabaseForOwner, IMaintainableD
 
 		if ( $status->res !== false ) {
 			if ( $isPermWrite ) {
-				$this->lastWriteTime = $startTime;
 				if ( $this->trxLevel() ) {
 					$this->transactionManager->transactionWritingIn(
 						$this->getServerName(),
@@ -814,6 +809,8 @@ abstract class Database implements Stringable, IDatabaseForOwner, IMaintainableD
 						$affectedRowCount,
 						$fname
 					);
+				} else {
+					$this->lastWriteTime = $endTime;
 				}
 			}
 		}
