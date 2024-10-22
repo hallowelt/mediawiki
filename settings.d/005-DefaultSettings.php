@@ -77,8 +77,6 @@ $GLOBALS['bsgDefaultPermissionsPolicyHeader'] = [
 	'picture-in-picture' => '',
 	'publickey-credentials-get' => '',
 	'screen-wake-lock' => '',
-	// Required for ExtJS class loader
-	'sync-xhr' => 'self',
 	'usb' => '',
 	'web-share' => '',
 	'xr-spatial-tracking' => ''
