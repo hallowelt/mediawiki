@@ -13,7 +13,6 @@ wfLoadExtension( 'FilterSpecialPages' );
 wfLoadExtension( 'UserMerge' );
 $wgUserMergeProtectedGroups = [];
 $wgUserMergeUnmergeable = [];
-wfLoadExtension( 'Variables' );
 wfLoadExtension( 'BlueSpiceDistributionConnector' );
 $GLOBALS['wgAutoloadClasses']['EchoEvent'] = "$IP/extensions/BlueSpiceDistributionConnector/src/EchoEvent.php";
 wfLoadExtension( 'UserFunctions' );
