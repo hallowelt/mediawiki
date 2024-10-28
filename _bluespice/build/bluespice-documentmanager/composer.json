@@ -1,0 +1,12 @@
+{
+	"repositories": [{
+			"type": "composer",
+			"url": "https://packages.bluespice.com/"
+	}],
+	"require": {
+		"mediawiki/n-s-file-repo": "dev-master",
+		"mediawiki/webdav": "dev-master",
+		"bluespice/webdavclientintegration": "dev-master",
+		"bluespice/webdavminorsave": "dev-master"
+	}
+}

@@ -15,3 +15,9 @@ if( !$wgCacheDirectory ) {
 // If this is not set $IP/extensions/Widgets/compiled_templates will be used.
 // Must be writable by webserver.
 #$wgWidgetsCompileDir = "/opt/bluespice/widgets";
+
+// For Widgets extension.
+// Must be writable by webserver.
+// Store compiled templates in cache directory.
+// ERM37289
+$wgWidgetsCompileDir = $wgCacheDirectory;

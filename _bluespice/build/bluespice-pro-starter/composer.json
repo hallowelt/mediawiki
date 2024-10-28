@@ -1,0 +1,21 @@
+{
+	"repositories": [{
+			"type": "composer",
+			"url": "https://packages.bluespice.com/"
+		}],
+	"require": {
+		"bluespice/articlepreviewcapture": "dev-master",
+		"bluespice/filterabletables": "dev-master",
+		"bluespice/categorycheck": "dev-master",
+		"bluespice/categorymanager": "dev-master",
+		"bluespice/exporttables": "dev-master",
+		"bluespice/uemoduletable2excel": "dev-master",
+		"bluespice/extendedfilelist": "dev-master",
+		"bluespice/inserttemplate": "dev-master",
+		"bluespice/multiupload": "dev-master",
+		"bluespice/nsfilerepoconnector": "dev-master",
+		"bluespice/readconfirmation": "dev-master",
+		"bluespice/signhere": "dev-master",
+		"bluespice/privacy": "dev-master"
+	}
+}

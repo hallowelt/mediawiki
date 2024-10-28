@@ -1,0 +1,71 @@
+{
+	"repositories": [{
+		"type": "composer",
+		"url": "https://packages.bluespice.com/"
+	}, {
+		"type": "package",
+		"package": [{
+			"name": "mediawiki/oauth-cve-2021-46743",
+			"version": "dev-master",
+			"type": "mediawiki-extension",
+			"license": "GPL-2.0-or-later",
+			"source": {
+				"type": "git",
+				"url": "https://github.com/wikimedia/mediawiki-extensions-OAuth.git",
+				"reference": "master"
+			},
+			"require": {
+				"composer/installers": "~1.0|~2.0",
+				"ext-openssl": "*",
+				"firebase/php-jwt": "^6.10.0",
+				"lcobucci/jwt": "4.1.5",
+				"league/oauth2-server": "9.0.0+wikimedia-fork"
+			},
+			"extra": {
+				"installer-name": "OAuth"
+			}
+		}]
+	} ],
+	"require": {
+		"bluespice/prodistributionconnector": "dev-master",
+		"mediawiki/pluggable-auth": "7.1.*",
+		"mediawiki/openidconnect": "8.0.*",
+		"mediawiki/simple-s-a-m-lphp": "7.0.*",
+		"mediawiki/header-footer": "dev-master",
+		"mediawiki/import-office-files": "dev-master",
+		"mediawiki/code-mirror": "dev-master",
+		"mediawiki/sub-page-list": "dev-master",
+		"mediawiki/data-transfer": "1.6.*",
+		"mediawiki/revision-slider": "dev-master",
+		"mediawiki/drawio-editor": "dev-master",
+		"mediawiki/multimedia-viewer": "dev-master",
+		"mediawiki/widgets": "dev-master",
+		"mediawiki/popups": "dev-master",
+		"mediawiki/create-user-page": "3.0.*",
+		"mediawiki/web-authn": "dev-master",
+		"mediawiki/oauth-cve-2021-46743": "dev-master",
+		"mediawiki/event-bus": "dev-master",
+		"mediawiki/workflows": "dev-master",
+		"mediawiki/unified-task-overview": "dev-master",
+		"mediawiki/forms": "dev-master",
+		"mediawiki/cognitiveprocessdesigner": "dev-master",
+		"mediawiki/page-checkout": "dev-master",
+		"mediawiki/content-stabilization": "dev-master",
+		"mediawiki/pdfembed": "4.0.*",
+		"mediawiki/pre-to-clip": "dev-master",
+		"mediawiki/container-filter": "dev-master",
+		"mediawiki/section-anchors": "dev-master",
+		"mediawiki/atmentions": "dev-master",
+		"mediawiki/datetimetools": "dev-master",
+		"mediawiki/checklists": "dev-master",
+		"mediawiki/simpletasks": "dev-master",
+		"starcitizentools/tabber-neue": "dev-main",
+		"mediawiki/enhanced-standard-uis": "dev-master",
+		"mediawiki/content-provisioning": "dev-main",
+		"mediawiki/ai-editing-assistant": "dev-REL1_39",
+		"mediawiki/collabpads": "dev-main",
+		"mediawiki/vuejs-plus": "dev-master",
+		"mediawiki/table-tools": "dev-master",
+		"mediawiki/number-headings": "dev-master"
+	}
+}

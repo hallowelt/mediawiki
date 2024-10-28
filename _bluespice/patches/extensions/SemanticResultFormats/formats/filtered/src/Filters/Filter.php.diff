@@ -1,0 +1,15 @@
+diff --git a/formats/filtered/src/Filters/Filter.php b/formats/filtered/src/Filters/Filter.php
+index 65f6b9cd..1657e2d4 100644
+--- a/formats/filtered/src/Filters/Filter.php
++++ b/formats/filtered/src/Filters/Filter.php
+@@ -141,6 +141,10 @@ abstract class Filter {
+ 
+		if ( array_key_exists( $paramName, $params ) ) {
+ 
++			// ERM35057 prevent getMaxIncludeSize() on null
++			if ( !$this->getQueryPrinter()->getParser()->getOptions() ) {
++				return;
++			}
+			$parsedValue = trim( $this->getQueryPrinter()->getParser()->recursiveTagParse( $params[$paramName] ) );
+ 
+			$this->jsConfig[$configName] = ( $callback !== null ) ? call_user_func(

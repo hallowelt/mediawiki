@@ -1,0 +1,14 @@
+--- SemanticResultFormats/formats/gallery/Gallery.php	2024-02-02 14:04:20.779291608 +0100
++++ SemanticResultFormats.fix/formats/gallery/Gallery.php	2024-02-02 14:04:05.987007432 +0100
+@@ -78,7 +78,10 @@
+ 		// No need for a special page to use the parser but for the "normal" page
+ 		// view we have to ensure caption text is parsed correctly through the parser
+ 		if ( !$this->isSpecialPage() ) {
+-			$ig->setParser( MediaWikiServices::getInstance()->getParser() );
++			$globalParser = MediaWikiServices::getInstance()->getParser();
++			if ( $globalParser->getOutput() ) {
++				$ig->setParser( $globalParser );
++			}
+ 		}
+ 
+ 		$html = '';

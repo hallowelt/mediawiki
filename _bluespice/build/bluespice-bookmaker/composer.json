@@ -1,0 +1,12 @@
+{
+	"repositories": [{
+			"type": "composer",
+			"url": "https://packages.bluespice.com/"
+		}],
+	"require": {
+		"bluespice/bookshelf": "dev-master",
+		"bluespice/uemodulebookpdf": "dev-master",
+		"bluespice/uemodulepdfsubpages": "dev-master",
+		"bluespice/uemodulepdfrecursive": "dev-master"
+	}
+}

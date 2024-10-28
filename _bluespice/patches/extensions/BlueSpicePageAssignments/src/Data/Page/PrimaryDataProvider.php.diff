@@ -1,0 +1,13 @@
+diff --git a/src/Data/Page/PrimaryDataProvider.php b/src/Data/Page/PrimaryDataProvider.php
+index 7cde048..bde13af 100644
+--- a/src/Data/Page/PrimaryDataProvider.php
++++ b/src/Data/Page/PrimaryDataProvider.php
+@@ -146,7 +146,7 @@ class PrimaryDataProvider extends PageDataProvider {
+ 	 * @return array
+ 	 */
+ 	protected function getDefaultConds() {
+-		return [ Record::CONTENT_MODEL => [ 'wikitext', '' ] ];
++		return [ Record::CONTENT_MODEL => [ 'wikitext', 'book', '' ] ];
+ 	}
+ 
+ 	/**
