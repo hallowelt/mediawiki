@@ -34,7 +34,7 @@
 		"mediawiki/header-footer": "dev-REL1_43",
 		"mediawiki/import-office-files": "dev-REL1_43",
 		"mediawiki/code-mirror": "dev-REL1_43",
-		"mediawiki/sub-page-list": "dev-REL1_43",
+		"mediawiki/sub-page-list": "dev-master",
 		"mediawiki/data-transfer": "1.6.*",
 		"mediawiki/revision-slider": "dev-REL1_43",
 		"mediawiki/drawio-editor": "dev-REL1_43",

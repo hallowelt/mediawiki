@@ -6,15 +6,15 @@
 	"require": {
 		"mediawiki/external-data": "3.3.*",
 		"mediawiki/header-tabs": "2.2.*",
-		"mediawiki/open-layers": "dev-REL1_43",
+		"mediawiki/open-layers": "dev-master",
 		"mediawiki/semantic-compound-queries": "2.2.*",
 
 		"bluespice/smwconnector": "dev-REL1_43",
 		"mediawiki/maps": "10.2.*",
-		"mediawiki/semantic-media-wiki": "dev-REL1_43",
-		"mediawiki/semantic-extra-special-properties": "dev-REL1_43",
-		"mediawiki/semantic-result-formats": "dev-REL1_43",
-		"mediawiki/semantic-scribunto": "dev-REL1_43",
+		"mediawiki/semantic-media-wiki": "dev-master",
+		"mediawiki/semantic-extra-special-properties": "dev-master",
+		"mediawiki/semantic-result-formats": "dev-master",
+		"mediawiki/semantic-scribunto": "dev-master",
 
 		"bluespice/pageformsconnector": "dev-REL1_43",
 		"mediawiki/page-forms": "5.8.*"
