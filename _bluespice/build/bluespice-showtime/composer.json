@@ -4,6 +4,6 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/player": "dev-master"
+		"bluespice/player": "dev-REL1_43"
 	}
 }

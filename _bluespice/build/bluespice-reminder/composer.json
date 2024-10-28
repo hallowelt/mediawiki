@@ -4,7 +4,7 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/reminder": "dev-master",
-		"bluespice/expiry": "dev-master"
+		"bluespice/reminder": "dev-REL1_43",
+		"bluespice/expiry": "dev-REL1_43"
 	}
 }

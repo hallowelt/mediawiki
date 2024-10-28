@@ -4,9 +4,9 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/bookshelf": "dev-master",
-		"bluespice/uemodulebookpdf": "dev-master",
-		"bluespice/uemodulepdfsubpages": "dev-master",
-		"bluespice/uemodulepdfrecursive": "dev-master"
+		"bluespice/bookshelf": "dev-REL1_43",
+		"bluespice/uemodulebookpdf": "dev-REL1_43",
+		"bluespice/uemodulepdfsubpages": "dev-REL1_43",
+		"bluespice/uemodulepdfrecursive": "dev-REL1_43"
 	}
 }

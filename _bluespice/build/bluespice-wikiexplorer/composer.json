@@ -4,6 +4,6 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/wikiexplorer": "dev-master"
+		"bluespice/wikiexplorer": "dev-REL1_43"
 	}
 }

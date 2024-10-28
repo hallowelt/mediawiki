@@ -4,9 +4,9 @@
 			"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"mediawiki/n-s-file-repo": "dev-master",
-		"mediawiki/webdav": "dev-master",
-		"bluespice/webdavclientintegration": "dev-master",
-		"bluespice/webdavminorsave": "dev-master"
+		"mediawiki/n-s-file-repo": "dev-REL1_43",
+		"mediawiki/webdav": "dev-REL1_43",
+		"bluespice/webdavclientintegration": "dev-REL1_43",
+		"bluespice/webdavminorsave": "dev-REL1_43"
 	}
 }

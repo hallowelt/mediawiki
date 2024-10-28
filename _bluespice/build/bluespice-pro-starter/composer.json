@@ -4,18 +4,18 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/articlepreviewcapture": "dev-master",
-		"bluespice/filterabletables": "dev-master",
-		"bluespice/categorycheck": "dev-master",
-		"bluespice/categorymanager": "dev-master",
-		"bluespice/exporttables": "dev-master",
-		"bluespice/uemoduletable2excel": "dev-master",
-		"bluespice/extendedfilelist": "dev-master",
-		"bluespice/inserttemplate": "dev-master",
-		"bluespice/multiupload": "dev-master",
-		"bluespice/nsfilerepoconnector": "dev-master",
-		"bluespice/readconfirmation": "dev-master",
-		"bluespice/signhere": "dev-master",
-		"bluespice/privacy": "dev-master"
+		"bluespice/articlepreviewcapture": "dev-REL1_43",
+		"bluespice/filterabletables": "dev-REL1_43",
+		"bluespice/categorycheck": "dev-REL1_43",
+		"bluespice/categorymanager": "dev-REL1_43",
+		"bluespice/exporttables": "dev-REL1_43",
+		"bluespice/uemoduletable2excel": "dev-REL1_43",
+		"bluespice/extendedfilelist": "dev-REL1_43",
+		"bluespice/inserttemplate": "dev-REL1_43",
+		"bluespice/multiupload": "dev-REL1_43",
+		"bluespice/nsfilerepoconnector": "dev-REL1_43",
+		"bluespice/readconfirmation": "dev-REL1_43",
+		"bluespice/signhere": "dev-REL1_43",
+		"bluespice/privacy": "dev-REL1_43"
 	}
 }

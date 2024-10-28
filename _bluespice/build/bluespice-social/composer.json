@@ -4,20 +4,20 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/socialwikipage": "dev-master",
-		"bluespice/social": "dev-master",
-		"bluespice/socialblog": "dev-master",
-		"bluespice/socialcomments": "dev-master",
-		"bluespice/socialmicroblog": "dev-master",
-		"bluespice/socialprofile": "dev-master",
-		"bluespice/socialrating": "dev-master",
-		"bluespice/socialtags": "dev-master",
-		"bluespice/socialtimelineupdate": "dev-master",
-		"bluespice/socialtopics": "dev-master",
-		"bluespice/socialwatch": "dev-master",
-		"bluespice/userinfo": "dev-master",
-		"bluespice/socialresolve": "dev-master",
-		"bluespice/rating": "dev-master"
+		"bluespice/socialwikipage": "dev-REL1_43",
+		"bluespice/social": "dev-REL1_43",
+		"bluespice/socialblog": "dev-REL1_43",
+		"bluespice/socialcomments": "dev-REL1_43",
+		"bluespice/socialmicroblog": "dev-REL1_43",
+		"bluespice/socialprofile": "dev-REL1_43",
+		"bluespice/socialrating": "dev-REL1_43",
+		"bluespice/socialtags": "dev-REL1_43",
+		"bluespice/socialtimelineupdate": "dev-REL1_43",
+		"bluespice/socialtopics": "dev-REL1_43",
+		"bluespice/socialwatch": "dev-REL1_43",
+		"bluespice/userinfo": "dev-REL1_43",
+		"bluespice/socialresolve": "dev-REL1_43",
+		"bluespice/rating": "dev-REL1_43"
 	},
 	"extra": {
 		"merge-plugin": {
