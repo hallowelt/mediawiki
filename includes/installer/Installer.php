@@ -157,9 +157,10 @@ abstract class Installer {
 	 * These may output warnings using showMessage(), and/or abort the
 	 * installation process by returning false.
 	 *
-	 * For the WebInstaller these are only called on the Welcome page,
-	 * if these methods have side-effects that should affect later page loads
-	 * (as well as the generated stylesheet), use envPreps instead.
+	 * In the WebInstaller, variables set here will be saved to the session and
+	 * will be available to later pages in the same session. But if you need
+	 * dynamic defaults to be available before the welcome page completes, say
+	 * in the initial CSS request, add something to getDefaultSettings().
 	 *
 	 * @var array
 	 */
@@ -178,16 +179,6 @@ abstract class Installer {
 		'envCheckUploadsDirectory',
 		'envCheckUploadsServerResponse',
 		'envCheck64Bit',
-	];
-
-	/**
-	 * A list of environment preparation methods called by doEnvironmentPreps().
-	 *
-	 * @var array
-	 */
-	protected $envPreps = [
-		'envPrepServer',
-		'envPrepPath',
 	];
 
 	/**
@@ -437,8 +428,6 @@ abstract class Installer {
 
 		$this->settings = $this->getDefaultSettings();
 
-		$this->doEnvironmentPreps();
-
 		$this->compiledDBs = [];
 		foreach ( self::getDBTypes() as $type ) {
 			$installer = $this->getDBInstaller( $type );
@@ -469,7 +458,56 @@ abstract class Installer {
 		// set to something that is a valid timezone.
 		$ret['wgLocaltimezone'] = $wgLocaltimezone;
 
-		return $ret;
+		// Detect $wgServer
+		$server = $this->envGetDefaultServer();
+		if ( $server !== null ) {
+			$ret['wgServer'] = $server;
+		}
+
+		// Detect $IP
+		$ret['IP'] = MW_INSTALL_PATH;
+
+		return $this->getDefaultSettingsOverrides()
+			+ $this->generateKeys()
+			+ $this->detectWebPaths()
+			+ $ret;
+	}
+
+	/**
+	 * This is overridden by the web installer to provide the detected wgScriptPath
+	 *
+	 * @return array
+	 */
+	protected function detectWebPaths() {
+		return [];
+	}
+
+	/**
+	 * Override this in a subclass to override the default settings
+	 *
+	 * @since 1.44
+	 * @return array
+	 */
+	protected function getDefaultSettingsOverrides() {
+		return [];
+	}
+
+	/**
+	 * Generate $wgSecretKey and $wgUpgradeKey.
+	 *
+	 * @return string[]
+	 */
+	private function generateKeys() {
+		$keyLengths = [
+			'wgSecretKey' => 64,
+			'wgUpgradeKey' => 16,
+		];
+
+		$keys = [];
+		foreach ( $keyLengths as $name => $length ) {
+			$keys[$name] = MWCryptRand::generateHex( $length );
+		}
+		return $keys;
 	}
 
 	/**
@@ -494,8 +532,8 @@ abstract class Installer {
 		global $wgObjectCaches, $wgLang;
 
 		// Reset all services and inject config overrides.
-		// NOTE: This will reset existing instances, but not previous wiring overrides!
-		MediaWikiServices::resetGlobalInstance( $installerConfig );
+		// Reload to re-enable Rdbms, in case of any prior MediaWikiServices::disableStorage()
+		MediaWikiServices::resetGlobalInstance( $installerConfig, 'reload' );
 
 		$mwServices = MediaWikiServices::getInstance();
 
@@ -516,11 +554,6 @@ abstract class Installer {
 						[],
 						$services->getMainConfig()->get( MainConfigNames::DefaultUserOptions )
 					);
-				},
-
-				// Restore to default wiring, in case it was overwritten by disableStorage()
-				'DBLoadBalancer' => static function ( MediaWikiServices $services ) {
-					return $services->getDBLoadBalancerFactory()->getMainLB();
 				},
 			];
 		}
@@ -602,12 +635,6 @@ abstract class Installer {
 		$this->setVar( '_Environment', $good );
 
 		return $good ? Status::newGood() : Status::newFatal( 'config-env-bad' );
-	}
-
-	public function doEnvironmentPreps() {
-		foreach ( $this->envPreps as $prep ) {
-			$this->$prep();
-		}
 	}
 
 	/**
@@ -1164,29 +1191,10 @@ abstract class Installer {
 	}
 
 	/**
-	 * Environment prep for the server hostname.
-	 */
-	protected function envPrepServer() {
-		$server = $this->envGetDefaultServer();
-		if ( $server !== null ) {
-			$this->setVar( 'wgServer', $server );
-		}
-	}
-
-	/**
-	 * Helper function to be called from envPrepServer()
+	 * Helper function to be called from getDefaultSettings()
 	 * @return string
 	 */
 	abstract protected function envGetDefaultServer();
-
-	/**
-	 * Environment prep for setting $IP and $wgScriptPath.
-	 */
-	protected function envPrepPath() {
-		global $IP;
-		$IP = dirname( dirname( __DIR__ ) );
-		$this->setVar( 'IP', $IP );
-	}
 
 	/**
 	 * Checks if scripts located in the given directory can be executed via the given URL.
@@ -1682,7 +1690,6 @@ abstract class Installer {
 			[ 'name' => 'tables', 'callback' => [ $installer, 'createTables' ] ],
 			[ 'name' => 'interwiki', 'callback' => [ $installer, 'populateInterwikiTable' ] ],
 			[ 'name' => 'stats', 'callback' => [ $this, 'populateSiteStats' ] ],
-			[ 'name' => 'keys', 'callback' => [ $this, 'generateKeys' ] ],
 			[ 'name' => 'updates', 'callback' => [ $installer, 'insertUpdateKeys' ] ],
 			[ 'name' => 'restore-services', 'callback' => [ $this, 'restoreServices' ] ],
 			[ 'name' => 'sysop', 'callback' => [ $this, 'createSysop' ] ],
@@ -1766,20 +1773,6 @@ abstract class Installer {
 	}
 
 	/**
-	 * Generate $wgSecretKey. Will warn if we had to use an insecure random source.
-	 *
-	 * @return Status
-	 */
-	public function generateKeys() {
-		$keys = [ 'wgSecretKey' => 64 ];
-		if ( strval( $this->getVar( 'wgUpgradeKey' ) ) === '' ) {
-			$keys['wgUpgradeKey'] = 16;
-		}
-
-		return $this->doGenerateKeys( $keys );
-	}
-
-	/**
 	 * Restore services that have been redefined in the early stage of installation
 	 * @return Status
 	 */
@@ -1810,20 +1803,6 @@ abstract class Installer {
 				return $services->get( 'UserOptionsManager' );
 			},
 		] );
-		return Status::newGood();
-	}
-
-	/**
-	 * Generate a secret value for variables using a secure generator.
-	 *
-	 * @param array $keys
-	 * @return Status
-	 */
-	protected function doGenerateKeys( $keys ) {
-		foreach ( $keys as $name => $length ) {
-			$secretKey = MWCryptRand::generateHex( $length );
-			$this->setVar( $name, $secretKey );
-		}
 		return Status::newGood();
 	}
 
