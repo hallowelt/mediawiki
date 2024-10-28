@@ -1,0 +1,31 @@
+diff --git a/includes/user/UserGroupManager.php b/includes/user/UserGroupManager.php
+index 2e75bc8a21d..9fe73597f1c 100644
+--- a/includes/user/UserGroupManager.php
++++ b/includes/user/UserGroupManager.php
+@@ -300,7 +300,7 @@ class UserGroupManager {
+				$this->clearUserCacheForKind( $user, self::CACHE_EFFECTIVE );
+			}
+		}
+-		return $this->userGroupCache[$userKey][self::CACHE_IMPLICIT];
++		return $this->userGroupCache[$userKey][self::CACHE_IMPLICIT] ?? [];
+	}
+ 
+	/**
+@@ -343,7 +343,7 @@ class UserGroupManager {
+			$effectiveGroups = array_values( array_unique( $groups ) );
+			$this->setCache( $userKey, self::CACHE_EFFECTIVE, $effectiveGroups, $queryFlags );
+		}
+-		return $this->userGroupCache[$userKey][self::CACHE_EFFECTIVE];
++		return $this->userGroupCache[$userKey][self::CACHE_EFFECTIVE] ?? [];
+	}
+ 
+	/**
+@@ -388,7 +388,7 @@ class UserGroupManager {
+		}
+		$this->setCache( $userKey, self::CACHE_FORMER, $formerGroups, $queryFlags );
+ 
+-		return $this->userGroupCache[$userKey][self::CACHE_FORMER];
++		return $this->userGroupCache[$userKey][self::CACHE_FORMER] ?? [];
+	}
+ 
+	/**

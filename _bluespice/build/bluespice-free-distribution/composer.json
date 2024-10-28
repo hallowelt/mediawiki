@@ -1,0 +1,34 @@
+{
+	"repositories": [{
+		"type": "composer",
+		"url": "https://packages.bluespice.com/"
+	}],
+	"require": {
+		"bluespice/visualeditorconnector": "dev-master",
+		"mediawiki/content-droplets": "dev-master",
+		"hallowelt/filter-special-pages": "dev-master",
+		"mediawiki/invite-signup": "dev-master",
+		"mediawiki/arrays": "dev-master",
+		"universal-omega/dynamic-page-list3": "dev-master",
+		"starcitizenwiki/embedvideo": "3.2.*",
+		"mediawiki/flexiskin": "dev-master",
+		"mediawiki/hit-counters": "dev-master",
+		"mediawiki/image-map-edit": "dev-master",
+		"mediawiki/lingo": "dev-master",
+		"mediawiki/loops": "dev-master",
+		"mediawiki/rss": "dev-master",
+		"mediawiki/template-styles": "dev-master",
+		"mediawiki/title-key": "dev-master",
+		"mediawiki/two-col-conflict": "dev-master",
+		"mediawiki/user-functions": "dev-master",
+		"mediawiki/user-merge": "dev-master",
+		"mediawiki/url-get-parameters": "dev-master",
+		"mediawiki/standard-dialogs": "dev-master",
+		"mediawiki/page-header": "dev-master",
+		"mediawiki/menu-editor": "dev-master",
+		"mediawiki/enhanced-upload": "dev-master",
+		"mediawiki/notify-me": "dev-main",
+		"mediawiki/font-awesome": "2.0.*",
+		"mediawiki/visual-editor-plus": "dev-REL1_39"
+	}
+}
