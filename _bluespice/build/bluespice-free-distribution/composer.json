@@ -29,6 +29,7 @@
 		"mediawiki/enhanced-upload": "dev-REL1_43",
 		"mediawiki/notify-me": "dev-main",
 		"mediawiki/font-awesome": "2.0.*",
-		"mediawiki/visual-editor-plus": "dev-REL1_43"
+		"mediawiki/visual-editor-plus": "dev-REL1_43",
+		"mediawiki/renameuser": "dev-REL1_43"
 	}
 }
