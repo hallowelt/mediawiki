@@ -594,36 +594,24 @@ Parser.prototype = {
 			return expr.length > 1 ? [ 'CONCAT' ].concat( expr ) : expr[ 0 ];
 		}
 
-		function templateWithReplacement() {
+		function templateNameWithParam() {
 			const result = sequence( [
 				templateName,
 				colon,
-				replacement
+				nOrMore( 0, paramExpression )
 			] );
-			return result === null ? null : [ result[ 0 ], result[ 2 ] ];
-		}
-		function templateWithOutReplacement() {
-			const result = sequence( [
-				templateName,
-				colon,
-				paramExpression
-			] );
-			return result === null ? null : [ result[ 0 ], result[ 2 ] ];
-		}
-		function templateWithOutFirstParameter() {
-			const result = sequence( [
-				templateName,
-				colon
-			] );
-			return result === null ? null : [ result[ 0 ], '' ];
+			if ( result === null ) {
+				return null;
+			}
+			const expr = result[ 2 ];
+			// use a CONCAT operator if there are multiple nodes, otherwise return the first node, raw.
+			return [ result[ 0 ], expr.length > 1 ? [ 'CONCAT' ].concat( expr ) : expr[ 0 ] ];
 		}
 		colon = makeStringParser( ':' );
 		templateContents = choice( [
 			function () {
 				const result = sequence( [
-					// templates can have placeholders for dynamic replacement eg: {{PLURAL:$1|one car|$1 cars}}
-					// or no placeholders eg: {{GRAMMAR:genitive|{{SITENAME}}}
-					choice( [ templateWithReplacement, templateWithOutReplacement, templateWithOutFirstParameter ] ),
+					templateNameWithParam,
 					nOrMore( 0, templateParam )
 				] );
 				return result === null ? null : result[ 0 ].concat( result[ 1 ] );
