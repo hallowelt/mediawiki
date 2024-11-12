@@ -4,26 +4,9 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/socialwikipage": "dev-REL1_43",
 		"bluespice/social": "dev-REL1_43",
-		"bluespice/socialblog": "dev-REL1_43",
-		"bluespice/socialcomments": "dev-REL1_43",
-		"bluespice/socialmicroblog": "dev-REL1_43",
 		"bluespice/socialprofile": "dev-REL1_43",
-		"bluespice/socialrating": "dev-REL1_43",
-		"bluespice/socialtags": "dev-REL1_43",
-		"bluespice/socialtimelineupdate": "dev-REL1_43",
-		"bluespice/socialtopics": "dev-REL1_43",
-		"bluespice/socialwatch": "dev-REL1_43",
 		"bluespice/userinfo": "dev-REL1_43",
-		"bluespice/socialresolve": "dev-REL1_43",
 		"bluespice/rating": "dev-REL1_43"
-	},
-	"extra": {
-		"merge-plugin": {
-			"include": [
-				"extensions/BlueSpiceSocial/*/composer.json"
-			]
-		}
 	}
 }
