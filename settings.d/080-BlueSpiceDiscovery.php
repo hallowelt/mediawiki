@@ -11,7 +11,7 @@ $GLOBALS['wgSkipSkins'] = [
 ];
 
 $GLOBALS['bsgDiscoveryMetaItemsHeader'] = [ "page-sentence" ];
-$GLOBALS['bsgDiscoveryMetaItemsFooter'] = [ "categories", "rating", "recommendations" ];
+$GLOBALS['bsgDiscoveryMetaItemsFooter'] = [ "categories" ];
 
 $GLOBALS['wgHiddenPrefs'][] = 'skin';
 // BlueSpice discovery is responsive by default
