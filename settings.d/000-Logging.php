@@ -1,7 +1,8 @@
 <?php
 
 // If $wgDebugToolbar is enabled the custom $wgMWLoggerDefaultSpi would eat up all the output
-if ( !$GLOBALS['wgDebugToolbar'] && !$GLOBALS['wgDebugLogFile'] ) {
+if ( !$GLOBALS['wgDebugToolbar'] && !$GLOBALS['wgDebugLogFile'] && !$GLOBALS['wgDebugLogGroups'] ) {
+	$bsgDebugLogGroups['error'] = $bsgDebugLogGroups['error'] ?? true;
 	$bsgDebugLogGroups['exception'] = $bsgDebugLogGroups['exception'] ?? true;
 }
 
@@ -28,12 +29,16 @@ foreach( $bsgDebugLogGroups as $group => $file ) {
 		$handler = [
 			'class' => '\\Monolog\\Handler\\ErrorLogHandler',
 			'args' => [
-				/* $messageType */       0, /* Monolog\Handler\ErrorLogHandler::OPERATING_SYSTEM */
+				/* $messageType */       4, /* Monolog\Handler\ErrorLogHandler::SAPI */
 				/* $level */           100, /* Monolog\Logger::DEBUG */
 				/* $bubble */         true,
 				/* $expandNewlines */ true
 			]
 		];
+
+		if ( in_array( $group, [ 'error', 'exception'] ) ) {
+			$handler['args'][1] = 400; /* Monolog\Logger::ERROR */
+		}
 	}
 
 	$handlers[$handlerName] = $handler;
