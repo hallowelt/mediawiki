@@ -136,12 +136,13 @@ $GLOBALS['wgReservedUsernames'][] = 'Spam cleanup script';
 $GLOBALS['wgReservedUsernames'][] = 'BlueSpice default';
 $GLOBALS['wgReservedUsernames'][] = 'Bluespice default';
 
-$GLOBALS['wgCapitalLinkOverrides'][ NS_FILE ] = true;  
-$GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-logo.png'; 
-$GLOBALS['wgWhitelistRead'][] = 'File:Flexiskin-images-logo.png'; 
-$GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-favicon.png'; 
-$GLOBALS['wgWhitelistRead'][] = 'File:Flexiskin-images-favicon.png'; 
-$GLOBALS['wgWhitelistRead'][] = 'flexiskin-images-favicon.png'; 
-$GLOBALS['wgWhitelistRead'][] = 'File:flexiskin-images-favicon.png'; 
-$GLOBALS['wgWhitelistRead'][] = 'flexiskin-images-logo.png'; 
+$GLOBALS['wgCapitalLinkOverrides'][ NS_FILE ] = true;
+$GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-logo.png';
+$GLOBALS['wgWhitelistRead'][] = 'File:Flexiskin-images-logo.png';
+$GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-favicon.png';
+$GLOBALS['wgWhitelistRead'][] = 'File:Flexiskin-images-favicon.png';
+$GLOBALS['wgWhitelistRead'][] = 'flexiskin-images-favicon.png';
+$GLOBALS['wgWhitelistRead'][] = 'File:flexiskin-images-favicon.png';
+$GLOBALS['wgWhitelistRead'][] = 'flexiskin-images-logo.png';
 $GLOBALS['wgWhitelistRead'][] = 'File:flexiskin-images-logo.png';
+
