@@ -100,3 +100,16 @@ $GLOBALS['bsgPermissionConfig']['mwoauthmanagemygrants'] = [
 wfLoadExtension( 'TableTools' );
 wfLoadExtension( 'VueJsPlus' );
 wfLoadExtension( 'NumberHeadings' );
+wfLoadExtension( 'CommentStreams' );
+$GLOBALS['bsgPermissionConfig']['cs-comment'] = [
+	'type' => 'namespace',
+	'roles' => [ 'reader' ]
+];
+$GLOBALS['bsgPermissionConfig']['cs-moderator-edit'] = [
+	'type' => 'namespace',
+	'roles' => [ 'admin' ]
+];
+$GLOBALS['bsgPermissionConfig']['cs-moderator-delete'] = [
+	'type' => 'namespace',
+	'roles' => [ 'admin' ]
+];

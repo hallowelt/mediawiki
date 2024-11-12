@@ -67,6 +67,7 @@
 		"mediawiki/vuejs-plus": "dev-REL1_43",
 		"mediawiki/table-tools": "dev-REL1_43",
 		"mediawiki/number-headings": "dev-REL1_43",
-		"mediawiki/adhoc-translation": "dev-REL1_43"
+		"mediawiki/adhoc-translation": "dev-REL1_43",
+		"mediawiki/comment-streams": "8.0.*"
 	}
 }
