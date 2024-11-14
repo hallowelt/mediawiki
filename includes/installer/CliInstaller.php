@@ -267,7 +267,7 @@ class CliInstaller extends Installer {
 
 	/**
 	 * @param string|MessageSpecifier $msg
-	 * @param array $params
+	 * @param (string|int|float)[] $params Message parameters
 	 * @return string
 	 */
 	protected function getMessageText( $msg, $params ) {
@@ -276,14 +276,6 @@ class CliInstaller extends Installer {
 		$text = preg_replace( '/<a href="(.*?)".*?>(.*?)<\/a>/', '$2 &lt;$1&gt;', $text );
 
 		return Sanitizer::stripAllTags( $text );
-	}
-
-	/**
-	 * Dummy
-	 * @param string $msg Key for wfMessage()
-	 * @param mixed ...$params
-	 */
-	public function showHelpBox( $msg, ...$params ) {
 	}
 
 	public function showStatusMessage( Status $status ) {
