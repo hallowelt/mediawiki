@@ -20,12 +20,25 @@ class CreateSysopTask extends Task {
 	}
 
 	public function getDependencies() {
-		return [ 'services', 'tables' ];
+		return [ 'services', 'extension-tables' ];
+	}
+
+	public function getProvidedNames() {
+		return [ 'created-user-names' ];
 	}
 
 	public function execute(): Status {
 		$this->initServices( $this->getServices() );
-		$name = $this->getOption( 'AdminName' );
+		$status = $this->createUser( $this->getOption( 'AdminName' ) );
+		$createdUserNames = [];
+		if ( $status->isOK() && $status->value !== null ) {
+			$createdUserNames[] = $status->value;
+		}
+		$this->getContext()->provide( 'created-user-names', $createdUserNames );
+		return $status;
+	}
+
+	private function createUser( $name ) {
 		$user = $this->userFactory->newFromName( $name );
 
 		if ( !$user ) {
@@ -58,6 +71,8 @@ class CreateSysopTask extends Task {
 			// Update user count
 			$ssUpdate = SiteStatsUpdate::factory( [ 'users' => 1 ] );
 			$ssUpdate->doUpdate();
+
+			return Status::newGood( $user->getName() );
 		}
 
 		return Status::newGood();
