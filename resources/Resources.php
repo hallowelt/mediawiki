@@ -961,6 +961,17 @@ return [
 			]
 		],
 	],
+	'mediawiki.pager.codex' => [
+		'scripts' => 'resources/src/mediawiki.pager.codex/codexTablePager.js',
+	],
+	'mediawiki.pager.codex.styles' => [
+		'class' => CodexModule::class,
+		'codexComponents' => [ 'CdxTable' ],
+		'codexStyleOnly' => true,
+		'styles' => [
+			'resources/src/mediawiki.pager.codex/CodexTablePager.less',
+		]
+	],
 	'mediawiki.pulsatingdot' => [
 		'styles' => [
 			'resources/src/mediawiki.pulsatingdot/mediawiki.pulsatingdot.less',
