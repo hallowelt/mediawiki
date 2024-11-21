@@ -1,5 +1,4 @@
 <?php
-wfLoadExtension( 'BlueSpiceProDistributionConnector' );
 if( empty( $wgFileExtensions ) ){
 	$wgFileExtensions = [ 'png' ];
 }
@@ -11,9 +10,6 @@ wfLoadExtension( 'ReplaceText' );
 wfLoadExtension( 'Scribunto' );
 $wgScribuntoDefaultEngine = 'luastandalone';
 wfLoadExtension( 'Widgets' );
-#wfLoadExtension( 'NSFileRepo' );
-#$GLOBALS['egNSFileRepoNamespaceThreshold'] = 3000;
-#wfLoadExtension( 'BlueSpiceNSFileRepoConnector' );
 wfLoadExtension( 'PageImages' );
 wfLoadExtension( 'TextExtracts' );
 wfLoadExtension( 'Popups' );
