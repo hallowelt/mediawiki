@@ -1,6 +1,5 @@
 <?php
 
-wfLoadExtension( 'BlueSpiceArticlePreviewCapture' );
 wfLoadExtension( 'BlueSpiceBookshelf' );
 wfLoadExtension( 'BlueSpiceCategoryCheck' );
 wfLoadExtension( 'BlueSpiceCategoryManager' );

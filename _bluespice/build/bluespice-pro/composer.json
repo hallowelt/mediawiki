@@ -4,7 +4,6 @@
 			"url": "https://packages.bluespice.com/"
 		}],
 	"require": {
-		"bluespice/articlepreviewcapture": "dev-REL1_43",
 		"bluespice/bookshelf": "dev-REL1_43",
 		"bluespice/categorycheck": "dev-REL1_43",
 		"bluespice/categorymanager": "dev-REL1_43",
