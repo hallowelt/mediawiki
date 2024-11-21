@@ -57,7 +57,6 @@
 		"mediawiki/ldap-sync-all": "dev-REL1_43",
 		"mediawiki/ldap-user-info": "dev-REL1_43",
 		"mediawiki/maps": "10.2.*",
-		"mediawiki/multimedia-viewer": "dev-REL1_43",
 		"mediawiki/n-s-file-repo": "dev-REL1_43",
 		"mediawiki/number-headings": "dev-REL1_43",
 		"mediawiki/oauth-cve-2021-46743": "dev-REL1_43",
