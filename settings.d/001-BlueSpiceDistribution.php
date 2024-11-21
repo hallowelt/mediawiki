@@ -3,7 +3,7 @@
 wfLoadExtension( 'Arrays' );
 wfLoadExtension( 'CategoryTree' );
 wfLoadExtension( 'DynamicPageList3' );
-wfLoadExtension( 'HitCounters' );
+#wfLoadExtension( 'HitCounters' );
 wfLoadExtension( 'ImageMapEdit' );
 wfLoadExtension( 'RSS' );
 wfLoadExtension( 'TitleKey');

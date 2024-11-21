@@ -53,7 +53,7 @@ wfLoadExtension( 'Checklists' );
 wfLoadExtension( 'AtMentions' );
 wfLoadExtension( 'DateTimeTools' );
 wfLoadExtension( 'SimpleTasks' );
-wfLoadExtension( 'TabberNeue' );
+#wfLoadExtension( 'TabberNeue' );
 wfLoadExtension( 'EnhancedStandardUIs' );
 $GLOBALS['wgEnhancedUIsVersionHistoryToolbarOffset'] = 153;
 $GLOBALS['wgEnhancedUIsAllPagesPaginatorOffset'] = 64;

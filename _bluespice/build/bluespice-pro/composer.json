@@ -1,0 +1,33 @@
+{
+	"repositories": [{
+			"type": "composer",
+			"url": "https://packages.bluespice.com/"
+		}],
+	"require": {
+		"bluespice/articlepreviewcapture": "dev-REL1_43",
+		"bluespice/bookshelf": "dev-REL1_43",
+		"bluespice/categorycheck": "dev-REL1_43",
+		"bluespice/categorymanager": "dev-REL1_43",
+		"bluespice/expiry": "dev-REL1_43",
+		"bluespice/exporttables": "dev-REL1_43",
+		"bluespice/extendedfilelist": "dev-REL1_43",
+		"bluespice/filterabletables": "dev-REL1_43",
+		"bluespice/nsfilerepoconnector": "dev-REL1_43",
+		"bluespice/pageformsconnector": "dev-REL1_43",
+		"bluespice/player": "dev-REL1_43",
+		"bluespice/privacy": "dev-REL1_43",
+		"bluespice/prodistributionconnector": "dev-REL1_43",
+		"bluespice/rating": "dev-REL1_43",
+		"bluespice/readconfirmation": "dev-REL1_43",
+		"bluespice/reminder": "dev-REL1_43",
+		"bluespice/signhere": "dev-REL1_43",
+		"bluespice/smwconnector": "dev-REL1_43",
+		"bluespice/uemodulebookpdf": "dev-REL1_43",
+		"bluespice/uemodulepdfrecursive": "dev-REL1_43",
+		"bluespice/uemodulepdfsubpages": "dev-REL1_43",
+		"bluespice/uemoduletable2excel": "dev-REL1_43",
+		"bluespice/userinfo": "dev-REL1_43",
+		"bluespice/user-profile": "dev-REL1_43",
+		"bluespice/wikiexplorer": "dev-REL1_43"
+	}
+}
