@@ -73,6 +73,7 @@ wfLoadExtension( 'Forms' );
 wfLoadExtension( 'HeaderFooter' );
 wfLoadExtension( 'HeaderTabs' );
 wfLoadExtension( 'ImportOfficeFiles' );
+wfLoadExtension( 'Lingo' );
 wfLoadExtension( 'Maps' );
 wfLoadExtension( 'MultimediaViewer' );
 
@@ -112,6 +113,13 @@ $GLOBALS[ 'bsgPermissionConfig' ][ 'mwoauthmanagemygrants' ] = [
 	'roles' => [ 'reader' ]
 ];
 
+wfLoadExtension( 'OATHAuth' );
+$GLOBALS['wgGroupPermissions']['user']['oathauth-enable'] = true;
+$GLOBALS['bsgPermissionConfig']['oathauth-enable'] = [
+	'type' => 'global',
+	'roles' => [ 'reader' ]
+];
+
 wfLoadExtension( 'OpenLayers' );
 wfLoadExtension( 'PageCheckout' );
 
@@ -142,7 +150,11 @@ $GLOBALS[ 'wgPopupsOptInDefaultState' ] = '1';
 
 wfLoadExtension( 'PreToClip' );
 wfLoadExtension( 'ReplaceText' );
+
 wfLoadExtension( 'RevisionSlider' );
+$GLOBALS['wgVisualEditorEnableDiffPage'] = true;
+$GLOBALS['wgVisualEditorEnableDiffPageBetaFeature'] = true;
+
 wfLoadExtension( 'Scribunto' );
 $GLOBALS[ 'wgScribuntoDefaultEngine' ] = 'luastandalone';
 
