@@ -5,7 +5,6 @@ wfLoadExtension( 'BlueSpiceCategoryCheck' );
 wfLoadExtension( 'BlueSpiceCategoryManager' );
 wfLoadExtension( 'BlueSpiceExpiry' );
 wfLoadExtension( 'BlueSpiceExportTables' );
-wfLoadExtension( 'BlueSpiceExtendedFilelist' );
 wfLoadExtension( 'BlueSpiceFilterableTables' );
 #wfLoadExtension( 'BlueSpiceNSFileRepoConnector' );
 wfLoadExtension( 'BlueSpicePageFormsConnector' );
