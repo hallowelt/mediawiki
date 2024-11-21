@@ -1,4 +1,37 @@
 <?php
 
+wfLoadExtension( 'BlueSpiceAbout' );
+wfLoadExtension( 'BlueSpiceArticleInfo' );
+wfLoadExtension( 'BlueSpiceAuthors' );
+wfLoadExtension( 'BlueSpiceAvatars' );
+wfLoadExtension( 'BlueSpiceChecklist' );
+wfLoadExtension( 'BlueSpiceConfigManager' );
+wfLoadExtension( 'BlueSpiceContextMenu' );
+wfLoadExtension( 'BlueSpiceCountThings' );
+wfLoadExtension( 'BlueSpiceCustomMenu' );
+wfLoadExtension( 'BlueSpiceEmoticons' );
+wfLoadExtension( 'BlueSpiceExtendedStatistics' );
 wfLoadExtension( 'BlueSpiceFoundation' );
+wfLoadExtension( 'BlueSpiceGroupManager' );
+wfLoadExtension( 'BlueSpiceHideTitle' );
+wfLoadExtension( 'BlueSpiceInsertCategory' );
+wfLoadExtension( 'BlueSpiceInsertFile' );
+wfLoadExtension( 'BlueSpiceInsertLink' );
 wfLoadExtension( 'BlueSpiceInstanceStatus' );
+wfLoadExtension( 'BlueSpiceInterWikiLinks' );
+wfLoadExtension( 'BlueSpiceNamespaceManager' );
+wfLoadExtension( 'BlueSpicePageAccess' );
+wfLoadExtension( 'BlueSpicePageAssignments' );
+wfLoadExtension( 'BlueSpicePagesVisited' );
+wfLoadExtension( 'BlueSpicePageTemplates' );
+wfLoadExtension( 'BlueSpiceQrCode' );
+wfLoadExtension( 'BlueSpiceReaders' );
+wfLoadExtension( 'BlueSpiceRSSFeeder' );
+wfLoadExtension( 'BlueSpiceSaferEdit' );
+wfLoadExtension( 'BlueSpiceSmartList' );
+wfLoadExtension( 'BlueSpiceUniversalExport' );
+wfLoadExtension( 'BlueSpiceUsageTracker' );
+wfLoadExtension( 'BlueSpiceUserManager' );
+wfLoadExtension( 'BlueSpiceUserSidebar' );
+wfLoadExtension( 'BlueSpiceWatchList' );
+wfLoadExtension( 'BlueSpiceWhoIsOnline' );
