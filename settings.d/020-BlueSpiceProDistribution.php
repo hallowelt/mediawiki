@@ -1,7 +1,16 @@
 <?php
 
+// Additional settings that only apply to PRO etc.
+
+// Especially in SSO environments, it is expected that mails are send without additonal
+// authentication. Mail addresses are usually set by the SSO provider.
+$GLOBALS['wgEmailAuthentication'] = false;
+
 wfLoadExtension( 'AdhocTranslation' );
+
 wfLoadExtension( 'AIEditingAssistant' );
+$GLOBALS[ 'wgAIEditingAssistantActiveProvider' ] = 'open-ai';
+
 wfLoadExtension( 'AtMentions' );
 wfLoadExtension( 'Checklists' );
 
@@ -16,6 +25,19 @@ wfLoadExtension( 'CollabPads' );
 $GLOBALS[ 'wgCollabPadsBackendServiceURL' ] = $GLOBALS[ 'wgServer' ] . '/_collabpads/';
 
 wfLoadExtension( 'CommentStreams' );
+$GLOBALS[ 'bsgPermissionConfig' ][ 'cs-comment' ] = [
+	'type' => 'namespace',
+	'roles' => [ 'reader' ]
+];
+$GLOBALS[ 'bsgPermissionConfig' ][ 'cs-moderator-edit' ] = [
+	'type' => 'namespace',
+	'roles' => [ 'admin' ]
+];
+$GLOBALS[ 'bsgPermissionConfig' ][ 'cs-moderator-delete' ] = [
+	'type' => 'namespace',
+	'roles' => [ 'admin' ]
+];
+
 wfLoadExtension( 'ContainerFilter' );
 wfLoadExtension( 'ContentProvisioning' );
 wfLoadExtension( 'ContentStabilization' );
@@ -38,6 +60,13 @@ wfLoadExtension( 'DrawioEditor' );
 $GLOBALS[ 'wgDrawioEditorImageType' ] = 'png';
 
 wfLoadExtension( 'EnhancedStandardUIs' );
+$GLOBALS[ 'wgEnhancedUIsVersionHistoryToolbarOffset' ] = 153;
+$GLOBALS[ 'wgEnhancedUIsAllPagesPaginatorOffset' ] = 64;
+$GLOBALS[ 'wgEnhancedUIsAllPagesOverride' ] = true;
+$GLOBALS[ 'wgEnhancedUIsFilelistOverride' ] = true;
+$GLOBALS[ 'wgEnhancedUIsExtendedFilelistOverride' ] = true;
+$GLOBALS[ 'wgEnhancedUIsSpecialSpecialPagesOverride' ] = true;
+
 wfLoadExtension( 'EventBus' );
 wfLoadExtension( 'ExternalData' );
 wfLoadExtension( 'Forms' );
@@ -96,7 +125,15 @@ $GLOBALS[ 'bsgPermissionConfig' ][ 'editrestrictedfields' ] = [
 	'roles' => [ 'admin' ]
 ];
 
+wfLoadExtension( 'PageImages' );
+// ERM21013
+$GLOBALS['wgPageImagesLeadSectionOnly'] = false;
+
 wfLoadExtension( 'PDFembed' );
+$GLOBALS['bsgPermissionConfig']['embed_pdf'] = [
+	'type' => 'global',
+	'roles' => [ 'reader' ]
+];
 
 wfLoadExtension( 'Popups' );
 // ERM18546: Parse whole page for preview, not only section = 0
@@ -104,7 +141,11 @@ $GLOBALS[ 'wgPopupsTextExtractsIntroOnly' ] = false;
 $GLOBALS[ 'wgPopupsOptInDefaultState' ] = '1';
 
 wfLoadExtension( 'PreToClip' );
+wfLoadExtension( 'ReplaceText' );
 wfLoadExtension( 'RevisionSlider' );
+wfLoadExtension( 'Scribunto' );
+$GLOBALS[ 'wgScribuntoDefaultEngine' ] = 'luastandalone';
+
 wfLoadExtension( 'SectionAnchors' );
 wfLoadExtension( 'SemanticCompoundQueries' );
 wfLoadExtension( 'SemanticExtraSpecialProperties' );
@@ -151,7 +192,9 @@ wfLoadExtension( 'SemanticResultFormats' );
 wfLoadExtension( 'SemanticScribunto' );
 wfLoadExtension( 'SimpleTasks' );
 wfLoadExtension( 'SubPageList' );
+#wfLoadExtension( 'TabberNeue' );
 wfLoadExtension( 'TableTools' );
+wfLoadExtension( 'TextExtracts' );
 wfLoadExtension( 'UnifiedTaskOverview' );
 wfLoadExtension( 'VueJsPlus' );
 wfLoadExtension( 'WebAuthn' );
