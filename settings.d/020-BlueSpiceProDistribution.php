@@ -73,7 +73,29 @@ wfLoadExtension( 'Forms' );
 wfLoadExtension( 'HeaderFooter' );
 wfLoadExtension( 'HeaderTabs' );
 wfLoadExtension( 'ImportOfficeFiles' );
+
+wfLoadExtension( 'InlineComments' );
+$GLOBALS['bsgPermissionConfig']['inlinecomments-view'] = [
+	'type' => 'global',
+	'roles' => [ 'reader' ]
+];
+$GLOBALS['bsgPermissionConfig']['inlinecomments-add'] = [
+	'type' => 'global',
+	'roles' => [ 'editor' ]
+];
+$GLOBALS['bsgPermissionConfig']['inlinecomments-edit-all'] = [
+	'type' => 'global',
+	'roles' => [ 'admin' ]
+];
+
 wfLoadExtension( 'Lingo' );
+
+wfLoadExtension( 'LinkTitles' );
+$GLOBALS['bsgPermissionConfig']['linktitles-batch'] = [
+	'type' => 'global',
+	'roles' => [ 'admin' ]
+];
+
 wfLoadExtension( 'Maps' );
 wfLoadExtension( 'MultimediaViewer' );
 
@@ -203,6 +225,13 @@ $GLOBALS[ 'wgFooterIcons' ][ 'poweredby' ] += [
 wfLoadExtension( 'SemanticResultFormats' );
 wfLoadExtension( 'SemanticScribunto' );
 wfLoadExtension( 'SimpleTasks' );
+
+wfLoadExtension( 'SimpleBlogPage' );
+$GLOBALS['bsgPermissionConfig']['createblogpost'] = [
+	'type' => 'global',
+	'roles' => [ 'editor' ]
+];
+
 wfLoadExtension( 'SubPageList' );
 #wfLoadExtension( 'TabberNeue' );
 wfLoadExtension( 'TableTools' );
