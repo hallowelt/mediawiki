@@ -91,3 +91,5 @@ $GLOBALS['wgHooks']['BeforePageDisplay'][] = function() {
 	}, array_keys( $policies ), $policies ) );
 	$response->header( "Permissions-Policy: $policiesText" );
 };
+
+$GLOBALS['wgSVGNativeRendering'] = true;
