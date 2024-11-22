@@ -151,6 +151,7 @@ wfLoadExtension( 'Lingo' );
 wfLoadExtension( 'OOJSPlus' );
 wfLoadExtension( 'PageHeader' );
 wfLoadExtension( 'StandardDialogs' );
+wfLoadExtension( 'TemplateData' );
 wfLoadExtension( 'TemplateStyles' );
 wfLoadExtension( 'TwoColConflict' );
 

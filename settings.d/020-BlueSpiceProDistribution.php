@@ -101,6 +101,7 @@ wfLoadExtension( 'MultimediaViewer' );
 
 #wfLoadExtension( 'NSFileRepo' );
 #$GLOBALS[ 'egNSFileRepoNamespaceThreshold' ] = 3000;
+#$GLOBALS[ 'wgUploadPath' ] = $GLOBALS[ 'wgScriptPath' ] . '/nsfr_img_auth.php';
 
 wfLoadExtension( 'NumberHeadings' );
 
