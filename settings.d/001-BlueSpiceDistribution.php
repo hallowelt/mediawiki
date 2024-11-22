@@ -146,3 +146,30 @@ $GLOBALS['wgWhitelistRead'][] = 'File:flexiskin-images-favicon.png';
 $GLOBALS['wgWhitelistRead'][] = 'flexiskin-images-logo.png';
 $GLOBALS['wgWhitelistRead'][] = 'File:flexiskin-images-logo.png';
 
+wfLoadExtension( 'CodeEditor' );
+wfLoadExtension( 'Lingo' );
+wfLoadExtension( 'OOJSPlus' );
+wfLoadExtension( 'PageHeader' );
+wfLoadExtension( 'StandardDialogs' );
+wfLoadExtension( 'TemplateStyles' );
+wfLoadExtension( 'TwoColConflict' );
+
+wfLoadExtension( 'VisualEditor' );
+$GLOBALS['wgDefaultUserOptions']['visualeditor-enable'] = 1;
+$GLOBALS['wgDefaultUserOptions']['visualeditor-enable-experimental'] = 1;
+$GLOBALS['wgDefaultUserOptions']['visualeditor-newwikitext'] = 1;
+$GLOBALS['wgDefaultUserOptions']['visualeditor-editor'] = "visualeditor";
+$GLOBALS['wgHiddenPrefs'][] = 'visualeditor-enable';
+$GLOBALS['wgHiddenPrefs'][] = 'visualeditor-newwikitext';
+$GLOBALS['wgVisualEditorAvailableNamespaces'] = [
+	NS_MAIN => true,
+	NS_USER => true,
+	"_merge_strategy" => "array_plus"
+];
+$GLOBALS['wgVisualEditorEnableWikitext'] = true;
+$GLOBALS['wgVisualEditorShowBetaWelcome'] = false;
+$GLOBALS['wgVisualEditorAllowExternalLinkPaste'] = true;
+
+wfLoadExtension( 'WikiEditor' );
+$GLOBALS['wgHiddenPrefs'][] = 'usebetatoolbar';
+$GLOBALS['wgDefaultUserOptions']['usebetatoolbar'] = 1;
