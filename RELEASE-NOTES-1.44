@@ -105,6 +105,7 @@ MediaWiki supports over 350 languages. Many localisations are updated regularly.
 Below only new and removed languages are listed, as well as changes to languages
 because of Phabricator reports.
 
+* (T379137) Added language support for Hunde (hke).
 * …
 
 === Breaking changes in 1.44 ===
@@ -116,6 +117,12 @@ because of Phabricator reports.
 * The MediaWiki\Message\Converter class, deprecated in 1.43, has been removed.
   Use MessageValue::newFromSpecifier or Message::newFromSpecifier
   instead (T358779).
+* Return type declarations were added to methods in `includes/libs/Message`,
+  specifically in the `MessageSpecifier`, `ITextFormatter`, and
+  `IMessageFormatterFactory` interfaces. This update enhances type safety but
+  may require updates in any classes implementing these interfaces, including
+  external extensions. Extensions such as Translate, Flow, and ReadingLists
+  require compatibility patches to support these changes.
 * The ParsoidOutputAccess class marked @unstable from creation and
   deprecated with all of its methods in 1.43, has been removed.
 * IDatabase::onAtomicSectionCancel() has been removed without deprecation

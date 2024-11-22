@@ -126,6 +126,8 @@ For notes on 1.42.x and older releases, see HISTORY.
   and username are provided."
 * (T4085) Added new magic word {{USERLANGUAGE}} which returns the language code
   of the interface set by the user.
+* (T263513) Special:NamespaceInfo is a new special page that displays a list
+  of namespaces available on the wiki, their descriptions and configuration.
 * …
 
 === New features for sysadmins in 1.43 ===
@@ -303,7 +305,6 @@ because of Phabricator reports.
 * (T356144) Deprecated the Kanuri language (kr) and replaced it
   with Central Kanuri (knc). The language code kr is kept for
   backwards compatibility and falls back to knc.
-* (T379137) Added language support for Hunde (hke).
 * …
 
 === Breaking changes in 1.43 ===
