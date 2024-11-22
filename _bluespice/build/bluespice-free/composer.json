@@ -4,7 +4,6 @@
 		"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"bluespice/foundation": "dev-REL1_43",
 		"bluespice/about": "dev-REL1_43",
 		"bluespice/articleinfo": "dev-REL1_43",
 		"bluespice/authors": "dev-REL1_43",
@@ -14,10 +13,12 @@
 		"bluespice/contextmenu": "dev-REL1_43",
 		"bluespice/countthings": "dev-REL1_43",
 		"bluespice/custommenu": "dev-REL1_43",
+		"bluespice/discovery-skin": "dev-REL1_43",
 		"bluespice/distributionconnector": "dev-REL1_43",
 		"bluespice/emoticons": "dev-REL1_43",
 		"bluespice/extendedsearch": "dev-REL1_43",
 		"bluespice/extendedstatistics": "dev-REL1_43",
+		"bluespice/foundation": "dev-REL1_43",
 		"bluespice/groupmanager": "dev-REL1_43",
 		"bluespice/hidetitle": "dev-REL1_43",
 		"bluespice/insertcategory": "dev-REL1_43",
@@ -28,18 +29,16 @@
 		"bluespice/namespacemanager": "dev-REL1_43",
 		"bluespice/pageaccess": "dev-REL1_43",
 		"bluespice/pageassignments": "dev-REL1_43",
-		"bluespice/pagetemplates": "dev-REL1_43",
 		"bluespice/pagesvisited": "dev-REL1_43",
+		"bluespice/pagetemplates": "dev-REL1_43",
 		"bluespice/permissionmanager": "dev-REL1_43",
+		"bluespice/qrcode": "dev-REL1_43",
 		"bluespice/readers": "dev-REL1_43",
 		"bluespice/rssfeeder": "dev-REL1_43",
 		"bluespice/saferedit": "dev-REL1_43",
 		"bluespice/smartlist": "dev-REL1_43",
 		"bluespice/tagcloud": "dev-REL1_43",
-		"bluespice/qrcode": "dev-REL1_43",
 		"bluespice/uemodulepdf": "dev-REL1_43",
-		"bluespice/uemodulehtml": "dev-REL1_43",
-		"bluespice/uemoduledocx": "dev-REL1_43",
 		"bluespice/universalexport": "dev-REL1_43",
 		"bluespice/usagetracker": "dev-REL1_43",
 		"bluespice/usermanager": "dev-REL1_43",
@@ -47,8 +46,6 @@
 		"bluespice/watchlist": "dev-REL1_43",
 		"bluespice/whoisonline": "dev-REL1_43",
 		"mediawiki/extjs-base": "dev-REL1_43",
-		"mediawiki/oojsplus": "dev-REL1_43",
-
-		"bluespice/discovery-skin": "dev-REL1_43"
+		"mediawiki/oojsplus": "dev-REL1_43"
 	}
 }
