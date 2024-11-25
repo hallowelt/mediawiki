@@ -28,7 +28,7 @@
 	} ],
 	"require": {
 		"mediawiki/adhoc-translation": "dev-REL1_43",
-		"mediawiki/ai-editing-assistant": "dev-REL1_39",
+		"mediawiki/ai-editing-assistant": "dev-REL1_43",
 		"mediawiki/atmentions": "dev-REL1_43",
 		"mediawiki/auth-remoteuser": "dev-REL1_43",
 		"mediawiki/checklists": "dev-REL1_43",
