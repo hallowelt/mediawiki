@@ -86,6 +86,7 @@
 		"mediawiki/vuejs-plus": "dev-REL1_43",
 		"mediawiki/web-authn": "dev-REL1_43",
 		"mediawiki/widgets": "dev-REL1_43",
-		"mediawiki/workflows": "dev-REL1_43"
+		"mediawiki/workflows": "dev-REL1_43",
+		"mediawiki/user-profile": "dev-REL1_43"
 	}
 }

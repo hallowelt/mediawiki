@@ -21,5 +21,4 @@ wfLoadExtension( 'BlueSpiceUEModulePDFRecursive' );
 wfLoadExtension( 'BlueSpiceUEModulePDFSubpages' );
 wfLoadExtension( 'BlueSpiceUEModuleTable2Excel' );
 wfLoadExtension( 'BlueSpiceUserInfo' );
-wfLoadExtension( 'BlueSpiceUserProfile' );
 wfLoadExtension( 'BlueSpiceWikiExplorer' );

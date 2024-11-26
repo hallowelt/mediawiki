@@ -243,3 +243,4 @@ wfLoadExtension( 'WebAuthn' );
 wfLoadExtension( 'Widgets' );
 $GLOBALS[ 'wgWidgetsCompileDir' ] = $GLOBALS[ 'wgCacheDirectory' ];
 wfLoadExtension( 'Workflows');
+wfLoadExtension( 'UserProfile' );
