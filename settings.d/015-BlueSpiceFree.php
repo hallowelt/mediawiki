@@ -1,5 +1,6 @@
 <?php
 
+wfLoadExtension( 'BlueSpiceFoundation' );
 wfLoadExtension( 'BlueSpiceAbout' );
 wfLoadExtension( 'BlueSpiceArticleInfo' );
 wfLoadExtension( 'BlueSpiceAuthors' );
@@ -11,7 +12,6 @@ wfLoadExtension( 'BlueSpiceCountThings' );
 wfLoadExtension( 'BlueSpiceCustomMenu' );
 wfLoadExtension( 'BlueSpiceEmoticons' );
 wfLoadExtension( 'BlueSpiceExtendedStatistics' );
-wfLoadExtension( 'BlueSpiceFoundation' );
 wfLoadExtension( 'BlueSpiceGroupManager' );
 wfLoadExtension( 'BlueSpiceHideTitle' );
 wfLoadExtension( 'BlueSpiceInsertCategory' );
