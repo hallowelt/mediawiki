@@ -6,7 +6,7 @@ wfLoadExtension( 'BlueSpiceCategoryManager' );
 wfLoadExtension( 'BlueSpiceExpiry' );
 wfLoadExtension( 'BlueSpiceExportTables' );
 wfLoadExtension( 'BlueSpiceFilterableTables' );
-#wfLoadExtension( 'BlueSpiceNSFileRepoConnector' );
+wfLoadExtension( 'BlueSpiceNSFileRepoConnector' );
 wfLoadExtension( 'BlueSpicePageFormsConnector' );
 wfLoadExtension( 'BlueSpicePlayer' );
 wfLoadExtension( 'BlueSpicePrivacy' );
