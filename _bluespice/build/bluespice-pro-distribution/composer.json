@@ -33,7 +33,7 @@
 		"mediawiki/auth-remoteuser": "dev-REL1_43",
 		"mediawiki/checklists": "dev-REL1_43",
 		"mediawiki/code-mirror": "dev-REL1_43",
-		"mediawiki/cognitiveprocessdesigner": "dev-REL1_43",
+		"mediawiki/cognitiveprocessdesigner": "dev-master",
 		"mediawiki/collabpads": "dev-REL1_43",
 		"mediawiki/comment-streams": "8.0.*",
 		"mediawiki/container-filter": "dev-REL1_43",
