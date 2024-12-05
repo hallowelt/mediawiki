@@ -82,6 +82,7 @@ For notes on 1.43.x and older releases, see HISTORY.
   from v1.14.0 to v1.17.0.
 * Updated wikimedia/bcp-47-code from 2.0.0 to 2.0.1.
 * Updated wikimedia/timestamp from 4.1.1 to 4.2.0.
+* Updated OOUI from v0.51.2 to v0.51.4.
 * …
 
 ===== Changed development-only external libraries =====
@@ -135,6 +136,9 @@ because of Phabricator reports.
   was marked as an internal constant.
 * The ParsoidOutputAccess class marked @unstable from creation and
   deprecated with all of its methods in 1.43, has been removed.
+* The HtmlToContentTransform::setMetrics() and
+  HtmlInputTransformHelper::setMetrics() methods now require a StatsFactory
+  argument.  Passing a StatsdDataFactoryInterface was deprecated in 1.43.
 * IDatabase::onAtomicSectionCancel() has been removed without deprecation
   as it's completely unused.
 * The method ParserOptions::setupFakeRevision has been marked internal. It
