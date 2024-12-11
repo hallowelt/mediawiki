@@ -15,7 +15,6 @@ wfLoadExtension( 'BlueSpiceExtendedStatistics' );
 wfLoadExtension( 'BlueSpiceGroupManager' );
 wfLoadExtension( 'BlueSpiceHideTitle' );
 wfLoadExtension( 'BlueSpiceInsertCategory' );
-wfLoadExtension( 'BlueSpiceInsertFile' );
 wfLoadExtension( 'BlueSpiceInsertLink' );
 wfLoadExtension( 'BlueSpiceInstanceStatus' );
 wfLoadExtension( 'BlueSpiceInterWikiLinks' );
