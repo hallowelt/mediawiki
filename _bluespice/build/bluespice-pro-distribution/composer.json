@@ -74,7 +74,7 @@
 		"mediawiki/section-anchors": "dev-REL1_43",
 		"mediawiki/semantic-compound-queries": "2.2.*",
 		"mediawiki/semantic-extra-special-properties": "dev-master",
-		"mediawiki/semantic-media-wiki": "4.2.*",
+		"mediawiki/semantic-media-wiki": "dev-master as 4.2.0",
 		"mediawiki/semantic-result-formats": "dev-master",
 		"mediawiki/semantic-scribunto": "dev-master",
 		"mediawiki/simple-blog-page": "dev-master",
