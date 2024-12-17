@@ -77,7 +77,7 @@
 		"mediawiki/semantic-media-wiki": "dev-master",
 		"mediawiki/semantic-result-formats": "dev-master",
 		"mediawiki/semantic-scribunto": "dev-master",
-		"mediawiki/simple-blog-page": "3.0.*",
+		"mediawiki/simple-blog-page": "dev-master",
 		"mediawiki/simple-s-a-m-lphp": "7.0.*",
 		"mediawiki/simpletasks": "dev-REL1_43",
 		"mediawiki/sub-page-list": "dev-master",
