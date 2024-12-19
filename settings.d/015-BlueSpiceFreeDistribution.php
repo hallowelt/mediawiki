@@ -30,7 +30,7 @@ wfLoadExtension( 'MenuEditor' );
 $GLOBALS['wgHooks']['SetupAfterCache'][] = function() {
 	$GLOBALS[ 'wgMenuEditorMediawikiSidebarAllowedKeywords' ] = [];
 };
-$GLOBALS['wgMenuEditorToolbarOffset'] = 153;
+$GLOBALS['wgMenuEditorToolbarOffset'] = 123;
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
