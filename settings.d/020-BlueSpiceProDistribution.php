@@ -60,7 +60,7 @@ wfLoadExtension( 'DrawioEditor' );
 $GLOBALS[ 'wgDrawioEditorImageType' ] = 'png';
 
 wfLoadExtension( 'EnhancedStandardUIs' );
-$GLOBALS[ 'wgEnhancedUIsVersionHistoryToolbarOffset' ] = 153;
+$GLOBALS[ 'wgEnhancedUIsVersionHistoryToolbarOffset' ] = 123;
 $GLOBALS[ 'wgEnhancedUIsAllPagesPaginatorOffset' ] = 64;
 $GLOBALS[ 'wgEnhancedUIsAllPagesOverride' ] = true;
 $GLOBALS[ 'wgEnhancedUIsFilelistOverride' ] = true;
