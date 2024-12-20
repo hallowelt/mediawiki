@@ -154,6 +154,7 @@ wfLoadExtension( 'StandardDialogs' );
 wfLoadExtension( 'TemplateData' );
 wfLoadExtension( 'TemplateStyles' );
 wfLoadExtension( 'TwoColConflict' );
+wfLoadExtension( 'Variables' );
 
 wfLoadExtension( 'VisualEditor' );
 $GLOBALS['wgDefaultUserOptions']['visualeditor-enable'] = 1;
