@@ -48,7 +48,6 @@ $GLOBALS['bsgTagCloudTypeCategoryExclude'] = [
 	'Pages using TabberTransclude parser tag'
 ];
 
-wfLoadExtension( 'BlueSpiceUniversalExport' );
 wfLoadExtension( 'BlueSpiceUsageTracker' );
 wfLoadExtension( 'BlueSpiceUserManager' );
 wfLoadExtension( 'BlueSpiceUserSidebar' );
