@@ -207,10 +207,13 @@ if( defined( 'BSDATADIR' ) ) {
 	$GLOBALS[ 'smwgConfigFileDir' ] = BSDATADIR;
 }
 
-if( defined( 'FARMER_CALLED_INSTANCE' ) && FARMER_CALLED_INSTANCE !== '' ) {
-	$GLOBALS[ 'smwgConfigFileDir' ] =
-		$GLOBALS[ 'wgSimpleFarmerConfig' ]->get( 'instanceDirectory' ) .
-		'/' . FARMER_CALLED_INSTANCE . "/extensions/BlueSpiceFoundation/data";
+if(
+	defined( 'FARMER_CALLED_INSTANCE' ) &&
+	FARMER_CALLED_INSTANCE instanceof \BlueSpice\WikiFarm\InstanceEntity &&
+	!( FARMER_CALLED_INSTANCE instanceof \BlueSpice\WikiFarm\RootInstanceEntity )
+) {
+	$GLOBALS[ 'smwgConfigFileDir' ] = FARMER_CALLED_INSTANCE->getVault( $GLOBALS['wgWikiFarmConfigInternal'] ) .
+		"/extensions/BlueSpiceFoundation/data";
 }
 
 $GLOBALS[ 'wgFooterIcons' ][ 'poweredby' ] += [
