@@ -66,6 +66,30 @@ interface SpanInterface {
 	public function setSpanKind( int $spanKind ): SpanInterface;
 
 	/**
+	 * Default value. Indicates that the span status is not set.
+	 * This is to ensure that successes are recorded explicitly.
+	 */
+	public const SPAN_STATUS_UNSET = 0;
+
+	/**
+	 * Indicates that the operation represented by this span was successful.
+	 */
+	public const SPAN_STATUS_OK = 1;
+
+	/**
+	 * Indicates that the operation represented by this span failed.
+	 */
+	public const SPAN_STATUS_ERROR = 2;
+
+	/**
+	 * Set the status of this span.  By default this is SPAN_STATUS_UNSET.
+	 *
+	 * @param int $spanStatus One of the SpanInterface::SPAN_STATUS_** constants
+	 * @return SpanInterface fluent interface
+	 */
+	public function setSpanStatus( int $spanStatus ): SpanInterface;
+
+	/**
 	 * Start this span, optionally specifying an override for its start time.
 	 * @param int|null $epochNanos The start time to use, or `null` to use the current time.
 	 * @return SpanInterface
@@ -85,13 +109,13 @@ interface SpanInterface {
 	 * This will cause any spans started without specifying an explicit parent to automatically
 	 * become children of this span as long as it remains active.
 	 *
-	 * @return void
+	 * @return SpanInterface fluent interface
 	 */
-	public function activate(): void;
+	public function activate(): SpanInterface;
 
 	/**
 	 * Deactivate this span.
-	 * @return void
+	 * @return SpanInterface fluent interface
 	 */
-	public function deactivate(): void;
+	public function deactivate(): SpanInterface;
 }
