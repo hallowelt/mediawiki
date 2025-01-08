@@ -93,3 +93,14 @@ $GLOBALS['wgHooks']['BeforePageDisplay'][] = function() {
 };
 
 $GLOBALS['wgSVGNativeRendering'] = true;
+
+// Hardcoded permissions, not part of role system
+// Required for external authentication providers like LDAP, SAML, OIDC
+$GLOBALS['wgGroupPermissions']['*']['autocreateaccount'] = true;
+// Required for "reset password" functionality
+$GLOBALS['wgGroupPermissions']['*']['editmyprivateinfo'] = true;
+
+// Introduce new semiprotected restriction level - editor is a permission in this case
+$GLOBALS['wgSemiprotectedRestrictionLevels'] = [ 'editor' ];
+$GLOBALS['wgRestrictionLevels'] = [ '', 'editor', 'sysop' ];
+
