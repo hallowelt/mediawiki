@@ -165,7 +165,8 @@ class PerformanceBudgetTest extends MediaWikiIntegrationTestCase {
 					'ext.navigationTiming',
 					// [[phab:T378772]]
 					'ext.eventLogging',
-					'ext.wikimediaEvents',
+					// WikimediaEvents
+					'ext.wikimediaEvents', 'ext.wikimediaEvents.wikibase',
 					// [[phab:T378773]]
 					'ext.visualEditor.desktopArticleTarget.noscript', 'ext.visualEditor.desktopArticleTarget.init',
 					'ext.visualEditor.targetLoader',
@@ -173,6 +174,8 @@ class PerformanceBudgetTest extends MediaWikiIntegrationTestCase {
 					'ext.checkUser.clientHints',
 					// Wikibase
 					'wikibase.client.init', 'wikibase.client.data-bridge.externalModifiers', 'wikibase.vector.searchClient', 'wikibase.client.data-bridge.init',
+					// WikimediaBadges
+					'ext.wikimediaBadges',
 					// </exclusions>
 				] )
 			) {
