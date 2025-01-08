@@ -23,10 +23,8 @@
 		"bluespice/signhere": "dev-REL1_43",
 		"bluespice/smwconnector": "dev-REL1_43",
 		"bluespice/translationtransfer": "dev-master",
-		"bluespice/uemodulebookpdf": "dev-REL1_43",
-		"bluespice/uemodulepdfrecursive": "dev-REL1_43",
-		"bluespice/uemodulepdfsubpages": "dev-REL1_43",
 		"bluespice/uemoduletable2excel": "dev-REL1_43",
+		"bluespice/universalexport": "dev-REL1_43",
 		"bluespice/userinfo": "dev-REL1_43",
 		"bluespice/wikiexplorer": "dev-REL1_43"
 	}
