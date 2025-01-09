@@ -127,6 +127,30 @@ class SelectQueryBuilderTest extends MediaWikiUnitTestCase {
 		$this->assertSQL( 'SELECT a,b FROM b a FORCE INDEX (ia),c FORCE INDEX (ic)' );
 	}
 
+	public function testFieldsRepeating() {
+		$this->sqb
+			->table( 't' )
+			->field( 'f' )
+			->field( 'f' );
+		$this->assertSQL( 'SELECT f FROM t' );
+	}
+
+	public function testFieldsRepeatingAlias() {
+		$this->sqb
+			->table( 't' )
+			->field( 'f', 'f' )
+			->field( 'f', 'f' );
+		$this->assertSQL( 'SELECT f FROM t' );
+	}
+
+	public function testFieldsConflictingAlias() {
+		$this->expectException( LogicException::class );
+		$this->sqb
+			->table( 't' )
+			->field( 'x', 'f' )
+			->field( 'y', 'f' );
+	}
+
 	public function testRawTables() {
 		$this->sqb
 			->select( 'f' )
