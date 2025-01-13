@@ -137,6 +137,7 @@ $GLOBALS['wgReservedUsernames'][] = 'BlueSpice default';
 $GLOBALS['wgReservedUsernames'][] = 'Bluespice default';
 
 $GLOBALS['wgCapitalLinkOverrides'][ NS_FILE ] = true;
+if( !is_array( $GLOBALS['wgWhitelistRead'] ) ) { $GLOBALS['wgWhitelistRead'] = []; }
 $GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-logo.png';
 $GLOBALS['wgWhitelistRead'][] = 'File:Flexiskin-images-logo.png';
 $GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-favicon.png';
