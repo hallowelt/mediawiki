@@ -22,6 +22,7 @@
 #$GLOBALS['bsgDebugLogGroups']['captcha'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['ContentHandler'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['ContentProvisioner'] = "$IP/cache/debug.log";
+#$GLOBALS['bsgDebugLogGroups']['ContentTransfer'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['cookie'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['DBConnection'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['DBPerformance'] = "$IP/cache/debug.log";
