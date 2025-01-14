@@ -113,7 +113,7 @@
 		this.namespace = namespace;
 	};
 
-	mw.widgets.TitleWidget.prototype.getInterwikiPrefixesPromise = function ( ajaxOptions ) {
+	mw.widgets.TitleWidget.prototype.getInterwikiPrefixesPromise = function () {
 		if ( !this.showInterwikis ) {
 			return $.Deferred().resolve( [] ).promise();
 		}
@@ -132,7 +132,11 @@
 				smaxage: 60 * 60 * 24,
 				// Workaround T97096 by setting uselang=content
 				uselang: 'content'
-			}, ajaxOptions ).then( ( data ) => data.query.interwikimap.map( ( iw ) => iw.prefix ) );
+			} ).then( ( data ) => data.query.interwikimap.map( ( iw ) => iw.prefix ) );
+			// Do not cache errors
+			cache[ key ].catch( () => {
+				delete cache[ key ];
+			} );
 		}
 		return cache[ key ];
 	};
@@ -212,7 +216,7 @@
 			return $.Deferred().resolve( {} ).promise( abortable );
 		}
 
-		return this.getInterwikiPrefixesPromise( ajaxOptions ).then( ( interwikiPrefixes ) => {
+		return this.getInterwikiPrefixesPromise().then( ( interwikiPrefixes ) => {
 			// Optimization: check we have any prefixes.
 			if ( interwikiPrefixes.length ) {
 				const interwiki = query.slice( 0, Math.max( 0, query.indexOf( ':' ) ) );
