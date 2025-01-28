@@ -12,7 +12,6 @@ wfLoadExtension( 'BlueSpiceCountThings' );
 wfLoadExtension( 'BlueSpiceCustomMenu' );
 wfLoadExtension( 'BlueSpiceEmoticons' );
 wfLoadExtension( 'BlueSpiceExtendedStatistics' );
-wfLoadExtension( 'BlueSpiceGroupManager' );
 wfLoadExtension( 'BlueSpiceHideTitle' );
 wfLoadExtension( 'BlueSpiceInsertCategory' );
 wfLoadExtension( 'BlueSpiceInsertLink' );
