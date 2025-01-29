@@ -187,6 +187,7 @@
 #$GLOBALS['bsgDebugLogGroups']['smw'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['SpamBlacklist'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['squid'] = "$IP/cache/debug.log";
+#$GLOBALS['bsgDebugLogGroups']['stabilization'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['StashEdit'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['textextracts'] = "$IP/cache/debug.log";
 #$GLOBALS['bsgDebugLogGroups']['throttler'] = "$IP/cache/debug.log";
