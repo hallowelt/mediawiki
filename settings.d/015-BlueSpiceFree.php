@@ -11,6 +11,11 @@ wfLoadExtension( 'BlueSpiceContextMenu' );
 wfLoadExtension( 'BlueSpiceCountThings' );
 wfLoadExtension( 'BlueSpiceCustomMenu' );
 wfLoadExtension( 'BlueSpiceEmoticons' );
+
+wfLoadExtension( 'BlueSpiceExtendedSearch' );
+// Not respected by BlueSpiceExtendedSearch
+$GLOBALS['wgHiddenPrefs'][] = 'searchlimit';
+
 wfLoadExtension( 'BlueSpiceExtendedStatistics' );
 wfLoadExtension( 'BlueSpiceHideTitle' );
 wfLoadExtension( 'BlueSpiceInsertCategory' );
