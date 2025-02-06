@@ -151,6 +151,8 @@ wfLoadExtension( 'CodeEditor' );
 wfLoadExtension( 'Lingo' );
 wfLoadExtension( 'OOJSPlus' );
 wfLoadExtension( 'PageHeader' );
+wfLoadExtension( 'PDFCreator' );
+wfLoadExtension( 'PdfHandler' );
 wfLoadExtension( 'StandardDialogs' );
 wfLoadExtension( 'TemplateData' );
 wfLoadExtension( 'TemplateStyles' );
