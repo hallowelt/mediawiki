@@ -17,5 +17,4 @@ wfLoadExtension( 'BlueSpiceReminder' );
 wfLoadExtension( 'BlueSpiceSignHere' );
 wfLoadExtension( 'BlueSpiceSMWConnector' );
 wfLoadExtension( 'BlueSpiceUEModuleTable2Excel' );
-wfLoadExtension( 'BlueSpiceUniversalExport' );
 wfLoadExtension( 'BlueSpiceWikiExplorer' );
