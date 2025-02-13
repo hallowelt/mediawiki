@@ -123,19 +123,6 @@ unset( $bsImagesPath );
 unset( $assetsDir );
 unset( $blueSpiceLogoPath );
 
-$GLOBALS['wgReservedUsernames'][] = 'BSMaintenance';
-$GLOBALS['wgReservedUsernames'][] = 'Bsmaintenance';
-$GLOBALS['wgReservedUsernames'][] = 'ContentStabilizationBot';
-$GLOBALS['wgReservedUsernames'][] = 'Contentstabilizationbot';
-$GLOBALS['wgReservedUsernames'][] = 'DynamicPageList3 extension';
-$GLOBALS['wgReservedUsernames'][] = 'Dynamicpagelist3 extension';
-$GLOBALS['wgReservedUsernames'][] = 'Maintenance script';
-$GLOBALS['wgReservedUsernames'][] = 'Mediawiki default';
-$GLOBALS['wgReservedUsernames'][] = 'MediaWiki default';
-$GLOBALS['wgReservedUsernames'][] = 'Spam cleanup script';
-$GLOBALS['wgReservedUsernames'][] = 'BlueSpice default';
-$GLOBALS['wgReservedUsernames'][] = 'Bluespice default';
-
 $GLOBALS['wgCapitalLinkOverrides'][ NS_FILE ] = true;
 if( !is_array( $GLOBALS['wgWhitelistRead'] ) ) { $GLOBALS['wgWhitelistRead'] = []; }
 $GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-logo.png';

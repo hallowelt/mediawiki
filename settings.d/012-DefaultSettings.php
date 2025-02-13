@@ -59,11 +59,26 @@ $GLOBALS['wgExtensionFunctions'][] = function() {
 };
 
 // Exclude these system users from user store
-$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'BSMaintenance';
-$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'DynamicPageList3 extension';
-$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'Maintenance script';
-$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'BlueSpice default';
-$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'ContentTransferBot';
+$GLOBALS['wgReservedUsernames'][] = 'BlueSpice default';
+$GLOBALS['wgReservedUsernames'][] = 'Bluespice default';
+$GLOBALS['wgReservedUsernames'][] = 'BSMaintenance';
+$GLOBALS['wgReservedUsernames'][] = 'Bsmaintenance';
+$GLOBALS['wgReservedUsernames'][] = 'ContentStabilizationBot';
+$GLOBALS['wgReservedUsernames'][] = 'Contentstabilizationbot';
+$GLOBALS['wgReservedUsernames'][] = 'ContentTransferBot';
+$GLOBALS['wgReservedUsernames'][] = 'Contenttransferbot';
+$GLOBALS['wgReservedUsernames'][] = 'DynamicPageList3 extension';
+$GLOBALS['wgReservedUsernames'][] = 'Dynamicpagelist3 extension';
+$GLOBALS['wgReservedUsernames'][] = 'Maintenance script';
+$GLOBALS['wgReservedUsernames'][] = 'Mediawiki default';
+$GLOBALS['wgReservedUsernames'][] = 'MediaWiki default';
+$GLOBALS['wgReservedUsernames'][] = 'Spam cleanup script';
+
+$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'] = array_merge(
+	$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'],
+	$GLOBALS['wgReservedUsernames']
+);
+
 
 // Set default Permissions-Policy header
 $GLOBALS['bsgDefaultPermissionsPolicyHeader'] = [
