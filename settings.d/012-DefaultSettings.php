@@ -63,6 +63,7 @@ $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'BSMaintenance';
 $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'DynamicPageList3 extension';
 $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'Maintenance script';
 $GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'BlueSpice default';
+$GLOBALS['mwsgCommonWebAPIsComponentUserStoreExcludeUsers'][] = 'ContentTransferBot';
 
 // Set default Permissions-Policy header
 $GLOBALS['bsgDefaultPermissionsPolicyHeader'] = [
