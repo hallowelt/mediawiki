@@ -1,11 +1,11 @@
 <?php
 
 if ( !wfIsWindows() ) {
-	$wgLocalTZoffset = date("Z") / 60;
+	$GLOBALS['wgLocalTZoffset'] = date("Z") / 60;
 }
-$wgLocaltimezone = 'Europe/Berlin';
-$wgBlockDisablesLogin = true;
-$wgEnableUploads = true;
+$GLOBALS['wgLocaltimezone'] = 'Europe/Berlin';
+$GLOBALS['wgBlockDisablesLogin'] = true;
+$GLOBALS['wgEnableUploads'] = true;
 
 //Default MediaWiki settings needed for BlueSpice
 $GLOBALS['wgNamespacesWithSubpages'][NS_MAIN] = true;
