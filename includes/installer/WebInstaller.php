@@ -677,6 +677,14 @@ class WebInstaller extends Installer {
 			"</div></div>\n";
 	}
 
+	public function showSuccess( $msg, ...$params ) {
+		$html = '<div class="cdx-message cdx-message--block cdx-message--success">' .
+			'<span class="cdx-message__icon"></span><div class="cdx-message__content">' .
+			$this->parse( wfMessage( $msg, $params )->useDatabase( false )->plain() ) .
+			"</div></div>\n";
+		$this->output->addHTML( $html );
+	}
+
 	public function showMessage( $msg, ...$params ) {
 		$html = '<div class="cdx-message cdx-message--block cdx-message--notice">' .
 			'<span class="cdx-message__icon"></span><div class="cdx-message__content">' .
@@ -1116,21 +1124,6 @@ class WebInstaller extends Installer {
 		return Html::rawElement( 'li', [],
 			Html::element( 'a', [ 'href' => $url ], $linkText )
 		);
-	}
-
-	/**
-	 * Helper for "Download LocalSettings" link.
-	 *
-	 * @internal For use in WebInstallerComplete class
-	 * @return string Html for download link
-	 */
-	public function makeDownloadLinkHtml() {
-		$anchor = Html::rawElement( 'a',
-			[ 'href' => $this->getUrl( [ 'localsettings' => 1 ] ) ],
-			wfMessage( 'config-download-localsettings' )->parse()
-		);
-
-		return Html::rawElement( 'div', [ 'class' => 'config-download-link' ], $anchor );
 	}
 
 	/**
