@@ -54,15 +54,11 @@ use Wikimedia\Rdbms\IExpression;
  */
 class NewPagesPager extends ReverseChronologicalPager {
 
-	/**
-	 * @var FormOptions
-	 */
-	protected $opts;
-
+	protected FormOptions $opts;
 	protected MapCacheLRU $tagsCache;
 
 	/** @var string[] */
-	private $formattedComments = [];
+	private array $formattedComments = [];
 	/** @var bool Whether to group items by date by default this is disabled, but eventually the intention
 	 * should be to default to true once all pages have been transitioned to support date grouping.
 	 */
@@ -77,19 +73,6 @@ class NewPagesPager extends ReverseChronologicalPager {
 	private IContentHandlerFactory $contentHandlerFactory;
 	private TempUserConfig $tempUserConfig;
 
-	/**
-	 * @param IContextSource $context
-	 * @param LinkRenderer $linkRenderer
-	 * @param GroupPermissionsLookup $groupPermissionsLookup
-	 * @param HookContainer $hookContainer
-	 * @param LinkBatchFactory $linkBatchFactory
-	 * @param NamespaceInfo $namespaceInfo
-	 * @param ChangeTagsStore $changeTagsStore
-	 * @param RowCommentFormatter $rowCommentFormatter
-	 * @param IContentHandlerFactory $contentHandlerFactory
-	 * @param TempUserConfig $tempUserConfig
-	 * @param FormOptions $opts
-	 */
 	public function __construct(
 		IContextSource $context,
 		LinkRenderer $linkRenderer,

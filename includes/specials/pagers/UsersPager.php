@@ -66,48 +66,21 @@ class UsersPager extends AlphabeticPager {
 	 */
 	protected $userGroupCache;
 
-	/** @var string */
-	public $requestedGroup;
+	public ?string $requestedGroup;
+	protected bool $editsOnly;
+	protected bool $temporaryGroupsOnly;
+	protected bool $temporaryAccountsOnly;
+	protected bool $creationSort;
+	protected ?bool $including;
+	protected ?string $requestedUser;
 
-	/** @var bool */
-	protected $editsOnly;
-
-	/** @var bool */
-	protected $temporaryGroupsOnly;
-
-	/** @var bool */
-	protected $temporaryAccountsOnly;
-
-	/** @var bool */
-	protected $creationSort;
-
-	/** @var bool|null */
-	protected $including;
-
-	/** @var string */
-	protected $requestedUser;
-
-	/** @var HideUserUtils */
-	protected $hideUserUtils;
-
+	protected HideUserUtils $hideUserUtils;
 	private HookRunner $hookRunner;
 	private LinkBatchFactory $linkBatchFactory;
 	private UserGroupManager $userGroupManager;
 	private UserIdentityLookup $userIdentityLookup;
 	private TempUserConfig $tempUserConfig;
 
-	/**
-	 * @param IContextSource $context
-	 * @param HookContainer $hookContainer
-	 * @param LinkBatchFactory $linkBatchFactory
-	 * @param IConnectionProvider $dbProvider
-	 * @param UserGroupManager $userGroupManager
-	 * @param UserIdentityLookup $userIdentityLookup
-	 * @param HideUserUtils $hideUserUtils
-	 * @param string|null $par
-	 * @param bool|null $including Whether this page is being transcluded in
-	 * another page
-	 */
 	public function __construct(
 		IContextSource $context,
 		HookContainer $hookContainer,
@@ -116,8 +89,8 @@ class UsersPager extends AlphabeticPager {
 		UserGroupManager $userGroupManager,
 		UserIdentityLookup $userIdentityLookup,
 		HideUserUtils $hideUserUtils,
-		$par,
-		$including
+		?string $par,
+		?bool $including
 	) {
 		$this->setContext( $context );
 

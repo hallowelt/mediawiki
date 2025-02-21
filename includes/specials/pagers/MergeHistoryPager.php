@@ -43,40 +43,19 @@ class MergeHistoryPager extends ReverseChronologicalPager {
 	/** @inheritDoc */
 	public $mGroupByDate = true;
 
-	/** @var array */
-	public $mConds;
-
-	/** @var int */
-	private $articleID;
-
-	/** @var string */
-	private $maxTimestamp;
-
-	/** @var string */
-	private $maxRevId;
-
-	/** @var string */
-	private $mergePointTimestamp;
+	public array $mConds;
+	private int $articleID;
+	private string $maxTimestamp;
+	private int $maxRevId;
+	private string $mergePointTimestamp;
 
 	/** @var int[] */
-	public $prevId;
+	public array $prevId;
 
 	private LinkBatchFactory $linkBatchFactory;
 	private RevisionStore $revisionStore;
 	private CommentFormatter $commentFormatter;
 
-	/**
-	 * @param IContextSource $context
-	 * @param LinkRenderer $linkRenderer
-	 * @param LinkBatchFactory $linkBatchFactory
-	 * @param IConnectionProvider $dbProvider
-	 * @param RevisionStore $revisionStore
-	 * @param CommentFormatter $commentFormatter
-	 * @param array $conds
-	 * @param PageIdentity $source
-	 * @param PageIdentity $dest
-	 * @param string $mergePointTimestamp
-	 */
 	public function __construct(
 		IContextSource $context,
 		LinkRenderer $linkRenderer,
@@ -87,7 +66,7 @@ class MergeHistoryPager extends ReverseChronologicalPager {
 		$conds,
 		PageIdentity $source,
 		PageIdentity $dest,
-		$mergePointTimestamp
+		string $mergePointTimestamp
 	) {
 		$this->mConds = $conds;
 		$this->articleID = $source->getId();
@@ -105,7 +84,7 @@ class MergeHistoryPager extends ReverseChronologicalPager {
 			->where( [ 'rev_timestamp' => $maxtimestamp ] )
 			->caller( __METHOD__ )->fetchField();
 		$this->maxTimestamp = $maxtimestamp;
-		$this->maxRevId = $maxRevId;
+		$this->maxRevId = (int)$maxRevId;
 		$this->mergePointTimestamp = $mergePointTimestamp;
 
 		// Set database before parent constructor to avoid setting it there
