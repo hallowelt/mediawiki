@@ -241,9 +241,6 @@ class EditPage implements IEditObject {
 	private $incompleteForm = false;
 
 	/** @var bool */
-	private $tooBig = false;
-
-	/** @var bool */
 	private $missingComment = false;
 
 	/** @var bool */
@@ -1866,17 +1863,16 @@ class EditPage implements IEditObject {
 		$extraQueryRedirect = $request->getVal( 'wpExtraQueryRedirect' );
 
 		switch ( $statusValue ) {
+			// Status codes for which the error/warning message is generated somewhere else in this class.
+			// They should be refactored to provide their own messages and handled below (T384399).
 			case self::AS_HOOK_ERROR_EXPECTED:
-			case self::AS_CONTENT_TOO_BIG:
 			case self::AS_ARTICLE_WAS_DELETED:
 			case self::AS_CONFLICT_DETECTED:
 			case self::AS_SUMMARY_NEEDED:
 			case self::AS_TEXTBOX_EMPTY:
-			case self::AS_MAX_ARTICLE_SIZE_EXCEEDED:
 			case self::AS_END:
 			case self::AS_BLANK_ARTICLE:
 			case self::AS_SELF_REDIRECT:
-			case self::AS_BROKEN_REDIRECT:
 			case self::AS_DOUBLE_REDIRECT:
 			case self::AS_REVISION_WAS_DELETED:
 				return true;
@@ -1884,9 +1880,14 @@ class EditPage implements IEditObject {
 			case self::AS_HOOK_ERROR:
 				return false;
 
+			// Status codes that provide their own error/warning messages. Most error scenarios that don't
+			// need custom user interface (e.g. edit conflicts) should be handled here, one day (T384399).
+			case self::AS_BROKEN_REDIRECT:
+			case self::AS_CONTENT_TOO_BIG:
+			case self::AS_MAX_ARTICLE_SIZE_EXCEEDED:
 			case self::AS_PARSE_ERROR:
-			case self::AS_UNICODE_NOT_SUPPORTED:
 			case self::AS_UNABLE_TO_ACQUIRE_TEMP_ACCOUNT:
+			case self::AS_UNICODE_NOT_SUPPORTED:
 				foreach ( $status->getMessages() as $msg ) {
 					$out->addHTML( Html::errorBox(
 						$this->context->msg( $msg )->parse()
@@ -2496,6 +2497,9 @@ class EditPage implements IEditObject {
 		// Check for length errors again now that the section is merged in
 		$this->contentLength = strlen( $this->toEditText( $content ) );
 
+		// Message key of the label of the submit button - used by some constraint error messages
+		$submitButtonLabel = $this->getSubmitButtonLabel();
+
 		// BEGINNING OF MIGRATION TO EDITCONSTRAINT SYSTEM (see T157658)
 		// Create a new runner to avoid rechecking the prior constraints, use the same factory
 		$constraintRunner = new EditConstraintRunner();
@@ -2512,7 +2516,8 @@ class EditPage implements IEditObject {
 				$this->allowBrokenRedirects,
 				$content,
 				$this->getCurrentContent(),
-				$this->getTitle()
+				$this->getTitle(),
+				$submitButtonLabel
 			)
 		);
 		$constraintRunner->addConstraint(
@@ -2618,10 +2623,7 @@ class EditPage implements IEditObject {
 	 * result from the backend.
 	 */
 	private function handleFailedConstraint( IEditConstraint $failed ): void {
-		if ( $failed instanceof PageSizeConstraint ) {
-			// Error will be displayed by showEditForm()
-			$this->tooBig = true;
-		} elseif ( $failed instanceof UserBlockConstraint ) {
+		if ( $failed instanceof UserBlockConstraint ) {
 			// Auto-block user's IP if the account was "hard" blocked
 			if ( !MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 				$this->context->getUser()->spreadAnyEditBlock();
@@ -3400,13 +3402,6 @@ class EditPage implements IEditObject {
 				$out->wrapWikiMsg(
 					"<div id='mw-selfredirect'>\n$1\n</div>",
 					[ 'selfredirect', $buttonLabel ]
-				);
-			}
-
-			if ( $this->brokenRedirect ) {
-				$out->wrapWikiMsg(
-					"<div id='mw-brokenredirect'>\n$1\n</div>",
-					[ 'edit-constraint-brokenredirect', $buttonLabel ]
 				);
 			}
 
@@ -4664,22 +4659,13 @@ class EditPage implements IEditObject {
 		}
 
 		$out = $this->context->getOutput();
-		$maxArticleSize = $this->context->getConfig()->get( MainConfigNames::MaxArticleSize );
-		if ( $this->tooBig || $this->contentLength > $maxArticleSize * 1024 ) {
-			$out->addHTML( "<div id='mw-edit-longpageerror'>" . Html::errorBox(
-				$this->context->msg( 'longpageerror' )
-					->numParams( round( $this->contentLength / 1024, 3 ), $maxArticleSize )
-					->parse()
-			) . "</div>" );
-		} else {
-			$longPageHint = $this->context->msg( 'longpage-hint' );
-			if ( !$longPageHint->isDisabled() ) {
-				$msgText = trim( $longPageHint->sizeParams( $this->contentLength )
-					->params( $this->contentLength ) // Keep this unformatted for math inside message
-					->parse() );
-				if ( $msgText !== '' && $msgText !== '-' ) {
-					$out->addHTML( "<div id='mw-edit-longpage-hint'>\n$msgText\n</div>" );
-				}
+		$longPageHint = $this->context->msg( 'longpage-hint' );
+		if ( !$longPageHint->isDisabled() ) {
+			$msgText = trim( $longPageHint->sizeParams( $this->contentLength )
+				->params( $this->contentLength ) // Keep this unformatted for math inside message
+				->parse() );
+			if ( $msgText !== '' && $msgText !== '-' ) {
+				$out->addHTML( "<div id='mw-edit-longpage-hint'>\n$msgText\n</div>" );
 			}
 		}
 	}
