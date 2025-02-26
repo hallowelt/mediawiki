@@ -6,6 +6,7 @@
 /**
  * Helper classes to provide styles for classes provided by functions of Linker class or Changes class.
  * Also used for CommentFormatter class, which was previous in Linker.
+ * LogEventsList also seems to be here.
  */
 
 /** Class is added by ChangesList::flag */
@@ -35,6 +36,22 @@
 	background-color: @background-color-interactive;
 	padding: 2px 8px;
 	border-radius: @border-radius-base;
+}
+
+/** Class is added by UserLinkRenderer::userLink */
+.mw-tempuserlink-expired {
+	text-decoration: line-through;
+
+	/** Class is added by UserLinkRenderer::userLink */
+	&--tooltip {
+		// Avoid FOUC for expired temporary account link tooltips.
+		display: none;
+		position: absolute;
+	}
+}
+
+a.mw-tempuserlink-expired:hover {
+	text-decoration: line-through underline;
 }
 
 /* Comment portions of RC entries, also used by MediaWiki\CommentFormatter\CommentFormatter::formatBlock */
@@ -92,5 +109,21 @@ strong.mw-revdelundel-link {
 .mw-pager-tools {
 	a {
 		.cdx-mixin-link-base();
+	}
+}
+
+ul.mw-logevent-footer {
+	margin: 0;
+	padding-top: 0.5em;
+
+	li {
+		display: inline list-item;
+		padding: 0 0.3em;
+		list-style: disc;
+	}
+
+	li:first-child {
+		padding-left: 0;
+		list-style: none;
 	}
 }

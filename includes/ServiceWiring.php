@@ -1120,6 +1120,7 @@ return [
 			$services->getGenderCache(),
 			$services->getConnectionProvider(),
 			$services->getLinksMigration(),
+			$services->getTempUserDetailsLookup(),
 			LoggerFactory::getInstance( 'LinkBatch' )
 		);
 	},
@@ -2538,7 +2539,8 @@ return [
 		return new UserLinkRenderer(
 			$services->getTempUserConfig(),
 			$services->getSpecialPageFactory(),
-			$services->getLinkRenderer()
+			$services->getLinkRenderer(),
+			$services->getTempUserDetailsLookup()
 		);
 	},
 
