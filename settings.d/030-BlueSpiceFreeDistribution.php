@@ -97,6 +97,7 @@ $GLOBALS['wgVisualEditorShowBetaWelcome'] = false;
 $GLOBALS['wgVisualEditorAllowExternalLinkPaste'] = true;
 
 wfLoadExtension( 'VisualEditorPlus' );
+wfLoadExtension( 'VueJsPlus' );
 
 wfLoadExtension( 'WikiEditor' );
 $GLOBALS['wgHiddenPrefs'][] = 'usebetatoolbar';
