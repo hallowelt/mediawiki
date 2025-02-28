@@ -27,7 +27,11 @@ wfLoadExtension( 'BlueSpicePageAccess' );
 wfLoadExtension( 'BlueSpicePageAssignments' );
 wfLoadExtension( 'BlueSpicePagesVisited' );
 wfLoadExtension( 'BlueSpicePageTemplates' );
+
 wfLoadExtension( 'BlueSpicePermissionManager' );
+$GLOBALS['bsgPermissionManagerActivePreset'] = 'private';
+$GLOBALS['bsgOverridePermissionManagerAllowedPresets'] = [ 'public', 'protected', 'private' ];
+
 wfLoadExtension( 'BlueSpiceQrCode' );
 wfLoadExtension( 'BlueSpiceReaders' );
 wfLoadExtension( 'BlueSpiceRSSFeeder' );
