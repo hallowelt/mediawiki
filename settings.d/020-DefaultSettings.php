@@ -1,9 +1,5 @@
 <?php
 
-if ( !wfIsWindows() ) {
-	$GLOBALS['wgLocalTZoffset'] = date("Z") / 60;
-}
-$GLOBALS['wgLocaltimezone'] = 'Europe/Berlin';
 $GLOBALS['wgBlockDisablesLogin'] = true;
 $GLOBALS['wgEnableUploads'] = true;
 
@@ -25,7 +21,6 @@ $GLOBALS['bsgRSSUrlWhitelist'] = array(
 	"https://blog.hallowelt.com/feed/",
 );
 $GLOBALS['wgExternalLinkTarget'] = '_blank';
-$GLOBALS['wgCapitalLinkOverrides'][ NS_FILE ] = false;
 $GLOBALS['wgRestrictDisplayTitle'] = false; //Otherwise only titles that normalize to the same DB key are allowed
 $GLOBALS['wgUrlProtocols'][] = "file://";
 $GLOBALS['wgAllowJavaUploads'] = true;
@@ -117,4 +112,23 @@ $GLOBALS['wgGroupPermissions']['*']['editmyprivateinfo'] = true;
 // Introduce new semiprotected restriction level - editor is a permission in this case
 $GLOBALS['wgSemiprotectedRestrictionLevels'] = [ 'editor' ];
 $GLOBALS['wgRestrictionLevels'] = [ '', 'editor', 'sysop' ];
+
+$GLOBALS['wgGroupTypes'] = [
+	'*'                => 'implicit',
+	'user'             => 'implicit',
+	'autoconfirmed'    => 'implicit',
+	'sysop'            => 'core-minimal',
+	'bureaucrat'       => 'core-extended',
+	'bot'              => 'core-extended',
+	'interface-admin'  => 'core-extended',
+	'suppress'         => 'core-extended',
+	'autoreview'       => 'extension-extended',
+	'editor'           => 'extension-minimal',
+	'review'           => 'extension-extended',
+	'reviewer'         => 'extension-minimal',
+	'smwcurator'       => 'extension-extended',
+	'smweditor'        => 'extension-extended',
+	'smwadministrator' => 'extension-extended',
+	'widgeteditor'     => 'extension-extended'
+];
 

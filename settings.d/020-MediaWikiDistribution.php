@@ -2,13 +2,16 @@
 
 wfLoadExtension( 'Cite' );
 $GLOBALS['wgCiteVisualEditorOtherGroup'] = true;
+
 wfLoadExtension( 'CiteThisPage' );
 wfLoadExtension( 'Gadgets' );
 wfLoadExtension( 'ImageMap' );
 wfLoadExtension( 'InputBox' );
 wfLoadExtension( 'Nuke' );
+
 wfLoadExtension( 'ParserFunctions' );
 $GLOBALS['wgPFEnableStringFunctions'] = true;
+
 wfLoadExtension( 'Renameuser' );
 wfLoadExtension( 'SyntaxHighlight_GeSHi' );
 wfLoadExtension( 'WikiEditor' );

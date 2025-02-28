@@ -27,6 +27,7 @@ wfLoadExtension( 'BlueSpicePageAccess' );
 wfLoadExtension( 'BlueSpicePageAssignments' );
 wfLoadExtension( 'BlueSpicePagesVisited' );
 wfLoadExtension( 'BlueSpicePageTemplates' );
+wfLoadExtension( 'BlueSpicePermissionManager' );
 wfLoadExtension( 'BlueSpiceQrCode' );
 wfLoadExtension( 'BlueSpiceReaders' );
 wfLoadExtension( 'BlueSpiceRSSFeeder' );
