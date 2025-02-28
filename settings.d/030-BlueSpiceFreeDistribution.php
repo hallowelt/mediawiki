@@ -76,6 +76,8 @@ wfLoadExtension( 'UserMerge' );
 $GLOBALS['wgUserMergeProtectedGroups'] = [];
 $GLOBALS['wgUserMergeUnmergeable'] = [];
 
+wfLoadExtension( 'UserProfile' );
+
 wfLoadExtension( 'Variables' );
 
 wfLoadExtension( 'VisualEditor' );
