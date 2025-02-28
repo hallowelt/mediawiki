@@ -10,6 +10,13 @@ wfLoadExtension( 'DynamicPageList3' );
 wfLoadExtension( 'EmbedVideo');
 $GLOBALS['wgEmbedVideoFetchExternalThumbnails'] = false;
 
+wfLoadExtension( 'EnhancedStandardUIs' );
+$GLOBALS[ 'wgEnhancedUIsVersionHistoryToolbarOffset' ] = 123;
+$GLOBALS[ 'wgEnhancedUIsAllPagesPaginatorOffset' ] = 64;
+$GLOBALS[ 'wgEnhancedUIsAllPagesOverride' ] = true;
+$GLOBALS[ 'wgEnhancedUIsFilelistOverride' ] = true;
+$GLOBALS[ 'wgEnhancedUIsSpecialSpecialPagesOverride' ] = true;
+
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
