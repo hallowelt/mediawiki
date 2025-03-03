@@ -2277,6 +2277,35 @@ class MainConfigSchema {
 	];
 
 	/**
+	 * When defined, is an array of image widths used as steps for thumbnail sizes.
+	 *
+	 * The thumbnail with smallest step that has larger value than requested will be shown
+	 * but it will be downsized via HTML values.
+	 *
+	 * It increases the bandwidth to the users by serving slightly large thumbnail sizes they
+	 * have requested but it will save resources by de-duplicating thumbnail generation and storage.
+	 *
+	 * Note that these steps are "best effort" and MediaWiki might decide to use the requested size
+	 * for any reason.
+	 */
+	public const ThumbnailSteps = [
+		'default' => null,
+		'type' => '?list',
+	];
+
+	/**
+	 * Ratio of images that will use the thumbnail steps
+	 *
+	 * This is to allow for gradual roll out of thumbnail steps. It should be a number between 0 and 1.
+	 *
+	 * The precision of this value is up to 0.001, anything below that will be ignored.
+	 */
+	public const ThumbnailStepsRatio = [
+		'default' => null,
+		'type' => '?float',
+	];
+
+	/**
 	 * When defined, is an array of image widths used as buckets for thumbnail generation.
 	 *
 	 * The goal is to save resources by generating thumbnails based on reference buckets instead of
@@ -2957,7 +2986,7 @@ class MainConfigSchema {
 	 * SQL Mode - default is turning off all modes, including strict, if set.
 	 *
 	 * null can be used to skip the setting for performance reasons and assume
-	 * DBA has done his best job.
+	 * the DBA has done their best job.
 	 * String override can be used for some additional fun :-)
 	 */
 	public const SQLMode = [
@@ -6860,7 +6889,7 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * How many days user must be idle before he is considered inactive. Will affect
+	 * How many days user must be idle before they are considered inactive. Will affect
 	 * the number shown on Special:Statistics, Special:ActiveUsers, and the
 	 * {{NUMBEROFACTIVEUSERS}} magic word in wikitext.
 	 *
@@ -8397,10 +8426,10 @@ class MainConfigSchema {
 	 *  - [ APCOND_EDITCOUNT, number of edits (if null or missing $wgAutoConfirmCount will be used)]:
 	 *      true if user has the at least the number of edits as the passed parameter
 	 *  - [ APCOND_AGE, seconds since registration (if null or missing $wgAutoConfirmAge will be used)]:
-	 *      true if the length of time since the user created his/her account
+	 *      true if the length of time since the user created their account
 	 *      is at least the same length of time as the passed parameter
 	 *  - [ APCOND_AGE_FROM_EDIT, seconds since first edit ]:
-	 *      true if the length of time since the user made his/her first edit
+	 *      true if the length of time since the user made their first edit
 	 *      is at least the same length of time as the passed parameter
 	 *  - [ APCOND_INGROUPS, group1, group2, ... ]:
 	 *      true if the user is a member of each of the passed groups
