@@ -102,6 +102,7 @@ $GLOBALS['wgHooks']['BeforePageDisplay'][] = function() {
 };
 
 $GLOBALS['wgSVGNativeRendering'] = true;
+$GLOBALS['wgTiffThumbnailType'] = [ 'png', 'image/png' ];
 
 // Hardcoded permissions, not part of role system
 // Required for external authentication providers like LDAP, SAML, OIDC
