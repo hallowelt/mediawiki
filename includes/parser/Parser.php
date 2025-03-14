@@ -4064,6 +4064,10 @@ class Parser {
 		$normalizedName = strtolower( $name );
 		$isNowiki = $normalizedName === 'nowiki';
 		$markerType = $isNowiki ? 'nowiki' : 'general';
+		$extra = $isNowiki ? 'nowiki' : null;
+		if ( !$this->mStripExtTags ) {
+			$processNowiki = true;
+		}
 		if ( $this->ot['html'] || ( $processNowiki && $isNowiki ) ) {
 			$attributes = Sanitizer::decodeTagAttributes( $attrText );
 			// Merge in attributes passed via {{#tag:}} parser function
@@ -4122,7 +4126,7 @@ class Parser {
 		if ( $markerType === 'none' ) {
 			return $output;
 		} elseif ( $markerType === 'nowiki' ) {
-			$this->mStripState->addNoWiki( $marker, $output );
+			$this->mStripState->addNoWiki( $marker, $output, $extra );
 		} elseif ( $markerType === 'general' ) {
 			$this->mStripState->addGeneral( $marker, $output );
 		} elseif ( $markerType === 'exttag' ) {
