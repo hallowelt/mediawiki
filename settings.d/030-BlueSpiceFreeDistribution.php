@@ -55,7 +55,7 @@ $GLOBALS['wgHooks']['SetupAfterCache'][] = function() {
 $GLOBALS['wgMenuEditorToolbarOffset'] = 123;
 
 wfLoadExtension( 'NotifyMe' );
-$GLOBALS['wgAutoloadClasses']['EchoEvent'] = "$IP/extensions/BlueSpiceDistributionConnector/includes/EchoEvent.php";
+wfLoadExtension( 'Echo', $GLOBALS['IP'] . '/extensions/BlueSpiceDistributionConnector/extension-shims/Echo/extension.json' );
 
 wfLoadExtension( 'OOJSPlus' );
 wfLoadExtension( 'PageHeader' );
