@@ -2,11 +2,16 @@
 
 namespace MediaWiki\RecentChanges;
 
+use JobQueueGroup;
+use LogicException;
 use MediaWiki\ChangeTags\ChangeTagsStore;
+use MediaWiki\Config\Config;
 use MediaWiki\DomainEvent\EventIngressBase;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
+use MediaWiki\MainConfigNames;
 use MediaWiki\Page\Event\PageRevisionUpdatedEvent;
+use MediaWiki\Page\Event\PageRevisionUpdatedListener;
 use MediaWiki\Page\WikiPageFactory;
 use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Revision\RevisionRecord;
@@ -17,6 +22,7 @@ use MediaWiki\User\UserEditTracker;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserNameUtils;
 use RecentChange;
+use RevertedTagUpdateJob;
 
 /**
  * The ingress subscriber for the change tracking component. It updates change
@@ -24,7 +30,18 @@ use RecentChange;
  *
  * @internal
  */
-class ChangeTrackingEventIngress extends EventIngressBase {
+class ChangeTrackingEventIngress
+	extends EventIngressBase
+	implements PageRevisionUpdatedListener
+{
+
+	/**
+	 * The events handled by this ingress subscriber.
+	 * @see registerListeners()
+	 */
+	public const EVENTS = [
+		PageRevisionUpdatedEvent::TYPE
+	];
 
 	/**
 	 * Object spec used for lazy instantiation.
@@ -42,7 +59,9 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 			'WikiPageFactory',
 			'HookContainer',
 			'UserNameUtils',
-			'TalkPageNotificationManager'
+			'TalkPageNotificationManager',
+			'MainConfig',
+			'JobQueueGroup'
 		],
 		'events' => [ // see registerListeners()
 			PageRevisionUpdatedEvent::TYPE
@@ -56,6 +75,8 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 	private HookRunner $hookRunner;
 	private UserNameUtils $userNameUtils;
 	private TalkPageNotificationManager $talkPageNotificationManager;
+	private JobQueueGroup $jobQueueGroup;
+	private bool $useRcPatrol;
 
 	public function __construct(
 		ChangeTagsStore $changeTagsStore,
@@ -64,7 +85,9 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 		WikiPageFactory $wikiPageFactory,
 		HookContainer $hookContainer,
 		UserNameUtils $userNameUtils,
-		TalkPageNotificationManager $talkPageNotificationManager
+		TalkPageNotificationManager $talkPageNotificationManager,
+		Config $mainConfig,
+		JobQueueGroup $jobQueueGroup
 	) {
 		// NOTE: keep in sync with self::OBJECT_SPEC
 		$this->changeTagsStore = $changeTagsStore;
@@ -74,6 +97,9 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 		$this->hookRunner = new HookRunner( $hookContainer );
 		$this->userNameUtils = $userNameUtils;
 		$this->talkPageNotificationManager = $talkPageNotificationManager;
+		$this->jobQueueGroup = $jobQueueGroup;
+
+		$this->useRcPatrol = $mainConfig->get( MainConfigNames::UseRCPatrol );
 	}
 
 	public static function newForTesting(
@@ -83,7 +109,9 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 		WikiPageFactory $wikiPageFactory,
 		HookContainer $hookContainer,
 		UserNameUtils $userNameUtils,
-		TalkPageNotificationManager $talkPageNotificationManager
+		TalkPageNotificationManager $talkPageNotificationManager,
+		Config $mainConfig,
+		JobQueueGroup $jobQueueGroup
 	) {
 		$ingress = new self(
 			$changeTagsStore,
@@ -92,10 +120,23 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 			$wikiPageFactory,
 			$hookContainer,
 			$userNameUtils,
-			$talkPageNotificationManager
+			$talkPageNotificationManager,
+			$mainConfig,
+			$jobQueueGroup
 		);
 		$ingress->initSubscriber( self::OBJECT_SPEC );
 		return $ingress;
+	}
+
+	private static function getEditFlags( PageRevisionUpdatedEvent $event ): int {
+		$flags = $event->isCreation() ? EDIT_NEW : EDIT_UPDATE;
+
+		$flags |= (int)$event->isBotUpdate() * EDIT_FORCE_BOT;
+		$flags |= (int)$event->isSilent() * EDIT_SILENT;
+		$flags |= (int)$event->isImplicit() * EDIT_IMPLICIT;
+		$flags |= (int)$event->getLatestRevisionAfter()->isMinor() * EDIT_MINOR;
+
+		return $flags;
 	}
 
 	/**
@@ -129,6 +170,10 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 			);
 
 			$this->updateNewTalkAfterPageUpdated( $event );
+		}
+
+		if ( $event->isRevert() && $event->isEffectiveContentChange() ) {
+			$this->updateRevertTagAfterPageUpdated( $event );
 		}
 	}
 
@@ -226,6 +271,49 @@ class ChangeTrackingEventIngress extends EventIngressBase {
 					}
 				}
 			}
+		}
+	}
+
+	private function updateRevertTagAfterPageUpdated( PageRevisionUpdatedEvent $event ) {
+		$patrolStatus = $event->getPatrolStatus();
+		$wikiPage = $this->wikiPageFactory->newFromTitle( $event->getPage() );
+
+		// Should the reverted tag update be scheduled right away?
+		// The revert is approved if either patrolling is disabled or the
+		// edit is patrolled or autopatrolled.
+		$approved = !$this->useRcPatrol ||
+			$patrolStatus === RecentChange::PRC_PATROLLED ||
+			$patrolStatus === RecentChange::PRC_AUTOPATROLLED;
+
+		$editResult = $event->getEditResult();
+
+		if ( !$editResult ) {
+			// Reverts should always have an EditResult.
+			throw new LogicException( 'Missing EditResult in revert' );
+		}
+
+		$revisionRecord = $event->getLatestRevisionAfter();
+
+		// Allow extensions to override the patrolling subsystem.
+		$this->hookRunner->onBeforeRevertedTagUpdate(
+			$wikiPage,
+			$event->getAuthor(),
+			$revisionRecord->getComment( RevisionRecord::RAW ),
+			self::getEditFlags( $event ),
+			$revisionRecord,
+			$editResult,
+			$approved
+		);
+
+		// Schedule a deferred update for marking reverted edits if applicable.
+		if ( $approved ) {
+			// Enqueue the job
+			$this->jobQueueGroup->lazyPush(
+				RevertedTagUpdateJob::newSpec(
+					$revisionRecord->getId(),
+					$editResult
+				)
+			);
 		}
 	}
 
