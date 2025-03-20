@@ -65,7 +65,6 @@ wfLoadExtension( 'RSS' );
 wfLoadExtension( 'StandardDialogs' );
 wfLoadExtension( 'TemplateData' );
 wfLoadExtension( 'TemplateStyles' );
-wfLoadExtension( 'TitleKey');
 wfLoadExtension( 'TwoColConflict' );
 wfLoadExtension( 'UrlGetParameters' );
 
