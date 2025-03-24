@@ -549,12 +549,14 @@ function wfGetServerUrl( $proto ) {
  * This is the basic structure used (brackets contain keys for $urlParts):
  * [scheme][delimiter][user]:[pass]@[host]:[port][path]?[query]#[fragment]
  *
- * @deprecated since 1.39, use UrlUtils::assemble()
+ * @deprecated since 1.39, use UrlUtils::assemble(); hard-deprecated since 1.44
  * @since 1.19
  * @param array $urlParts URL parts, as output from wfParseUrl
  * @return string URL assembled from its component parts
  */
 function wfAssembleUrl( $urlParts ) {
+	wfDeprecated( __FUNCTION__, '1.39' );
+
 	return UrlUtils::assemble( (array)$urlParts );
 }
 
@@ -563,7 +565,7 @@ function wfAssembleUrl( $urlParts ) {
  *
  * @deprecated since 1.39, use UrlUtils::validProtocols(); hard-deprecated since 1.43
  * @param bool $includeProtocolRelative If false, remove '//' from the returned protocol list.
- *        DO NOT USE this directly, use wfUrlProtocolsWithoutProtRel() instead
+ *        DO NOT USE this directly, use UrlUtils::validAbsoluteProtocols() instead
  * @return string
  */
 function wfUrlProtocols( $includeProtocolRelative = true ) {
@@ -577,10 +579,12 @@ function wfUrlProtocols( $includeProtocolRelative = true ) {
  * Like wfUrlProtocols(), but excludes '//' from the protocol list. Use this if
  * you need a regex that matches all URL protocols but does not match protocol-
  * relative URLs
- * @deprecated since 1.39, use UrlUtils::validAbsoluteProtocols()
+ * @deprecated since 1.39, use UrlUtils::validAbsoluteProtocols(); hard-deprecated since 1.44
  * @return string
  */
 function wfUrlProtocolsWithoutProtRel() {
+	wfDeprecated( __FUNCTION__, '1.39' );
+
 	return wfGetUrlUtils()->validAbsoluteProtocols();
 }
 
@@ -632,12 +636,14 @@ function wfExpandIRI( $url ) {
 /**
  * Check whether a given URL has a domain that occurs in a given set of domains
  *
- * @deprecated since 1.39, use UrlUtils::expandIRI()
+ * @deprecated since 1.39, use UrlUtils::matchesDomainList(); hard-deprecated since 1.44
  * @param string $url
  * @param array $domains Array of domains (strings)
  * @return bool True if the host part of $url ends in one of the strings in $domains
  */
 function wfMatchesDomainList( $url, $domains ) {
+	wfDeprecated( __FUNCTION__, '1.39' );
+
 	return wfGetUrlUtils()->matchesDomainList( (string)$url, (array)$domains );
 }
 
