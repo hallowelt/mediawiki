@@ -19,7 +19,6 @@ $GLOBALS['wgHiddenPrefs'][] = 'searchlimit';
 wfLoadExtension( 'BlueSpiceExtendedStatistics' );
 wfLoadExtension( 'BlueSpiceHideTitle' );
 wfLoadExtension( 'BlueSpiceInsertCategory' );
-wfLoadExtension( 'BlueSpiceInsertLink' );
 wfLoadExtension( 'BlueSpiceInstanceStatus' );
 wfLoadExtension( 'BlueSpiceInterWikiLinks' );
 wfLoadExtension( 'BlueSpiceNamespaceManager' );
