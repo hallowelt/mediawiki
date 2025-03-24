@@ -14,9 +14,10 @@ do
     printf "\n${PURPLE}Patching: ${GREEN}$original_file${NC} ==> "
     cmdout=$(/usr/bin/env patch --ignore-whitespace --fuzz 3 --dry-run $original_file $patch_file)
     if [[ "$cmdout" == *"FAILED"* ]]; then
-        printf "${RED}FAILED!${NC}\n"
+        printf "${RED}FAILED!${NC}"
     else
         cmdout=$(/usr/bin/env patch -s $original_file $patch_file)
-        printf "${GREEN}DONE!${NC}\n"
+        printf "${GREEN}DONE!${NC}"
     fi
 done < <(find $patch_dir -type f -name "*\.diff")
+echo ""

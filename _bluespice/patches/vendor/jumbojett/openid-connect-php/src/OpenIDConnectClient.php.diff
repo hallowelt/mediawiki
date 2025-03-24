@@ -1,0 +1,27 @@
+diff --git a/src/OpenIDConnectClient.php b/src/OpenIDConnectClient.php
+index bac366c..1333210 100644
+--- a/src/OpenIDConnectClient.php
++++ b/src/OpenIDConnectClient.php
+@@ -570,7 +570,9 @@ class OpenIDConnectClient
+             return false;
+         }
+         // Validate the aud
+-        if ((!$claims->aud === $this->clientID) || (!in_array($this->clientID, $claims->aud, true))) {
++        $auds = $claims->aud;
++        $auds = is_array($auds) ? $auds : [$auds];
++        if ((!in_array($this->clientID, $auds, true))) {
+             return false;
+         }
+         // Validate the iat. At this point we can return true if it is ok
+@@ -1288,8 +1290,10 @@ class OpenIDConnectClient
+             $len = ((int)$bit)/16;
+             $expected_at_hash = $this->urlEncode(substr(hash('sha'.$bit, $accessToken, true), 0, $len));
+         }
++        $auds = $claims->aud;
++        $auds = is_array($auds) ? $auds : [$auds];
+         return (($this->validateIssuer($claims->iss))
+-            && (($claims->aud === $this->clientID) || in_array($this->clientID, $claims->aud, true))
++            && (in_array($this->clientID, $auds, true))
+             && (!isset($claims->nonce) || $claims->nonce === $this->getNonce())
+             && ( !isset($claims->exp) || ((gettype($claims->exp) === 'integer') && ($claims->exp >= time() - $this->leeway)))
+             && ( !isset($claims->nbf) || ((gettype($claims->nbf) === 'integer') && ($claims->nbf <= time() + $this->leeway)))
