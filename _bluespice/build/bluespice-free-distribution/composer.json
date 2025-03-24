@@ -4,7 +4,7 @@
 		"url": "https://packages.bluespice.com/"
 	}],
 	"require": {
-		"bluespice/visualeditorconnector": "dev-REL1_43",
+		"bluespice/visualeditorconnector": "dev-REL1_43-5.0.x",
 		"hallowelt/filter-special-pages": "dev-REL1_43",
 		"mediawiki/arrays": "dev-REL1_43",
 		"mediawiki/content-droplets": "dev-REL1_43",
