@@ -323,9 +323,6 @@ class OutputPage extends ContextSource {
 	/** @var bool Flag if output should only contain the body of the article. */
 	private $mArticleBodyOnly = false;
 
-	private bool $mNewSectionLink = false;
-	private bool $mHideNewSectionLink = false;
-
 	/** @var int Cache stuff. Looks like mEnableClientCache */
 	protected $mCdnMaxage = 0;
 	/** @var int Upper limit on mCdnMaxage */
@@ -336,9 +333,6 @@ class OutputPage extends ContextSource {
 
 	/** @var bool|null */
 	private $mRevisionIsCurrent = null;
-
-	/** @var string */
-	private $mRevisionTimestamp = null;
 
 	/** @var array */
 	protected $mFileVersion = null;
@@ -460,8 +454,6 @@ class OutputPage extends ContextSource {
 		$this->deprecatePublicProperty( 'mJsConfigVars', '1.38', __CLASS__ );
 		$this->deprecatePublicProperty( 'mTemplateIds', '1.38', __CLASS__ );
 		$this->deprecatePublicProperty( 'mEnableClientCache', '1.38', __CLASS__ );
-		$this->deprecatePublicProperty( 'mNewSectionLink', '1.38', __CLASS__ );
-		$this->deprecatePublicProperty( 'mHideNewSectionLink', '1.38', __CLASS__ );
 		$this->deprecatePublicProperty( 'mParserOptions', '1.44', __CLASS__ );
 		$this->setContext( $context );
 		$this->metadata = new ParserOutput( null );
@@ -473,6 +465,9 @@ class OutputPage extends ContextSource {
 			$this->getHookContainer()
 		);
 		$this->metadata->setNoGallery( false );
+		$this->metadata->setNewSection( false );
+		$this->metadata->setHideNewSection( false );
+		$this->metadata->setRevisionTimestamp( null );
 	}
 
 	/**
@@ -654,13 +649,36 @@ class OutputPage extends ContextSource {
 	 * Get the list of modules to include on this page
 	 *
 	 * @param bool $filter Whether to filter out any modules that are not considered to be sufficiently trusted
-	 * @param string|null $position Unused
-	 * @param string $param
-	 * @param string $type
+	 * @param ?string ...$args Additional arguments deprecated since 1.44
 	 * @return string[] Array of module names
 	 */
-	public function getModules( $filter = false, $position = null, $param = 'mModules',
-		$type = RL\Module::TYPE_COMBINED
+	public function getModules(
+		$filter = false, ...$args
+	) {
+		// Deprecate all arguments other than the first
+		if ( count( $args ) > 0 ) {
+			wfDeprecated( __METHOD__ . ' with >1 argument', '1.44' );
+		}
+		$position = $args[0] ?? null;
+		$param = $args[1] ?? 'mModules';
+		$type = $args[2] ?? RL\Module::TYPE_COMBINED;
+		return $this->getModulesInternal(
+			$filter,
+			$param,
+			$type
+		);
+	}
+
+	/**
+	 * Helper function to get a list of modules to load on this page.
+	 *
+	 * @param bool $filter Whether to filter out any modules that are not considered to be sufficiently trusted
+	 * @param string $param Either 'mModules' or 'mModuleStyles'
+	 * @param string $type Whether to return all modules or just style modules
+	 * @return string[] Array of module names
+	 */
+	private function getModulesInternal(
+		bool $filter, string $param, string $type
 	) {
 		$modules = array_values( $this->$param );
 		return $filter
@@ -682,13 +700,17 @@ class OutputPage extends ContextSource {
 	/**
 	 * Get the list of style-only modules to load on this page.
 	 *
-	 * @param bool $filter
-	 * @param string|null $position Unused
+	 * @param bool $filter Whether to filter out any modules that are not considered to be sufficiently trusted
+	 * @param ?string ...$args Additional arguments deprecated since 1.44
 	 * @return string[] Array of module names
 	 */
-	public function getModuleStyles( $filter = false, $position = null ) {
-		return $this->getModules( $filter, null, 'mModuleStyles',
-			RL\Module::TYPE_STYLES
+	public function getModuleStyles( $filter = false, ...$args ) {
+		// Deprecate all arguments other than the first
+		if ( count( $args ) > 0 ) {
+			wfDeprecated( __METHOD__ . ' with >1 argument', '1.44' );
+		}
+		return $this->getModulesInternal(
+			$filter, 'mModuleStyles', RL\Module::TYPE_STYLES
 		);
 	}
 
@@ -1383,18 +1405,22 @@ class OutputPage extends ContextSource {
 	 * Show an "add new section" link?
 	 *
 	 * @return bool
+	 * @deprecated since 1.44, use ::getOutputFlag(ParserOutputFlags::NEW_SECTION)
 	 */
 	public function showNewSectionLink() {
-		return $this->mNewSectionLink;
+		wfDeprecated( __METHOD__, '1.44' );
+		return $this->metadata->getNewSection();
 	}
 
 	/**
 	 * Forcibly hide the new section link?
 	 *
 	 * @return bool
+	 * @deprecated since 1.44, use ::getOutputFlag(ParserOutputFlags::HIDE_NEW_SECTION)
 	 */
 	public function forceHideNewSectionLink() {
-		return $this->mHideNewSectionLink;
+		wfDeprecated( __METHOD__, '1.44' );
+		return $this->metadata->getHideNewSection();
 	}
 
 	/**
@@ -2073,9 +2099,12 @@ class OutputPage extends ContextSource {
 	 *
 	 * @param string|null $timestamp
 	 * @return mixed Previous value
+	 * @deprecated since 1.44, use ::getMetadata()->setRevisionTimestamp(...)
 	 */
 	public function setRevisionTimestamp( $timestamp ) {
-		return wfSetVar( $this->mRevisionTimestamp, $timestamp, true );
+		$previousValue = $this->metadata->getRevisionTimestamp();
+		$this->metadata->setRevisionTimestamp( $timestamp );
+		return $previousValue;
 	}
 
 	/**
@@ -2083,9 +2112,10 @@ class OutputPage extends ContextSource {
 	 * This will be null if not filled by setRevisionTimestamp().
 	 *
 	 * @return string|null
+	 * @deprecated since 1.44, use ::getMetadata()->getRevisionTimestamp()
 	 */
 	public function getRevisionTimestamp() {
-		return $this->mRevisionTimestamp;
+		return $this->metadata->getRevisionTimestamp();
 	}
 
 	/**
@@ -2402,8 +2432,8 @@ class OutputPage extends ContextSource {
 		// be migrated to an injection pattern. (T301020, T300979)
 		// (Note that OutputPage::getOutputFlag() also contains this
 		// information, with flags from each $parserOutput all OR'ed together.)
-		$this->mNewSectionLink = $parserOutput->getNewSection();
-		$this->mHideNewSectionLink = $parserOutput->getHideNewSection();
+		$this->metadata->setNewSection( $parserOutput->getNewSection() );
+		$this->metadata->setHideNewSection( $parserOutput->getHideNewSection() );
 		$this->metadata->setNoGallery( $parserOutput->getNoGallery() );
 
 		if ( !$parserOutput->isCacheable() ) {
@@ -2558,7 +2588,7 @@ class OutputPage extends ContextSource {
 			$parserOptions = null;
 		}
 		if ( $parserOptions === null ) {
-			// @deprecated since 1.44
+			wfDeprecated( __METHOD__ . ' without ParserOptions argument', '1.44' );
 			// XXX: This isn't guaranteed to be the same parser options that
 			// generated $parserOutput.
 			$parserOptions = $this->internalParserOptions( false );
@@ -2606,7 +2636,7 @@ class OutputPage extends ContextSource {
 			$parserOptions = null;
 		}
 		if ( $parserOptions === null ) {
-			// @deprecated since 1.44
+			wfDeprecated( __METHOD__ . ' without ParserOptions argument', '1.44' );
 			// XXX: This isn't guaranteed to be the same parser options that
 			// generated $parserOutput.
 			$parserOptions = $this->internalParserOptions( false );

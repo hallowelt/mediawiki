@@ -343,6 +343,7 @@ because of Phabricator reports.
 * The following formerly-public properties of OutputPage, deprecated with
   warnings in 1.38, have been removed:
    - OutputPage::$mNoGallery
+   - OutputPage::$mRevisionTimestamp
 * Removed $timestamp, $summary, $minorEdit, $oldid and $pageStatus params from
   EmailNotification::notifyOnPageChange(). Now this method takes RecentChange
   instead.
@@ -560,8 +561,16 @@ because of Phabricator reports.
 * OutputPage::getNoGallery(), previously marked @internal, has been deprecated
   and should be replaced with
   `OutputPage::getOutputFlag(ParserOutputFlags::NO_GALLERY)`
+* OutputPage::showNewSectionLink() has been deprecated and should be replaced
+  with `OutputPage::getOutputFlag(ParserOutputFlags::NEW_SECTION)`
+* OutputPage::forceHideNewSectionLink() has been deprecated and should be
+  replaced with `OutputPage::getOutputFlag(ParserOutputFlags::HIDE_NEW_SECTION)`
+* OutputPage::{get,set}RevisionTimestamp() has been deprecated and should be
+  replaced with `OutputPage::getMetadata()->{get,set}RevisionTimestamp()`
 * The 'PermissionErrorAudit' hook has been deprecated and replaced by
   the 'PermissionStatusAudit' hook.
+* The 'PageContentSave' hook, deprecated in 1.35, now emits deprecation warnings
+  when used. Use the 'MultiContentSave' hook instead.
 * DifferenceEngine::getPermissionErrors() is deprecated,
   use DifferenceEngine::authorizeView() instead.
 * UploadBase::verifyPermissions() and UploadBase::verifyTitlePermissions()
@@ -574,6 +583,10 @@ because of Phabricator reports.
   warnings.
 * PPFrame::setTTL() has been deprecated: setting TTL had no effect in
   practice. Use ParserOutput::updateCacheExpiry() instead.
+* The (unused) second, third, and fourth arguments to OutputPage::getModules()
+  have been deprecated, and the (unused) second argument to
+  OutputPage::getModuleStyles() has been deprecated.  These exposed private
+  internal implementation details not intended for public use.
 * MediaWikiTitleCodec::getTitleInvalidRegex() is now deprecated. Use the same
   method in TitleParser.
 * …
