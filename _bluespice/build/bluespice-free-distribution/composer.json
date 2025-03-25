@@ -18,7 +18,7 @@
 		"mediawiki/loops": "dev-REL1_43",
 		"mediawiki/menu-editor": "dev-REL1_43",
 		"mediawiki/notify-me": "dev-REL1_43",
-		"mediawiki/oojsplus": "dev-REL1_43-3.0.x",
+		"mediawiki/oojsplus": "dev-REL1_43",
 		"mediawiki/page-header": "dev-master",
 		"mediawiki/pdf-creator": "dev-main",
 		"mediawiki/renameuser": "dev-REL1_43",
