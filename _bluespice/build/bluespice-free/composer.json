@@ -39,7 +39,6 @@
 		"bluespice/usermanager": "dev-REL1_43",
 		"bluespice/usersidebar": "dev-REL1_43",
 		"bluespice/watchlist": "dev-REL1_43",
-		"bluespice/whoisonline": "dev-REL1_43",
-		"mediawiki/oojsplus": "dev-REL1_43"
+		"bluespice/whoisonline": "dev-REL1_43"
 	}
 }
