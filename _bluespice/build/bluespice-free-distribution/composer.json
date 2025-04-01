@@ -5,7 +5,7 @@
 	}],
 	"require": {
 		"bluespice/visualeditorconnector": "dev-REL1_43-5.0.x",
-		"hallowelt/filter-special-pages": "dev-REL1_43",
+		"hallowelt/filter-special-pages": "dev-REL1_43-3.0.x",
 		"mediawiki/arrays": "dev-REL1_43",
 		"mediawiki/content-droplets": "dev-REL1_43-2.0.x",
 		"mediawiki/enhanced-upload": "dev-REL1_43-3.0.x",
