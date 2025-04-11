@@ -28,6 +28,7 @@ namespace MediaWiki\Html;
 use MediaWiki\Json\FormatJson;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Request\ContentSecurityPolicy;
 use UnexpectedValueException;
 
@@ -193,6 +194,7 @@ class Html {
 		if ( isset( self::$voidElements[$element] ) ) {
 			return $start;
 		} else {
+			$contents = Sanitizer::escapeCombiningChar( $contents ?? '' );
 			return $start . $contents . self::closeElement( $element );
 		}
 	}
@@ -1268,11 +1270,12 @@ class Html {
 
 		foreach ( $options as $text => $value ) {
 			if ( is_array( $value ) ) {
-				// No support for optgroups in Codex yet (T367241)
-				$optionsCodex[] = [ 'label' => (string)$text, 'value' => '', 'disabled' => true ];
-				foreach ( $value as $text2 => $value2 ) {
-					$optionsCodex[] = [ 'label' => (string)$text2, 'value' => (string)$value2 ];
-				}
+				$optionsCodex[] = [
+					'label' => (string)$text,
+					'items' => array_map( static function ( $text2, $value2 ) {
+						return [ 'label' => (string)$text2, 'value' => (string)$value2 ];
+					}, array_keys( $value ), $value )
+				];
 			} else {
 				$optionsCodex[] = [ 'label' => (string)$text, 'value' => (string)$value ];
 			}

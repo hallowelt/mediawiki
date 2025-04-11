@@ -96,6 +96,18 @@ class HtmlTest extends MediaWikiIntegrationTestCase {
 			Html::element( 'element', [], '' ),
 			'Close tag for empty element (array, string)'
 		);
+
+		$this->assertEquals(
+			"<p test=\"\u{0338}&quot;&amp;\">&#x338; &amp; &lt; ></p>",
+			Html::element( 'p', [ 'test' => "\u{0338}\"&" ], "\u{0338} & < >" ),
+			'Attribute and content escaping'
+		);
+
+		$this->assertEquals(
+			'<p>&#x338; &amp;</p>',
+			Html::rawElement( 'p', [], "\u{0338} &amp;" ),
+			"Combining characters escaped even in raw contents (T387130)"
+		);
 	}
 
 	public function dataXmlMimeType() {
@@ -945,11 +957,19 @@ class HtmlTest extends MediaWikiIntegrationTestCase {
 		$this->assertEquals(
 			[
 				[ 'label' => 'other reasons', 'value' => 'other' ],
-				[ 'label' => 'Foo', 'value' => '', 'disabled' => true ],
-				[ 'label' => 'Foo 1', 'value' => 'Foo 1' ],
-				[ 'label' => 'Example', 'value' => 'Example' ],
-				[ 'label' => 'Bar', 'value' => '', 'disabled' => true ],
-				[ 'label' => 'Bar 1', 'value' => 'Bar 1' ],
+				[
+					'label' => 'Foo',
+					'items' => [
+						[ 'label' => 'Foo 1', 'value' => 'Foo 1' ],
+						[ 'label' => 'Example', 'value' => 'Example' ],
+					],
+				],
+				[
+					'label' => 'Bar',
+					'items' => [
+						[ 'label' => 'Bar 1', 'value' => 'Bar 1' ],
+					],
+				]
 			],
 			Html::listDropdownOptionsCodex( [
 				'other reasons' => 'other',

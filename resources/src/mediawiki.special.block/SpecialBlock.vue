@@ -78,10 +78,7 @@
 				<h2>{{ formHeaderText }}</h2>
 				<block-type-field></block-type-field>
 				<expiry-field></expiry-field>
-				<reason-field
-					v-model:selected="store.reason"
-					v-model:other="store.reasonOther"
-				></reason-field>
+				<reason-field v-model="store.reason"></reason-field>
 				<block-details-field></block-details-field>
 				<additional-details-field></additional-details-field>
 				<confirmation-dialog
@@ -556,12 +553,6 @@ module.exports = exports = defineComponent( {
 	legend {
 		// Match font-size of accordion labels. T383921.
 		font-size: @font-size-medium;
-	}
-
-	.cdx-field:first-child {
-		// Override Codex's lack of top margin for the first fieldset,
-		// because here it appears directly below an accordion border.
-		margin-top: @spacing-100;
 	}
 
 	legend .cdx-label__label,
