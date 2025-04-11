@@ -142,7 +142,10 @@ class SignatureValidator {
 				// Messages used here:
 				// * linterror-bogus-image-options
 				// * linterror-deletable-table-tag
+				// * linterror-duplicate-ids
+				// * linterror-empty-heading
 				// * linterror-fostered
+				// * linterror-fostered-transparent
 				// * linterror-html5-misnesting
 				// * linterror-inline-media-caption
 				// * linterror-large-tables
