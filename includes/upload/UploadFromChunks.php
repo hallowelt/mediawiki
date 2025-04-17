@@ -116,6 +116,7 @@ class UploadFromChunks extends UploadFromFile {
 		// Update the initial file offset (based on file size)
 		$this->mOffset = $this->mStashFile->getSize();
 		$this->mFileKey = $this->mStashFile->getFileKey();
+		$this->mVirtualTempPath = $this->mStashFile->getPath();
 
 		// Output a copy of this first to chunk 0 location:
 		$this->outputChunk( $this->mStashFile->getPath() );
@@ -140,8 +141,12 @@ class UploadFromChunks extends UploadFromFile {
 		$this->getChunkStatus();
 
 		$metadata = $this->stash->getMetadata( $key );
+		$tempPath = $this->getRealPath( $metadata['us_path'] );
+		if ( $tempPath === false ) {
+			throw new UploadStashBadPathException( wfMessage( 'uploadstash-bad-path' ) );
+		}
 		$this->initializePathInfo( $name,
-			$this->getRealPath( $metadata['us_path'] ),
+			$tempPath,
 			$metadata['us_size'],
 			false
 		);
