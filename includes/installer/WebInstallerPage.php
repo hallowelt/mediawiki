@@ -23,7 +23,6 @@
 namespace MediaWiki\Installer;
 
 use MediaWiki\Html\Html;
-use MediaWiki\Xml\Xml;
 
 /**
  * Abstract class to define pages for the web installer.
@@ -95,7 +94,7 @@ abstract class WebInstallerPage {
 		if ( $continue ) {
 			// Fake submit button for enter keypress (T28267)
 			// Messages: config-continue, config-restart, config-regenerate
-			$s .= Xml::submitButton(
+			$s .= Html::submitButton(
 				wfMessage( "config-$continue" )->text(),
 				[
 					'name' => "enter-$continue",
@@ -106,24 +105,24 @@ abstract class WebInstallerPage {
 
 		if ( $back ) {
 			// Message: config-back
-			$s .= Xml::submitButton(
+			$s .= Html::submitButton(
 				wfMessage( "config-$back" )->text(),
 				[
 					'name' => "submit-$back",
 					'tabindex' => $this->parent->nextTabIndex(),
-					'class' => 'cdx-button cdx-button--action-default'
+					'class' => [ 'cdx-button', 'cdx-button--action-default' ]
 				]
 			) . "\n";
 		}
 
 		if ( $continue ) {
 			// Messages: config-continue, config-restart, config-regenerate
-			$s .= Xml::submitButton(
+			$s .= Html::submitButton(
 				wfMessage( "config-$continue" )->text(),
 				[
 					'name' => "submit-$continue",
 					'tabindex' => $this->parent->nextTabIndex(),
-					'class' => 'cdx-button cdx-button--action-progressive'
+					'class' => [ 'cdx-button', 'cdx-button--action-progressive' ]
 				]
 			) . "\n";
 		}
