@@ -18,6 +18,16 @@ sed -i 's|https://gerrit.wikimedia.org/r/mediawiki/|git@github.com:wikimedia/med
 sed -i 's|mediawiki-extensions/|mediawiki-extensions-|g' .gitmodules
 sed -i 's|mediawiki-skins/|mediawiki-skins-|g' .gitmodules
 
-git submodule update --init
+git submodule init
+# Only clone with depth 1
+submodules=$(git config --file .gitmodules --get-regexp path | awk '{ print $2 }')
+for submodule in $submodules; do
+	git submodule update --depth 1 -- $submodule
+done
+
+# Special handling for submodule in Extension:VisualEditor
+sed -i 's|https://gerrit.wikimedia.org/r/VisualEditor/VisualEditor|git@github.com:wikimedia/VisualEditor|g' extensions/VisualEditor/.gitmodules
+git submodule update --depth 1 -- extensions/VisualEditor/VisualEditor
+
 rm -rf vendor
 mv vendor_by_composer vendor
