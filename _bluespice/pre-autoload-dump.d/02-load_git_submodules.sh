@@ -27,7 +27,9 @@ done
 
 # Special handling for submodule in Extension:VisualEditor
 sed -i 's|https://gerrit.wikimedia.org/r/VisualEditor/VisualEditor|git@github.com:wikimedia/VisualEditor|g' extensions/VisualEditor/.gitmodules
-git submodule update --depth 1 -- extensions/VisualEditor/VisualEditor
+cd extensions/VisualEditor
+git submodule update --init --depth 1 lib/ve
+cd -
 
 rm -rf vendor
 mv vendor_by_composer vendor
