@@ -10,11 +10,11 @@ mv vendor vendor_by_composer
 
 # We want to clone submodules from github, not from Wikimedia gerrit
 # Examples:
-# 	https://gerrit.wikimedia.org/r/mediawiki/extensions/CiteThisPage -> git@github.com:wikimedia/mediawiki-extensions-CiteThisPage
-# 	https://gerrit.wikimedia.org/r/mediawiki/skins/Vector -> git@github.com:wikimedia/mediawiki-skins-Vector
-# 	https://gerrit.wikimedia.org/r/mediawiki/vendor -> git@github.com:wikimedia/mediawiki-vendor
+# 	https://gerrit.wikimedia.org/r/mediawiki/extensions/CiteThisPage -> https://github.com/wikimedia/mediawiki-extensions-CiteThisPage
+# 	https://gerrit.wikimedia.org/r/mediawiki/skins/Vector -> https://git@github.com/wikimedia/mediawiki-skins-Vector
+# 	https://gerrit.wikimedia.org/r/mediawiki/vendor -> https://git@github.com/wikimedia/mediawiki-vendor
 
-sed -i 's|https://gerrit.wikimedia.org/r/mediawiki/|git@github.com:wikimedia/mediawiki-|g' .gitmodules
+sed -i 's|https://gerrit.wikimedia.org/r/mediawiki/|https://github.com/wikimedia/mediawiki-|g' .gitmodules
 sed -i 's|mediawiki-extensions/|mediawiki-extensions-|g' .gitmodules
 sed -i 's|mediawiki-skins/|mediawiki-skins-|g' .gitmodules
 
@@ -26,7 +26,7 @@ for submodule in $submodules; do
 done
 
 # Special handling for submodule in Extension:VisualEditor
-sed -i 's|https://gerrit.wikimedia.org/r/VisualEditor/VisualEditor|git@github.com:wikimedia/VisualEditor|g' extensions/VisualEditor/.gitmodules
+sed -i 's|https://gerrit.wikimedia.org/r/VisualEditor/VisualEditor|https://github.com/wikimedia/VisualEditor|g' extensions/VisualEditor/.gitmodules
 cd extensions/VisualEditor
 git submodule update --init --depth 1 lib/ve
 cd -
