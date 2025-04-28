@@ -46,6 +46,9 @@ $GLOBALS['wgExtensionFunctions'][] = function() {
 $GLOBALS['wgExtensionFunctions'][] = function() {
 	$logKeys = $GLOBALS['wgLogTypes'];
 	foreach ( $logKeys as $logKey ) {
+		if ( $logKey === 'upload' ) {
+			continue;
+		}
 		if ( !isset( $GLOBALS['wgLogRestrictions'][$logKey] ) ) {
 			$GLOBALS['wgLogRestrictions'][$logKey] = 'wikiadmin';
 		}
