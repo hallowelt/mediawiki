@@ -4,6 +4,7 @@ $GLOBALS['wgBlockDisablesLogin'] = true;
 $GLOBALS['wgEnableUploads'] = true;
 
 //Default MediaWiki settings needed for BlueSpice
+$GLOBALS['wgCapitalLinkOverrides'][NS_FILE] = false;
 $GLOBALS['wgNamespacesWithSubpages'][NS_MAIN] = true;
 $GLOBALS['wgCSPHeader'] = [
 	// Single quotes around 'self' are required!
