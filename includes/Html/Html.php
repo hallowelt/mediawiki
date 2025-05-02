@@ -134,6 +134,32 @@ class Html {
 	}
 
 	/**
+	 * Add a class to a 'class' attribute in a format accepted by Html::element().
+	 *
+	 * This method may also be used for any other space-separated attribute, such as 'rel'.
+	 *
+	 * @param array|string|null &$classes Class list to modify in-place
+	 * @param string $class Class to add
+	 * @phan-assert non-empty-array $classes
+	 */
+	public static function addClass( &$classes, string $class ): void {
+		$classes = (array)$classes;
+		// Detect mistakes where $attrs is passed as $classes instead of $attrs['class']
+		foreach ( $classes as $key => $val ) {
+			if (
+				( is_int( $key ) && is_string( $val ) ) ||
+				( is_string( $key ) && is_bool( $val ) )
+			) {
+				// Valid formats for class array entries
+				continue;
+			}
+			wfWarn( __METHOD__ . ": Argument doesn't look like a class array: " . var_export( $classes, true ) );
+			break;
+		}
+		$classes[] = $class;
+	}
+
+	/**
 	 * Returns an HTML link element in a string.
 	 *
 	 * @param string $text The text of the element. Will be escaped (not raw HTML)
@@ -418,6 +444,54 @@ class Html {
 	}
 
 	/**
+	 * Convert a value for a 'class' attribute in a format accepted by Html::element() and similar
+	 * methods to a single string.
+	 *
+	 * This method may also be used for any other space-separated attribute, such as 'rel'.
+	 *
+	 * @param array|string $classes
+	 * @return string
+	 */
+	public static function expandClassList( $classes ): string {
+		// Convert into correct array. Array can contain space-separated
+		// values. Implode/explode to get those into the main array as well.
+		if ( is_array( $classes ) ) {
+			// If input wasn't an array, we can skip this step
+			$arrayValue = [];
+			foreach ( $classes as $k => $v ) {
+				if ( is_string( $v ) ) {
+					// String values should be normal `[ 'foo' ]`
+					// Just append them
+					if ( !isset( $classes[$v] ) ) {
+						// As a special case don't set 'foo' if a
+						// separate 'foo' => true/false exists in the array
+						// keys should be authoritative
+						foreach ( explode( ' ', $v ) as $part ) {
+							// Normalize spacing by fixing up cases where people used
+							// more than 1 space and/or a trailing/leading space
+							if ( $part !== '' && $part !== ' ' ) {
+								$arrayValue[] = $part;
+							}
+						}
+					}
+				} elseif ( $v ) {
+					// If the value is truthy but not a string this is likely
+					// an [ 'foo' => true ], falsy values don't add strings
+					$arrayValue[] = $k;
+				}
+			}
+		} else {
+			$arrayValue = explode( ' ', $classes );
+			// Normalize spacing by fixing up cases where people used
+			// more than 1 space and/or a trailing/leading space
+			$arrayValue = array_diff( $arrayValue, [ '', ' ' ] );
+		}
+
+		// Remove duplicates and create the string
+		return implode( ' ', array_unique( $arrayValue ) );
+	}
+
+	/**
 	 * Given an associative array of element attributes, generate a string
 	 * to stick after the element name in HTML output.  Like [ 'href' =>
 	 * 'https://www.mediawiki.org/' ] becomes something like
@@ -487,43 +561,7 @@ class Html {
 			// Specific features for attributes that allow a list of space-separated values
 			if ( isset( $spaceSeparatedListAttributes[$key] ) ) {
 				// Apply some normalization and remove duplicates
-
-				// Convert into correct array. Array can contain space-separated
-				// values. Implode/explode to get those into the main array as well.
-				if ( is_array( $value ) ) {
-					// If input wasn't an array, we can skip this step
-					$arrayValue = [];
-					foreach ( $value as $k => $v ) {
-						if ( is_string( $v ) ) {
-							// String values should be normal `[ 'foo' ]`
-							// Just append them
-							if ( !isset( $value[$v] ) ) {
-								// As a special case don't set 'foo' if a
-								// separate 'foo' => true/false exists in the array
-								// keys should be authoritative
-								foreach ( explode( ' ', $v ) as $part ) {
-									// Normalize spacing by fixing up cases where people used
-									// more than 1 space and/or a trailing/leading space
-									if ( $part !== '' && $part !== ' ' ) {
-										$arrayValue[] = $part;
-									}
-								}
-							}
-						} elseif ( $v ) {
-							// If the value is truthy but not a string this is likely
-							// an [ 'foo' => true ], falsy values don't add strings
-							$arrayValue[] = $k;
-						}
-					}
-				} else {
-					$arrayValue = explode( ' ', $value );
-					// Normalize spacing by fixing up cases where people used
-					// more than 1 space and/or a trailing/leading space
-					$arrayValue = array_diff( $arrayValue, [ '', ' ' ] );
-				}
-
-				// Remove duplicates and create the string
-				$value = implode( ' ', array_unique( $arrayValue ) );
+				$value = self::expandClassList( $value );
 
 				// Optimization: Skip below boolAttribs check and jump straight
 				// to its `else` block. The current $spaceSeparatedListAttributes
@@ -700,18 +738,8 @@ class Html {
 		if ( $heading !== '' ) {
 			$html = self::element( 'h2', [], $heading ) . $html;
 		}
-		$coreClasses = [
-			'cdx-message',
-			'cdx-message--block'
-		];
-		if ( is_array( $className ) ) {
-			$className = array_merge(
-				$coreClasses,
-				$className
-			);
-		} else {
-			$className .= ' ' . implode( ' ', $coreClasses );
-		}
+		self::addClass( $className, 'cdx-message' );
+		self::addClass( $className, 'cdx-message--block' );
 		return self::rawElement( 'div', [ 'class' => $className ],
 			self::element( 'span', [ 'class' => [
 				'cdx-message__icon',
