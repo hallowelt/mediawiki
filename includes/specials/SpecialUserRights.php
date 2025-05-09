@@ -126,9 +126,11 @@ class SpecialUserRights extends SpecialPage {
 			return false;
 		}
 
-		$userGroupManager = $this->userGroupManagerFactory
-			->getUserGroupManager( $targetUser->getWikiId() );
-		$available = $userGroupManager->getGroupsChangeableBy( $this->getAuthority() );
+		if ( $this->userGroupManager === null ) {
+			$this->userGroupManager = $this->userGroupManagerFactory
+				->getUserGroupManager( $targetUser->getWikiId() );
+		}
+		$available = $this->changeableGroups();
 		if ( $available['add'] || $available['remove'] ) {
 			// can change some rights for any user
 			return true;
@@ -334,7 +336,7 @@ class SpecialUserRights extends SpecialPage {
 	 * Data comes from the editUserGroupsForm() form function
 	 *
 	 * @param string $reason Reason for group change
-	 * @param UserIdentity $user
+	 * @param UserIdentity $user The target user
 	 * @return Status
 	 */
 	protected function saveUserGroups( string $reason, UserIdentity $user ) {
@@ -423,7 +425,7 @@ class SpecialUserRights extends SpecialPage {
 	 *
 	 * This function can be used without submitting the special page
 	 *
-	 * @param UserIdentity $user
+	 * @param UserIdentity $user The target user
 	 * @param string[] $add Array of groups to add
 	 * @param string[] $remove Array of groups to remove
 	 * @param string $reason Reason for group change
@@ -437,17 +439,14 @@ class SpecialUserRights extends SpecialPage {
 	) {
 		// Validate input set...
 		$isself = $user->getName() == $this->getUser()->getName();
-		if ( $this->userGroupManager !== null ) {
-			// Used after form submit
-			$userGroupManager = $this->userGroupManager;
-		} else {
-			// Used as backend-function
-			$userGroupManager = $this->userGroupManagerFactory
+		if ( $this->userGroupManager === null ) {
+			// This is being called as a backend-function, rather than after form submit
+			$this->userGroupManager = $this->userGroupManagerFactory
 				->getUserGroupManager( $user->getWikiId() );
 		}
-		$groups = $userGroupManager->getUserGroups( $user );
-		$ugms = $userGroupManager->getUserGroupMemberships( $user );
-		$changeable = $userGroupManager->getGroupsChangeableBy( $this->getAuthority() );
+		$groups = $this->userGroupManager->getUserGroups( $user );
+		$ugms = $this->userGroupManager->getUserGroupMemberships( $user );
+		$changeable = $this->changeableGroups();
 		$addable = array_merge( $changeable['add'], $isself ? $changeable['add-self'] : [] );
 		$removable = array_merge( $changeable['remove'], $isself ? $changeable['remove-self'] : [] );
 
@@ -480,13 +479,13 @@ class SpecialUserRights extends SpecialPage {
 		$this->getHookRunner()->onChangeUserGroups( $this->getUser(), $hookUser, $add, $remove );
 
 		$oldGroups = $groups;
-		$oldUGMs = $userGroupManager->getUserGroupMemberships( $user );
+		$oldUGMs = $this->userGroupManager->getUserGroupMemberships( $user );
 		$newGroups = $oldGroups;
 
 		// Remove groups, then add new ones/update expiries of existing ones
 		if ( $remove ) {
 			foreach ( $remove as $index => $group ) {
-				if ( !$userGroupManager->removeUserFromGroup( $user, $group ) ) {
+				if ( !$this->userGroupManager->removeUserFromGroup( $user, $group ) ) {
 					unset( $remove[$index] );
 				}
 			}
@@ -495,14 +494,14 @@ class SpecialUserRights extends SpecialPage {
 		if ( $add ) {
 			foreach ( $add as $index => $group ) {
 				$expiry = $groupExpiries[$group] ?? null;
-				if ( !$userGroupManager->addUserToGroup( $user, $group, $expiry, true ) ) {
+				if ( !$this->userGroupManager->addUserToGroup( $user, $group, $expiry, true ) ) {
 					unset( $add[$index] );
 				}
 			}
 			$newGroups = array_merge( $newGroups, $add );
 		}
 		$newGroups = array_unique( $newGroups );
-		$newUGMs = $userGroupManager->getUserGroupMemberships( $user );
+		$newUGMs = $this->userGroupManager->getUserGroupMemberships( $user );
 
 		// Ensure that caches are cleared
 		$this->userFactory->invalidateCache( $user );
@@ -540,7 +539,7 @@ class SpecialUserRights extends SpecialPage {
 
 	/**
 	 * Add a rights log entry for an action.
-	 * @param UserIdentity $user
+	 * @param UserIdentity $user The target user
 	 * @param array $oldGroups
 	 * @param array $newGroups
 	 * @param string $reason
@@ -742,7 +741,7 @@ class SpecialUserRights extends SpecialPage {
 	/**
 	 * Show the form to edit group memberships.
 	 *
-	 * @param UserIdentity $user
+	 * @param UserIdentity $user The target user
 	 * @param string[] $groups Array of groups the user is in. Not used by this implementation
 	 *   anymore, but kept for backward compatibility with subclasses
 	 * @param UserGroupMembership[] $groupMemberships Associative array of (group name => UserGroupMembership
@@ -908,7 +907,7 @@ class SpecialUserRights extends SpecialPage {
 	 *
 	 * @param UserGroupMembership[] $usergroups Associative array of (group name as string =>
 	 *   UserGroupMembership object) for groups the user belongs to
-	 * @param UserIdentity $user
+	 * @param UserIdentity $user The target user
 	 * @return array Array with 2 elements: the XHTML table element with checkxboes, and
 	 * whether any groups are changeable
 	 */
@@ -1142,7 +1141,7 @@ class SpecialUserRights extends SpecialPage {
 	 * Use UserIdentity::getName for {{GENDER:}} in messages and
 	 * use the "display user name" for visible user names in logs or messages
 	 *
-	 * @param UserIdentity $user
+	 * @param UserIdentity $user The target user
 	 * @return string
 	 */
 	private function getDisplayUsername( UserIdentity $user ) {
