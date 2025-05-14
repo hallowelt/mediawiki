@@ -70,6 +70,7 @@ wfLoadExtension( 'UrlGetParameters' );
 
 wfLoadExtension( 'UserFunctions' );
 $GLOBALS['wgUFAllowedNamespaces'] = array_fill( 0, 5000, true );
+$GLOBALS['wgUFEnabledPersonalDataFunctions'] = [ 'username' ];
 
 wfLoadExtension( 'UserMerge' );
 $GLOBALS['wgUserMergeProtectedGroups'] = [];
