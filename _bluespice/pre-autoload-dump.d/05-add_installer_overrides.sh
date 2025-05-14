@@ -31,7 +31,7 @@ printf "\n${PURPLE}Fetching installer: ${NC}"
 if ! [ -d "mw-config/overrides/.git" ]
 then
 	rm -rf mw-config/overrides
-	git clone -b $BRANCH --depth 1 https://gerrit.wikimedia.org/r/bluespice/mw-config/overrides mw-config/overrides
+	git clone -b $BRANCH --depth 1 https://github.com/wikimedia/bluespice-mw-config-overrides.git mw-config/overrides
 else
 	git -C mw-config/overrides/ pull
 fi
