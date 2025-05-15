@@ -627,6 +627,7 @@ class MovePageTest extends MediaWikiIntegrationTestCase {
 
 		$mover = $this->getTestSysop()->getUser();
 
+		$reason = 'testEventEmission';
 		// clear the queue
 		$this->runJobs();
 
@@ -702,18 +703,57 @@ class MovePageTest extends MediaWikiIntegrationTestCase {
 		$this->expectDomainEvent(
 			PageMovedEvent::TYPE, 1,
 			static function ( PageMovedEvent $event )
-				use ( $old, $oldPageId, $new, $mover )
+				use ( $old, $oldPageId, $new, $mover, $reason )
 			{
 				Assert::assertTrue( $event->getPageRecordAfter()->isSamePageAs( $new ) );
 				Assert::assertTrue( $event->getPageRecordBefore()->isSamePageAs( $old ) );
 
 				Assert::assertSame( $oldPageId, $event->getPageId() );
+
+				Assert::assertSame( $reason, $event->getReason(), 'getReason()' );
+
+				// Default settings: Move is expected to create a redirect.
+				Assert::assertTrue( $event->wasRedirectCreated() );
+				Assert::assertNotNull( $event->getRedirectPage() );
+				Assert::assertSame( $old->getDBkey(), $event->getRedirectPage()->getDBkey(), "getRedirectArticle()" );
+				Assert::assertNotSame( $oldPageId, $event->getRedirectPage()->getId() );
 			}
 		);
 
 		// Now move the page
 		$obj = $this->newMovePageWithMocks( $old, $new, [ 'db' => $this->getDb() ] );
-		$obj->move( $mover );
+		$obj->move( $mover, $reason );
+	}
+
+	/**
+	 * Test case for T394049
+	 */
+	public function testEventEmissionWithoutCreatingRedirect() {
+		$old = Title::makeTitle( NS_MEDIAWIKI, 'Foo' );
+
+		$this->getExistingTestPage( $old );
+
+		$new = Title::makeTitle( NS_MEDIAWIKI, 'Bar' );
+		$this->getNonexistingTestPage( $new );
+
+		$mover = $this->getTestSysop()->getUser();
+
+		// clear the queue
+		$this->runJobs();
+
+		$this->expectDomainEvent(
+			PageMovedEvent::TYPE, 1,
+			static function ( PageMovedEvent $event )
+			use ( $old, $new, $mover )
+			{
+				Assert::assertFalse( $event->wasRedirectCreated() );
+				Assert::assertNull( $event->getRedirectPage() );
+			}
+		);
+
+		// Now move the page without creating a redirect
+		$obj = $this->newMovePageWithMocks( $old, $new, [ 'db' => $this->getDb() ] );
+		$obj->move( $mover, null, false );
 	}
 
 	public static function provideUpdatePropagation() {

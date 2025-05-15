@@ -745,7 +745,9 @@ class MovePage {
 		$this->eventDispatcher->dispatch( new PageMovedEvent(
 			$pageStateBeforeMove,
 			$this->newTitle->toPageRecord( IDBAccessObject::READ_LATEST ),
-			$user
+			$user,
+			$reason,
+			$moveAttemptResult->getValue()['redirectPage']
 		), $this->dbProvider );
 
 		$dbw->endAtomic( __METHOD__ );
@@ -948,6 +950,7 @@ class MovePage {
 
 		// Recreate the redirect, this time in the other direction.
 		$redirectRevision = null;
+		$redirectArticle = null;
 		if ( $redirectContent ) {
 			$redirectArticle = $this->wikiPageFactory->newFromTitle( $this->oldTitle );
 			$redirectArticle->loadFromRow( false, IDBAccessObject::READ_LOCKING ); // T48397
@@ -969,6 +972,7 @@ class MovePage {
 		return Status::newGood( [
 			'nullRevision' => $nullRevision,
 			'redirectRevision' => $redirectRevision,
+			'redirectPage' => $redirectArticle !== null ? $redirectArticle->toPageRecord() : null
 		] );
 	}
 }
