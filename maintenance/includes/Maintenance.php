@@ -803,11 +803,16 @@ abstract class Maintenance {
 	}
 
 	/**
-	 * Normally we disable the memory_limit when running admin scripts.
-	 * Some scripts may wish to actually set a limit, however, to avoid
-	 * blowing up unexpectedly.
+	 * Override memory_limit from php.ini on maintenance scripts.
+	 *
+	 * This defaults to max/unlimited, but some scripts may wish to set a lower limit,
+	 * to avoid blowing up unexpectedly and/or taking available memory for other
+	 * processes.
+	 *
 	 * @stable to override
-	 * @return string
+	 * @return string|int Must be a shorthand string like "50M", or a number of bytes
+	 * (-1 for unlimited) passed to `ini_set( 'memory_limit' )`, or a keyword like "max"
+	 * (alias for -1) or "default" (alias for leaving memory_limit from php.ini unchanged).
 	 */
 	public function memoryLimit() {
 		return 'max';
@@ -948,7 +953,6 @@ abstract class Maintenance {
 	 * Handle some last-minute setup here.
 	 *
 	 * @stable to override
-	 *
 	 * @param SettingsBuilder $settingsBuilder
 	 */
 	public function finalSetup( SettingsBuilder $settingsBuilder ) {
