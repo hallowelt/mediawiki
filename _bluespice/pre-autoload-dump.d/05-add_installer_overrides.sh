@@ -21,7 +21,7 @@ if [ "$BRANCH" == "4.3.x" ] || [ "$BRANCH" == "4.4.x" ] || [ "$BRANCH" == "4.5.x
 then
 	BRANCH="REL1_39-$BRANCH"
 fi
-if [ "$BRANCH" == "5.0.x" ]
+if [ "$BRANCH" == "5.0.x" ] || [ "$BRANCH" == "5.1.x" ]
 then
 	BRANCH="REL1_43-$BRANCH"
 fi
@@ -31,7 +31,7 @@ printf "\n${PURPLE}Fetching installer: ${NC}"
 if ! [ -d "mw-config/overrides/.git" ]
 then
 	rm -rf mw-config/overrides
-	git clone -b $BRANCH --depth 1 https://gerrit.wikimedia.org/r/bluespice/mw-config/overrides mw-config/overrides
+	git clone -b $BRANCH --depth 1 https://github.com/wikimedia/bluespice-mw-config-overrides.git mw-config/overrides
 else
 	git -C mw-config/overrides/ pull
 fi
