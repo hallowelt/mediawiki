@@ -93,17 +93,25 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+.env
+.devcontainer/*
 
-#bluespice free
-/images/bluespice
-/settings.d/*.local.php
-LocalSettings.local.php
+# BlueSpice
 BLUESPICE-INSTALL
 BLUESPICE-LICENCE
 BLUESPICE-RELEASE-HISTORY
 BLUESPICE-RELEASE-NOTES
+LocalSettings.local.php
 dynamic_file.php
 installcheck.php
+nsfr_img_auth.php
+webdav.php
 /_bluespice/tools/
-.env
-.devcontainer/*
+/images/bluespice
+/resources/assets/file-type-icons/fileicon-doc.png
+/resources/assets/file-type-icons/fileicon-docx.png
+/resources/assets/file-type-icons/fileicon-ppt.png
+/resources/assets/file-type-icons/fileicon-pptx.png
+/resources/assets/file-type-icons/fileicon-xls.png
+/resources/assets/file-type-icons/fileicon-xlsx.png
+/settings.d/*.local.php
