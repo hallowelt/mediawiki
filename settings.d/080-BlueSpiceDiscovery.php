@@ -67,7 +67,7 @@ if ( array_key_exists( 'semanticmediawiki', $GLOBALS['wgFooterIcons']['poweredby
  * when trying to set the BlueSpice logo.
  */
 $assetsDir = $GLOBALS['wgResourceBasePath'] . '/resources/assets/';
-$blueSpiceLogoPath = "$bsImagesPath/bs_logo.png";
+$blueSpiceLogoPath = "$bsImagesPath/BlueSpice-5_Logo.svg";
 
 if ( strpos( $GLOBALS['wgLogos']['1x'], $assetsDir ) === 0 ) {
 	$GLOBALS['wgLogos'] = [ '1x' => $blueSpiceLogoPath ];
