@@ -20,7 +20,6 @@ use MediaWiki\Session\Session;
 use MediaWiki\Session\SessionManager;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWikiLangTestCase;
-use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Constraint\Constraint;
 use ReturnTypeWillChange;
 
@@ -280,6 +279,29 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 	}
 
 	/**
+	 * Expect an ApiUsageException that results in the given API error code to be thrown
+	 * from provided callback.
+	 *
+	 * @since 1.45
+	 * @param string $expectedCode
+	 */
+	protected function expectApiErrorCodeFromCallback( string $expectedCode, callable $callback ) {
+		try {
+			$callback();
+		} catch ( ApiUsageException $exception ) {
+			$this->assertApiErrorCode( $expectedCode, $exception );
+
+			// rethrow, no further code in the test class can be executed
+			$this->expectException( ApiUsageException::class );
+			throw $exception;
+		}
+		self::fail( sprintf(
+			'Failed asserting that exception with API error code "%s" is thrown',
+			$this->expectedApiErrorCode
+		) );
+	}
+
+	/**
 	 * Assert that an ApiUsageException will result in the given API error code being outputted.
 	 *
 	 * @since 1.41
@@ -351,7 +373,7 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 			return $testResult;
 		}
 
-		throw new AssertionFailedError(
+		self::fail(
 			sprintf(
 				'Failed asserting that exception with API error code "%s" is thrown',
 				$this->expectedApiErrorCode
