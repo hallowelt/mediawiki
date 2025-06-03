@@ -1270,7 +1270,7 @@ class SessionManagerTest extends MediaWikiIntegrationTestCase {
 			[
 				LogLevel::WARNING,
 				'Session "{session}": the session store entry is for an anonymous user, ' .
-					'but the session metadata indicates a non-anonynmous user',
+					'but the session metadata indicates a non-anonymous user',
 			],
 		], $logger->getBuffer() );
 		$logger->clearBuffer();
@@ -1400,7 +1400,7 @@ class SessionManagerTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [
 			[
 				LogLevel::WARNING,
-				'Session "{session}": Metadata merge failed: {exception}',
+				'Session "{session}": Metadata merge failed: no merge!',
 			],
 		], $logger->getBuffer() );
 		$logger->clearBuffer();
