@@ -313,8 +313,10 @@ class Names {
 		'kri' => 'Krio', # Krio
 		'krj' => 'Kinaray-a', # Kinaray-a
 		'krl' => 'karjal', # Karelian
-		'ks' => 'कॉशुर / کٲشُر', # Kashmiri (multiple scripts - defaults to Perso-Arabic)
+		'ks' => 'کٲشُر', # Kashmiri (defaults to Perso-Arabic script)
+		# Backwards compatibility
 		'ks-arab' => 'کٲشُر', # Kashmiri (Perso-Arabic script)
+		# Backwards compatibility, deprecated, to be removed
 		'ks-deva' => 'कॉशुर', # Kashmiri (Devanagari script)
 		'ksh' => 'Ripoarisch', # Ripuarian
 		'ksw' => 'စှီၤ', # S'gaw Karen
@@ -592,6 +594,7 @@ class Names {
 		'yi' => 'ייִדיש', # Yiddish
 		'yo' => 'Yorùbá', # Yoruba
 		'yrl' => 'Nhẽẽgatú', # Nheengatu
+		'yua' => 'maaya t’aan', # Yucatec Maya
 		'yue' => '粵語', # Cantonese (multiple scripts - defaults to Traditional Han)
 		'yue-hans' => '粵语（简体）', # Cantonese (Simplified Han)
 		'yue-hant' => '粵語（繁體）', # Cantonese (Traditional Han)
