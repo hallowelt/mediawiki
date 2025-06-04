@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 /**
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -298,7 +300,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	private $mCacheMessage = '';
 
 	/**
-	 * @var array Timestamps for getTimeSinceStart().
+	 * @var array Timestamps for getTimeProfile().
 	 */
 	private $mParseStartTime = [];
 
@@ -378,16 +380,13 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @param bool $unused
 	 * @param string $titletext
 	 */
-	public function __construct( $text = null, $languageLinks = [], $categoryLinks = [],
+	public function __construct( ?string $text = null, array $languageLinks = [], array $categoryLinks = [],
 		$unused = false, $titletext = ''
 	) {
 		$this->mRawText = $text;
 		$this->mCategories = $categoryLinks;
 		$this->mTitleText = $titletext;
-		if ( $languageLinks === null ) { // T376323
-			wfDeprecated( __METHOD__ . ' with null $languageLinks', '1.43' );
-		}
-		foreach ( ( $languageLinks ?? [] ) as $ll ) {
+		foreach ( $languageLinks as $ll ) {
 			$this->addLanguageLink( $ll );
 		}
 		// If the content handler does not specify an alternative (by
@@ -1395,8 +1394,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	public function addTemplate( $link, $page_id, $rev_id ): void {
 		if ( $link->isExternal() ) {
 			// Will throw an InvalidArgumentException in a future release.
-			wfDeprecated( __METHOD__ . " with interwiki link", '1.42' );
-			return;
+			throw new InvalidArgumentException( __METHOD__ . " with interwiki link" );
 		}
 		$ns = $link->getNamespace();
 		$dbk = $link->getDBkey();
@@ -2244,7 +2242,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	}
 
 	/**
-	 * Resets the parse start timestamps for future calls to getTimeSinceStart()
+	 * Resets the parse start timestamps for future calls to getTimeProfile()
 	 * and recordTimeProfile().
 	 *
 	 * @since 1.22
@@ -2314,29 +2312,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 */
 	public function getTimeProfile( string $clock ) {
 		return $this->mTimeProfile[ $clock ] ?? null;
-	}
-
-	/**
-	 * Returns the time since resetParseStartTime() was last called
-	 *
-	 * Clocks available are:
-	 *  - wall: Wall clock time
-	 *  - cpu: CPU time (requires getrusage)
-	 *
-	 * @since 1.22
-	 * @deprecated since 1.42, use getTimeProfile() instead.
-	 * @param string $clock
-	 * @return float|null
-	 */
-	public function getTimeSinceStart( $clock ) {
-		wfDeprecated( __METHOD__, '1.42' );
-
-		if ( !isset( $this->mParseStartTime[$clock] ) ) {
-			return null;
-		}
-
-		$end = self::getTimes( $clock );
-		return $end[$clock] - $this->mParseStartTime[$clock];
 	}
 
 	/**
