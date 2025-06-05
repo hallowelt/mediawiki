@@ -11,6 +11,9 @@
 		}
 	},
 	"scripts": {
+		"pre-update-cmd": [
+			"sh _bluespice/pre-update-cmd.sh"
+		],
 		"pre-autoload-dump": [
 			"sh _bluespice/pre-autoload-dump.sh"
 		]
