@@ -134,12 +134,14 @@ class EtcdConfig implements Config, LoggerAwareInterface {
 		trigger_error( __METHOD__ . ' is deprecated since 1.41', E_USER_DEPRECATED );
 	}
 
+	/** @inheritDoc */
 	public function has( $name ) {
 		$this->load();
 
 		return array_key_exists( $name, $this->procCache['config'] );
 	}
 
+	/** @inheritDoc */
 	public function get( $name ) {
 		$this->load();
 
@@ -150,9 +152,9 @@ class EtcdConfig implements Config, LoggerAwareInterface {
 		return $this->procCache['config'][$name];
 	}
 
-	public function getModifiedIndex() {
+	public function getModifiedIndex(): int {
 		$this->load();
-		return $this->procCache['modifiedIndex'];
+		return (int)$this->procCache['modifiedIndex'];
 	}
 
 	/**
