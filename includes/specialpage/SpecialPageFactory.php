@@ -530,6 +530,7 @@ class SpecialPageFactory {
 				'TitleFormatter',
 				'NamespaceInfo',
 				'UserOptionsLookup',
+				'WatchlistManager'
 			]
 		],
 		'Unblock' => [
@@ -1151,6 +1152,7 @@ class SpecialPageFactory {
 				'WikiPageFactory',
 				'SearchEngineFactory',
 				'WatchlistManager',
+				'WatchedItemStore',
 				'RestrictionStore',
 				'TitleFactory',
 				'DeletePageFactory',
