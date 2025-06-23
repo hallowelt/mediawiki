@@ -214,7 +214,6 @@ class SpecialPageFactory {
 				'ContentHandlerFactory',
 				'ConnectionProvider',
 				'LinkBatchFactory',
-				'RedirectLookup'
 			]
 		],
 		'Deadendpages' => [
@@ -377,6 +376,7 @@ class SpecialPageFactory {
 				'ConnectionProvider',
 				'LinkBatchFactory',
 				'LanguageConverterFactory',
+				'LinksMigration',
 			]
 		],
 		'Wantedfiles' => [

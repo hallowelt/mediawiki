@@ -175,6 +175,12 @@ because of Phabricator reports.
 * The ParserOutputFlags class has been converted to an enumeration.  Any calls
   to ParserOutputFlags::cases() should be converted to
   ParserOutputFlags::values() if you wish to still obtain a list of strings.
+* The ParserOutputStringSets class has been converted to an
+  enumeration.  Any calls to ParserOutputStringSets::cases() should be
+  converted to ParserOutputStringSets::values() if you wish to still
+  obtain a list of strings.
+* The parameter $default of WebRequest::getRawVal(), deprecated since 1.43,
+  is now removed.
 * …
 
 === Deprecations in 1.45 ===
@@ -211,6 +217,8 @@ because of Phabricator reports.
   hook runner. Migrate to the GetMagicVariableIDsHook instead.
 * PageConfigFactory::create() is now deprecated; use
   ::createFromParserOptions() instead.
+* Calling MessageCache::get with a Language object is now deprecated and emits
+  a deprecation warning.
 * …
 
 === Other changes in 1.45 ===

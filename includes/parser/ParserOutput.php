@@ -674,8 +674,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	public function getLanguageLinks() {
 		$result = [];
 		foreach ( $this->mLanguageLinkMap as $lang => $title ) {
-			// T374736: Back-compat with empty prefix; see ::addLanguageLink()
-			$result[] = $title === '|' ? "$lang" : "$lang:$title";
+			$result[] = "$lang:$title";
 		}
 		return $result;
 	}
@@ -824,9 +823,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 			case ParserOutputLinkTypes::LANGUAGE:
 				foreach ( $this->mLanguageLinkMap as $lang => $title ) {
-					if ( $title === '|' ) {
-						continue; // T374736
-					}
 					# language links can have fragments!
 					[ $title, $frag ] = array_pad( explode( '#', $title, 2 ), 2, '' );
 					$result[]  = [
@@ -1243,9 +1239,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			[ $lang, $title ] = array_pad( explode( ':', $t, 2 ), -2, '' );
 		}
 		if ( $lang === '' ) {
-			// T374736: For backward compatibility with test cases only!
-			wfDeprecated( __METHOD__ . ' without prefix', '1.43' );
-			[ $lang, $title ] = [ $title, '|' ]; // | can not occur in valid title
+			throw new InvalidArgumentException( __METHOD__ . ' without prefix' );
 		}
 		$this->mLanguageLinkMap[$lang] ??= $title;
 	}
@@ -2052,36 +2046,32 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * should use ::appendExtensionData() rather than creating new string sets
 	 * with ::appendOutputStrings() in order to prevent namespace conflicts.
 	 *
-	 * @param string $name A string set name
+	 * @param string|ParserOutputStringSets $name A string set name
 	 * @param string[] $value
 	 * @since 1.41
 	 */
-	public function appendOutputStrings( string $name, array $value ): void {
-		switch ( $name ) {
-			case ParserOutputStringSets::MODULE:
-				$this->addModules( $value );
-				break;
-			case ParserOutputStringSets::MODULE_STYLE:
-				$this->addModuleStyles( $value );
-				break;
-			case ParserOutputStringSets::EXTRA_CSP_DEFAULT_SRC:
-				foreach ( $value as $v ) {
-					$this->addExtraCSPDefaultSrc( $v );
-				}
-				break;
-			case ParserOutputStringSets::EXTRA_CSP_SCRIPT_SRC:
-				foreach ( $value as $v ) {
-					$this->addExtraCSPScriptSrc( $v );
-				}
-				break;
-			case ParserOutputStringSets::EXTRA_CSP_STYLE_SRC:
-				foreach ( $value as $v ) {
-					$this->addExtraCSPStyleSrc( $v );
-				}
-				break;
-			default:
-				throw new UnexpectedValueException( "Unknown output string set name $name" );
+	public function appendOutputStrings( string|ParserOutputStringSets $name, array $value ): void {
+		if ( is_string( $name ) ) {
+			$name = ParserOutputStringSets::from( $name );
 		}
+		match ( $name ) {
+			ParserOutputStringSets::MODULE =>
+				$this->addModules( $value ),
+			ParserOutputStringSets::MODULE_STYLE =>
+				$this->addModuleStyles( $value ),
+			ParserOutputStringSets::EXTRA_CSP_DEFAULT_SRC =>
+				array_walk( $value, fn ( $v, $i ) =>
+					$this->addExtraCSPDefaultSrc( $v )
+				),
+			ParserOutputStringSets::EXTRA_CSP_SCRIPT_SRC =>
+				array_walk( $value, fn ( $v, $i ) =>
+					$this->addExtraCSPScriptSrc( $v )
+				),
+			ParserOutputStringSets::EXTRA_CSP_STYLE_SRC =>
+				array_walk( $value, fn ( $v, $i ) =>
+					$this->addExtraCSPStyleSrc( $v )
+				),
+		};
 	}
 
 	/**
@@ -2092,25 +2082,26 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * ParserOutputStringSets in core; they should use ::appendExtensionData()
 	 * to define their own string sets.
 	 *
-	 * @param string $name A string set name
+	 * @param string|ParserOutputStringSets $name A string set name
 	 * @return string[] The string set value
 	 * @since 1.41
 	 */
-	public function getOutputStrings( string $name ): array {
-		switch ( $name ) {
-			case ParserOutputStringSets::MODULE:
-				return $this->getModules();
-			case ParserOutputStringSets::MODULE_STYLE:
-				return $this->getModuleStyles();
-			case ParserOutputStringSets::EXTRA_CSP_DEFAULT_SRC:
-				return $this->getExtraCSPDefaultSrcs();
-			case ParserOutputStringSets::EXTRA_CSP_SCRIPT_SRC:
-				return $this->getExtraCSPScriptSrcs();
-			case ParserOutputStringSets::EXTRA_CSP_STYLE_SRC:
-				return $this->getExtraCSPStyleSrcs();
-			default:
-				throw new UnexpectedValueException( "Unknown output string set name $name" );
+	public function getOutputStrings( string|ParserOutputStringSets $name ): array {
+		if ( is_string( $name ) ) {
+			$name = ParserOutputStringSets::from( $name );
 		}
+		return match ( $name ) {
+			ParserOutputStringSets::MODULE =>
+				$this->getModules(),
+			ParserOutputStringSets::MODULE_STYLE =>
+				$this->getModuleStyles(),
+			ParserOutputStringSets::EXTRA_CSP_DEFAULT_SRC =>
+				$this->getExtraCSPDefaultSrcs(),
+			ParserOutputStringSets::EXTRA_CSP_SCRIPT_SRC =>
+				$this->getExtraCSPScriptSrcs(),
+			ParserOutputStringSets::EXTRA_CSP_STYLE_SRC =>
+				$this->getExtraCSPStyleSrcs(),
+		};
 	}
 
 	/**
@@ -2776,7 +2767,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 		// Uniform handling of string sets: they are unioned.
 		// (This includes modules, style modes, and CSP src.)
-		foreach ( ParserOutputStringSets::cases() as $name ) {
+		foreach ( ParserOutputStringSets::values() as $name ) {
 			$metadata->appendOutputStrings(
 				$name, $this->getOutputStrings( $name )
 			);
@@ -2821,9 +2812,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		}
 
 		foreach ( $this->mLanguageLinkMap as $lang => $title ) {
-			if ( $title === '|' ) {
-				continue; // T374736: not a valid language link
-			}
 			# language links can have fragments!
 			[ $title, $frag ] = array_pad( explode( '#', $title, 2 ), 2, '' );
 			$lt = TitleValue::tryNew( NS_MAIN, $title, $frag, (string)$lang );
@@ -3154,7 +3142,12 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		$this->mRawText = $jsonData['Text'];
 		$this->mLanguageLinkMap = [];
 		foreach ( ( $jsonData['LanguageLinks'] ?? [] ) as $l ) {
-			$this->addLanguageLink( $l );
+			// T374736: old serialized parser cache entries may
+			// contain invalid language links; drop them quietly.
+			// (This code can be removed two LTS releases past 1.45.)
+			if ( str_contains( $l, ':' ) ) {
+				$this->addLanguageLink( $l );
+			}
 		}
 		$this->mCategories = $jsonData['Categories'];
 		$this->mIndicators = $jsonData['Indicators'];
