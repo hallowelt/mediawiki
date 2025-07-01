@@ -10,9 +10,12 @@ use MediaWiki\Auth\PreAuthenticationProvider;
 use MediaWiki\Auth\PrimaryAuthenticationProvider;
 use MediaWiki\Auth\SecondaryAuthenticationProvider;
 use MediaWiki\Content\ContentHandler;
+use MediaWiki\DomainEvent\DomainEventIngress;
 use MediaWiki\Http\HttpRequestFactory;
+use MediaWiki\JobQueue\Job;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Request\FauxRequest;
+use MediaWiki\Rest\Handler;
 use MediaWiki\Tests\Api\ApiTestContext;
 use MediaWikiIntegrationTestCase;
 use Wikimedia\Http\MultiHttpClient;
@@ -71,6 +74,19 @@ abstract class ExtensionJsonTestBase extends MediaWikiIntegrationTestCase {
 	 * rather than direct callable references to a static hook handler method.
 	 */
 	protected static bool $requireHookHandlers = false;
+
+	/**
+	 * @var bool If true, tests that JobClasses can be constructed. By default, jobs are
+	 * constructed with no parameters. getJobParams() can be used to modify this behavior.
+	 * @see self::getJobParams()
+	 */
+	protected static bool $testJobClasses = false;
+
+	/**
+	 * @var bool If true, tests that RestRoutes can be constructed.
+	 * @todo Remove this once no extension needs it.
+	 */
+	protected static bool $testRestRoutes = true;
 
 	/**
 	 * @var array[] Cache for extension.json, shared between all tests.
@@ -260,6 +276,81 @@ abstract class ExtensionJsonTestBase extends MediaWikiIntegrationTestCase {
 		}
 	}
 
+	/** @dataProvider provideJobClassesNames */
+	public function testJobClasses( string $jobName ) {
+		$jobFactory = $this->getServiceContainer()->getJobFactory();
+		$this->assertInstanceOf(
+			Job::class,
+			$jobFactory->newJob( $jobName, $this->getJobParams( $jobName ) )
+		);
+	}
+
+	/**
+	 * Get job parameters for a job
+	 *
+	 * Parameters returned in this job should cause the job to be safely constructed.
+	 * The default implementation returns an empty array.
+	 *
+	 * @stable to override
+	 * @param string $jobName
+	 * @return array
+	 */
+	protected function getJobParams( string $jobName ): array {
+		// To be implemented within the extension-provided subclasses
+		// This is not static, so that extensions can access the service container via
+		// self::getServiceContainer().
+
+		return [];
+	}
+
+	private static function doProvideJobClassesNames() {
+		foreach ( self::getExtensionJson()['JobClasses'] ?? [] as $jobName => $specification ) {
+			yield [ $jobName ];
+		}
+	}
+
+	public static function provideJobClassesNames() {
+		if ( !static::$testJobClasses ) {
+			return [];
+		}
+
+		yield from self::doProvideJobClassesNames();
+	}
+
+	/** @dataProvider provideDomainEventIngresses */
+	public function testDomainEventIngresses( array $eventIngressSpecification ) {
+		$objectFactory = MediaWikiServices::getInstance()->getObjectFactory();
+		$domainEventIngress = $objectFactory->createObject( $eventIngressSpecification );
+		$this->assertInstanceOf( DomainEventIngress::class, $domainEventIngress );
+	}
+
+	public static function provideDomainEventIngresses() {
+		foreach ( self::getExtensionJson()['DomainEventIngresses'] ?? [] as $specification ) {
+			yield [ $specification ];
+		}
+	}
+
+	/** @dataProvider provideRestRoutes */
+	public function testRestRoutes( array $restRouteSpecification ) {
+		$objectFactory = MediaWikiServices::getInstance()->getObjectFactory();
+		$restHandler = $objectFactory->createObject( $restRouteSpecification );
+		$this->assertInstanceOf( Handler::class, $restHandler );
+	}
+
+	private static function doProvideRestRoutes() {
+		foreach ( self::getExtensionJson()['RestRoutes'] ?? [] as $specification ) {
+			yield [ $specification ];
+		}
+	}
+
+	public static function provideRestRoutes() {
+		if ( !static::$testRestRoutes ) {
+			return [];
+		}
+
+		yield from self::doProvideRestRoutes();
+	}
+
 	/** @dataProvider provideServicesLists */
 	public function testServicesSorted( array $services ): void {
 		if ( $this->serviceNamePrefix === null ) {
@@ -321,6 +412,18 @@ abstract class ExtensionJsonTestBase extends MediaWikiIntegrationTestCase {
 
 		foreach ( self::provideSessionProviders() as [ $providerName ] ) {
 			yield "SessionProviders/$providerName" => $extensionJson['SessionProviders'][$providerName];
+		}
+
+		foreach ( self::doProvideJobClassesNames() as [ $jobName ] ) {
+			yield "JobClasses/$jobName" => $extensionJson['JobClasses'][$jobName];
+		}
+
+		foreach ( self::provideDomainEventIngresses() as $index => $domainEventIngressSpecification ) {
+			yield "DomainEventIngresses/$index" => $domainEventIngressSpecification;
+		}
+
+		foreach ( self::doProvideRestRoutes() as $index => $restRoute ) {
+			yield "RestRoutes/$index" => $restRoute;
 		}
 	}
 
