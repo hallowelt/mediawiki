@@ -35,6 +35,6 @@
 		"mediawiki/visual-editor-plus": "dev-REL1_43-2.1.x",
 		"mediawiki/vuejs-plus": "dev-REL1_43-2.0.x",
 		"starcitizenwiki/embedvideo": "3.4.*",
-		"universal-omega/dynamic-page-list3": "3.6.*"
+		"universal-omega/dynamic-page-list3": "3.6.2.1+BlueSpice511"
 	}
 }
