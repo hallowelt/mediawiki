@@ -100,6 +100,7 @@ class PrometheusFileReporter extends WDIOReporter {
 				retries: 0,
 				maxDuration: 0
 			};
+			this.spec.totalTests++;
 		}
 	}
 
@@ -109,7 +110,6 @@ class PrometheusFileReporter extends WDIOReporter {
 		myTest.passed++;
 		myTest.maxDuration = Math.max( myTest.maxDuration, testDurationInSeconds );
 		this.spec.passed++;
-		this.spec.totalTests++;
 	}
 
 	onTestFail( test ) {
@@ -118,7 +118,6 @@ class PrometheusFileReporter extends WDIOReporter {
 		myTest.failed++;
 		myTest.maxDuration = Math.max( myTest.maxDuration, testDurationInSeconds );
 		this.spec.failed++;
-		this.spec.totalTests++;
 	}
 
 	onTestSkip( test ) {
@@ -132,9 +131,9 @@ class PrometheusFileReporter extends WDIOReporter {
 				retries: 0,
 				maxDuration: 0
 			};
+			this.spec.totalTests++;
 		}
 		this.spec.skipped++;
-		this.spec.totalTests++;
 	}
 
 	onTestRetry( test ) {
@@ -146,6 +145,11 @@ class PrometheusFileReporter extends WDIOReporter {
 		const labels = this.labels;
 		const specMetrics = this.spec;
 		const workerId = runnerStats.cid;
+
+		// Depending on how we configure webdriver.io we have two kind of retries:
+		// either per test or for a spec file (where the runner is restarted)
+		// and we want the number of retries from both
+		specMetrics.retries += runnerStats.retries;
 
 		specMetrics.duration = getSpecDuration( this.suiteMetrics );
 		specMetrics.labels = labels;
