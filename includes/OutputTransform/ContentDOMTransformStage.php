@@ -3,11 +3,12 @@ declare( strict_types = 1 );
 
 namespace MediaWiki\OutputTransform;
 
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
 use Wikimedia\Parsoid\Core\DomPageBundle;
-use Wikimedia\Parsoid\Core\PageBundle;
+use Wikimedia\Parsoid\Core\HtmlPageBundle;
 use Wikimedia\Parsoid\DOM\Document;
 use Wikimedia\Parsoid\DOM\Element;
 use Wikimedia\Parsoid\Utils\ContentUtils;
@@ -64,7 +65,7 @@ abstract class ContentDOMTransformStage extends OutputTransformStage {
 			$origPb = PageBundleParserOutputConverter::pageBundleFromParserOutput( $po );
 			// TODO: pageBundleFromParserOutput should be able to create a
 			// DomPageBundle when the HTMLHolder has a DOM already.
-			$doc = DomPageBundle::fromPageBundle( $origPb )->toDom( true );
+			$doc = DomPageBundle::fromHtmlPageBundle( $origPb )->toDom( true );
 		} else {
 			$doc = ContentUtils::createAndLoadDocument(
 				$po->getContentHolderText(), [ 'markNew' => true, 'validateXMLNames' => true, ]
@@ -75,10 +76,12 @@ abstract class ContentDOMTransformStage extends OutputTransformStage {
 
 		// TODO will use HTMLHolder/DomPageBundle in the future
 		if ( $hasPageBundle ) {
+			$services = MediaWikiServices::getInstance();
 			$dpb = DomPageBundle::fromLoadedDocument( $doc, [
 				'pageBundle' => $origPb,
+				'siteConfig' => $services->getParsoidSiteConfig(),
 			] );
-			$pb = PageBundle::fromDomPageBundle( $dpb, [ 'body_only' => true ] );
+			$pb = HtmlPageBundle::fromDomPageBundle( $dpb, [ 'body_only' => true ] );
 			PageBundleParserOutputConverter::applyPageBundleDataToParserOutput( $pb, $po );
 			$text = $pb->html;
 		} else {
