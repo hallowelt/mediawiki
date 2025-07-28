@@ -16,6 +16,26 @@ $GLOBALS[ 'wgEnhancedUIsAllPagesPaginatorOffset' ] = 64;
 $GLOBALS[ 'wgEnhancedUIsAllPagesOverride' ] = true;
 $GLOBALS[ 'wgEnhancedUIsFilelistOverride' ] = true;
 $GLOBALS[ 'wgEnhancedUIsSpecialSpecialPagesOverride' ] = true;
+# Some MediaWiki user prefences are confusing and/or incompatible with BlueSpice.
+# Therefore we hide them in the new "enhanced" user preferences of Extension EnhancedStandardUIs.
+# Section:Info
+$GLOBALS['wgHiddenPrefs'][] = 'username';
+$GLOBALS['wgHiddenPrefs'][] = 'usergroups';
+$GLOBALS['wgHiddenPrefs'][] = 'editcount';
+$GLOBALS['wgHiddenPrefs'][] = 'registrationdate';
+# Section:Rendering
+$GLOBALS['wgHiddenPrefs'][] = 'imagesize';
+$GLOBALS['wgHiddenPrefs'][] = 'thumbsize';
+$GLOBALS['wgHiddenPrefs'][] = 'multimediaviewer-enable';
+$GLOBALS['wgHiddenPrefs'][] = 'showhiddencats';
+$GLOBALS['wgHiddenPrefs'][] = 'forcesafemode';
+## Extension:Math
+$GLOBALS['wgHiddenPrefs'][] = 'math';
+$GLOBALS['wgHiddenPrefs'][] = 'math-popups';
+# Section:Section:Recent Changes
+$GLOBALS['wgHiddenPrefs'][] = 'rcenhancedfilters-disable';
+# Section:Watchlist
+$GLOBALS['wgHiddenPrefs'][] = 'wlenhancedfilters-disable';
 
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
