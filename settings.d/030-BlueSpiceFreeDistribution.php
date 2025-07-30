@@ -16,6 +16,7 @@ $GLOBALS[ 'wgEnhancedUIsAllPagesPaginatorOffset' ] = 64;
 $GLOBALS[ 'wgEnhancedUIsAllPagesOverride' ] = true;
 $GLOBALS[ 'wgEnhancedUIsFilelistOverride' ] = true;
 $GLOBALS[ 'wgEnhancedUIsSpecialSpecialPagesOverride' ] = true;
+$GLOBALS[ 'wgEnhancedUIsSpecialPreferencesOverride' ] = true;
 # Some MediaWiki user prefences are confusing and/or incompatible with BlueSpice.
 # Therefore we hide them in the new "enhanced" user preferences of Extension EnhancedStandardUIs.
 # Section:Info
