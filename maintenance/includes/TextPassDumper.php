@@ -198,7 +198,7 @@ TEXT
 
 	public function execute() {
 		$this->processOptions();
-		$this->dump( true );
+		$this->dump( $this->history );
 	}
 
 	protected function processOptions() {
@@ -242,11 +242,13 @@ TEXT
 		}
 	}
 
+	/** @inheritDoc */
 	public function initProgress( $history = WikiExporter::FULL ) {
-		parent::initProgress();
+		parent::initProgress( $history );
 		$this->timeOfCheckpoint = $this->startTime;
 	}
 
+	/** @inheritDoc */
 	public function dump( $history, $text = WikiExporter::TEXT ) {
 		// Notice messages will foul up your XML output even if they're
 		// relatively harmless.
@@ -254,7 +256,7 @@ TEXT
 			ini_set( 'display_errors', 'stderr' );
 		}
 
-		$this->initProgress( $this->history );
+		$this->initProgress( $history );
 
 		$this->egress = new ExportProgressFilter( $this->sink, $this );
 
