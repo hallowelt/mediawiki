@@ -243,9 +243,6 @@ class EditPage implements IEditObject {
 	private $incompleteForm = false;
 
 	/** @var bool */
-	private $missingComment = false;
-
-	/** @var bool */
 	private $missingSummary = false;
 
 	/** @var bool */
@@ -1900,9 +1897,7 @@ class EditPage implements IEditObject {
 			case self::AS_ARTICLE_WAS_DELETED:
 			case self::AS_CONFLICT_DETECTED:
 			case self::AS_SUMMARY_NEEDED:
-			case self::AS_TEXTBOX_EMPTY:
 			case self::AS_END:
-			case self::AS_BLANK_ARTICLE:
 			case self::AS_REVISION_WAS_DELETED:
 				return true;
 
@@ -1911,6 +1906,7 @@ class EditPage implements IEditObject {
 
 			// Status codes that provide their own error/warning messages. Most error scenarios that don't
 			// need custom user interface (e.g. edit conflicts) should be handled here, one day (T384399).
+			case self::AS_BLANK_ARTICLE:
 			case self::AS_BROKEN_REDIRECT:
 			case self::AS_DOUBLE_REDIRECT:
 			case self::AS_DOUBLE_REDIRECT_LOOP:
@@ -1919,6 +1915,7 @@ class EditPage implements IEditObject {
 			case self::AS_MAX_ARTICLE_SIZE_EXCEEDED:
 			case self::AS_PARSE_ERROR:
 			case self::AS_SELF_REDIRECT:
+			case self::AS_TEXTBOX_EMPTY:
 			case self::AS_UNABLE_TO_ACQUIRE_TEMP_ACCOUNT:
 			case self::AS_UNICODE_NOT_SUPPORTED:
 				foreach ( $status->getMessages() as $msg ) {
@@ -2172,6 +2169,9 @@ class EditPage implements IEditObject {
 		$constraintFactory = MediaWikiServices::getInstance()->getService( '_EditConstraintFactory' );
 		$constraintRunner = new EditConstraintRunner();
 
+		// Message key of the label of the submit button - used by some constraint error messages
+		$submitButtonLabel = $this->getSubmitButtonLabel();
+
 		// UnicodeConstraint: ensure that `$this->unicodeCheck` is the correct unicode
 		$constraintRunner->addConstraint(
 			new UnicodeConstraint( $this->unicodeCheck )
@@ -2303,7 +2303,8 @@ class EditPage implements IEditObject {
 				new DefaultTextConstraint(
 					$this->mTitle,
 					$this->allowBlankArticle,
-					$this->textbox1
+					$this->textbox1,
+					$submitButtonLabel
 				)
 			);
 
@@ -2512,9 +2513,6 @@ class EditPage implements IEditObject {
 		// Check for length errors again now that the section is merged in
 		$this->contentLength = strlen( $this->toEditText( $content ) );
 
-		// Message key of the label of the submit button - used by some constraint error messages
-		$submitButtonLabel = $this->getSubmitButtonLabel();
-
 		// BEGINNING OF MIGRATION TO EDITCONSTRAINT SYSTEM (see T157658)
 		// Create a new runner to avoid rechecking the prior constraints, use the same factory
 		$constraintRunner = new EditConstraintRunner();
@@ -2648,8 +2646,6 @@ class EditPage implements IEditObject {
 			$failed instanceof NewSectionMissingSubjectConstraint
 		) {
 			$this->missingSummary = true;
-		} elseif ( $failed instanceof MissingCommentConstraint ) {
-			$this->missingComment = true;
 		} elseif ( $failed instanceof RedirectConstraint ) {
 			$this->problematicRedirectTarget = $failed->problematicTarget;
 		}
@@ -3372,10 +3368,6 @@ class EditPage implements IEditObject {
 
 			$buttonLabel = $this->context->msg( $this->getSubmitButtonLabel() )->text();
 
-			if ( $this->missingComment ) {
-				$out->wrapWikiMsg( "<div id='mw-missingcommenttext'>\n$1\n</div>", 'missingcommenttext' );
-			}
-
 			if ( $this->missingSummary && $this->section !== 'new' ) {
 				$out->wrapWikiMsg(
 					"<div id='mw-missingsummary'>\n$1\n</div>",
@@ -3387,13 +3379,6 @@ class EditPage implements IEditObject {
 				$out->wrapWikiMsg(
 					"<div id='mw-missingcommentheader'>\n$1\n</div>",
 					[ 'missingcommentheader', $buttonLabel ]
-				);
-			}
-
-			if ( $this->blankArticle ) {
-				$out->wrapWikiMsg(
-					"<div id='mw-blankarticle'>\n$1\n</div>",
-					[ 'blankarticle', $buttonLabel ]
 				);
 			}
 
