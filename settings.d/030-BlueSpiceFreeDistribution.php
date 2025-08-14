@@ -72,7 +72,7 @@ $GLOBALS['wgDefaultUserOptions']['smw-prefs-general-options-suggester-textinput'
 $GLOBALS['wgHiddenPrefs'][] = 'smw-prefs-general-options-suggester-textinput';
 $GLOBALS['wgDefaultUserOptions']['smw-prefs-general-options-show-entity-issue-panel'] = 0;
 $GLOBALS['wgHiddenPrefs'][] = 'smw-prefs-general-options-show-entity-issue-panel';
-$GLOBALS['wgHiddenPrefs'][] = 'srf-prefs-intro'
+$GLOBALS['wgHiddenPrefs'][] = 'srf-prefs-intro';
 # Section:Search
 $GLOBALS['wgDefaultUserOptions']['smw-prefs-ask-options-tooltip-display'] = 1;
 $GLOBALS['wgHiddenPrefs'][] = 'smw-prefs-ask-options-tooltip-display';
