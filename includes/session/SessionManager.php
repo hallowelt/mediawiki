@@ -1,7 +1,5 @@
 <?php
 /**
- * MediaWiki\Session entry point
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,7 +16,6 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
- * @ingroup Session
  */
 
 namespace MediaWiki\Session;
@@ -77,9 +74,9 @@ use Wikimedia\ObjectFactory\ObjectFactory;
  * The SessionManager uses `set()` and `delete()` for write operations, which should be
  * synchronous in the local data centre, and replicate asynchronously to any others.
  *
- * @ingroup Session
- * @since 1.27
  * @see https://www.mediawiki.org/wiki/Manual:SessionManager_and_AuthManager
+ * @since 1.27
+ * @ingroup Session
  */
 class SessionManager implements SessionManagerInterface {
 	private LoggerInterface $logger;
@@ -430,7 +427,8 @@ class SessionManager implements SessionManagerInterface {
 
 	/**
 	 * Save all active sessions on shutdown
-	 * @internal Public for call from shutdown function
+	 *
+	 * @internal For use by PHPSessionHandler::install
 	 */
 	public function shutdown() {
 		if ( $this->allSessionBackends ) {
@@ -448,6 +446,7 @@ class SessionManager implements SessionManagerInterface {
 
 	/**
 	 * Fetch the SessionInfo(s) for a request
+	 *
 	 * @param WebRequest $request
 	 * @return SessionInfo|null
 	 */
@@ -817,6 +816,7 @@ class SessionManager implements SessionManagerInterface {
 
 	/**
 	 * Create a Session corresponding to the passed SessionInfo
+	 *
 	 * @internal For use by a SessionProvider that needs to specially create its
 	 *  own Session. Most session providers won't need this.
 	 * @param SessionInfo $info
@@ -876,6 +876,7 @@ class SessionManager implements SessionManagerInterface {
 
 	/**
 	 * Change a SessionBackend's ID
+	 *
 	 * @internal For use from \MediaWiki\Session\SessionBackend only
 	 * @param SessionBackend $backend
 	 */
@@ -897,6 +898,7 @@ class SessionManager implements SessionManagerInterface {
 
 	/**
 	 * Generate a new random session ID
+	 *
 	 * @return string
 	 */
 	public function generateSessionId() {
@@ -909,7 +911,8 @@ class SessionManager implements SessionManagerInterface {
 
 	/**
 	 * Call setters on a PHPSessionHandler
-	 * @internal Use PhpSessionHandler::install()
+	 *
+	 * @internal Use PhpSessionHandler::install() instead.
 	 * @param PHPSessionHandler $handler
 	 */
 	public function setupPHPSessionHandler( PHPSessionHandler $handler ) {
@@ -935,13 +938,17 @@ class SessionManager implements SessionManagerInterface {
 	}
 
 	/**
+	 * Write debug logs if the current request may have experienced session leak bug.
+	 *
 	 * If the same session is suddenly used from a different IP, that's potentially due
-	 * to a session leak, so log it. In the vast majority of cases it is a false positive
-	 * due to a user switching connections, but we are interested in an audit track where
-	 * we can look up a specific username, so a noisy log is fine.
-	 * Also log changes to the mwuser cookie, an analytics cookie set by mediawiki.user.js
-	 * which should be a little less noisy.
-	 * @private For use in Setup.php only
+	 * to a session leak bug, so log it for investigation. In most cases, these are
+	 * false positives simply due to a user switching connections. Noisy logs are fine,
+	 * because we only use this audit trail by looking up a specific username.
+	 *
+	 * This also logs for unexpected changes to the "mwuser" cookie, an analytics cookie
+	 * set from mediawiki.user.js, which should be a little less noisy.
+	 *
+	 * @internal For use in Setup.php only
 	 * @param Session|null $session For testing only
 	 */
 	public function logPotentialSessionLeakage( ?Session $session = null ) {
@@ -1035,7 +1042,6 @@ class SessionManager implements SessionManagerInterface {
 	 *   - type: 'write' or 'delete'.
 	 *   - reason: why the write happened
 	 * @param string $level PSR LogLevel constant (defaults to info)
-	 * @throws MWException
 	 * @see SessionBackend::logSessionWrite()
 	 */
 	private function logSessionWrite(
