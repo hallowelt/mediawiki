@@ -24,12 +24,40 @@ $GLOBALS['wgHiddenPrefs'][] = 'username';
 $GLOBALS['wgHiddenPrefs'][] = 'usergroups';
 $GLOBALS['wgHiddenPrefs'][] = 'editcount';
 $GLOBALS['wgHiddenPrefs'][] = 'registrationdate';
-# Section:Rendering
+# Section:Appearance
+$GLOBALS['wgDefaultUserOptions']['popups'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'popups';
+$GLOBALS['wgDefaultUserOptions']['popups-reference-previews'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'popups-reference-previews';
+$GLOBALS['wgDefaultUserOptions']['diffonly'] = 0;
+$GLOBALS['wgHiddenPrefs'][] = 'diffonly';
+$GLOBALS['wgDefaultUserOptions']['norollbackdiff'] = 0;
+$GLOBALS['wgHiddenPrefs'][] = 'norollbackdiff';
+$GLOBALS['wgDefaultUserOptions']['revisionslider-disable'] = 0;
+$GLOBALS['wgHiddenPrefs'][] = 'revisionslider-disable';
+$GLOBALS['wgDefaultUserOptions']['showrollbackconfirmation'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'showrollbackconfirmation';
+# Tab:Editing
+# Section: General
+$GLOBALS['wgDefaultUserOptions']['twocolconflict-enabled'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'twocolconflict-enabled';
+# Section: Editor
+$GLOBALS['wgHiddenPrefs'][] = 'editfont';
+$GLOBALS['wgDefaultUserOptions']['useeditwarning'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'useeditwarning';
+$GLOBALS['wgDefaultUserOptions']['visualeditor-betatempdisable'] = 0;
+$GLOBALS['wgHiddenPrefs'][] = 'visualeditor-betatempdisable';
+# Section:Files
 $GLOBALS['wgHiddenPrefs'][] = 'imagesize';
 $GLOBALS['wgHiddenPrefs'][] = 'thumbsize';
 $GLOBALS['wgHiddenPrefs'][] = 'multimediaviewer-enable';
+# Section:Advanced options
 $GLOBALS['wgHiddenPrefs'][] = 'showhiddencats';
 $GLOBALS['wgHiddenPrefs'][] = 'forcesafemode';
+# Section:Preview
+$GLOBALS['wgHiddenPrefs'][] = 'previewonfirst';
+$GLOBALS['wgHiddenPrefs'][] = 'previewontop';
+$GLOBALS['wgHiddenPrefs'][] = 'uselivepreview';
 ## Extension:Math
 $GLOBALS['wgHiddenPrefs'][] = 'math';
 $GLOBALS['wgHiddenPrefs'][] = 'math-popups';
@@ -37,6 +65,22 @@ $GLOBALS['wgHiddenPrefs'][] = 'math-popups';
 $GLOBALS['wgHiddenPrefs'][] = 'rcenhancedfilters-disable';
 # Section:Watchlist
 $GLOBALS['wgHiddenPrefs'][] = 'wlenhancedfilters-disable';
+# Tab: SMW
+# Section:General
+$GLOBALS['wgHiddenPrefs'][] = 'smw-prefs-general-options-time-correction';
+$GLOBALS['wgDefaultUserOptions']['smw-prefs-general-options-suggester-textinput'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'smw-prefs-general-options-suggester-textinput';
+$GLOBALS['wgDefaultUserOptions']['smw-prefs-general-options-show-entity-issue-panel'] = 0;
+$GLOBALS['wgHiddenPrefs'][] = 'smw-prefs-general-options-show-entity-issue-panel';
+$GLOBALS['wgHiddenPrefs'][] = 'srf-prefs-intro';
+# Section:Search
+$GLOBALS['wgDefaultUserOptions']['smw-prefs-ask-options-tooltip-display'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'smw-prefs-ask-options-tooltip-display';
+# Section:Event calendar
+$GLOBALS['wgDefaultUserOptions']['srf-prefs-eventcalendar-options-update-default'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'srf-prefs-eventcalendar-options-update-default';
+$GLOBALS['wgDefaultUserOptions']['srf-prefs-eventcalendar-options-paneview-default'] = 1;
+$GLOBALS['wgHiddenPrefs'][] = 'srf-prefs-eventcalendar-options-paneview-default';
 
 wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
