@@ -1924,13 +1924,20 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * expected that NO_INDEX_POLICY "wins" in that case. (T16899)
 	 * (This resolution is implemented in ::getIndexPolicy().)
 	 *
-	 * @param ParserOutputFlags|string $name A flag name
+	 * @param ParserOutputFlags|string $name A flag name.
+	 *   The use of flags which are not present in ParserOutputFlags has
+	 *   been discouraged since 1.38 and was officially deprecated in 1.45.
 	 * @param bool $val
 	 * @since 1.38
 	 */
 	public function setOutputFlag( ParserOutputFlags|string $name, bool $val = true ): void {
 		if ( is_string( $name ) ) {
 			$flag = ParserOutputFlags::tryFrom( $name );
+			if ( $flag === null ) {
+				wfDeprecated(
+					__METHOD__ . ' with non-standard flag', '1.45'
+				);
+			}
 		} else {
 			$flag = $name;
 			$name = $flag->value;
@@ -3059,7 +3066,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			'JsConfigVars' => $this->mJsConfigVars,
 			'Warnings' => $this->mWarnings,
 			'WarningMsgs' => $this->mWarningMsgs,
-			'Sections' => $this->getSections(),
+			'TOCData' => $this->mTOCData,
 			'Properties' => self::detectAndEncodeBinary( $this->mProperties ),
 			'Timestamp' => $this->mTimestamp,
 			'EnableOOUI' => $this->mEnableOOUI,
@@ -3075,11 +3082,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			'ExtraScriptSrcs' => $this->mExtraScriptSrcs,
 			'ExtraDefaultSrcs' => $this->mExtraDefaultSrcs,
 			'ExtraStyleSrcs' => $this->mExtraStyleSrcs,
-			'Flags' => $this->mFlags + (
-				// backward-compatibility: distinguish "no sections" from
-				// "sections not set" (Will be unnecessary after T327439.)
-				$this->mTOCData === null ? [] : [ 'mw:toc-set' => true ]
-			),
+			'Flags' => $this->mFlags,
 			'SpeculativeRevId' => $this->mSpeculativeRevId,
 			'SpeculativePageIdUsed' => $this->speculativePageIdUsed,
 			'RevisionTimestampUsed' => $this->revisionTimestampUsed,
@@ -3095,16 +3098,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		if ( $this->mMaxAdaptiveExpiry !== INF ) {
 			// NOTE: JSON can't encode infinity!
 			$data['MaxAdaptiveExpiry'] = $this->mMaxAdaptiveExpiry;
-		}
-
-		if ( $this->mTOCData ) {
-			// Temporarily add information from TOCData extension data
-			// T327439: We should eventually make the entire mTOCData
-			// serializable
-			$toc = $this->mTOCData->jsonSerialize();
-			if ( isset( $toc['extensionData'] ) ) {
-				$data['TOCExtensionData'] = $toc['extensionData'];
-			}
 		}
 
 		return $data;
@@ -3262,6 +3255,13 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		}
 
 		return $properties;
+	}
+
+	public function __serialize(): array {
+		// Support for PHP serialization of ParserOutput for ParserCache
+		// was turned off in 1.39 and is not guaranteed to work.
+		wfDeprecated( "PHP serialization of ParserOutput", "1.39" );
+		return (array)$this;
 	}
 
 	public function __clone() {
