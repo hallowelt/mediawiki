@@ -2827,7 +2827,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 				foreach ( $value as $item => $ignore ) {
 					$item = (string)$item;
 					if ( $item !== self::MW_MERGE_STRATEGY_KEY ) {
-						$metadata->appendJsConfigVar( $key, $item, $strategy->value );
+						$metadata->appendJsConfigVar( $key, $item, $strategy );
 					}
 				}
 			} elseif ( $metadata instanceof ParserOutput &&
@@ -2852,7 +2852,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 				foreach ( $value as $item => $ignore ) {
 					$item = (string)$item;
 					if ( $item !== self::MW_MERGE_STRATEGY_KEY ) {
-						$metadata->appendExtensionData( $key, $item, $strategy->value );
+						$metadata->appendExtensionData( $key, $item, $strategy );
 					}
 				}
 			} elseif ( $metadata instanceof ParserOutput &&
