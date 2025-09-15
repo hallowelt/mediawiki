@@ -30,8 +30,9 @@ class ContentDOMTransformStageTest extends TestCase {
 	 */
 	public function testTransform() {
 		$html = "<div>some output</div>";
-		$po = new ParserOutput( $html );
-		PageBundleParserOutputConverter::applyPageBundleDataToParserOutput( new HtmlPageBundle( $html ), $po );
+		$po = PageBundleParserOutputConverter::parserOutputFromPageBundle(
+			new HtmlPageBundle( html: $html )
+		);
 		$transform = $this->createStage();
 		$options = [ 'isParsoidContent' => true ];
 		$po = $transform->transform( $po, null, $options );
@@ -40,8 +41,7 @@ class ContentDOMTransformStageTest extends TestCase {
 	}
 
 	/**
-	 * @covers \MediaWiki\OutputTransform\ContentDOMTransformStage::parsoidTransform
-	 * @covers \MediaWiki\OutputTransform\ContentDOMTransformStage::legacyTransform
+	 * @covers \MediaWiki\OutputTransform\ContentDOMTransformStage::transform
 	 */
 	public function testTransformOption() {
 		$html = "<div>some output</div>";

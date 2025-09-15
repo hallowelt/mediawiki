@@ -22,16 +22,16 @@ declare( strict_types = 1 );
 
 namespace MediaWiki\Parser;
 
-use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
 use Wikimedia\Assert\Assert;
+use Wikimedia\Parsoid\Core\BasePageBundle;
 use Wikimedia\Parsoid\Core\DomPageBundle;
 use Wikimedia\Parsoid\Core\HtmlPageBundle;
 use Wikimedia\Parsoid\DOM\Document;
 use Wikimedia\Parsoid\DOM\DocumentFragment;
 use Wikimedia\Parsoid\Utils\ContentUtils;
 use Wikimedia\Parsoid\Utils\DOMCompat;
+use Wikimedia\Parsoid\Utils\DOMDataUtils;
 use Wikimedia\Parsoid\Utils\DOMUtils;
 
 /**
@@ -54,7 +54,7 @@ class ContentHolder {
 
 	private function __construct(
 		private Document $ownerDocument,
-		private ?HtmlPageBundle $pageBundle = null,
+		private ?BasePageBundle $pageBundle = null,
 		/**
 		 * Contains the string representation of the fragments.
 		 * $htmlMap[BODY_FRAGMENT] might contain the full document
@@ -72,22 +72,29 @@ class ContentHolder {
 	}
 
 	/**
-	 * Create a ContentHolder from a legacy body string, typically returned by the legacy parser
+	 * Create a ContentHolder from a legacy body HTML string, typically
+	 * returned by the legacy parser.
 	 */
-	public static function createFromLegacyString( string $s ): ContentHolder {
+	public static function createFromLegacyString( string $html ): ContentHolder {
 		$ch = new ContentHolder(
 			ownerDocument: DOMUtils::parseHTML( '' ),
-			htmlMap: [ self::BODY_FRAGMENT => $s ],
+			htmlMap: [ self::BODY_FRAGMENT => $html ],
 			isParsoidContent: false,
 		);
 		return $ch;
 	}
 
+	/**
+	 * Create a ContentHolder from a Parsoid HtmlPageBundle.
+	 */
 	public static function createFromParsoidPageBundle( HtmlPageBundle $pb ): ContentHolder {
+		$htmlMap = [
+			self::BODY_FRAGMENT => $pb->html,
+		] + $pb->fragments;
 		$ch = new ContentHolder(
 			ownerDocument: ContentUtils::createAndLoadDocument( '' ),
-			pageBundle: $pb,
-			htmlMap: [ self::BODY_FRAGMENT => $pb->html ],
+			pageBundle: $pb->toBasePageBundle(),
+			htmlMap: $htmlMap,
 			isParsoidContent: true,
 		);
 		return $ch;
@@ -95,6 +102,8 @@ class ContentHolder {
 
 	/**
 	 * Creates an empty ContentHolder that can be used as a placeholder.
+	 *
+	 * This does not contain any body content.
 	 */
 	public static function createEmpty(): ContentHolder {
 		return new ContentHolder(
@@ -103,6 +112,10 @@ class ContentHolder {
 		);
 	}
 
+	/**
+	 * Returns true if this ContentHolder contains Parsoid-generated
+	 * content.
+	 */
 	public function isParsoidContent(): bool {
 		// Right now, this invariant feels worth keeping because it helps to make sure that we're doing what we
 		// think we're doing; this can however be revisited if we decide to use parts of the pageBundle for legacy
@@ -113,17 +126,21 @@ class ContentHolder {
 	}
 
 	/**
-	 * Returns false if the designated fragment is not set in the ContentHolder
+	 * Returns false if the designated fragment is not present in the
+	 * ContentHolder.
 	 */
 	public function has( string $fragmentName ): bool {
 		return isset( $this->htmlMap[$fragmentName] ) || isset( $this->domMap[$fragmentName] );
 	}
 
 	/**
-	 * Returns the HTML string version of the designated fragment, or null if it is not set.
-	 * If a conversion is needed, all fragments of the document are converted to HtmlString.
+	 * Returns the designated fragment as an HTML string version, or null if
+	 * it is not present.
+	 *
+	 * @note If a conversion is needed, at present all fragments of the
+	 * document are converted to HTML strings.
 	 */
-	public function getAsHtmlString( string $fragmentName ): ?string {
+	public function getAsHtmlString( string $fragmentName = self::BODY_FRAGMENT ): ?string {
 		if ( $this->domFormat ) {
 			$this->convertDomToHtml();
 		}
@@ -131,10 +148,13 @@ class ContentHolder {
 	}
 
 	/**
-	 * Returns the DOM version of the designated fragment, or null if it is not set.
-	 * If a conversion is needed, all fragments of the document are converted to DOM.
+	 * Returns the designated fragment as a DOM DocumentFragment, or null if
+	 * it is not present.
+	 *
+	 * @note If a conversion is needed, at present all fragments of the
+	 * document are converted to DOM DocumentFragments.
 	 */
-	public function getAsDom( string $fragmentName ): ?DocumentFragment {
+	public function getAsDom( string $fragmentName = self::BODY_FRAGMENT ): ?DocumentFragment {
 		if ( !$this->domFormat ) {
 			$this->convertHtmlToDom();
 		}
@@ -142,58 +162,74 @@ class ContentHolder {
 	}
 
 	/**
-	 * Sets a fragment as a string.
+	 * Sets or removes a fragment, provided as an HTML string.
 	 * @param string $fragmentName name of the fragment to set
-	 * @param string|null $text string of the fragment to set
+	 * @param string|null $html string of the fragment to set, or null to
+	 *  remove a fragment.
 	 * @return void
+	 *
+	 * @note The self::BODY_FRAGMENT should not contain the top-level <body>
+	 * tag.
+	 * @note All fragments may be converted to HTML strings as a side-effect.
 	 */
-	public function setAsHtmlString( string $fragmentName, ?string $text ): void {
+	public function setAsHtmlString( string $fragmentName = self::BODY_FRAGMENT, ?string $html = null ): void {
 		// no need to convert the fragment that we're going to replace
 		unset( $this->domMap[ $fragmentName ] );
+
+		if ( $html === null ) {
+			unset( $this->htmlMap[$fragmentName] );
+			return;
+		}
 
 		if ( $this->domFormat ) {
 			$this->convertDomToHtml();
 		}
 
-		if ( $text === null ) {
-			unset( $this->htmlMap[$fragmentName] );
+		if ( $fragmentName === self::BODY_FRAGMENT ) {
+			Assert::invariant( !str_starts_with( $html, '<body' ),
+							   "Body fragment should not contain a body tag" );
 		}
-
-		$this->htmlMap[ $fragmentName ] = $text;
+		$this->htmlMap[ $fragmentName ] = $html;
 	}
 
 	/**
-	 * Sets a fragment as a document. Converts the ContentHolder to DOM format beforehand.
+	 * Sets or removes a fragment, provided as a DOM DocumentFragment.
 	 * @param string $fragmentName name of the fragment to set
-	 * @param DocumentFragment|null $dom the fragment to set. It should not contain a body tag in the case of a
-	 * 								body fragment.
+	 * @param DocumentFragment|null $fragment the fragment to set, or null to
+	 *   remove a fragment.
 	 * @return void
+	 *
+	 * @note The self::BODY_FRAGMENT should not contain the top-level <body>
+	 * tag.
+	 * @note All fragments may be converted to DOM DocumentFragments as a
+	 * side-effect.
 	 */
-	public function setAsDom( string $fragmentName, ?DocumentFragment $dom ) {
+	public function setAsDom( string $fragmentName = self::BODY_FRAGMENT, ?DocumentFragment $fragment = null ) {
 		// no need to convert the fragment that we're going to replace
 		unset( $this->htmlMap[ $fragmentName ] );
+
+		if ( $fragment === null ) {
+			unset( $this->domMap[ $fragmentName ] );
+			return;
+		}
 
 		if ( !$this->domFormat ) {
 			$this->convertHtmlToDom();
 		}
 
-		if ( $dom === null ) {
-			unset( $this->domMap[ $fragmentName ] );
-			return;
-		}
-		Assert::invariant( $dom->ownerDocument === $this->ownerDocument,
+		Assert::invariant( $fragment->ownerDocument === $this->ownerDocument,
 			"Fragment not owned by the ContentHolder document." );
 
-		$firstChild = $dom->firstElementChild;
+		$firstChild = $fragment->firstElementChild;
 		if ( $fragmentName === self::BODY_FRAGMENT && $firstChild ) {
 			Assert::invariant( DOMCompat::nodeName( $firstChild ) !== "body",
 				"Body fragment should not contain a body tag" );
 		}
 
-		$this->domMap[$fragmentName] = $dom;
+		$this->domMap[$fragmentName] = $fragment;
 	}
 
-	public function createFragment( ?string $html = null ): DocumentFragment|false {
+	public function createFragment( ?string $html = null ): DocumentFragment {
 		if ( !$this->domFormat ) {
 			$this->convertHtmlToDom();
 		}
@@ -206,53 +242,50 @@ class ContentHolder {
 		return DOMUtils::parseHTMLToFragment( $this->ownerDocument, $html );
 	}
 
-	public function addFragment( string $name, ?string $html = null ): DocumentFragment|false {
+	public function addFragment( string $name = self::BODY_FRAGMENT, ?string $html = null ): DocumentFragment {
 		$frag = $this->createFragment( $html );
 		$this->setAsDom( $name, $frag );
 		return $frag;
 	}
 
 	/**
-	 * Applies the PageBundle of the ContentHolder to the provided ParserOutput.
+	 * Return the BasePageBundle of the ContentHolder.
 	 * @internal
 	 */
-	public function finalize( ParserOutput $po ): void {
-		if ( !$this->isParsoidContent() ) {
-			return;
-		}
-
+	public function getBasePageBundle(): BasePageBundle {
+		Assert::invariant( $this->isParsoidContent(), 'getBasePageBundle called on non-Parsoid ContentHolder' );
 		if ( $this->domFormat ) {
+			// Ensure that data-parsoid and data-mw are serialized into
+			// the page bundle.
 			$this->convertDomToHtml();
 		}
-
-		Assert::invariant( $this->pageBundle !== null,
-			"Could not apply page bundle from ContentHolder to ParserOutput" );
-		PageBundleParserOutputConverter::applyPageBundleDataToParserOutput( $this->pageBundle, $po );
+		return $this->pageBundle;
 	}
 
 	private function convertHtmlToDom() {
 		if ( $this->domFormat ) {
 			return;
 		}
-		if ( $this->isParsoidContent() && $this->has( self::BODY_FRAGMENT ) ) {
-			$html = $this->htmlMap[ self::BODY_FRAGMENT ] ?? '';
-			$this->pageBundle->html = $html;
-			$dpb = DomPageBundle::fromHtmlPageBundle( $this->pageBundle );
+		if ( $this->isParsoidContent() ) {
+			$hasBody = $this->has( self::BODY_FRAGMENT );
+			$fragments = $this->htmlMap;
+			$html = $fragments[ self::BODY_FRAGMENT ] ?? '';
+			unset( $fragments[ self::BODY_FRAGMENT ] );
+			$dpb = DomPageBundle::fromHtmlPageBundle(
+				$this->pageBundle->withHtml( $html, $fragments )
+			);
 			$this->ownerDocument = $dpb->toDom();
-			$frag = $this->ownerDocument->createDocumentFragment();
-			DOMUtils::migrateChildren( DOMCompat::getBody( $this->ownerDocument ), $frag );
-			$this->domMap[ self::BODY_FRAGMENT ] = $frag;
-			unset( $this->htmlMap[ self::BODY_FRAGMENT ] );
-		}
-
-		foreach ( $this->htmlMap as $name => $html ) {
-			if ( !$this->isParsoidContent() ) {
-				$this->domMap[$name] = DOMUtils::parseHTMLToFragment( $this->ownerDocument, $html );
-			} else {
-				// TODO we only handle body fragment for Parsoid for now
-				// in Parsoid case, the only supported fragment type is body, and has been handled above.
-				$logger = LoggerFactory::getInstance( 'ContentHolder' );
-				$logger->warning( 'Fragment {fragname} not converted to DOM before being discarded' );
+			$this->domMap = $dpb->fragments;
+			if ( $hasBody ) {
+				$frag = $this->ownerDocument->createDocumentFragment();
+				DOMUtils::migrateChildren( DOMCompat::getBody( $this->ownerDocument ), $frag );
+				$this->domMap[ self::BODY_FRAGMENT ] = $frag;
+			}
+		} else {
+			foreach ( $this->htmlMap as $name => $html ) {
+				$this->domMap[$name] = DOMUtils::parseHTMLToFragment(
+					$this->ownerDocument, $html
+				);
 			}
 		}
 		$this->htmlMap = [];
@@ -263,29 +296,43 @@ class ContentHolder {
 		if ( !$this->domFormat ) {
 			return;
 		}
-		$services = MediaWikiServices::getInstance();
-		foreach ( $this->domMap as $name => $dom ) {
-			if ( $this->isParsoidContent() ) {
-				if ( $name === self::BODY_FRAGMENT ) {
-					DOMCompat::getBody( $this->ownerDocument )->appendChild( $dom );
-					$this->pageBundle = HtmlPageBundle::fromDomPageBundle(
-						DomPageBundle::fromLoadedDocument( $this->ownerDocument, [
-							'siteConfig' => $services->getParsoidSiteConfig(),
-						] ), [
-							'body_only' => true,
-						]
-					);
-					$this->htmlMap[self::BODY_FRAGMENT] = $this->pageBundle->html;
-				} else {
-					// TODO we only handle body fragment for Parsoid for now
-					$logger = LoggerFactory::getInstance( 'ContentHolder' );
-					$logger->warning( 'Fragment {fragname} not converted to HTML string before being discarded' );
-				}
-			} else {
-				$this->htmlMap[ $name ] = ContentUtils::toXML( $dom, [ 'innerXML' => true ] );
+		if ( $this->isParsoidContent() ) {
+			$siteConfig = MediaWikiServices::getInstance()->getParsoidSiteConfig();
+			$body = $this->domMap[ self::BODY_FRAGMENT ] ?? null;
+			unset( $this->domMap[ self::BODY_FRAGMENT ] );
+			if ( $body !== null ) {
+				DOMCompat::getBody( $this->ownerDocument )->appendChild( $body );
+			}
+			$pb = HtmlPageBundle::fromDomPageBundle(
+				DomPageBundle::fromLoadedDocument( $this->ownerDocument, [
+					'pageBundle' => $this->pageBundle,
+				], $this->domMap, $siteConfig ), [
+					'body_only' => true,
+				]
+			);
+			$this->pageBundle = $pb->toBasePageBundle();
+			$this->htmlMap = $pb->fragments;
+			$this->htmlMap[self::BODY_FRAGMENT] = $pb->html;
+		} else {
+			foreach ( $this->domMap as $name => $df ) {
+				$this->htmlMap[ $name ] = ContentUtils::toXML( $df, [ 'innerXML' => true ] );
 			}
 		}
 		$this->domMap = [];
 		$this->domFormat = false;
+	}
+
+	public function __clone() {
+		$this->ownerDocument = DOMDataUtils::cloneDocument( $this->ownerDocument );
+		foreach ( $this->domMap as $name => &$fragment ) {
+			$fragment = $this->ownerDocument->importNode( $fragment, true );
+		}
+		if ( $this->pageBundle ) {
+			$this->pageBundle = clone $this->pageBundle;
+		}
+	}
+
+	public function ignoreForObjectEquality(): array {
+		return [ "ownerDocument" ];
 	}
 }
