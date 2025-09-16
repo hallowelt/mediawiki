@@ -3,17 +3,17 @@ index 86a328d..9ca9179 100644
 --- a/includes/PdfHandler.php
 +++ b/includes/PdfHandler.php
 @@ -226,13 +226,13 @@ class PdfHandler extends ImageHandler {
-				);
-				$cmd .= " | " . wfEscapeShellArg(
-						$wgPdfPostProcessor,
-+						"jpeg:-",
-						"-depth",
-						"8",
-						"-quality",
-						$wgPdfHandlerJpegQuality,
-						"-resize",
-						(string)$width,
--						"-",
-						$dstPath
-				);
-				$cmd .= ")";
+ 		);
+ 		$cmd .= " | " . wfEscapeShellArg(
+ 			$wgPdfPostProcessor,
++			"jpeg:-",
+ 			"-depth",
+ 			"8",
+ 			"-quality",
+ 			$wgPdfHandlerJpegQuality,
+ 			"-resize",
+ 			(string)$width,
+-			"-",
+ 			$dstPath
+ 		);
+ 		$cmd .= ")";
