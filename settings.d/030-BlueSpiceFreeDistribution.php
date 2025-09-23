@@ -58,7 +58,6 @@ wfLoadExtension( 'NotifyMe' );
 wfLoadExtension( 'Echo', $GLOBALS['IP'] . '/extensions/BlueSpiceDistributionConnector/extension-shims/Echo/extension.json' );
 
 wfLoadExtension( 'OOJSPlus' );
-wfLoadExtension( 'PageHeader' );
 wfLoadExtension( 'PDFCreator' );
 wfLoadExtension( 'PdfHandler' );
 wfLoadExtension( 'RSS' );
