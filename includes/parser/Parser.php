@@ -308,8 +308,6 @@ class Parser {
 	public $scribunto_engine;
 	/** @deprecated since 1.42: T343230 */
 	public $extCite;
-	/** @deprecated since 1.42: T357838 */
-	public $static_tag_buf;
 	/** @deprecated since 1.42: T203531 */
 	public $mExtVariables;
 	/** @deprecated since 1.42: T203532 */
@@ -4225,10 +4223,12 @@ class Parser {
 					}
 				} else {
 					// Strip tag
-					$next = $node->firstChild;
-					// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
-					while ( $childNode = $node->firstChild ) {
-						$node->parentNode->insertBefore( $childNode, $node );
+					if ( $node->firstChild !== null ) {
+						$next = $node->firstChild;
+						// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
+						while ( $childNode = $node->firstChild ) {
+							$node->parentNode->insertBefore( $childNode, $node );
+						}
 					}
 					DOMCompat::remove( $node );
 				}
