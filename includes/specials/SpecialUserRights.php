@@ -12,12 +12,9 @@ use MediaWiki\Html\Html;
 use MediaWiki\HTMLForm\Field\HTMLUserTextField;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Linker\Linker;
-use MediaWiki\Logging\LogEventsList;
-use MediaWiki\Logging\LogPage;
 use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Output\OutputPage;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\SpecialPage\UserGroupsSpecialPage;
 use MediaWiki\Status\Status;
@@ -96,11 +93,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$this->actorStoreFactory = $actorStoreFactory ?? $services->getActorStoreFactory();
 		$this->watchlistManager = $watchlistManager ?? $services->getWatchlistManager();
 		$this->tempUserConfig = $tempUserConfig ?? $services->getTempUserConfig();
-	}
-
-	/** @inheritDoc */
-	public function doesWrites() {
-		return true;
 	}
 
 	/**
@@ -200,7 +192,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 					Html::element(
 						'p',
 						[],
-						$this->msg( 'savedrights', $this->getDisplayUsername( $this->mFetchedUser ) )->text()
+						$this->msg( 'savedrights', $this->getUsernameWithInterwiki( $this->mFetchedUser ) )->text()
 					),
 					'mw-notify-success'
 				)
@@ -555,7 +547,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 
 		$logEntry = new ManualLogEntry( 'rights', 'rights' );
 		$logEntry->setPerformer( $this->getUser() );
-		$logEntry->setTarget( Title::makeTitle( NS_USER, $this->getDisplayUsername( $user ) ) );
+		$logEntry->setTarget( Title::makeTitle( NS_USER, $this->getUsernameWithInterwiki( $user ) ) );
 		$logEntry->setComment( $reason );
 		$logEntry->setParameters( [
 			'4::oldgroups' => $oldGroups,
@@ -593,7 +585,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 
 		// This isn't really ideal logging behavior, but let's not hide the
 		// interwiki logs if we're using them as is.
-		$this->showLogFragment( $user, $this->getOutput() );
+		$this->showLogFragment( $target, $this->getOutput() );
 	}
 
 	/**
@@ -723,8 +715,8 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	}
 
 	/** @inheritDoc */
-	protected function getTargetUserToolLinks(): string {
-		$user = $this->mFetchedUser;
+	protected function getTargetUserToolLinks( UserGroupsSpecialPageTarget $target ): string {
+		$user = $target->userObject;
 		$systemUser = $user->getWikiId() === UserIdentity::LOCAL
 			&& $this->userFactory->newFromUserIdentity( $user )->isSystemUser();
 
@@ -732,7 +724,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$flags = $systemUser ? 0 : Linker::TOOL_LINKS_EMAIL;
 		return Linker::userToolLinks(
 			$user->getId( $user->getWikiId() ),
-			$this->getDisplayUsername( $user ),
+			$this->getDisplayUsername( $target ),
 			false, /* default for redContribsWhenNoEdits */
 			$flags
 		);
@@ -870,16 +862,21 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		return $this->changeableGroups;
 	}
 
+	/** @inheritDoc */
+	protected function getDisplayUsername( UserGroupsSpecialPageTarget $target ): string {
+		return $this->getUsernameWithInterwiki( $target->userObject );
+	}
+
 	/**
 	 * Get a display user name. This includes the {@}domain part for interwiki users.
 	 * Use UserIdentity::getName for {{GENDER:}} in messages and
 	 * use the "display user name" for visible user names in logs or messages
 	 *
-	 * @param null|UserIdentity $user The target user
-	 * @return string
+	 * TODO: Eventually, this will be not needed, once all code uses getDisplayUsername instead of
+	 * calling this method directly. At that point, we can move this code to that method.
+	 * It will likely happen in T405575
 	 */
-	protected function getDisplayUsername( ?UserIdentity $user = null ): string {
-		$user ??= $this->mFetchedUser;
+	private function getUsernameWithInterwiki( UserIdentity $user ): string {
 		$userName = $user->getName();
 		if ( $user->getWikiId() !== UserIdentity::LOCAL ) {
 			$userName .= $this->getConfig()->get( MainConfigNames::UserrightsInterwikiDelimiter )
@@ -893,17 +890,9 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		return $target->userObject->getWikiId() === UserIdentity::LOCAL;
 	}
 
-	/**
-	 * Show a rights log fragment for the specified user
-	 *
-	 * @param UserIdentity $user User to show log for
-	 * @param OutputPage $output OutputPage to use
-	 */
-	protected function showLogFragment( $user, $output ) {
-		$rightsLogPage = new LogPage( 'rights' );
-		$output->addHTML( Html::element( 'h2', [], $rightsLogPage->getName()->text() ) );
-		LogEventsList::showLogExtract( $output, 'rights',
-			Title::makeTitle( NS_USER, $this->getDisplayUsername( $user ) ) );
+	/** @inheritDoc */
+	protected function getLogType(): array {
+		return [ 'rights', 'rights' ];
 	}
 
 	/**
@@ -923,11 +912,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		// Autocomplete subpage as user list - public to allow caching
 		return $this->userNamePrefixSearch
 			->search( UserNamePrefixSearch::AUDIENCE_PUBLIC, $search, $limit, $offset );
-	}
-
-	/** @inheritDoc */
-	protected function getGroupName() {
-		return 'users';
 	}
 }
 
