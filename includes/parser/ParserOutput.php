@@ -928,6 +928,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/** @deprecated since 1.43, use ::getLinkList(ParserOutputLinkTypes::MEDIA) */
 	public function &getImages() {
+		wfDeprecated( __METHOD__, '1.43' );
 		return $this->mImages;
 	}
 
@@ -942,6 +943,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/** @deprecated since 1.43, use ::getLinkList(ParserOutputLinkTypes::MEDIA) */
 	public function &getFileSearchOptions() {
+		wfDeprecated( __METHOD__, '1.43' );
 		return $this->mFileSearchOptions;
 	}
 
@@ -1121,6 +1123,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 *  the getter ::getContentHolderText()
 	 */
 	public function setText( $text ) {
+		wfDeprecated( __METHOD__, '1.42' );
 		$ret = $this->hasText() ? $this->getContentHolderText() : null;
 		$this->setContentHolderText( $text );
 		return $ret;
