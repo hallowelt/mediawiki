@@ -34,7 +34,7 @@
 		"mediawiki/variables": "2.5.3",
 		"mediawiki/visual-editor-plus": "dev-REL1_43-2.1.x",
 		"mediawiki/vuejs-plus": "dev-REL1_43-2.0.x",
-		"starcitizenwiki/embedvideo": "3.4.*",
+		"starcitizenwiki/embedvideo": "4.0.*",
 		"universal-omega/dynamic-page-list3": "3.6.*"
 	}
 }
