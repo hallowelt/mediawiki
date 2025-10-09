@@ -25,7 +25,6 @@ use Wikimedia\Http\MultiHttpClient;
 use Wikimedia\MapCacheLRU\MapCacheLRU;
 use Wikimedia\ObjectCache\BagOStuff;
 use Wikimedia\ObjectCache\EmptyBagOStuff;
-use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\RequestTimeout\TimeoutException;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 
@@ -73,8 +72,8 @@ class SwiftFileBackend extends FileBackendStore {
 	/** @var array Additional users (account:user) with write permissions on private containers */
 	protected $secureWriteUsers;
 
-	/** @var BagOStuff */
-	protected $srvCache;
+	/** Persistent cache for authentication credential */
+	protected BagOStuff $credentialCache;
 
 	/** @var MapCacheLRU Container stat cache */
 	protected $containerStatCache;
@@ -157,16 +156,14 @@ class SwiftFileBackend extends FileBackendStore {
 		$this->http->setLogger( $this->logger );
 
 		// Cache container information to mask latency
-		if ( isset( $config['wanCache'] ) && $config['wanCache'] instanceof WANObjectCache ) {
-			$this->memCache = $config['wanCache'];
-		}
+		$this->wanStatCache = $this->wanCache;
 		// Process cache for container info
 		$this->containerStatCache = new MapCacheLRU( 300 );
 		// Cache auth token information to avoid RTTs
-		if ( !empty( $config['cacheAuthInfo'] ) && isset( $config['srvCache'] ) ) {
-			$this->srvCache = $config['srvCache'];
+		if ( !empty( $config['cacheAuthInfo'] ) ) {
+			$this->credentialCache = $this->srvCache;
 		} else {
-			$this->srvCache = new EmptyBagOStuff();
+			$this->credentialCache = new EmptyBagOStuff();
 		}
 		$this->readUsers = $config['readUsers'] ?? [];
 		$this->writeUsers = $config['writeUsers'] ?? [];
@@ -1793,15 +1790,17 @@ class SwiftFileBackend extends FileBackendStore {
 		// Authenticate with proxy and get a session key...
 		if ( !$this->authCreds ) {
 			$cacheKey = $this->getCredsCacheKey( $this->swiftUser );
-			$creds = $this->srvCache->get( $cacheKey ); // credentials
-			// Try to use the credential cache
-			if ( isset( $creds['auth_token'] )
-				&& isset( $creds['storage_url'] )
-				&& isset( $creds['expiry_time'] )
-				&& $creds['expiry_time'] > time()
+			$creds = $this->credentialCache->get( $cacheKey );
+			if (
+				isset( $creds['auth_token'] ) &&
+				isset( $creds['storage_url'] ) &&
+				isset( $creds['expiry_time'] ) &&
+				$creds['expiry_time'] > time()
 			) {
+				// Cache hit; reuse the cached credentials cache
 				$this->setAuthCreds( $creds );
-			} else { // cache miss
+			} else {
+				// Cache miss; re-authenticate to get the credentials
 				$this->refreshAuthentication();
 			}
 		}
@@ -1855,7 +1854,11 @@ class SwiftFileBackend extends FileBackendStore {
 				'storage_url' => $this->swiftStorageUrl ?? $rhdrs['x-storage-url'],
 				'expiry_time' => $expiryTime,
 			];
-			$this->srvCache->set( $this->getCredsCacheKey( $this->swiftUser ), $creds, $expiryTime );
+			$this->credentialCache->set(
+				$this->getCredsCacheKey( $this->swiftUser ),
+				$creds,
+				$expiryTime
+			);
 		} elseif ( $rcode === 401 ) {
 			$this->onError( null, __METHOD__, [], "Authentication failed.", $rcode );
 			$this->authErrorTimestamp = time();
