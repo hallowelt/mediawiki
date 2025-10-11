@@ -1095,6 +1095,31 @@ wgRawHtml=1
 </span></p>
 !! end
 
+!! test
+T406391: HTML entities in raw text elements
+!! options
+wgRawHtml=1
+!! wikitext
+<html>
+<script>console.log("&");</script>
+<style>a::before { content: "&"; }</style>
+</html>
+A normal & should be encoded
+!! html/php
+<p>
+<script>console.log("&");</script>
+<style>a::before { content: "&"; }</style>
+
+A normal &amp; should be encoded
+</p>
+!! html/parsoid
+<p><span typeof="mw:Extension/html" about="#mwt2" data-mw='{"name":"html","attrs":{},"body":{"extsrc":"\n&lt;script>console.log(\"&amp;\");&lt;/script>\n&lt;style>a::before { content: \"&amp;\"; }&lt;/style>\n"}}'>
+</span><script about="#mwt2">console.log("&");</script><span about="#mwt2">
+</span><style about="#mwt2">a::before { content: "&"; }</style><span about="#mwt2">
+</span>
+A normal &amp; should be encoded</p>
+!! end
+
 !! article
 Test
 !! text
@@ -11090,7 +11115,7 @@ parsoid={ "modes": ["wt2html","html2html"], "normalizePhp": true }
 <dt>This is an okay multi-codepoint HTML5 entity</dt>
 <dd>&#8766;&#819;</dd>
 <dt>This are valid wikitext-specific entities</dt>
-<dd>&rlm; &rlm;</dd>
+<dd>&#8207; &#8207;</dd>
 <dt>Highest valid characters</dt>
 <dd>&#x10fffd; &#x10fffe; &#x10ffff;</dd></dl>
 !! end
