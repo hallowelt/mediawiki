@@ -2,7 +2,9 @@
 
 namespace MediaWiki\RecentChanges\ChangesListQuery;
 
+use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\Config\ServiceOptions;
+use MediaWiki\Linker\LinkTargetLookup;
 use MediaWiki\RecentChanges\RecentChangeLookup;
 use MediaWiki\User\TempUser\TempUserConfig;
 use MediaWiki\User\UserFactory;
@@ -19,6 +21,8 @@ class ChangesListQueryFactory {
 		private WatchedItemStoreInterface $watchedItemStore,
 		private TempUserConfig $tempUserConfig,
 		private UserFactory $userFactory,
+		private LinkTargetLookup $linkTargetLookup,
+		private ChangeTagsStore $changeTagsStore,
 		private IConnectionProvider $connectionProvider,
 	) {
 	}
@@ -30,6 +34,8 @@ class ChangesListQueryFactory {
 			$this->watchedItemStore,
 			$this->tempUserConfig,
 			$this->userFactory,
+			$this->linkTargetLookup,
+			$this->changeTagsStore,
 			$this->connectionProvider->getReplicaDatabase()
 		);
 	}

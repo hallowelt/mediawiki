@@ -6,11 +6,9 @@
 
 namespace MediaWiki\Specials;
 
-use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\Html\FormOptions;
 use MediaWiki\Html\Html;
 use MediaWiki\Language\MessageParser;
-use MediaWiki\MainConfigNames;
 use MediaWiki\RecentChanges\ChangesListQuery\ChangesListQuery;
 use MediaWiki\RecentChanges\ChangesListQuery\ChangesListQueryFactory;
 use MediaWiki\RecentChanges\RecentChangeFactory;
@@ -20,8 +18,6 @@ use MediaWiki\User\TempUser\TempUserConfig;
 use MediaWiki\User\UserIdentityUtils;
 use MediaWiki\Watchlist\WatchedItemStoreInterface;
 use SearchEngineFactory;
-use Wikimedia\Rdbms\SelectQueryBuilder;
-use Wikimedia\Rdbms\Subquery;
 
 /**
  * This is to display changes made to all articles linked in an article.
@@ -34,14 +30,12 @@ class SpecialRecentChangesLinked extends SpecialRecentChanges {
 	protected $rclTargetTitle;
 
 	private SearchEngineFactory $searchEngineFactory;
-	private ChangeTagsStore $changeTagsStore;
 
 	public function __construct(
 		WatchedItemStoreInterface $watchedItemStore,
 		MessageParser $messageParser,
 		UserOptionsLookup $userOptionsLookup,
 		SearchEngineFactory $searchEngineFactory,
-		ChangeTagsStore $changeTagsStore,
 		UserIdentityUtils $userIdentityUtils,
 		TempUserConfig $tempUserConfig,
 		RecentChangeFactory $recentChangeFactory,
@@ -51,7 +45,6 @@ class SpecialRecentChangesLinked extends SpecialRecentChanges {
 			$watchedItemStore,
 			$messageParser,
 			$userOptionsLookup,
-			$changeTagsStore,
 			$userIdentityUtils,
 			$tempUserConfig,
 			$recentChangeFactory,
@@ -59,7 +52,6 @@ class SpecialRecentChangesLinked extends SpecialRecentChanges {
 		);
 		$this->mName = 'Recentchangeslinked';
 		$this->searchEngineFactory = $searchEngineFactory;
-		$this->changeTagsStore = $changeTagsStore;
 	}
 
 	/** @inheritDoc */
@@ -82,7 +74,6 @@ class SpecialRecentChangesLinked extends SpecialRecentChanges {
 	protected function modifyQuery( ChangesListQuery $query, FormOptions $opts ) {
 		$target = $opts['target'];
 		$showlinkedto = $opts['showlinkedto'];
-		$limit = $opts['limit'];
 
 		if ( $target === '' ) {
 			$query->forceEmptySet();
@@ -103,52 +94,7 @@ class SpecialRecentChangesLinked extends SpecialRecentChanges {
 			$this->msg( 'recentchangeslinked-title' )->plaintextParams( $title->getPrefixedText() )
 		);
 
-		/*
-		 * Ordinary links are in the pagelinks table, while transclusions are
-		 * in the templatelinks table, categorizations in categorylinks and
-		 * image use in imagelinks.  We need to somehow combine all these.
-		 * Special:Whatlinkshere does this by firing multiple queries and
-		 * merging the results, but the code we inherit from our parent class
-		 * expects only one result set so we use UNION instead.
-		 */
-		$dbr = $this->getDB();
-		$id = $title->getArticleID();
 		$ns = $title->getNamespace();
-		$dbkey = $title->getDBkey();
-
-		// TODO: $query->requireChangeTags( ... )
-		$query->legacyMutator( function ( &$tables, &$fields, &$conds, &$query_options, &$join_conds )
-			use ( $dbr, $opts )
-		{
-			$tagFilter = $opts['tagfilter'] !== '' ? explode( '|', $opts['tagfilter'] ) : [];
-			$this->changeTagsStore->modifyDisplayQuery(
-				$tables,
-				$select,
-				$conds,
-				$join_conds,
-				$query_options,
-				$tagFilter,
-				$opts['inverttags']
-			);
-
-			if ( $dbr->unionSupportsOrderAndLimit() ) {
-				if ( in_array( 'DISTINCT', $query_options ) ) {
-					// ChangeTagsStore::modifyDisplayQuery() will have added DISTINCT.
-					// To prevent this from causing query performance problems, we need to add
-					// a GROUP BY, and add rc_id to the ORDER BY.
-					$order = [
-						'GROUP BY' => [ 'rc_timestamp', 'rc_id' ],
-						'ORDER BY' => [ 'rc_timestamp DESC', 'rc_id DESC' ]
-					];
-				} else {
-					$order = [ 'ORDER BY' => 'rc_timestamp DESC' ];
-				}
-			} else {
-				$order = [];
-			}
-			$query_options['ORDER'] = $order;
-		} );
-
 		if ( $ns === NS_CATEGORY && !$showlinkedto ) {
 			// special handling for categories
 			// XXX: should try to make this less kludgy
@@ -163,115 +109,11 @@ class SpecialRecentChangesLinked extends SpecialRecentChanges {
 			}
 		}
 
-		if ( $id == 0 && !$showlinkedto ) {
-			// nonexistent pages can't link to any pages
-			$query->forceEmptySet();
-			return;
-		}
-
-		// TODO: $query->requireLinksFrom( ... )
-		$fname = __METHOD__;
-		$query->sqbMutator( function ( SelectQueryBuilder &$mainQueryBuilder )
-			use ( $id, $ns, $dbkey, $link_tables, $dbr, $showlinkedto, $title, $limit, $fname )
-		{
-			// field name prefixes for all the various tables we might want to join with
-			$prefix = [
-				'pagelinks' => 'pl',
-				'templatelinks' => 'tl',
-				'categorylinks' => 'cl',
-				'imagelinks' => 'il'
-			];
-
-			$subsql = []; // SELECT statements to combine with UNION
-
-			foreach ( $link_tables as $link_table ) {
-				$queryBuilder = clone $mainQueryBuilder;
-				$linksMigration = \MediaWiki\MediaWikiServices::getInstance()->getLinksMigration();
-				$pfx = $prefix[$link_table];
-
-				// The imagelinks table has no xx_namespace field and has xx_to instead of xx_title
-				$link_ns = $link_table == 'imagelinks' ? NS_FILE : 0;
-
-				if ( $showlinkedto ) {
-					// find changes to pages linking to this page
-					if ( $link_ns ) {
-						if ( $ns != $link_ns ) {
-							continue;
-						} // should never happen, but check anyway
-						$queryBuilder->where( [ "{$pfx}_to" => $dbkey ] );
-					} else {
-						if ( isset( $linksMigration::$mapping[$link_table] ) ) {
-							$queryBuilder->where( $linksMigration->getLinksConditions( $link_table, $title ) );
-						} else {
-							$queryBuilder->where( [ "{$pfx}_namespace" => $ns, "{$pfx}_title" => $dbkey ] );
-						}
-					}
-					$queryBuilder->join( $link_table, null, "rc_cur_id = {$pfx}_from" );
-				} else {
-					// find changes to pages linked from this page
-					$queryBuilder->where( [ "{$pfx}_from" => $id ] );
-					if ( $link_table == 'imagelinks' ) {
-						$queryBuilder->where( [ "rc_namespace" => $link_ns ] );
-						$queryBuilder->join( $link_table, null, "rc_title = {$pfx}_to" );
-					} else {
-						// TODO: Move this to LinksMigration
-						if ( isset( $linksMigration::$mapping[$link_table] ) ) {
-							$queryInfo = $linksMigration->getQueryInfo( $link_table, $link_table );
-							[ $nsField, $titleField ] = $linksMigration->getTitleFields( $link_table );
-							if ( in_array( 'linktarget', $queryInfo['tables'] ) ) {
-								$joinTable = 'linktarget';
-							} else {
-								$joinTable = $link_table;
-							}
-							$queryBuilder->join(
-								$joinTable,
-								null,
-								[ "rc_namespace = {$nsField}", "rc_title = {$titleField}" ]
-							);
-							if ( in_array( 'linktarget', $queryInfo['tables'] ) ) {
-								$queryBuilder->joinConds( $queryInfo['joins'] );
-								$queryBuilder->table( $link_table );
-							}
-						} else {
-							$queryBuilder->join(
-								$link_table,
-								null,
-								[ "rc_namespace = {$pfx}_namespace", "rc_title = {$pfx}_title" ]
-							);
-						}
-					}
-				}
-
-				if ( $dbr->unionSupportsOrderAndLimit() ) {
-					$queryBuilder->limit( $limit );
-				}
-
-				$subsql[] = $queryBuilder;
-			}
-
-			if ( count( $subsql ) == 0 ) {
-				throw new \RuntimeException( 'Need at least one link table' );
-			}
-			if ( count( $subsql ) == 1 && $dbr->unionSupportsOrderAndLimit() ) {
-				$mainQueryBuilder = $subsql[0];
-			} else {
-				$unionQueryBuilder = $dbr->newUnionQueryBuilder()->caller( $fname );
-				foreach ( $subsql as $selectQueryBuilder ) {
-					$unionQueryBuilder->add( $selectQueryBuilder );
-				}
-				$mainQueryBuilder = $dbr->newSelectQueryBuilder()
-					->select( '*' )
-					->from(
-						new Subquery( $unionQueryBuilder->getSQL() ),
-						'main'
-					)
-					->orderBy( 'rc_timestamp', SelectQueryBuilder::SORT_DESC )
-					->setMaxExecutionTime( $this->getConfig()->get(
-						MainConfigNames::MaxExecutionTimeForExpensiveQueries ) )
-					->limit( $limit )
-					->caller( $fname );
-			}
-		} );
+		$query->requireLink(
+			$showlinkedto ? ChangesListQuery::LINKS_TO : ChangesListQuery::LINKS_FROM,
+			$link_tables,
+			$title
+		);
 	}
 
 	public function setTopText( FormOptions $opts ) {

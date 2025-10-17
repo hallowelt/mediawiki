@@ -3,14 +3,19 @@
 namespace MediaWiki\RecentChanges\ChangesListQuery;
 
 use InvalidArgumentException;
+use LogicException;
+use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Linker\LinkTarget;
+use MediaWiki\Linker\LinkTargetLookup;
 use MediaWiki\Logging\LogPage;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\RecentChanges\RecentChangeLookup;
+use MediaWiki\Title\TitleValue;
 use MediaWiki\User\TempUser\TempUserConfig;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
@@ -18,6 +23,7 @@ use MediaWiki\Watchlist\WatchedItemStoreInterface;
 use stdClass;
 use Wikimedia\Rdbms\IExpression;
 use Wikimedia\Rdbms\IReadableDatabase;
+use Wikimedia\Rdbms\IResultWrapper;
 use Wikimedia\Rdbms\RawSQLExpression;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use function array_key_exists;
@@ -31,7 +37,18 @@ use function array_key_exists;
 class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	public const CONSTRUCTOR_OPTIONS = [
 		MainConfigNames::WatchlistExpiry,
+		MainConfigNames::MiserMode,
 		...ExperienceCondition::CONSTRUCTOR_OPTIONS
+	];
+
+	public const LINKS_FROM = 'from';
+	public const LINKS_TO = 'to';
+
+	private const LINK_TABLE_PREFIXES = [
+		'pagelinks' => 'pl',
+		'templatelinks' => 'tl',
+		'categorylinks' => 'cl',
+		'imagelinks' => 'il'
 	];
 
 	/** @var ChangesListCondition[] */
@@ -48,6 +65,16 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	/** @var IExpression[] */
 	private $conds = [];
 
+	/** @var string|null */
+	private $linkDirection = null;
+	/** @var string[] */
+	private $linkTables = [];
+	/** @var PageIdentity|null */
+	private $linkTarget = null;
+
+	/** @var bool Whether the query was prepared for an emulated union */
+	private $preparedEmulatedUnion = false;
+
 	/** @var bool If true, include fields for constructing RecentChange objects */
 	private $recentChangeFields = false;
 
@@ -60,6 +87,9 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	/** @var int|null The maximum number of rows to return */
 	private ?int $limit = null;
 
+	/** @var float|int */
+	private $density = 1;
+
 	/** @var Authority|null The authority to use for deleted bitfield checks */
 	private ?Authority $audience = null;
 
@@ -68,6 +98,9 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 
 	/** @var bool If true, return no results */
 	private $forceEmptySet = false;
+
+	/** @var bool If true, add DISTINCT and GROUP BY */
+	private $distinct = false;
 
 	/** @var string|null The caller to pass down to the DBMS */
 	private ?string $caller = null;
@@ -83,6 +116,8 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 		private WatchedItemStoreInterface $watchedItemStore,
 		private TempUserConfig $tempUserConfig,
 		private UserFactory $userFactory,
+		private LinkTargetLookup $linkTargetLookup,
+		private ChangeTagsStore $changeTagsStore,
 		private IReadableDatabase $db
 	) {
 		$this->filterModules = [
@@ -118,11 +153,25 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 			'namespace' => new FieldEqualityCondition( 'rc_namespace' ),
 			'subpageof' => new SubpageOfCondition(),
 		];
+
+		// ChangeTagsCondition consumes the density heuristic so it has to
+		// be prepared after the other modules. Putting it late in the list
+		// serves that purpose.
+		$this->filterModules['changeTags'] = new ChangeTagsCondition(
+			$this->changeTagsStore,
+			$config->get( MainConfigNames::MiserMode ),
+		);
+
 		$this->joinModules = [
 			'actor' => new BasicJoin( 'actor', 'recentchanges_actor', 'actor_id=rc_actor' ),
+			'change_tag' => new BasicJoin(
+				'change_tag',
+				ChangeTagsStore::DISPLAY_TABLE_ALIAS,
+				'ct_rc_id=rc_id'
+			),
 			'comment' => new BasicJoin( 'comment', 'recentchanges_comment', 'comment_id=rc_comment_id' ),
-			'user' => new BasicJoin( 'user', '', 'user_id=actor_user', 'actor' ),
 			'page' => new BasicJoin( 'page', '', 'page_id=rc_cur_id' ),
+			'user' => new BasicJoin( 'user', '', 'user_id=actor_user', 'actor' ),
 			'watchlist' => new WatchlistJoin(),
 			'watchlist_expiry' => new BasicJoin( 'watchlist_expiry', '', 'we_item=wl_id', 'watchlist' )
 		];
@@ -214,6 +263,73 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	}
 
 	/**
+	 * Require that the changed page links from or to the specified page, via
+	 * the specified links tables.
+	 *
+	 * @param string $direction Either self::LINKS_FROM or self::LINKS_TO
+	 * @param string[] $tables
+	 * @param PageIdentity $page
+	 * @return $this
+	 */
+	public function requireLink( string $direction, array $tables, PageIdentity $page ) {
+		if ( count( $tables ) == 0 ) {
+			throw new InvalidArgumentException( 'Need at least one link table' );
+		}
+		$unknownTables = array_diff( $tables, array_keys( self::LINK_TABLE_PREFIXES ) );
+		if ( $unknownTables ) {
+			throw new InvalidArgumentException( 'Unknown link table(s): ' .
+				implode( ', ', $unknownTables ) );
+		}
+
+		$this->linkDirection = $direction;
+		$this->linkTables = $tables;
+		$this->linkTarget = $page;
+		return $this;
+	}
+
+	/**
+	 * Require that the change has one of the specified change tags.
+	 *
+	 * @param string[] $tagNames
+	 * @return $this
+	 */
+	public function requireChangeTags( $tagNames ): self {
+		return $this->applyArrayAction( 'require', 'changeTags', $tagNames );
+	}
+
+	/**
+	 * Exclude changes matching any of the specified change tags.
+	 *
+	 * @param string[] $tagNames
+	 * @return $this
+	 */
+	public function excludeChangeTags( $tagNames ): self {
+		return $this->applyArrayAction( 'exclude', 'changeTags', $tagNames );
+	}
+
+	/**
+	 * Add the change tag summary field ts_tags
+	 *
+	 * @return $this
+	 */
+	public function addChangeTagSummaryField(): self {
+		$this->getChangeTagsFilter()->capture();
+		return $this;
+	}
+
+	/**
+	 * Set the minimum size of the recentchanges table at which change tag
+	 * queries will be conditionally modified based on estimated density.
+	 *
+	 * @param float|int $threshold
+	 * @return self
+	 */
+	public function denseRcSizeThreshold( $threshold ): self {
+		$this->getChangeTagsFilter()->setDenseRcSizeThreshold( $threshold );
+		return $this;
+	}
+
+	/**
 	 * Require that the change is viewable by the specified authority.
 	 * Or pass null to disable authority checks.
 	 *
@@ -273,6 +389,14 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	 */
 	public function limit( int $limit ) {
 		$this->limit = $limit;
+		$this->getChangeTagsFilter()->setLimit( $limit );
+		return $this;
+	}
+
+	/** @inheritDoc */
+	public function adjustDensity( $density ): self {
+		$this->density *= $density;
+		$this->getChangeTagsFilter()->setDensity( $this->density );
 		return $this;
 	}
 
@@ -319,6 +443,10 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 
 	private function getSeenFilter(): SeenCondition {
 		return $this->filterModules['seen'];
+	}
+
+	private function getChangeTagsFilter(): ChangeTagsCondition {
+		return $this->filterModules['changeTags'];
 	}
 
 	/**
@@ -426,6 +554,29 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	 * @return ChangesListResult
 	 */
 	public function fetchResult(): ChangesListResult {
+		$this->prepare();
+		if ( $this->isEmptySet() ) {
+			return $this->newResult();
+		}
+
+		$sqb = $this->createQueryBuilder();
+		$sqb = $this->applyMutators( $sqb );
+		if ( !$sqb || $this->isEmptySet() ) {
+			return $this->newResult();
+		}
+
+		$queries = $this->applyLinkTarget( $sqb );
+		$res = $this->emulateUnion( $queries );
+		return $this->newResult( $res );
+	}
+
+	/**
+	 * Call all modules asking them to populate fields, joins, etc.
+	 */
+	private function prepare() {
+		if ( $this->linkTables ) {
+			$this->adjustDensity( 0.1 );
+		}
 		foreach ( $this->filterModules as $module ) {
 			$module->prepareQuery( $this->db, $this );
 		}
@@ -446,27 +597,28 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 				$this->joinForFields( 'watchlist_expiry' )->weakLeft();
 			}
 		}
-
 		if ( $this->audience ) {
 			$this->prepareAudienceCondition( $this->audience );
 		}
-
-		if ( $this->isEmptySet() ) {
-			$res = [];
-		} else {
-			$sqb = $this->createQueryBuilder();
-			$sqb = $this->applyMutators( $sqb );
-			if ( $sqb && !$this->isEmptySet() ) {
-				$res = $sqb->fetchResultSet();
-			} else {
-				$res = [];
-			}
+		if ( count( $this->linkTables ) > 1 ) {
+			$this->prepareEmulatedUnion();
 		}
+	}
 
-		return new ChangesListResult(
-			$res,
-			$this->getHighlightsFromRow( ... ),
-		);
+	/**
+	 * Add fields needed to support an emulated union
+	 */
+	private function prepareEmulatedUnion() {
+		$this->preparedEmulatedUnion = true;
+		$this->fields( [ 'rc_timestamp', 'rc_id' ] );
+	}
+
+	/**
+	 * @param stdClass[]|IResultWrapper $rows
+	 * @return ChangesListResult
+	 */
+	private function newResult( $rows = [] ): ChangesListResult {
+		return new ChangesListResult( $rows, $this->getHighlightsFromRow( ... ) );
 	}
 
 	/**
@@ -498,24 +650,44 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 		$sqb = $this->db->newSelectQueryBuilder()
 			->select( $this->getUniqueFields() )
 			->from( 'recentchanges' )
-			->orderBy( 'rc_timestamp', SelectQueryBuilder::SORT_DESC )
-			->where( $this->conds )
-			->caller( $this->caller ?? __METHOD__ );
+			->where( $this->conds );
+
+		$this->applyOptions( $sqb );
 
 		if ( $this->minTimestamp !== null ) {
 			$sqb->andWhere( $this->db->expr( 'rc_timestamp', '>=',
 				$this->db->timestamp( $this->minTimestamp ) ) );
 		}
+		foreach ( $this->joinModules as $join ) {
+			$join->prepare( $sqb );
+		}
+		return $sqb;
+	}
+
+	/**
+	 * Set the ORDER BY, LIMIT, etc. on a query
+	 *
+	 * @param SelectQueryBuilder $sqb
+	 */
+	private function applyOptions( SelectQueryBuilder $sqb ) {
+		if ( $this->distinct ) {
+			$sqb->distinct();
+			// In order to prevent DISTINCT from causing query performance problems,
+			// we have to GROUP BY the primary key. This in turn requires us to add
+			// the primary key to the end of the ORDER BY, and the old ORDER BY to the
+			// start of the GROUP BY.
+			$sqb->groupBy( [ 'rc_timestamp', 'rc_id' ] )
+				->orderBy( [ 'rc_timestamp DESC', 'rc_id DESC' ] );
+		} else {
+			$sqb->orderBy( 'rc_timestamp', SelectQueryBuilder::SORT_DESC );
+		}
+		$sqb->caller( $this->caller ?? __CLASS__ );
 		if ( $this->limit !== null ) {
 			$sqb->limit( $this->limit );
 		}
 		if ( $this->maxExecutionTime !== null ) {
 			$sqb->setMaxExecutionTime( $this->maxExecutionTime );
 		}
-		foreach ( $this->joinModules as $join ) {
-			$join->prepare( $sqb );
-		}
-		return $sqb;
 	}
 
 	/**
@@ -569,6 +741,153 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 			$mutator( $sqb );
 		}
 		return $sqb;
+	}
+
+	/**
+	 * If necessary, generate a set of queries which each join on a link table,
+	 * restricting the results to those that link from/to a page. The results
+	 * from these queries need to be combined with an emulated union.
+	 *
+	 * @param SelectQueryBuilder $mainQueryBuilder
+	 * @return SelectQueryBuilder[]
+	 */
+	private function applyLinkTarget( SelectQueryBuilder $mainQueryBuilder ) {
+		if ( !$this->linkTarget ) {
+			return [ $mainQueryBuilder ];
+		}
+
+		$queries = [];
+		foreach ( $this->linkTables as $linkTable ) {
+			$queryBuilder = clone $mainQueryBuilder;
+			if ( $this->linkDirection === self::LINKS_TO ) {
+				$ok = $this->applyLinksToCondition( $queryBuilder, $this->linkTarget, $linkTable );
+			} else {
+				$ok = $this->applyLinksFromCondition( $queryBuilder, $this->linkTarget, $linkTable );
+			}
+			if ( $ok ) {
+				$queries[] = $queryBuilder;
+			}
+		}
+		return $queries;
+	}
+
+	/**
+	 * Add joins and conditions for links to a page.
+	 *
+	 * @param SelectQueryBuilder $queryBuilder
+	 * @param PageIdentity $page
+	 * @param string $linkTable
+	 * @return bool True for OK, false to force an empty result set
+	 */
+	private function applyLinksToCondition(
+		SelectQueryBuilder $queryBuilder,
+		PageIdentity $page,
+		string $linkTable
+	) {
+		$prefix = self::LINK_TABLE_PREFIXES[$linkTable];
+		$queryBuilder->join( $linkTable, null, "rc_cur_id = {$prefix}_from" );
+		if ( $linkTable === 'imagelinks' ) {
+			// The imagelinks table has no xx_namespace field and has xx_to instead of xx_target_id
+			if ( $page->getNamespace() !== NS_FILE ) {
+				// No imagelinks to a non-image page
+				return false;
+			}
+			$queryBuilder->where( $this->db->expr( 'il_to', '=', $page->getDBkey() ) );
+		} else {
+			$linkTarget = $page instanceof LinkTarget ? $page : TitleValue::newFromPage( $page );
+			$targetId = $this->linkTargetLookup->getLinkTargetId( $linkTarget );
+			if ( !$targetId ) {
+				return false;
+			}
+			$queryBuilder->where( $this->db->expr( "{$prefix}_target_id", '=', $targetId ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Add joins and conditions for links from a page.
+	 *
+	 * @param SelectQueryBuilder $queryBuilder
+	 * @param PageIdentity $page
+	 * @param string $linkTable
+	 * @return bool True for OK, false to force an empty result set
+	 */
+	private function applyLinksFromCondition(
+		SelectQueryBuilder $queryBuilder,
+		PageIdentity $page,
+		string $linkTable
+	) {
+		if ( !$page->getId() ) {
+			// No links from a non-existent page
+			return false;
+		}
+		$prefix = self::LINK_TABLE_PREFIXES[$linkTable];
+		$queryBuilder->where( [ "{$prefix}_from" => $page->getId() ] );
+		if ( $linkTable == 'imagelinks' ) {
+			$queryBuilder->join( 'imagelinks', null, "rc_title = il_to" )
+				->where( [ "rc_namespace" => $page->getNamespace() ] );
+		} else {
+			$queryBuilder
+				->join( 'linktarget', null,
+					[ 'rc_namespace = lt_namespace', 'rc_title = lt_title' ] )
+				->join( $linkTable, null, "{$prefix}_target_id = lt_id" );
+		}
+		return true;
+	}
+
+	/**
+	 * Perform a set of queries and merge the results as if a UNION were done.
+	 *
+	 * @param SelectQueryBuilder[] $queries
+	 * @return stdClass[]|IResultWrapper
+	 */
+	private function emulateUnion( $queries ) {
+		if ( !$queries ) {
+			return [];
+		} elseif ( count( $queries ) === 1 ) {
+			return $queries[0]->fetchResultSet();
+		}
+		if ( !$this->preparedEmulatedUnion ) {
+			throw new LogicException(
+				'emulateUnion() was called but not prepareEmulatedUnion()' );
+		}
+		$rows = [];
+		foreach ( $queries as $query ) {
+			foreach ( $query->fetchResultSet() as $row ) {
+				$rows[] = $row;
+			}
+		}
+		return $this->sortAndTruncate( $rows );
+	}
+
+	/**
+	 * Sort rows by rc_timestamp/rc_id, remove any duplicates, and then truncate
+	 * to the current query limit.
+	 *
+	 * @param stdClass[] $rows
+	 * @return stdClass[]
+	 */
+	private function sortAndTruncate( $rows ) {
+		usort( $rows, static function ( $a, $b ) {
+			if ( $a->rc_timestamp === $b->rc_timestamp ) {
+				return $b->rc_id <=> $a->rc_id;
+			} else {
+				return $b->rc_timestamp <=> $a->rc_timestamp;
+			}
+		} );
+		// Remove duplicates and slice
+		$prevId = null;
+		$finalRows = [];
+		foreach ( $rows as $row ) {
+			if ( $prevId !== $row->rc_id ) {
+				$finalRows[] = $row;
+				if ( count( $finalRows ) === $this->limit ) {
+					break;
+				}
+			}
+			$prevId = $row->rc_id;
+		}
+		return $finalRows;
 	}
 
 	/**
@@ -633,6 +952,21 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 			throw new InvalidArgumentException( "Unknown join module \"$name\"" );
 		}
 		return $this->joinModules[$name];
+	}
+
+	/** @inheritDoc */
+	public function distinct(): QueryBackend {
+		$this->distinct = true;
+		return $this;
+	}
+
+	/**
+	 * @internal
+	 * @param string $name
+	 * @param ChangesListCondition $module
+	 */
+	public function registerFilter( $name, ChangesListCondition $module ) {
+		$this->filterModules[$name] = $module;
 	}
 
 }
