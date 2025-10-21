@@ -6,7 +6,6 @@
 
 namespace MediaWiki\Specials;
 
-use InvalidArgumentException;
 use MediaWiki\Exception\PermissionsError;
 use MediaWiki\Exception\UserBlockedError;
 use MediaWiki\Html\Html;
@@ -43,31 +42,14 @@ use Wikimedia\Rdbms\IDBAccessObject;
  */
 class SpecialUserRights extends UserGroupsSpecialPage {
 	/**
-	 * The target of the local right-adjuster's interest.  Can be gotten from
-	 * either a GET parameter or a subpage-style parameter, so have a member
-	 * variable for it.
-	 * @var null|string
+	 * @var UserIdentity The user object of the target username.
 	 */
-	protected $mTarget;
-	/**
-	 * @var null|UserIdentity The user object of the target username or null.
-	 */
-	protected $mFetchedUser = null;
-	/** @var bool */
-	protected $isself = false;
-
-	protected ?array $changeableGroups = null;
+	protected UserIdentity $targetUser;
 
 	private UserGroupManagerFactory $userGroupManagerFactory;
 
 	/** @var UserGroupManager|null The UserGroupManager of the target username or null */
 	private $userGroupManager = null;
-
-	/**
-	 * @var UserGroupManager The local UserGroupManager, for checking permissions of the
-	 * performer. Different from $userGroupManager if the target is from an external wiki.
-	 */
-	private $localUserGroupManager;
 
 	private UserNameUtils $userNameUtils;
 	private UserNamePrefixSearch $userNamePrefixSearch;
@@ -97,7 +79,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$this->userNamePrefixSearch = $userNamePrefixSearch ?? $services->getUserNamePrefixSearch();
 		$this->userFactory = $userFactory ?? $services->getUserFactory();
 		$this->userGroupManagerFactory = $userGroupManagerFactory ?? $services->getUserGroupManagerFactory();
-		$this->localUserGroupManager = $this->userGroupManagerFactory->getUserGroupManager();
 		$this->watchlistManager = $watchlistManager ?? $services->getWatchlistManager();
 		$this->tempUserConfig = $tempUserConfig ?? $services->getTempUserConfig();
 		$this->userGroupAssignmentService = $userGroupAssignmentService ?? $services->getUserGroupAssignmentService();
@@ -120,13 +101,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	 * @return bool
 	 */
 	public function userCanChangeRights( UserIdentity $targetUser, $checkIfSelf = true ) {
-		// Some callers rely on this method to set the $userGroupManager property. These should be
-		// fixed before removing this.
-		if ( $this->userGroupManager === null ) {
-			$this->userGroupManager = $this->userGroupManagerFactory
-				->getUserGroupManager( $targetUser->getWikiId() );
-		}
-
+		wfDeprecated( __METHOD__, '1.45' );
 		return $this->userGroupAssignmentService->userCanChangeRights(
 			$this->getAuthority(),
 			$targetUser
@@ -137,51 +112,80 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	 * Manage forms to be shown according to posted data.
 	 * Depending on the submit button used, call a form or a save function.
 	 *
-	 * @param string|null $par String if any subpage provided, else null
+	 * @param string|null $subPage String if any subpage provided, else null
 	 * @throws UserBlockedError|PermissionsError
 	 */
-	public function execute( $par ) {
+	public function execute( $subPage ) {
 		$user = $this->getUser();
 		$request = $this->getRequest();
 		$session = $request->getSession();
 		$out = $this->getOutput();
 
+		$this->setHeaders();
+		$this->outputHeader();
+
 		$out->addModules( [ 'mediawiki.special.userrights' ] );
+		$out->addModuleStyles( 'mediawiki.special' );
+		$out->addModuleStyles( 'mediawiki.codex.messagebox.styles' );
+		$this->addHelpLink( 'Help:Assigning permissions' );
 
-		$this->mTarget = $par ?? $request->getVal( 'user' );
-		if ( $this->mTarget === null ) {
-			$fetchedStatus = Status::newFatal( 'nouserspecified' );
+		$targetName = $subPage ?? $request->getText( 'user' );
+		$this->switchForm( $targetName );
+		$this->targetDescriptor = $targetName;
 
-		} else {
-			$this->mTarget = trim( $this->mTarget );
-
-			if ( $this->userNameUtils->getCanonical( $this->mTarget ) === $user->getName() ) {
-				$this->isself = true;
-			}
-
-			$fetchedStatus = $this->multiFormatUserIdentityLookup->getUserIdentity(
-				$this->mTarget, $this->getAuthority() );
+		// If the user just viewed this page, without trying to submit, return early
+		// It prevents from showing "nouserspecified" error message on first view
+		if ( $subPage === null && !$request->getCheck( 'user' ) ) {
+			return;
 		}
 
-		if ( $fetchedStatus->isOK() ) {
-			$this->mFetchedUser = $fetchedUser = $fetchedStatus->value;
-			// Phan false positive on Status object - T323205
-			'@phan-var UserIdentity $fetchedUser';
-			$wikiId = $fetchedUser->getWikiId();
-			if ( $wikiId === UserIdentity::LOCAL ) {
-				// Set the 'relevant user' in the skin, so it displays links like Contributions,
-				// User logs, UserRights, etc.
-				$this->getSkin()->setRelevantUser( $this->mFetchedUser );
+		// No need to check if $target is non-empty or non-canonical, this is done in the lookup service
+		$fetchedStatus = $this->multiFormatUserIdentityLookup->getUserIdentity( $targetName, $this->getAuthority() );
+		if ( !$fetchedStatus->isOK() ) {
+			$out->addHTML( Html::warningBox(
+				$this->statusFormatter->getMessage( $fetchedStatus )->parse()
+			) );
+			return;
+		}
+
+		$fetchedUser = $fetchedStatus->value;
+		// Phan false positive on Status object - T323205
+		'@phan-var UserIdentity $fetchedUser';
+		$this->targetUser = $fetchedUser;
+
+		if ( !$this->userGroupAssignmentService->targetCanHaveUserGroups( $fetchedUser ) ) {
+			// Differentiate between temp accounts and IP addresses. Eventually we might want
+			// to edit the messages so that the same can be shown for both cases.
+			$messageKey = $fetchedUser->isRegistered() ? 'userrights-no-group' : 'nosuchusershort';
+			$out->addHTML( Html::warningBox(
+				$this->msg( $messageKey, $fetchedUser->getName() )->parse()
+			) );
+			return;
+		}
+
+		$wikiId = $fetchedUser->getWikiId();
+		if ( $wikiId === UserIdentity::LOCAL ) {
+			// Set the 'relevant user' in the skin, so it displays links like Contributions,
+			// User logs, UserRights, etc.
+			$this->getSkin()->setRelevantUser( $fetchedUser );
+		}
+		$this->userGroupManager = $this->userGroupManagerFactory->getUserGroupManager( $wikiId );
+		$this->explicitGroups = $this->userGroupManager->listAllGroups();
+		$this->groupMemberships = $this->userGroupManager->getUserGroupMemberships( $fetchedUser );
+		$this->enableWatchUser = $fetchedUser->getWikiId() === UserIdentity::LOCAL;
+
+		$changeableGroups = $this->userGroupAssignmentService->getChangeableGroups(
+			$this->getAuthority(), $fetchedUser );
+		$this->addableGroups = $changeableGroups['add'];
+		$this->removableGroups = $changeableGroups['remove'];
+		foreach ( $changeableGroups['restricted'] as $group => $details ) {
+			if ( !$details['condition-met'] ) {
+				$this->addGroupAnnotation( $group, $details['message'] );
 			}
-			$this->userGroupManager = $this->userGroupManagerFactory
-				->getUserGroupManager( $wikiId );
 		}
 
 		// show a successbox, if the user rights was saved successfully
-		if (
-			$session->get( 'specialUserrightsSaveSuccess' ) &&
-			$this->mFetchedUser !== null
-		) {
+		if ( $session->get( 'specialUserrightsSaveSuccess' ) ) {
 			// Remove session data for the success message
 			$session->remove( 'specialUserrightsSaveSuccess' );
 
@@ -191,27 +195,17 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 					Html::element(
 						'p',
 						[],
-						$this->msg( 'savedrights', $this->getUsernameWithInterwiki( $this->mFetchedUser ) )->text()
+						$this->msg( 'savedrights', $this->getUsernameWithInterwiki() )->text()
 					),
 					'mw-notify-success'
 				)
 			);
 		}
 
-		$this->setHeaders();
-		$this->outputHeader();
-
-		$out->addModuleStyles( 'mediawiki.special' );
-		$out->addModuleStyles( 'mediawiki.codex.messagebox.styles' );
-		$this->addHelpLink( 'Help:Assigning permissions' );
-
-		$this->switchForm();
-
 		if (
 			$request->wasPosted() &&
 			$request->getCheck( 'saveusergroups' ) &&
-			$this->mTarget !== null &&
-			$user->matchEditToken( $request->getVal( 'wpEditToken' ), $this->mTarget )
+			$user->matchEditToken( $request->getVal( 'wpEditToken' ), $targetName )
 		) {
 			/*
 			 * If the user is blocked and they only have "partial" access
@@ -232,19 +226,9 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 
 			$this->checkReadOnly();
 
-			// save settings
-			if ( !$fetchedStatus->isOK() ) {
-				$this->getOutput()->addWikiTextAsInterface(
-					$fetchedStatus->getWikiText( false, false, $this->getLanguage() )
-				);
-
-				return;
-			}
-
-			$targetUser = $this->mFetchedUser;
 			$conflictCheck = $request->getVal( 'conflictcheck-originalgroups' );
 			$conflictCheck = ( $conflictCheck === '' ) ? [] : explode( ',', $conflictCheck );
-			$userGroups = $this->userGroupManager->getUserGroups( $targetUser, IDBAccessObject::READ_LATEST );
+			$userGroups = $this->userGroupManager->getUserGroups( $fetchedUser, IDBAccessObject::READ_LATEST );
 
 			if ( $userGroups !== $conflictCheck ) {
 				$out->addHTML( Html::errorBox(
@@ -253,14 +237,14 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 			} else {
 				$status = $this->saveUserGroups(
 					$request->getText( 'user-reason' ),
-					$targetUser
+					$fetchedUser,
 				);
 
 				if ( $status->isOK() ) {
 					// Set session data for the success message
 					$session->set( 'specialUserrightsSaveSuccess', 1 );
 
-					$out->redirect( $this->getSuccessURL() );
+					$out->redirect( $this->getSuccessURL( $targetName ) );
 					return;
 				} else {
 					// Print an error message and redisplay the form
@@ -273,31 +257,14 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 			}
 		}
 
-		// If the target is valid, show the form (either edit or view)
-		if ( !$fetchedStatus->isOK() ) {
-			$out->addHTML( Html::warningBox(
-				$this->statusFormatter->getMessage( $fetchedStatus )->parse()
-			) );
-			return;
-		} elseif ( !$this->userGroupAssignmentService->targetCanHaveUserGroups( $this->mFetchedUser ) ) {
-			// It's safe to check `targetCanHaveUserGroups` only here, because the service itself
-			// also does the same check when trying to save the groups.
-			// Differentiate between temp accounts and IP addresses. Eventually we might want
-			// to edit the messages so that the same can be shown for both cases.
-			$messageKey = $this->mFetchedUser->isRegistered() ? 'userrights-no-group' : 'nosuchusershort';
-			$out->addHTML( Html::warningBox(
-				$this->msg( $messageKey, $this->mFetchedUser->getName() )->parse()
-			) );
-			return;
-		}
-
-		$target = new UserGroupsSpecialPageTarget( $this->mFetchedUser->getName(), $this->mFetchedUser );
+		// Show the form (either edit or view)
+		$target = new UserGroupsSpecialPageTarget( $fetchedUser->getName(), $fetchedUser );
 		$this->getOutput()->addHTML( $this->buildGroupsForm( $target ) );
 		$this->showLogFragment( $target, $this->getOutput() );
 	}
 
-	private function getSuccessURL(): string {
-		return $this->getPageTitle( $this->mTarget )->getFullURL();
+	private function getSuccessURL( string $target ): string {
+		return $this->getPageTitle( $target )->getFullURL();
 	}
 
 	/**
@@ -338,7 +305,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 
 		// This could possibly create a highly unlikely race condition if permissions are changed between
 		// when the form is loaded and when the form is saved. Ignoring it for the moment.
-		$existingUGMs = $this->userGroupManager->getUserGroupMemberships( $user );
 		$newGroupsStatus = $this->readGroupsForm();
 
 		if ( !$newGroupsStatus->isOK() ) {
@@ -347,7 +313,8 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$newGroups = $newGroupsStatus->value;
 
 		// addgroup contains also existing groups with changed expiry
-		[ $addgroup, $removegroup, $groupExpiries ] = $this->splitGroupsIntoAddRemove( $newGroups, $existingUGMs );
+		[ $addgroup, $removegroup, $groupExpiries ] = $this->splitGroupsIntoAddRemove(
+			$newGroups, $this->groupMemberships );
 		$this->userGroupAssignmentService->saveChangesToUserGroups( $this->getAuthority(), $user, $addgroup,
 			$removegroup, $groupExpiries, $reason );
 
@@ -402,7 +369,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	/**
 	 * Display a HTMLUserTextField form to allow searching for a named user only
 	 */
-	protected function switchForm() {
+	protected function switchForm( string $target ) {
 		$formDescriptor = [
 			'user' => [
 				'class' => HTMLUserTextField::class,
@@ -411,8 +378,8 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 				'ipallowed' => true,
 				'iprange' => true,
 				'excludetemp' => true, // Do not show temp users: T341684
-				'autofocus' => $this->mFetchedUser === null,
-				'default' => $this->mTarget,
+				'autofocus' => $target === '',
+				'default' => $target,
 			]
 		];
 
@@ -430,26 +397,15 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	}
 
 	/** @inheritDoc */
-	protected function makeConflictCheckKey( UserGroupsSpecialPageTarget $target ): string {
-		$user = $this->assertIsUserIdentity( $target->userObject );
-		return implode( ',', $this->userGroupManager->getUserGroups( $user ) );
-	}
-
-	/** @inheritDoc */
-	protected function getTargetDescriptor(): string {
-		return $this->mTarget;
-	}
-
-	/** @inheritDoc */
 	protected function getTargetUserToolLinks( UserGroupsSpecialPageTarget $target ): string {
-		$user = $this->assertIsUserIdentity( $target->userObject );
-		$systemUser = $user->getWikiId() === UserIdentity::LOCAL
-			&& $this->userFactory->newFromUserIdentity( $user )->isSystemUser();
+		$targetWiki = $this->targetUser->getWikiId();
+		$systemUser = $targetWiki === UserIdentity::LOCAL
+			&& $this->userFactory->newFromUserIdentity( $this->targetUser )->isSystemUser();
 
 		// Only add an email link if the user is not a system user
 		$flags = $systemUser ? 0 : Linker::TOOL_LINKS_EMAIL;
 		return Linker::userToolLinks(
-			$user->getId( $user->getWikiId() ),
+			$this->targetUser->getId( $targetWiki ),
 			$this->getDisplayUsername( $target ),
 			false, /* default for redContribsWhenNoEdits */
 			$flags
@@ -458,15 +414,14 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 
 	/** @inheritDoc */
 	protected function getCurrentUserGroupsText( UserGroupsSpecialPageTarget $target ): string {
-		$user = $this->assertIsUserIdentity( $target->userObject );
 		$groupsText = parent::getCurrentUserGroupsText( $target );
 
 		// Apart from displaying the groups list, also display a note if this is a system user
-		$systemUser = $user->getWikiId() === UserIdentity::LOCAL
-			&& $this->userFactory->newFromUserIdentity( $user )->isSystemUser();
+		$systemUser = $this->targetUser->getWikiId() === UserIdentity::LOCAL
+			&& $this->userFactory->newFromUserIdentity( $this->targetUser )->isSystemUser();
 		if ( $systemUser ) {
 			$systemUserNote = $this->msg( 'userrights-systemuser' )
-				->params( $user->getName() )
+				->params( $this->targetUser->getName() )
 				->parse();
 			$groupsText .= Html::rawElement(
 				'p',
@@ -482,13 +437,12 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		array $userGroups,
 		UserGroupsSpecialPageTarget $target
 	): array {
-		$user = $this->assertIsUserIdentity( $target->userObject );
 		$autoGroups = [];
 
 		// Listing autopromote groups works only on the local wiki
-		if ( $user->getWikiId() === UserIdentity::LOCAL ) {
-			foreach ( $this->userGroupManager->getUserAutopromoteGroups( $user ) as $group ) {
-				$autoGroups[$group] = new UserGroupMembership( $user->getId(), $group );
+		if ( $this->targetUser->getWikiId() === UserIdentity::LOCAL ) {
+			foreach ( $this->userGroupManager->getUserAutopromoteGroups( $this->targetUser ) as $group ) {
+				$autoGroups[$group] = new UserGroupMembership( $this->targetUser->getId(), $group );
 			}
 			ksort( $autoGroups );
 		}
@@ -499,54 +453,8 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		];
 	}
 
-	/** @inheritDoc */
-	protected function listAllExplicitGroups(): array {
-		return $this->userGroupManager->listAllGroups();
-	}
-
-	/** @inheritDoc */
-	protected function getGroupMemberships( UserGroupsSpecialPageTarget $target ): array {
-		$user = $this->assertIsUserIdentity( $target->userObject );
-		return $this->userGroupManager->getUserGroupMemberships( $user );
-	}
-
-	protected function getGroupAnnotations( string $group ): array {
-		$groups = $this->changeableGroups();
-		if ( !isset( $groups['restricted'][$group] ) || $groups['restricted'][$group]['condition-met'] ) {
-			return parent::getGroupAnnotations( $group );
-		}
-		return [
-			$groups['restricted'][$group]['message']
-		];
-	}
-
 	/**
-	 * @param string $group The name of the group to check
-	 * @return bool Can we remove the group?
-	 */
-	protected function canRemove( string $group ): bool {
-		$groups = $this->changeableGroups();
-
-		return in_array(
-			$group,
-			$groups['remove'] ) || ( $this->isself && in_array( $group, $groups['remove-self'] )
-		);
-	}
-
-	/**
-	 * @param string $group The name of the group to check
-	 * @return bool Can we add the group?
-	 */
-	protected function canAdd( string $group ): bool {
-		$groups = $this->changeableGroups();
-
-		return in_array(
-			$group,
-			$groups['add'] ) || ( $this->isself && in_array( $group, $groups['add-self'] )
-		);
-	}
-
-	/**
+	 * @deprecated since 1.45, use {@see UserGroupAssignmentService::getChangeableGroups()} instead
 	 * @return array [
 	 *   'add' => [ addablegroups ],
 	 *   'remove' => [ removablegroups ],
@@ -557,80 +465,31 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	 * @phan-return array{add:list<string>,remove:list<string>,add-self:list<string>,remove-self:list<string>}
 	 */
 	protected function changeableGroups() {
-		if ( $this->changeableGroups === null ) {
-			$authority = $this->getContext()->getAuthority();
-			$groups = $this->localUserGroupManager->getGroupsChangeableBy( $authority );
-
-			if ( $this->mFetchedUser !== null ) {
-				// If the target is an interwiki user, ensure that the performer is entitled to such changes
-				// It assumes that the target wiki exists at all
-				if (
-					$this->mFetchedUser->getWikiId() !== UserIdentity::LOCAL &&
-					!$authority->isAllowed( 'userrights-interwiki' )
-				) {
-					return [
-						'add' => [],
-						'remove' => [],
-						'add-self' => [],
-						'remove-self' => [],
-						'restricted' => [],
-					];
-				}
-
-				// Allow extensions to define groups that cannot be added, given the target user and
-				// the performer. This allows policy restrictions to be enforced via software. This
-				// could be done via configuration in the future, as discussed in T393615.
-				$restrictedGroups = [];
-				$this->getHookRunner()->onSpecialUserRightsChangeableGroups(
-					$authority,
-					$this->mFetchedUser,
-					$groups['add'],
-					$restrictedGroups
-				);
-
-				$unAddableRestrictedGroups = array_keys(
-					array_filter( $restrictedGroups, static fn ( $group ) =>
-						!$group['condition-met'] && !$group['ignore-condition'] )
-				);
-
-				$groups['add'] = array_diff( $groups['add'], $unAddableRestrictedGroups );
-				$groups['restricted'] = $restrictedGroups;
-			}
-
-			$this->changeableGroups = $groups;
-		}
-
-		return $this->changeableGroups;
+		wfDeprecated( __METHOD__, '1.45' );
+		$result = $this->userGroupAssignmentService->getChangeableGroups( $this->getAuthority(), $this->targetUser );
+		// Add missing keys, just in case
+		$result['add-self'] = [];
+		$result['remove-self'] = [];
+		return $result;
 	}
 
 	/** @inheritDoc */
 	protected function getDisplayUsername( UserGroupsSpecialPageTarget $target ): string {
-		$user = $this->assertIsUserIdentity( $target->userObject );
-		return $this->getUsernameWithInterwiki( $user );
+		return $this->getUsernameWithInterwiki();
 	}
 
 	/**
-	 * Get a display user name. This includes the {@}domain part for interwiki users.
-	 * Use UserIdentity::getName for {{GENDER:}} in messages and
-	 * use the "display user name" for visible user names in logs or messages
-	 *
-	 * TODO: Eventually, this will be not needed, once all code uses getDisplayUsername instead of
-	 * calling this method directly. At that point, we can move this code to that method.
-	 * It will likely happen in T405575
+	 * Returns the username together with an interwiki suffix if applicable (user{@}wiki).
+	 * This form of the username is suitable for display in logs and other user-facing messages.
+	 * However, it cannot be used for {{GENDER:}} - in that case, use UserIdentity::getName().
 	 */
-	private function getUsernameWithInterwiki( UserIdentity $user ): string {
-		$userName = $user->getName();
-		if ( $user->getWikiId() !== UserIdentity::LOCAL ) {
-			$userName .= $this->getConfig()->get( MainConfigNames::UserrightsInterwikiDelimiter )
-				. $user->getWikiId();
+	private function getUsernameWithInterwiki(): string {
+		$userName = $this->targetUser->getName();
+		$targetWiki = $this->targetUser->getWikiId();
+		if ( $targetWiki !== UserIdentity::LOCAL ) {
+			$userName .= $this->getConfig()->get( MainConfigNames::UserrightsInterwikiDelimiter ) . $targetWiki;
 		}
 		return $userName;
-	}
-
-	/** @inheritDoc */
-	protected function supportsWatchUser( UserGroupsSpecialPageTarget $target ): bool {
-		$user = $this->assertIsUserIdentity( $target->userObject );
-		return $user->getWikiId() === UserIdentity::LOCAL;
 	}
 
 	/** @inheritDoc */
@@ -655,20 +514,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		// Autocomplete subpage as user list - public to allow caching
 		return $this->userNamePrefixSearch
 			->search( UserNamePrefixSearch::AUDIENCE_PUBLIC, $search, $limit, $offset );
-	}
-
-	/**
-	 * A helper function to assert that an object is of type {@see UserIdentity}.
-	 * It's used when retrieving the user object from a {@see UserGroupsSpecialPageTarget}.
-	 * @throws InvalidArgumentException If the object is not of the expected type
-	 * @param mixed $object The object to check
-	 * @return UserIdentity The input object, but with a type hint for IDEs
-	 */
-	private function assertIsUserIdentity( mixed $object ): UserIdentity {
-		if ( !$object instanceof UserIdentity ) {
-			throw new InvalidArgumentException( 'Target userObject must be a UserIdentity' );
-		}
-		return $object;
 	}
 }
 
