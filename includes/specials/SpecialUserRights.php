@@ -28,7 +28,6 @@ use MediaWiki\User\UserGroupAssignmentService;
 use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserGroupManagerFactory;
 use MediaWiki\User\UserGroupMembership;
-use MediaWiki\User\UserGroupsSpecialPageTarget;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserNamePrefixSearch;
 use MediaWiki\User\UserNameUtils;
@@ -258,9 +257,8 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		}
 
 		// Show the form (either edit or view)
-		$target = new UserGroupsSpecialPageTarget( $fetchedUser->getName(), $fetchedUser );
-		$this->getOutput()->addHTML( $this->buildGroupsForm( $target ) );
-		$this->showLogFragment( $target, $this->getOutput() );
+		$this->getOutput()->addHTML( $this->buildGroupsForm() );
+		$this->showLogFragment( 'rights', 'rights' );
 	}
 
 	private function getSuccessURL( string $target ): string {
@@ -397,7 +395,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	}
 
 	/** @inheritDoc */
-	protected function getTargetUserToolLinks( UserGroupsSpecialPageTarget $target ): string {
+	protected function getTargetUserToolLinks(): string {
 		$targetWiki = $this->targetUser->getWikiId();
 		$systemUser = $targetWiki === UserIdentity::LOCAL
 			&& $this->userFactory->newFromUserIdentity( $this->targetUser )->isSystemUser();
@@ -406,15 +404,15 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$flags = $systemUser ? 0 : Linker::TOOL_LINKS_EMAIL;
 		return Linker::userToolLinks(
 			$this->targetUser->getId( $targetWiki ),
-			$this->getTargetDescriptor(),
+			$this->getUsernameWithInterwiki( $this->targetUser ),
 			false, /* default for redContribsWhenNoEdits */
 			$flags
 		);
 	}
 
 	/** @inheritDoc */
-	protected function getCurrentUserGroupsText( UserGroupsSpecialPageTarget $target ): string {
-		$groupsText = parent::getCurrentUserGroupsText( $target );
+	protected function getCurrentUserGroupsText(): string {
+		$groupsText = parent::getCurrentUserGroupsText();
 
 		// Apart from displaying the groups list, also display a note if this is a system user
 		$systemUser = $this->targetUser->getWikiId() === UserIdentity::LOCAL
@@ -433,10 +431,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	}
 
 	/** @inheritDoc */
-	protected function categorizeUserGroupsForDisplay(
-		array $userGroups,
-		UserGroupsSpecialPageTarget $target
-	): array {
+	protected function categorizeUserGroupsForDisplay( array $userGroups ): array {
 		$autoGroups = [];
 
 		// Listing autopromote groups works only on the local wiki
@@ -485,11 +480,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 			$userName .= $this->getConfig()->get( MainConfigNames::UserrightsInterwikiDelimiter ) . $targetWiki;
 		}
 		return $userName;
-	}
-
-	/** @inheritDoc */
-	protected function getLogType(): array {
-		return [ 'rights', 'rights' ];
 	}
 
 	/**
