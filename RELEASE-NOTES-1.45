@@ -512,15 +512,19 @@ because of Phabricator reports.
 * The SpecialWatchlistGetNonRevisionTypes hook has been deprecated and is no
   longer called. Instead, extensions should ensure that rc_this_oldid is set to
   zero on recent changes entries that do not relate to any particular revision.
+* Asking for a replica from groups except dump/vslow is now deprecated and emits
+  deprecation warnings.
 * The UserIsBlockedGlobally hook has been hard deprecated and now emits
   deprecation warnings. The hook has been deprecated since 1.40.
 * SpecialUserRights::canProcessExpiries() has been deprecated and now emits
   deprecation warnings. It will no longer be possible to prevent the special
   page from allowing to set group expiration times.
-* SpecialUserRights::doSaveUserGroups() has been deprecated. Instead, use
+* SpecialUserRights::doSaveUserGroups() has been deprecated and now emits
+  deprecation warnings. Instead, use
   UserGroupAssignmentService::saveChangesToUserGroups().
-* SpecialUserRights::userCanChangeRights() has been deprecated. Instead, use
-  UserGroupAssignmentService::canChangeUserGroups().
+* SpecialUserRights::userCanChangeRights() has been deprecated and now emits
+  deprecation warnings. Use UserGroupAssignmentService::canChangeUserGroups()
+  instead.
 * SpecialUserRights::fetchUser() has been deprecated and now emits deprecation
   warnings. Use MultiFormatUserIdentityLookup::getUserIdentity() instead.
 * …
