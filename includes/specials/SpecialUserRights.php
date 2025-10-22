@@ -20,14 +20,11 @@ use MediaWiki\SpecialPage\UserGroupsSpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\Status\StatusFormatter;
 use MediaWiki\Title\Title;
-use MediaWiki\User\ActorStoreFactory;
 use MediaWiki\User\MultiFormatUserIdentityLookup;
-use MediaWiki\User\TempUser\TempUserConfig;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserGroupAssignmentService;
 use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserGroupManagerFactory;
-use MediaWiki\User\UserGroupMembership;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserNamePrefixSearch;
 use MediaWiki\User\UserNameUtils;
@@ -47,14 +44,16 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 
 	private UserGroupManagerFactory $userGroupManagerFactory;
 
-	/** @var UserGroupManager|null The UserGroupManager of the target username or null */
-	private $userGroupManager = null;
+	/** @var UserGroupManager The UserGroupManager of the target username */
+	private UserGroupManager $userGroupManager;
+
+	/** @var list<string> Names of the groups the current target is automatically in */
+	private array $autopromoteGroups = [];
 
 	private UserNameUtils $userNameUtils;
 	private UserNamePrefixSearch $userNamePrefixSearch;
 	private UserFactory $userFactory;
 	private WatchlistManager $watchlistManager;
-	private TempUserConfig $tempUserConfig;
 	private UserGroupAssignmentService $userGroupAssignmentService;
 	private MultiFormatUserIdentityLookup $multiFormatUserIdentityLookup;
 	private StatusFormatter $statusFormatter;
@@ -64,9 +63,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		?UserNameUtils $userNameUtils = null,
 		?UserNamePrefixSearch $userNamePrefixSearch = null,
 		?UserFactory $userFactory = null,
-		?ActorStoreFactory $actorStoreFactory = null,
 		?WatchlistManager $watchlistManager = null,
-		?TempUserConfig $tempUserConfig = null,
 		?UserGroupAssignmentService $userGroupAssignmentService = null,
 		?MultiFormatUserIdentityLookup $multiFormatUserIdentityLookup = null,
 		?FormatterFactory $formatterFactory = null,
@@ -79,7 +76,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$this->userFactory = $userFactory ?? $services->getUserFactory();
 		$this->userGroupManagerFactory = $userGroupManagerFactory ?? $services->getUserGroupManagerFactory();
 		$this->watchlistManager = $watchlistManager ?? $services->getWatchlistManager();
-		$this->tempUserConfig = $tempUserConfig ?? $services->getTempUserConfig();
 		$this->userGroupAssignmentService = $userGroupAssignmentService ?? $services->getUserGroupAssignmentService();
 		$this->multiFormatUserIdentityLookup = $multiFormatUserIdentityLookup
 			?? $services->getMultiFormatUserIdentityLookup();
@@ -117,7 +113,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	public function execute( $subPage ) {
 		$user = $this->getUser();
 		$request = $this->getRequest();
-		$session = $request->getSession();
 		$out = $this->getOutput();
 
 		$this->setHeaders();
@@ -158,24 +153,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		}
 
 		$this->initialize( $fetchedUser );
-
-		// show a successbox, if the user rights was saved successfully
-		if ( $session->get( 'specialUserrightsSaveSuccess' ) ) {
-			// Remove session data for the success message
-			$session->remove( 'specialUserrightsSaveSuccess' );
-
-			$out->addModuleStyles( 'mediawiki.notification.convertmessagebox.styles' );
-			$out->addHTML(
-				Html::successBox(
-					Html::element(
-						'p',
-						[],
-						$this->msg( 'savedrights', $this->getUsernameWithInterwiki( $fetchedUser ) )->text()
-					),
-					'mw-notify-success'
-				)
-			);
-		}
+		$this->showMessageOnSuccess();
 
 		if (
 			$request->wasPosted() &&
@@ -216,9 +194,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 				);
 
 				if ( $status->isOK() ) {
-					// Set session data for the success message
-					$session->set( 'specialUserrightsSaveSuccess', 1 );
-
+					$this->setSuccessFlag();
 					$out->redirect( $this->getSuccessURL( $targetName ) );
 					return;
 				} else {
@@ -264,6 +240,8 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$isLocalWiki = $wikiId === UserIdentity::LOCAL;
 		$this->enableWatchUser = $isLocalWiki;
 		if ( $isLocalWiki ) {
+			// Listing autopromote groups is only available on the local wiki
+			$this->autopromoteGroups = $userGroupManager->getUserAutopromoteGroups( $this->targetUser );
 			// Set the 'relevant user' in the skin, so it displays links like Contributions,
 			// User logs, UserRights, etc.
 			$this->getSkin()->setRelevantUser( $user );
@@ -298,19 +276,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	 * @return Status
 	 */
 	protected function saveUserGroups( string $reason, UserIdentity $user ) {
-		if ( $this->userNameUtils->isTemp( $user->getName() ) ) {
-			return Status::newFatal( 'userrights-no-tempuser' );
-		}
-
-		// Prevent cross-wiki assignment of groups to temporary accounts on wikis where the feature is not known.
-		if (
-			$user->getWikiId() !== UserIdentity::LOCAL &&
-			!$this->tempUserConfig->isKnown() &&
-			$this->tempUserConfig->isReservedName( $user->getName() )
-		) {
-			return Status::newFatal( 'userrights-cross-wiki-assignment-for-reserved-name' );
-		}
-
 		// This could possibly create a highly unlikely race condition if permissions are changed between
 		// when the form is loaded and when the form is saved. Ignoring it for the moment.
 		$newGroupsStatus = $this->readGroupsForm();
@@ -443,19 +408,9 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 
 	/** @inheritDoc */
 	protected function categorizeUserGroupsForDisplay( array $userGroups ): array {
-		$autoGroups = [];
-
-		// Listing autopromote groups works only on the local wiki
-		if ( $this->targetUser->getWikiId() === UserIdentity::LOCAL ) {
-			foreach ( $this->userGroupManager->getUserAutopromoteGroups( $this->targetUser ) as $group ) {
-				$autoGroups[$group] = new UserGroupMembership( $this->targetUser->getId(), $group );
-			}
-			ksort( $autoGroups );
-		}
-
 		return [
 			'userrights-groupsmember' => array_values( $userGroups ),
-			'userrights-groupsmember-auto' => $autoGroups,
+			'userrights-groupsmember-auto' => $this->autopromoteGroups,
 		];
 	}
 
