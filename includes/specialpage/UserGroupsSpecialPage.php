@@ -13,18 +13,16 @@ use MediaWiki\Linker\Linker;
 use MediaWiki\Logging\LogEventsList;
 use MediaWiki\Logging\LogPage;
 use MediaWiki\Message\Message;
-use MediaWiki\Output\OutputPage;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserGroupAssignmentService;
 use MediaWiki\User\UserGroupMembership;
-use MediaWiki\User\UserGroupsSpecialPageTarget;
 use MediaWiki\Xml\XmlSelect;
 use Status;
 
 /**
  * A base class for special pages that allow to view and edit user groups.
  *
- * This class is not stable to extend yet, will receive a few more refactorings.
+ * @stable to extend
  * @ingroup SpecialPage
  */
 abstract class UserGroupsSpecialPage extends SpecialPage {
@@ -139,10 +137,9 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 
 	/**
 	 * Builds the user groups form, either in view or edit mode.
-	 * @param ?UserGroupsSpecialPageTarget $target No longer used
 	 * @return string The HTML of the form
 	 */
-	protected function buildGroupsForm( ?UserGroupsSpecialPageTarget $target = null ): string {
+	protected function buildGroupsForm(): string {
 		$groups = $this->prepareAvailableGroups();
 
 		$canChangeAny = array_any(
@@ -212,7 +209,7 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 			$this->msg( 'userrights-groups-help', $this->targetBareName )->parse() .
 			$this->getCurrentUserGroupsText();
 
-		$memberships = $this->getGroupMemberships();
+		$memberships = $this->groupMemberships;
 		$columns = [
 			'unchangeable' => [],
 			'changeable' => [],
@@ -274,7 +271,7 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 					) .
 				"</td>
 			</tr>";
-		if ( $this->supportsWatchUser() ) {
+		if ( $this->enableWatchUser ) {
 			$output .= "<tr>
 					<td></td>
 					<td class='mw-input'>" .
@@ -334,7 +331,7 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 * @return array<string,array{group:string,canAdd:bool,canRemove:bool,annotations:list<Message|string>}>
 	 */
 	private function prepareAvailableGroups(): array {
-		$allGroups = $this->listAllExplicitGroups();
+		$allGroups = $this->explicitGroups;
 
 		// We store user groups with information whether the current user can add/remove them
 		// and possibly other data that will be then used for rendering the form
@@ -525,7 +522,7 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 * the user is not supposed to change.
 	 */
 	protected function readGroupsForm(): Status {
-		$allGroups = $this->listAllExplicitGroups();
+		$allGroups = $this->explicitGroups;
 		// New state of the user groups, read from the form (group name => expiry)
 		// The expiry is either timestamp, null or 'existing' (meaning no change)
 		$newGroups = [];
@@ -579,7 +576,7 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 *   by {@see readGroupsForm()}. The expiry is either a timestamp, null (meaning infinity) or
 	 *   'existing' (meaning no change).
 	 * @param array<string, UserGroupMembership> $existingUGMs The current group memberships of
-	 *   the target user, as returned by {@see getGroupMemberships()}.
+	 *   the target user, in the same format as in {@see $groupMemberships}.
 	 * @return array{0:list<string>,1:list<string>,2:array<string,?string>} Respectively: the groups
 	 *   to add, to remove, and the expiries to set on the groups to add.
 	 */
@@ -626,8 +623,7 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 * split them into several paragraphs etc.
 	 */
 	protected function getCurrentUserGroupsText(): string {
-		$userGroups = $this->getGroupMemberships();
-		$userGroups = $this->sortGroupMemberships( $userGroups );
+		$userGroups = $this->sortGroupMemberships( $this->groupMemberships );
 
 		$groupParagraphs = $this->categorizeUserGroupsForDisplay( $userGroups );
 
@@ -675,17 +671,10 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	/**
 	 * Shows a log fragment for the current target user, i.e. page "User:{$this->targetDisplayName}".
 	 *
-	 * @param UserGroupsSpecialPageTarget|string $logType The type of the log to show
-	 * @param OutputPage|string $logSubType The subtype of the log to show
+	 * @param string $logType The type of the log to show
+	 * @param string $logSubType The subtype of the log to show
 	 */
-	protected function showLogFragment(
-		UserGroupsSpecialPageTarget|string $logType,
-		OutputPage|string $logSubType
-	): void {
-		if ( $logType instanceof UserGroupsSpecialPageTarget ) {
-			// TODO: Remove this branch when callers are updated to pass strings
-			[ $logType, $logSubType ] = $this->getLogType();
-		}
+	protected function showLogFragment( string $logType, string $logSubType ): void {
 		$logPage = new LogPage( $logType );
 
 		$logTitle = $logPage->getName()
@@ -707,8 +696,8 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 * overridden by the implementations to split the user groups into several paragraphs or add more
 	 * groups to the list, which are not expected to be editable through the form.
 	 *
-	 * @param array<string,UserGroupMembership> $userGroups The user groups the target belongs to, as
-	 *   returned by {@see getGroupMemberships()}. The groups are sorted in such a way that permanent
+	 * @param array<string,UserGroupMembership> $userGroups The user groups the target belongs to, in
+	 *   the same format as {@see $groupMemberships}. The groups are sorted in such a way that permanent
 	 *   memberships are after temporary ones.
 	 * @return array<string,list<UserGroupMembership|string>> List of groups to show, keyed by the message key to
 	 *   include at the beginning of the respective paragraph. The default implementation returns a single
@@ -759,22 +748,6 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	abstract protected function getTargetUserToolLinks(): string;
 
 	/**
-	 * Returns a list of all groups that should be presented in the form.
-	 * @return list<string>
-	 */
-	protected function listAllExplicitGroups(): array {
-		return $this->explicitGroups;
-	}
-
-	/**
-	 * Returns the groups the target user currently belongs to, keyed by the group name.
-	 * @return array<string,UserGroupMembership>
-	 */
-	protected function getGroupMemberships(): array {
-		return $this->groupMemberships;
-	}
-
-	/**
 	 * Whether the current user can add the target user to the given group.
 	 */
 	protected function canAdd( string $group ): bool {
@@ -786,15 +759,6 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 */
 	protected function canRemove( string $group ): bool {
 		return in_array( $group, $this->removableGroups );
-	}
-
-	/**
-	 * Returns the log type and subtype that is specific to this special page.
-	 * @return array{0:string,1:string} The log type and subtype to use when logging changes
-	 */
-	protected function getLogType(): array {
-		// Dummy values, the method will be dropped soon
-		return [ '', '' ];
 	}
 
 	/**
@@ -828,13 +792,6 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	public function canProcessExpiries() {
 		MWDebug::detectDeprecatedOverride( $this, __CLASS__, 'canProcessExpiries', '1.45' );
 		return true;
-	}
-
-	/**
-	 * Returns whether the "Watch user page" checkbox should be shown.
-	 */
-	protected function supportsWatchUser(): bool {
-		return $this->enableWatchUser;
 	}
 
 	/**
