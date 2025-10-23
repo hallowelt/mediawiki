@@ -6,6 +6,7 @@ use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\WikitextContent;
 use MediaWiki\DAO\WikiAwareEntity;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\Logging\LogPage;
 use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
@@ -228,6 +229,7 @@ class ChangesListQueryTest extends \MediaWikiIntegrationTestCase {
 			$services->getChangeTagsStore(),
 			$services->getObjectCacheFactory(),
 			$services->getStatsFactory(),
+			LoggerFactory::getInstance( 'ChangesListQuery' ),
 			$services->getConnectionProvider(),
 		);
 		$query = $factory->newQuery()
@@ -343,11 +345,12 @@ class ChangesListQueryTest extends \MediaWikiIntegrationTestCase {
 
 		$joinChangeTag = $defaultInfo;
 		$joinChangeTag['tables']['changetagdisplay'] = 'change_tag';
-		$joinChangeTag['join_conds']['changetagdisplay'] = [ 'JOIN', [ 'ct_rc_id=rc_id' ] ];
+		$joinChangeTag['join_conds']['changetagdisplay'] =
+			[ 'JOIN', [ 'changetagdisplay.ct_rc_id=rc_id' ] ];
 
 		$leftJoinChangeTag = $joinChangeTag;
 		$leftJoinChangeTag['join_conds']['changetagdisplay'][0] = 'LEFT JOIN';
-		$leftJoinChangeTag['join_conds']['changetagdisplay'][1][] = 'ct_tag_id = 1';
+		$leftJoinChangeTag['join_conds']['changetagdisplay'][1][] = 'changetagdisplay.ct_tag_id = 1';
 
 		$rcIds = self::getRcIds();
 		$allIds = array_values( $rcIds );
@@ -661,14 +664,14 @@ class ChangesListQueryTest extends \MediaWikiIntegrationTestCase {
 			'require changeTags mw-blank' => [
 				[ [ 'require', 'changeTags', 'mw-blank' ] ],
 				array_merge( $joinChangeTag, [
-					'conds' => '(ct_tag_id = 1)',
+					'conds' => '(changetagdisplay.ct_tag_id = 1)',
 				] ),
 				[ $rcIds['tagged' ] ],
 			],
 			'exclude changeTags mw-blank' => [
 				[ [ 'exclude', 'changeTags', 'mw-blank' ] ],
 				array_merge( $leftJoinChangeTag, [
-					'conds' => '(ct_tag_id IS NULL)',
+					'conds' => '(changetagdisplay.ct_tag_id IS NULL)',
 				] ),
 				array_diff( $allIds, [ $rcIds['tagged' ] ] ),
 			],
