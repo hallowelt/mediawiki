@@ -13,8 +13,6 @@ use MediaWiki\HTMLForm\Field\HTMLUserTextField;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Language\FormatterFactory;
 use MediaWiki\Linker\Linker;
-use MediaWiki\MainConfigNames;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\SpecialPage\UserGroupsSpecialPage;
 use MediaWiki\Status\Status;
@@ -42,45 +40,26 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	 */
 	protected UserIdentity $targetUser;
 
-	private UserGroupManagerFactory $userGroupManagerFactory;
-
 	/** @var UserGroupManager The UserGroupManager of the target username */
 	private UserGroupManager $userGroupManager;
 
 	/** @var list<string> Names of the groups the current target is automatically in */
 	private array $autopromoteGroups = [];
 
-	private UserNameUtils $userNameUtils;
-	private UserNamePrefixSearch $userNamePrefixSearch;
-	private UserFactory $userFactory;
-	private WatchlistManager $watchlistManager;
-	private UserGroupAssignmentService $userGroupAssignmentService;
-	private MultiFormatUserIdentityLookup $multiFormatUserIdentityLookup;
 	private StatusFormatter $statusFormatter;
 
 	public function __construct(
-		?UserGroupManagerFactory $userGroupManagerFactory = null,
-		?UserNameUtils $userNameUtils = null,
-		?UserNamePrefixSearch $userNamePrefixSearch = null,
-		?UserFactory $userFactory = null,
-		?WatchlistManager $watchlistManager = null,
-		?UserGroupAssignmentService $userGroupAssignmentService = null,
-		?MultiFormatUserIdentityLookup $multiFormatUserIdentityLookup = null,
-		?FormatterFactory $formatterFactory = null,
+		private readonly UserGroupManagerFactory $userGroupManagerFactory,
+		private readonly UserNameUtils $userNameUtils,
+		private readonly UserNamePrefixSearch $userNamePrefixSearch,
+		private readonly UserFactory $userFactory,
+		private readonly WatchlistManager $watchlistManager,
+		private readonly UserGroupAssignmentService $userGroupAssignmentService,
+		private readonly MultiFormatUserIdentityLookup $multiFormatUserIdentityLookup,
+		FormatterFactory $formatterFactory,
 	) {
 		parent::__construct( 'Userrights' );
-		$services = MediaWikiServices::getInstance();
-		// This class is extended and therefore falls back to global state - T263207
-		$this->userNameUtils = $userNameUtils ?? $services->getUserNameUtils();
-		$this->userNamePrefixSearch = $userNamePrefixSearch ?? $services->getUserNamePrefixSearch();
-		$this->userFactory = $userFactory ?? $services->getUserFactory();
-		$this->userGroupManagerFactory = $userGroupManagerFactory ?? $services->getUserGroupManagerFactory();
-		$this->watchlistManager = $watchlistManager ?? $services->getWatchlistManager();
-		$this->userGroupAssignmentService = $userGroupAssignmentService ?? $services->getUserGroupAssignmentService();
-		$this->multiFormatUserIdentityLookup = $multiFormatUserIdentityLookup
-			?? $services->getMultiFormatUserIdentityLookup();
-		$this->statusFormatter = ( $formatterFactory ?? $services->getFormatterFactory() )
-			->getStatusFormatter( $this->getContext() );
+		$this->statusFormatter = $formatterFactory->getStatusFormatter( $this->getContext() );
 	}
 
 	/**
@@ -209,7 +188,10 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 	 */
 	private function initialize( UserIdentity $user ): void {
 		$this->targetUser = $user;
-		$this->setTargetName( $user->getName(), $this->getUsernameWithInterwiki( $user ) );
+		$this->setTargetName(
+			$user->getName(),
+			$this->userGroupAssignmentService->getPageTitleForTargetUser( $user )
+		);
 
 		$wikiId = $user->getWikiId();
 		$userGroupManager = $this->userGroupManagerFactory->getUserGroupManager( $wikiId );
@@ -369,7 +351,7 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$flags = $systemUser ? 0 : Linker::TOOL_LINKS_EMAIL;
 		return Linker::userToolLinks(
 			$this->targetUser->getId( $targetWiki ),
-			$this->getUsernameWithInterwiki( $this->targetUser ),
+			$this->targetDisplayName,
 			false, /* default for redContribsWhenNoEdits */
 			$flags
 		);
@@ -421,20 +403,6 @@ class SpecialUserRights extends UserGroupsSpecialPage {
 		$result['add-self'] = [];
 		$result['remove-self'] = [];
 		return $result;
-	}
-
-	/**
-	 * Returns the username together with an interwiki suffix if applicable (user{@}wiki).
-	 * This form of the username is suitable for display in logs and other user-facing messages.
-	 * However, it cannot be used for {{GENDER:}} - in that case, use UserIdentity::getName().
-	 */
-	private function getUsernameWithInterwiki( UserIdentity $targetUser ): string {
-		$userName = $targetUser->getName();
-		$targetWiki = $targetUser->getWikiId();
-		if ( $targetWiki !== UserIdentity::LOCAL ) {
-			$userName .= $this->getConfig()->get( MainConfigNames::UserrightsInterwikiDelimiter ) . $targetWiki;
-		}
-		return $userName;
 	}
 
 	/**
