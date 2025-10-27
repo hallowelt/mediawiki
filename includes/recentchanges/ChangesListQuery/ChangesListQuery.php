@@ -82,7 +82,7 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	/** @var ChangesListJoinModule[] */
 	private $joinModules;
 
-	/** @var ChangesListHighlight[] */
+	/** @var ChangesListHighlight[][] */
 	private $highlights = [];
 
 	/** @var string[] */
@@ -340,11 +340,11 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	 * Require that the changed page is watched by the watchlist user specified
 	 * in a call to watchlistUser().
 	 *
+	 * @param string[] $watchTypes
 	 * @return $this
 	 */
-	public function requireWatched() {
-		$this->getWatchedFilter()->require( 'watched' );
-		return $this;
+	public function requireWatched( $watchTypes = [ 'watchedold', 'watchednew' ] ) {
+		return $this->applyArrayAction( 'require', 'watched', $watchTypes );
 	}
 
 	/**
@@ -443,6 +443,17 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	 */
 	public function requireLatest(): self {
 		$this->getRevisionTypeFilter()->require( 'latest' );
+		return $this;
+	}
+
+	/**
+	 * Exclude old revisions. Latest revisions and changes that do not
+	 * link to a revision, such as log entries, are allowed by this filter.
+	 *
+	 * @return self
+	 */
+	public function excludeOldRevisions(): self {
+		$this->getRevisionTypeFilter()->exclude( 'old' );
 		return $this;
 	}
 
@@ -548,6 +559,9 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	 * a filter condition, given a caller-defined name. Results are available
 	 * via ChangesListResult::getHighlightsFromRow().
 	 *
+	 * If this is called more than once with the same name, the name will be
+	 * available in the result if any of the actions matched.
+	 *
 	 * This has no effect if it is called after the query is executed.
 	 *
 	 * @internal For ChangesListSpecialPage. The module names and values are
@@ -568,7 +582,7 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 			'require' => true,
 			'exclude' => false,
 		};
-		$this->highlights[$name] = new ChangesListHighlight( $sense, $moduleName, $value );
+		$this->highlights[$name][] = new ChangesListHighlight( $sense, $moduleName, $value );
 		return $this;
 	}
 
@@ -717,6 +731,10 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 
 	private function getWatchlistJoinModule(): WatchlistJoin {
 		return $this->joinModules['watchlist'];
+	}
+
+	private function getWatchlistExpiryJoinModule(): BasicJoin {
+		return $this->joinModules['watchlist_expiry'];
 	}
 
 	private function getSlotsJoinModule(): SlotsJoin {
@@ -912,6 +930,19 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 				'rc_comment_cid' => 'recentchanges_comment.comment_id'
 			] );
 		};
+		return $this;
+	}
+
+	/**
+	 * Add the we_expiry field and its related join, if watchlist expiry is enabled
+	 *
+	 * @return $this
+	 */
+	public function maybeAddWatchlistExpiryField(): self {
+		if ( $this->config->get( MainConfigNames::WatchlistExpiry ) ) {
+			$this->getWatchlistExpiryJoinModule()->forFields( $this )->weakLeft();
+			$this->fields( 'we_expiry' );
+		}
 		return $this;
 	}
 
@@ -1496,14 +1527,16 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	 * @return array<string,bool>
 	 */
 	private function getHighlightsFromRow( stdClass $row ) {
-		$highlights = [];
-		foreach ( $this->highlights as $name => $hl ) {
-			$module = $this->getFilter( $hl->moduleName );
-			if ( $module->evaluate( $row, $hl->value ) === $hl->sense ) {
-				$highlights[$name] = true;
+		$activeHighlights = [];
+		foreach ( $this->highlights as $name => $highlights ) {
+			foreach ( $highlights as $hl ) {
+				$module = $this->getFilter( $hl->moduleName );
+				if ( $module->evaluate( $row, $hl->value ) === $hl->sense ) {
+					$activeHighlights[$name] = true;
+				}
 			}
 		}
-		return $highlights;
+		return $activeHighlights;
 	}
 
 	private function getFilter( string $name ): ChangesListCondition {
