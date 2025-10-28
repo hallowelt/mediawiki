@@ -610,6 +610,14 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @deprecated since 1.43, use ::getLinkList(ParserOutputLinkTypes::LANGUAGE)
 	 */
 	public function getLanguageLinks() {
+		wfDeprecated( __METHOD__, '1.43' );
+		return $this->getLanguageLinksInternal();
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function getLanguageLinksInternal(): array {
 		$result = [];
 		foreach ( $this->mLanguageLinkMap as $lang => $title ) {
 			$result[] = "$lang:$title";
@@ -1142,7 +1150,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 */
 	public function setLanguageLinks( $ll ) {
 		wfDeprecated( __METHOD__, '1.42' );
-		$old = $this->getLanguageLinks();
+		$old = $this->getLanguageLinksInternal();
 		$this->mLanguageLinkMap = [];
 		if ( $ll === null ) { // T376323
 			wfDeprecated( __METHOD__ . ' with null argument', '1.43' );
@@ -3109,7 +3117,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		// at <https://www.mediawiki.org/wiki/Manual:Parser_cache/Serialization_compatibility>!
 		$data = [
 			'Text' => $this->hasText() ? $this->getContentHolderText() : null,
-			'LanguageLinks' => $this->getLanguageLinks(),
+			'LanguageLinks' => $this->getLanguageLinksInternal(),
 			'Categories' => $this->mCategories,
 			'Indicators' => $this->mIndicators,
 			'TitleText' => $this->mTitleText,
@@ -3228,16 +3236,28 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		$this->mExternalLinks = $jsonData['ExternalLinks'] ?? [];
 		$this->mInterwikiLinks = $jsonData['InterwikiLinks'] ?? [];
 		$this->existenceLinks = $jsonData['ExistenceLinks'] ?? [];
-		$this->mNewSection = $jsonData['NewSection'] ?? false;
-		$this->mHideNewSection = $jsonData['HideNewSection'] ?? false;
-		$this->mNoGallery = $jsonData['NoGallery'] ?? false;
 		$this->mHeadItems = $jsonData['HeadItems'] ?? [];
 		$this->mModuleSet = array_fill_keys( $jsonData['Modules'] ?? [], true );
 		$this->mModuleStyleSet = array_fill_keys( $jsonData['ModuleStyles'] ?? [], true );
 		$this->mJsConfigVars = $jsonData['JsConfigVars'] ?? [];
 		$this->mWarnings = $jsonData['Warnings'] ?? [];
 		$this->mWarningMsgs = $jsonData['WarningMsgs'] ?? [];
+
+		// Set flags stored as properties
 		$this->mFlags = $jsonData['Flags'] ?? [];
+		$this->mNoGallery = $jsonData['NoGallery'] ?? false;
+		$this->mEnableOOUI = $jsonData['EnableOOUI'] ?? false;
+		$this->setIndexPolicy( $jsonData['IndexPolicy'] ?? '' );
+		$this->mNewSection = $jsonData['NewSection'] ?? false;
+		$this->mHideNewSection = $jsonData['HideNewSection'] ?? false;
+		$this->mPreventClickjacking = $jsonData['PreventClickjacking'] ?? false;
+		// Set all generic output flags (whether stored as properties or not)
+		// (This is effectively a logical-OR if these are also serialized
+		// above.)
+		foreach ( $jsonData['OutputFlags'] ?? [] as $flag ) {
+			$this->setOutputFlag( $flag );
+		}
+
 		if ( isset( $jsonData['TOCData'] ) ) {
 			$this->mTOCData = $jsonData['TOCData'];
 		// Backward-compatibility with old TOCData encoding (T327439)
@@ -3277,15 +3297,12 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			}
 		}
 		$this->mTimestamp = $jsonData['Timestamp'] ?? null;
-		$this->mEnableOOUI = $jsonData['EnableOOUI'] ?? false;
-		$this->setIndexPolicy( $jsonData['IndexPolicy'] ?? '' );
 		$this->mExtensionData = $jsonData['ExtensionData'] ?? [];
 		$this->mLimitReportData = $jsonData['LimitReportData'] ?? [];
 		$this->mLimitReportJSData = $jsonData['LimitReportJSData'] ?? [];
 		$this->mCacheMessage = $jsonData['CacheMessage'] ?? '';
 		$this->mParseStartTime = []; // invalid after reloading
 		$this->mTimeProfile = $jsonData['TimeProfile'] ?? [];
-		$this->mPreventClickjacking = $jsonData['PreventClickjacking'] ?? false;
 		$this->mExtraScriptSrcs = $jsonData['ExtraScriptSrcs'] ?? [];
 		$this->mExtraDefaultSrcs = $jsonData['ExtraDefaultSrcs'] ?? [];
 		$this->mExtraStyleSrcs = $jsonData['ExtraStyleSrcs'] ?? [];
