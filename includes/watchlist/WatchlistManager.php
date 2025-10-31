@@ -10,17 +10,17 @@ namespace MediaWiki\Watchlist;
 
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
-use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageReference;
+use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\Page\WikiPageFactory;
 use MediaWiki\Permissions\Authority;
+use MediaWiki\Permissions\PermissionStatus;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\User\TalkPageNotificationManager;
-use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use StatusValue;
@@ -124,16 +124,12 @@ class WatchlistManager {
 	 *
 	 * @note If the user doesn't have 'editmywatchlist', this will do nothing.
 	 *
-	 * @param Authority|UserIdentity $performer deprecated passing UserIdentity since 1.37
+	 * @param Authority $performer
 	 */
-	public function clearAllUserNotifications( $performer ) {
+	public function clearAllUserNotifications( Authority $performer ) {
 		if ( $this->readOnlyMode->isReadOnly() ) {
 			// Cannot change anything in read only
 			return;
-		}
-
-		if ( !$performer instanceof Authority ) {
-			$performer = $this->userFactory->newFromUserIdentity( $performer );
 		}
 
 		$user = $performer->getUser();
@@ -167,25 +163,21 @@ class WatchlistManager {
 	 *
 	 * @note If the user doesn't have 'editmywatchlist', this will do nothing.
 	 *
-	 * @param Authority|UserIdentity $performer deprecated passing UserIdentity since 1.37
-	 * @param LinkTarget|PageIdentity $title deprecated passing LinkTarget since 1.37
+	 * @param Authority $performer
+	 * @param PageIdentity $title
 	 * @param int $oldid The revision id being viewed. If not given or 0, latest revision is assumed.
 	 * @param RevisionRecord|null $oldRev The revision record associated with $oldid, or null if
 	 *   the latest revision is used
 	 */
 	public function clearTitleUserNotifications(
-		$performer,
-		$title,
+		Authority $performer,
+		PageIdentity $title,
 		int $oldid = 0,
 		?RevisionRecord $oldRev = null
 	) {
 		if ( $this->readOnlyMode->isReadOnly() ) {
 			// Cannot change anything in read only
 			return;
-		}
-
-		if ( !$performer instanceof Authority ) {
-			$performer = $this->userFactory->newFromUserIdentity( $performer );
 		}
 
 		$userIdentity = $performer->getUser();
@@ -235,10 +227,10 @@ class WatchlistManager {
 	 * Get the timestamp when this page was updated since the user last saw it.
 	 *
 	 * @param UserIdentity $user
-	 * @param LinkTarget|PageIdentity $title deprecated passing LinkTarget since 1.37
+	 * @param PageReference $title
 	 * @return string|bool|null String timestamp, false if not watched, null if nothing is unseen
 	 */
-	public function getTitleNotificationTimestamp( UserIdentity $user, $title ) {
+	public function getTitleNotificationTimestamp( UserIdentity $user, PageReference $title ) {
 		if ( !$user->isRegistered() ) {
 			return false;
 		}
@@ -284,10 +276,10 @@ class WatchlistManager {
 	 * Check if the page is watched by the user.
 	 * @since 1.37
 	 * @param UserIdentity $userIdentity
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @return bool
 	 */
-	public function isWatchedIgnoringRights( UserIdentity $userIdentity, PageIdentity $target ): bool {
+	public function isWatchedIgnoringRights( UserIdentity $userIdentity, PageReference $target ): bool {
 		if ( $this->isWatchable( $target ) ) {
 			return $this->watchedItemStore->isWatched( $userIdentity, $target );
 		}
@@ -299,10 +291,10 @@ class WatchlistManager {
 	 * watchlist.
 	 * @since 1.37
 	 * @param Authority $performer
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @return bool
 	 */
-	public function isWatched( Authority $performer, PageIdentity $target ): bool {
+	public function isWatched( Authority $performer, PageReference $target ): bool {
 		if ( $performer->isAllowed( 'viewmywatchlist' ) ) {
 			return $this->isWatchedIgnoringRights( $performer->getUser(), $target );
 		}
@@ -313,10 +305,10 @@ class WatchlistManager {
 	 * Check if the article is temporarily watched by the user.
 	 * @since 1.37
 	 * @param UserIdentity $userIdentity
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @return bool
 	 */
-	public function isTempWatchedIgnoringRights( UserIdentity $userIdentity, PageIdentity $target ): bool {
+	public function isTempWatchedIgnoringRights( UserIdentity $userIdentity, PageReference $target ): bool {
 		if ( $this->isWatchable( $target ) ) {
 			return $this->watchedItemStore->isTempWatched( $userIdentity, $target );
 		}
@@ -328,10 +320,10 @@ class WatchlistManager {
 	 * their watchlist.
 	 * @since 1.37
 	 * @param Authority $performer
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @return bool
 	 */
-	public function isTempWatched( Authority $performer, PageIdentity $target ): bool {
+	public function isTempWatched( Authority $performer, PageReference $target ): bool {
 		if ( $performer->isAllowed( 'viewmywatchlist' ) ) {
 			return $this->isTempWatchedIgnoringRights( $performer->getUser(), $target );
 		}
@@ -342,14 +334,14 @@ class WatchlistManager {
 	 * Watch a page. Calls the WatchArticle and WatchArticleComplete hooks.
 	 * @since 1.37
 	 * @param UserIdentity $userIdentity
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @param string|null $expiry Optional expiry timestamp in any format acceptable to wfTimestamp(),
 	 *   null will not create expiries, or leave them unchanged should they already exist.
 	 * @return StatusValue
 	 */
 	public function addWatchIgnoringRights(
 		UserIdentity $userIdentity,
-		PageIdentity $target,
+		PageReference $target,
 		?string $expiry = null
 	): StatusValue {
 		if ( !$this->isWatchable( $target ) ) {
@@ -359,19 +351,19 @@ class WatchlistManager {
 		$wikiPage = $this->wikiPageFactory->newFromTitle( $target );
 		$title = $wikiPage->getTitle();
 
-		// TODO: update hooks to take Authority
 		$status = Status::newFatal( 'hookaborted' );
-		$user = $this->userFactory->newFromUserIdentity( $userIdentity );
-		if ( $this->hookRunner->onWatchArticle( $user, $wikiPage, $status, $expiry ) ) {
+		// TODO: broaden the interface on these hooks to accept PageReference
+		if ( $this->hookRunner->onWatchArticle( $userIdentity, $wikiPage, $status, $expiry ) ) {
 			$status = StatusValue::newGood();
-			$this->watchedItemStore->addWatch( $userIdentity, $this->nsInfo->getSubjectPage( $title ), $expiry );
+			$this->watchedItemStore->addWatch( $userIdentity, $this->getSubjectPage( $title ), $expiry );
 			if ( $this->nsInfo->canHaveTalkPage( $title ) ) {
-				$this->watchedItemStore->addWatch( $userIdentity, $this->nsInfo->getTalkPage( $title ), $expiry );
+				$this->watchedItemStore->addWatch( $userIdentity, $this->getTalkPage( $title ), $expiry );
 			}
-			$this->hookRunner->onWatchArticleComplete( $user, $wikiPage );
+			$this->hookRunner->onWatchArticleComplete( $userIdentity, $wikiPage );
 		}
 
 		// eventually user_touched should be factored out of User and this should be replaced
+		$user = $this->userFactory->newFromUserIdentity( $userIdentity );
 		$user->invalidateCache();
 
 		return $status;
@@ -382,19 +374,19 @@ class WatchlistManager {
 	 * Calls the WatchArticle and WatchArticleComplete hooks.
 	 * @since 1.37
 	 * @param Authority $performer
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @param string|null $expiry Optional expiry timestamp in any format acceptable to wfTimestamp(),
 	 *   null will not create expiries, or leave them unchanged should they already exist.
 	 * @return StatusValue
 	 */
 	public function addWatch(
 		Authority $performer,
-		PageIdentity $target,
+		PageReference $target,
 		?string $expiry = null
 	): StatusValue {
-		if ( !$performer->isAllowed( 'editmywatchlist' ) ) {
-			// TODO: this function should be moved out of User
-			return User::newFatalPermissionDeniedStatus( 'editmywatchlist' );
+		$status = PermissionStatus::newEmpty();
+		if ( !$performer->isAllowed( 'editmywatchlist', $status ) ) {
+			return $status;
 		}
 
 		return $this->addWatchIgnoringRights( $performer->getUser(), $target, $expiry );
@@ -404,12 +396,12 @@ class WatchlistManager {
 	 * Stop watching a page. Calls the UnwatchArticle and UnwatchArticleComplete hooks.
 	 * @since 1.37
 	 * @param UserIdentity $userIdentity
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @return StatusValue
 	 */
 	public function removeWatchIgnoringRights(
 		UserIdentity $userIdentity,
-		PageIdentity $target
+		PageReference $target
 	): StatusValue {
 		if ( !$this->isWatchable( $target ) ) {
 			return StatusValue::newFatal( 'watchlistnotwatchable' );
@@ -418,22 +410,54 @@ class WatchlistManager {
 		$wikiPage = $this->wikiPageFactory->newFromTitle( $target );
 		$title = $wikiPage->getTitle();
 
-		// TODO: update hooks to take Authority
 		$status = Status::newFatal( 'hookaborted' );
-		$user = $this->userFactory->newFromUserIdentity( $userIdentity );
-		if ( $this->hookRunner->onUnwatchArticle( $user, $wikiPage, $status ) ) {
+		// TODO broaden the interface on these hooks from WikiPage to PageReference
+		if ( $this->hookRunner->onUnwatchArticle( $userIdentity, $wikiPage, $status ) ) {
 			$status = StatusValue::newGood();
-			$this->watchedItemStore->removeWatch( $userIdentity, $this->nsInfo->getSubjectPage( $title ) );
+			$this->watchedItemStore->removeWatch( $userIdentity, $this->getSubjectPage( $title ) );
 			if ( $this->nsInfo->canHaveTalkPage( $title ) ) {
-				$this->watchedItemStore->removeWatch( $userIdentity, $this->nsInfo->getTalkPage( $title ) );
+				$this->watchedItemStore->removeWatch( $userIdentity, $this->getTalkPage( $title ) );
 			}
-			$this->hookRunner->onUnwatchArticleComplete( $user, $wikiPage );
+			$this->hookRunner->onUnwatchArticleComplete( $userIdentity, $wikiPage );
 		}
 
 		// eventually user_touched should be factored out of User and this should be replaced
+		$user = $this->userFactory->newFromUserIdentity( $userIdentity );
 		$user->invalidateCache();
 
 		return $status;
+	}
+
+	/**
+	 * Like NamespaceInfo::getSubjectPage() but acting on a PageReference
+	 *
+	 * @param PageReference $title
+	 * @return PageReference
+	 */
+	private function getSubjectPage( PageReference $title ): PageReference {
+		if ( $this->nsInfo->isSubject( $title->getNamespace() ) ) {
+			return $title;
+		}
+		return PageReferenceValue::localReference(
+			$this->nsInfo->getSubject( $title->getNamespace() ),
+			$title->getDBkey()
+		);
+	}
+
+	/**
+	 * Like NamespaceInfo::getTalkPage() but acting on a PageReference
+	 *
+	 * @param PageReference $title
+	 * @return PageReference
+	 */
+	private function getTalkPage( PageReference $title ): PageReference {
+		if ( $this->nsInfo->isTalk( $title->getNamespace() ) ) {
+			return $title;
+		}
+		return PageReferenceValue::localReference(
+			$this->nsInfo->getTalk( $title->getNamespace() ),
+			$title->getDBkey()
+		);
 	}
 
 	/**
@@ -441,16 +465,16 @@ class WatchlistManager {
 	 * Calls the UnwatchArticle and UnwatchArticleComplete hooks.
 	 * @since 1.37
 	 * @param Authority $performer
-	 * @param PageIdentity $target
+	 * @param PageReference $target
 	 * @return StatusValue
 	 */
 	public function removeWatch(
 		Authority $performer,
-		PageIdentity $target
+		PageReference $target
 	): StatusValue {
-		if ( !$performer->isAllowed( 'editmywatchlist' ) ) {
-			// TODO: this function should be moved out of User
-			return User::newFatalPermissionDeniedStatus( 'editmywatchlist' );
+		$status = PermissionStatus::newEmpty();
+		if ( !$performer->isAllowed( 'editmywatchlist', $status ) ) {
+			return $status;
 		}
 
 		return $this->removeWatchIgnoringRights( $performer->getUser(), $target );
@@ -463,7 +487,7 @@ class WatchlistManager {
 	 *
 	 * @param bool $watch Whether to watch or unwatch the page
 	 * @param Authority $performer who is watching/unwatching
-	 * @param PageIdentity $target Page to watch/unwatch
+	 * @param PageReference $target Page to watch/unwatch
 	 * @param string|null $expiry Optional expiry timestamp in any format acceptable to wfTimestamp(),
 	 *   null will not create expiries, or leave them unchanged should they already exist.
 	 * @return StatusValue
@@ -472,7 +496,7 @@ class WatchlistManager {
 	public function setWatch(
 		bool $watch,
 		Authority $performer,
-		PageIdentity $target,
+		PageReference $target,
 		?string $expiry = null
 	): StatusValue {
 		// User must be registered, and (T371091) not a temp user
