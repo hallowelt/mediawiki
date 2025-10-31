@@ -310,12 +310,12 @@ $wgAutoloadClasses += [
 	'Wikimedia\\Tests\\Message\\ScalarParamTest' => "$testDir/phpunit/unit/includes/libs/Message/ScalarParamTest.php",
 	'Wikimedia\\Tests\\Message\\T377912TestCase' => "$testDir/phpunit/unit/includes/libs/Message/T377912TestCase.php",
 
-	# tests/phpunit/unit/includes/utils
-	'UrlUtilsProviders' => "$testDir/phpunit/unit/includes/utils/UrlUtilsProviders.php",
+	# tests/phpunit/unit/includes/Utils
+	'MediaWiki\\Tests\\Unit\\Utils\\UrlUtilsProviders' => "$testDir/phpunit/unit/includes/Utils/UrlUtilsProviders.php",
 
-	# tests/phpunit/unit/includes/password
-	'PasswordTestCase' => "$testDir/phpunit/unit/includes/password/PasswordTestCase.php",
-	'Pbkdf2PasswordTestCase' => "$testDir/phpunit/unit/includes/password/Pbkdf2PasswordTestCase.php",
+	# tests/phpunit/unit/includes/Password
+	'MediaWiki\\Tests\\Unit\\Password\\PasswordTestCase' => "$testDir/phpunit/unit/includes/Password/PasswordTestCase.php",
+	'MediaWiki\\Tests\\Unit\\Password\\Pbkdf2PasswordTestCase' => "$testDir/phpunit/unit/includes/Password/Pbkdf2PasswordTestCase.php",
 
 	# tests/phpunit/integration/includes
 	'MediaWiki\\Tests\\ExtensionJsonTestBase' => "$testDir/phpunit/integration/includes/ExtensionJsonTestBase.php",
