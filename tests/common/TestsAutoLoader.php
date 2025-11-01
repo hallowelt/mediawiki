@@ -119,12 +119,12 @@ $wgAutoloadClasses += [
 	'JavaScriptContentHandlerTest' => "$testDir/phpunit/includes/Content/JavaScriptContentHandlerTest.php",
 	'MediaWiki\\Tests\\Content\\ContentSerializationTestTrait' => "$testDir/phpunit/includes/Content/ContentSerializationTestTrait.php",
 
-	# tests/phpunit/includes/db
-	'DatabaseTestHelper' => "$testDir/phpunit/includes/db/DatabaseTestHelper.php",
+	# tests/phpunit/includes/DB
+	'DatabaseTestHelper' => "$testDir/phpunit/includes/DB/DatabaseTestHelper.php",
 
-	# tests/phpunit/includes/debug
-	'TestDeprecatedClass' => "$testDir/phpunit/includes/debug/TestDeprecatedClass.php",
-	'TestDeprecatedSubclass' => "$testDir/phpunit/includes/debug/TestDeprecatedSubclass.php",
+	# tests/phpunit/includes/Debug
+	'TestDeprecatedClass' => "$testDir/phpunit/includes/Debug/TestDeprecatedClass.php",
+	'TestDeprecatedSubclass' => "$testDir/phpunit/includes/Debug/TestDeprecatedSubclass.php",
 
 	# tests/phpunit/includes/diff
 	'CustomDifferenceEngine' => "$testDir/phpunit/includes/diff/CustomDifferenceEngine.php",
