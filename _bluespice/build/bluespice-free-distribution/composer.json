@@ -15,7 +15,7 @@
 		"mediawiki/hit-counters": "dev-REL1_43",
 		"mediawiki/image-map-edit": "3.0.*",
 		"mediawiki/invite-signup": "dev-REL1_43",
-		"mediawiki/lingo": "dev-REL1_43",
+		"mediawiki/lingo": "3.2.*",
 		"mediawiki/loops": "dev-REL1_43",
 		"mediawiki/menu-editor": "3.1.*",
 		"mediawiki/notify-me": "2.0.*",
@@ -34,7 +34,7 @@
 		"mediawiki/variables": "2.5.3",
 		"mediawiki/visual-editor-plus": "2.1.*",
 		"mediawiki/vuejs-plus": "2.0.*",
-		"starcitizenwiki/embedvideo": "3.4.*",
+		"starcitizenwiki/embedvideo": "4.0.*",
 		"universal-omega/dynamic-page-list3": "3.6.*"
 	}
 }
