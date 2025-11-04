@@ -46,13 +46,11 @@ class AutoLoader {
 	public const CORE_NAMESPACES = [
 		'MediaWiki\\' => __DIR__ . '/',
 		'MediaWiki\\Actions\\' => __DIR__ . '/actions/',
-		'MediaWiki\\Api\\' => __DIR__ . '/api/',
 		'MediaWiki\\Block\\' => __DIR__ . '/block/',
 		'MediaWiki\\Installer\\' => __DIR__ . '/installer/',
 		'MediaWiki\\JobQueue\\' => __DIR__ . '/jobqueue/',
 		'MediaWiki\\JobQueue\\Exceptions\\' => __DIR__ . '/jobqueue/exception/',
 		'MediaWiki\\JobQueue\\Jobs\\' => __DIR__ . '/jobqueue/jobs/',
-		'MediaWiki\\JobQueue\\Utils\\' => __DIR__ . '/jobqueue/utils/',
 		'MediaWiki\\Json\\' => __DIR__ . '/json/',
 		'MediaWiki\\Languages\\Data\\' => __DIR__ . '/languages/data/',
 		'MediaWiki\\Logger\\Monolog\\' => __DIR__ . '/debug/logger/monolog/',
