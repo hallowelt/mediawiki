@@ -64,12 +64,10 @@ class AutoLoader {
 		'Wikimedia\\EventRelayer\\' => __DIR__ . '/libs/eventrelayer/',
 		'Wikimedia\\Http\\' => __DIR__ . '/libs/http/',
 		'Wikimedia\\LightweightObjectStore\\' => __DIR__ . '/libs/objectcache/utils/',
-		'Wikimedia\\Mime\\' => __DIR__ . '/libs/mime/',
 		'Wikimedia\\ObjectCache\\' => __DIR__ . '/libs/objectcache/',
 		'Wikimedia\\Rdbms\\Database\\' => __DIR__ . '/libs/rdbms/database/',
 		'Wikimedia\\Rdbms\\Platform\\' => __DIR__ . '/libs/rdbms/platform/',
 		'Wikimedia\\Rdbms\\Replication\\' => __DIR__ . '/libs/rdbms/database/replication/',
-		'Wikimedia\\Telemetry\\' => __DIR__ . '/libs/telemetry/',
 	];
 
 	/**
