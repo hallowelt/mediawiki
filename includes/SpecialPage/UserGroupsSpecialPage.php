@@ -17,6 +17,11 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\UserGroupAssignmentService;
 use MediaWiki\User\UserGroupMembership;
 use MediaWiki\Xml\XmlSelect;
+use OOUI\FieldLayout;
+use OOUI\FieldsetLayout;
+use OOUI\HtmlSnippet;
+use OOUI\LabelWidget;
+use OOUI\PanelLayout;
 use Status;
 
 /**
@@ -147,21 +152,35 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 			static fn ( $group ) => $group['canAdd'] || $group['canRemove']
 		);
 
-		$formContent = $canChangeAny ?
+		return $canChangeAny ?
 			$this->buildEditGroupsFormContent( $groups ) :
 			$this->buildViewGroupsFormContent();
+	}
 
-		$form = Html::rawElement(
-			'form',
-			[
-				'method' => 'post',
-				'action' => $this->getPageTitle()->getLocalURL(),
-				'name' => 'editGroup',
-				'id' => 'mw-userrights-form2'
-			],
-			$formContent
-		);
-		return $form;
+	private function buildFormHeader( string $messageKey ): string {
+		return $this->msg( $messageKey, $this->targetBareName )->text();
+	}
+
+	private function buildFormDescription( string $messageKey ): string {
+		return $this->msg( $messageKey )
+			->params( wfEscapeWikiText( $this->targetDisplayName ) )
+			->rawParams( $this->getTargetUserToolLinks() )->parse();
+	}
+
+	private function buildFormGroupsLists(): array {
+		return array_map( static function ( $field ) {
+			return $field['label'] . ' ' . $field['list'];
+		}, $this->getCurrentUserGroupsFields() );
+	}
+
+	/**
+	 * Allow subclasses to add extra information. This is displayed on the edit and
+	 * view panels, after the lists of the target user's groups.
+	 *
+	 * @return ?string Parsed HTML
+	 */
+	protected function buildFormExtraInfo(): ?string {
+		return null;
 	}
 
 	/**
@@ -169,19 +188,30 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 * @return string The HTML of the form
 	 */
 	private function buildViewGroupsFormContent(): string {
-		$formContent =
-			Html::openElement( 'fieldset' ) .
-			Html::element(
-				'legend',
-				[],
-				$this->msg( 'userrights-viewusergroup', $this->targetBareName )->text()
-			) .
-			$this->msg( 'viewinguserrights'	)->params(
-				wfEscapeWikiText( $this->targetDisplayName )
-			)->rawParams( $this->getTargetUserToolLinks() )->parse() .
-			$this->getCurrentUserGroupsText() .
-			Html::closeElement( 'fieldset' );
-		return $formContent;
+		$panelLabel = $this->buildFormHeader( 'userrights-viewusergroup' );
+
+		$panelItems = array_filter( [
+			$this->buildFormDescription( 'viewinguserrights' ),
+			...$this->buildFormGroupsLists(),
+			$this->buildFormExtraInfo(),
+		] );
+		$panelItems = array_map( static function ( $label ) {
+			return new FieldLayout(
+				new LabelWidget( [
+					'label' => new HtmlSnippet( $label )
+				] )
+			);
+		}, $panelItems );
+
+		return new PanelLayout( [
+			'expanded' => false,
+			'padded' => true,
+			'framed' => true,
+			'content' => new FieldsetLayout( [
+				'label' => $panelLabel,
+				'items' => $panelItems,
+			] )
+		] );
 	}
 
 	/**
@@ -190,6 +220,22 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	 * @return string The HTML of the form
 	 */
 	private function buildEditGroupsFormContent( array $groups ): string {
+		$panelLabel = $this->buildFormHeader( 'userrights-editusergroup' );
+
+		$panelItems = array_filter( [
+			$this->buildFormDescription( 'editinguser' ),
+			$this->msg( 'userrights-groups-help', $this->targetBareName )->parse(),
+			...$this->buildFormGroupsLists(),
+			$this->buildFormExtraInfo(),
+		] );
+		$panelItems = array_map( static function ( $label ) {
+			return new FieldLayout(
+				new LabelWidget( [
+					'label' => new HtmlSnippet( $label )
+				] )
+			);
+		}, $panelItems );
+
 		$formContent =
 			Html::hidden( 'user', $this->targetDisplayName ) .
 			Html::hidden( 'wpEditToken', $this->getUser()->getEditToken( $this->targetDisplayName ) ) .
@@ -197,17 +243,7 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 				self::CONFLICT_CHECK_FIELD,
 				$this->makeConflictCheckKey()
 			) .
-			Html::openElement( 'fieldset' ) .
-			Html::element(
-				'legend',
-				[],
-				$this->msg( 'userrights-editusergroup',	$this->targetBareName )->text()
-			) .
-			$this->msg( 'editinguser' )->params(
-				wfEscapeWikiText( $this->targetDisplayName )
-			)->rawParams( $this->getTargetUserToolLinks() )->parse() .
-			$this->msg( 'userrights-groups-help', $this->targetBareName )->parse() .
-			$this->getCurrentUserGroupsText();
+			Html::openElement( 'fieldset', [ 'class' => 'mw-userrights-edit-fieldset' ] );
 
 		$memberships = $this->groupMemberships;
 		$columns = [
@@ -238,7 +274,33 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 		$formContent .= $this->buildColumnsView( $columns ) .
 			$this->buildReasonFields() .
 			Html::closeElement( 'fieldset' );
-		return $formContent;
+
+		$form = Html::rawElement(
+			'form',
+			[
+				'method' => 'post',
+				'action' => $this->getPageTitle()->getLocalURL(),
+				'name' => 'editGroup',
+				'id' => 'mw-userrights-form2'
+			],
+			$formContent
+		);
+
+		return new PanelLayout( [
+			'expanded' => false,
+			'padded' => true,
+			'framed' => true,
+			'content' => [
+				new FieldsetLayout( [
+					'label' => $panelLabel,
+					'items' => $panelItems,
+				] ),
+				new PanelLayout( [
+					'expanded' => false,
+					'content' => new HtmlSnippet( $form ),
+				] )
+			],
+		] );
 	}
 
 	/**
@@ -618,20 +680,20 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 	}
 
 	/**
-	 * Returns an HTML snippet that describes the current user groups the target belongs to.
-	 * There are no specific requirements on the format, e.g. the implementation may choose to
-	 * split them into several paragraphs etc.
+	 * Get the message translations for displaying the types of groups memberships the user has, and the
+	 * list of groups for each type.
+	 *
+	 * @return array<array{label:string,list:string}>
 	 */
-	protected function getCurrentUserGroupsText(): string {
+	private function getCurrentUserGroupsFields(): array {
 		$userGroups = $this->sortGroupMemberships( $this->groupMemberships );
-
 		$groupParagraphs = $this->categorizeUserGroupsForDisplay( $userGroups );
 
 		$context = $this->getContext();
 		$userName = $this->targetBareName;
 		$language = $this->getLanguage();
 
-		$output = '';
+		$fields = [];
 		foreach ( $groupParagraphs as $paragraphKey => $groups ) {
 			if ( count( $groups ) === 0 ) {
 				continue;
@@ -659,12 +721,31 @@ abstract class UserGroupsSpecialPage extends SpecialPage {
 				->params( $userName )
 				->parse();
 
+			$fields[] = [
+				'label' => $paragraphHeader,
+				'list' => $displayedList
+			];
+		}
+		return $fields;
+	}
+
+	/**
+	 * Returns an HTML snippet that describes the current user groups the target belongs to.
+	 * There are no specific requirements on the format, e.g. the implementation may choose to
+	 * split them into several paragraphs etc.
+	 */
+	protected function getCurrentUserGroupsText(): string {
+		$fields = $this->getCurrentUserGroupsFields();
+		$output = '';
+
+		foreach ( $fields as $field ) {
 			$output .= Html::rawElement(
 				'p',
 				[],
-				$paragraphHeader . ' ' . $displayedList
+				$field['label'] . ' ' . $field['list']
 			);
 		}
+
 		return $output;
 	}
 
