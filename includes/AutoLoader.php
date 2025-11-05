@@ -57,11 +57,11 @@ class AutoLoader {
 		'MediaWiki\\Specials\\' => __DIR__ . '/specials/',
 		'MediaWiki\\Title\\' => __DIR__ . '/title/',
 		'Wikimedia\\' => __DIR__ . '/libs/',
-		'Wikimedia\\DependencyStore\\' => __DIR__ . '/ResourceLoader/dependencystore/',
+		'Wikimedia\\DependencyStore\\' => __DIR__ . '/ResourceLoader/DependencyStore/',
 		'Wikimedia\\LightweightObjectStore\\' => __DIR__ . '/libs/ObjectCache/Utils/',
 		'Wikimedia\\Rdbms\\Database\\' => __DIR__ . '/libs/rdbms/database/',
-		'Wikimedia\\Rdbms\\Platform\\' => __DIR__ . '/libs/rdbms/platform/',
-		'Wikimedia\\Rdbms\\Replication\\' => __DIR__ . '/libs/rdbms/database/replication/',
+		'Wikimedia\\Rdbms\\Platform\\' => __DIR__ . '/libs/rdbms/Platform/',
+		'Wikimedia\\Rdbms\\Replication\\' => __DIR__ . '/libs/rdbms/database/Replication/',
 	];
 
 	/**
