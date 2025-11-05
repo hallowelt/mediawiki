@@ -50,7 +50,7 @@ then
 	# so we replace the last character with an X
 	# and then append the REL1_35- to the front
 	# of the string
-	RELDEFAULT_BRANCH="REL1_39-${DEFAULT_BRANCH%?}x"
+	RELDEFAULT_BRANCH="REL1_43-${DEFAULT_BRANCH%?}x"
 	rm -rf mw-config/overrides
 	git clone -b $RELDEFAULT_BRANCH --depth 1 https://gerrit.wikimedia.org/r/bluespice/mw-config/overrides mw-config/overrides
 fi
