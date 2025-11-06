@@ -47,14 +47,12 @@ class AutoLoader {
 		'MediaWiki\\' => __DIR__ . '/',
 		'MediaWiki\\Actions\\' => __DIR__ . '/actions/',
 		'MediaWiki\\Block\\' => __DIR__ . '/block/',
-		'MediaWiki\\Installer\\' => __DIR__ . '/installer/',
 		'MediaWiki\\Maintenance\\' => __DIR__ . '/../maintenance/includes/',
 		'MediaWiki\\Specials\\' => __DIR__ . '/specials/',
 		'Wikimedia\\' => __DIR__ . '/libs/',
 		'Wikimedia\\DependencyStore\\' => __DIR__ . '/ResourceLoader/DependencyStore/',
 		'Wikimedia\\LightweightObjectStore\\' => __DIR__ . '/libs/ObjectCache/Utils/',
 		'Wikimedia\\Rdbms\\' => __DIR__ . '/libs/rdbms/',
-		'Wikimedia\\Rdbms\\Replication\\' => __DIR__ . '/libs/rdbms/Database/Replication/',
 	];
 
 	/**
