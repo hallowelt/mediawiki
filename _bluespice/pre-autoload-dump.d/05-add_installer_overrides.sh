@@ -21,7 +21,7 @@ if [ "$BRANCH" == "4.3.x" ] || [ "$BRANCH" == "4.4.x" ] || [ "$BRANCH" == "4.5.x
 then
 	BRANCH="REL1_39-$BRANCH"
 fi
-if [ "$BRANCH" == "5.0.x" ] || [ "$BRANCH" == "5.1.x" ]
+if [ "$BRANCH" == "5.0.x" ] || [ "$BRANCH" == "5.1.x" ] || [ "$BRANCH" == "5.2.x" ]
 then
 	BRANCH="REL1_43-$BRANCH"
 fi
