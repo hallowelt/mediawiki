@@ -124,7 +124,7 @@ class RecompressTracked {
 			$this->$name = $value;
 		}
 		$esFactory = MediaWikiServices::getInstance()->getExternalStoreFactory();
-		$this->store = $esFactory->getStore( 'DB' );
+		$this->store = $esFactory->getDatabaseStore();
 		if ( !$this->isChild ) {
 			$GLOBALS['wgDebugLogPrefix'] = "RCT M: ";
 		} elseif ( $this->childId !== false ) {
@@ -697,7 +697,7 @@ class CgzCopyTransaction {
 	public $parent;
 	/** @var class-string<HistoryBlob> */
 	public $blobClass;
-	/** @var ConcatenatedGzipHistoryBlob|false */
+	/** @var HistoryBlob|false */
 	public $cgz;
 	/** @var string[] */
 	public $referrers;
