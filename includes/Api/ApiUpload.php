@@ -514,6 +514,10 @@ class ApiUpload extends ApiBase {
 	 * @return string|null File key
 	 */
 	private function performStash( $failureMode, &$data = null ) {
+		if ( $failureMode === 'optional' && $this->mUpload->getStashFile() !== null ) {
+			return null;
+		}
+
 		$isPartial = (bool)$this->mParams['chunk'];
 		try {
 			$status = $this->mUpload->tryStashFile( $this->getUser(), $isPartial );
@@ -785,7 +789,7 @@ class ApiUpload extends ApiBase {
 	 */
 	protected function verifyUpload() {
 		if ( $this->mParams['chunk'] ) {
-			$maxSize = UploadBase::getMaxUploadSize();
+			$maxSize = UploadBase::getMaxUploadSize( 'file' );
 			if ( $this->mParams['filesize'] > $maxSize ) {
 				$this->dieWithError( 'file-too-large' );
 			}
@@ -1149,7 +1153,7 @@ class ApiUpload extends ApiBase {
 			'filesize' => [
 				ParamValidator::PARAM_TYPE => 'integer',
 				IntegerDef::PARAM_MIN => 0,
-				IntegerDef::PARAM_MAX => UploadBase::getMaxUploadSize(),
+				IntegerDef::PARAM_MAX => UploadBase::getMaxUploadSize( 'file' ),
 			],
 			'offset' => [
 				ParamValidator::PARAM_TYPE => 'integer',
