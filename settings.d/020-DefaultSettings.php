@@ -85,7 +85,6 @@ $GLOBALS['bsgDefaultPermissionsPolicyHeader'] = [
 	'autoplay' => '',
 	'camera' => '',
 	'display-capture' => '',
-	'document-domain' => '',
 	'encrypted-media' => '',
 	'geolocation' => '',
 	'microphone' => '',
