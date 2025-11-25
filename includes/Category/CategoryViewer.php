@@ -2,34 +2,20 @@
 /**
  * List and paging of category members.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  */
 
 namespace MediaWiki\Category;
 
 use Collation;
-use ImageGalleryBase;
-use ImageGalleryClassNotFoundException;
 use InvalidArgumentException;
 use MediaWiki\Cache\LinkCache;
 use MediaWiki\Context\ContextSource;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Debug\DeprecationHelper;
+use MediaWiki\Gallery\Exception\ImageGalleryClassNotFoundException;
+use MediaWiki\Gallery\ImageGalleryBase;
 use MediaWiki\HookContainer\ProtectedHookAccessorTrait;
 use MediaWiki\Html\Html;
 use MediaWiki\Language\ILanguageConverter;
@@ -105,8 +91,6 @@ class CategoryViewer extends ContextSource {
 	/** @var ILanguageConverter */
 	private $languageConverter;
 
-	private int $migrationStage;
-
 	/**
 	 * @since 1.19 $context is a second, required parameter
 	 * @param PageIdentity $page
@@ -139,7 +123,6 @@ class CategoryViewer extends ContextSource {
 		$this->from = $from;
 		$this->until = $until;
 		$this->limit = $context->getConfig()->get( MainConfigNames::CategoryPagingLimit );
-		$this->migrationStage = $context->getConfig()->get( MainConfigNames::CategoryLinksSchemaMigrationStage );
 		$this->cat = Category::newFromTitle( $page );
 		$this->query = $query;
 		$this->collation = MediaWikiServices::getInstance()->getCollationFactory()->getCategoryCollation();
@@ -205,7 +188,7 @@ class CategoryViewer extends ContextSource {
 			$mode = $this->getRequest()->getVal( 'gallerymode', null );
 			try {
 				$this->gallery = ImageGalleryBase::factory( $mode, $this->getContext() );
-			} catch ( ImageGalleryClassNotFoundException $e ) {
+			} catch ( ImageGalleryClassNotFoundException ) {
 				// User specified something invalid, fallback to default.
 				$this->gallery = ImageGalleryBase::factory( false, $this->getContext() );
 			}
@@ -244,7 +227,7 @@ class CategoryViewer extends ContextSource {
 		);
 
 		$this->children_start_char[] =
-			$this->getSubcategorySortChar( $page, $sortkey );
+			$this->languageConverter->convert( $this->collation->getFirstLetter( $sortkey ) );
 	}
 
 	/**
@@ -286,25 +269,15 @@ class CategoryViewer extends ContextSource {
 
 	/**
 	 * Get the character to be used for sorting subcategories.
-	 * If there's a link from Category:A to Category:B, the sortkey of the resulting
-	 * entry in the categorylinks table is Category:A, not A, which it SHOULD be.
-	 * Workaround: If sortkey == "Category:".$title, than use $title for sorting,
-	 * else use sortkey...
 	 *
+	 * @deprecated since 1.45, treat sortkey for sub-category the same as for others instead.
 	 * @param PageIdentity $page
 	 * @param string $sortkey The human-readable sortkey (before transforming to icu or whatever).
 	 * @return string
 	 */
 	public function getSubcategorySortChar( PageIdentity $page, string $sortkey ): string {
-		$titleText = MediaWikiServices::getInstance()->getTitleFormatter()
-			->getPrefixedText( $page );
-		if ( $titleText === $sortkey ) {
-			$word = $page->getDBkey();
-		} else {
-			$word = $sortkey;
-		}
-
-		$firstChar = $this->collation->getFirstLetter( $word );
+		wfDeprecated( __METHOD__, '1.45' );
+		$firstChar = $this->collation->getFirstLetter( $sortkey );
 
 		return $this->languageConverter->convert( $firstChar );
 	}
@@ -417,6 +390,7 @@ class CategoryViewer extends ContextSource {
 						'cat_pages',
 						'cat_files',
 						'cl_sortkey_prefix',
+						'collation_name',
 					]
 				) )
 				->from( 'page' )
@@ -430,24 +404,15 @@ class CategoryViewer extends ContextSource {
 
 			$queryBuilder
 				->join( 'categorylinks', null, [ 'cl_from = page_id' ] )
+				->join( 'linktarget', null, 'cl_target_id = lt_id' )
+				->straightJoin( 'collation', null, 'cl_collation_id = collation_id' )
+				->where( [ 'lt_title' => $this->page->getDBkey(), 'lt_namespace' => NS_CATEGORY ] )
 				->leftJoin( 'category', null, [
 					'cat_title = page_title',
 					'page_namespace' => NS_CATEGORY
 				] )
+				->useIndex( [ 'categorylinks' => 'cl_sortkey_id' ] )
 				->limit( $this->limit + 1 );
-			if ( $this->migrationStage & SCHEMA_COMPAT_READ_OLD ) {
-				$queryBuilder->where( [ 'cl_to' => $this->page->getDBkey() ] )
-					->field( 'cl_collation' )
-					->useIndex( [ 'categorylinks' => 'cl_sortkey' ] );
-			} else {
-				$queryBuilder->join( 'linktarget', null, 'cl_target_id = lt_id' )
-					->where( [ 'lt_title' => $this->page->getDBkey(), 'lt_namespace' => NS_CATEGORY ] );
-
-				$queryBuilder->join( 'collation', null, 'cl_collation_id = collation_id' )
-					->field( 'collation_name', 'cl_collation' );
-
-				$queryBuilder->useIndex( [ 'categorylinks' => 'cl_sortkey_id' ] );
-			}
 
 			$res = $queryBuilder->caller( __METHOD__ )->fetchResultSet();
 
@@ -458,15 +423,7 @@ class CategoryViewer extends ContextSource {
 			foreach ( $res as $row ) {
 				$title = Title::newFromRow( $row );
 				$linkCache->addGoodLinkObjFromRow( $title, $row );
-
-				if ( $row->cl_collation === '' ) {
-					// Hack to make sure that while updating from 1.16 schema
-					// and db is inconsistent, that the sky doesn't fall.
-					// See r83544. Could perhaps be removed in a couple decades...
-					$humanSortkey = $row->cl_sortkey;
-				} else {
-					$humanSortkey = $title->getCategorySortkey( $row->cl_sortkey_prefix );
-				}
+				$humanSortkey = $title->getCategorySortkey( $row->cl_sortkey_prefix );
 
 				if ( ++$count > $this->limit ) {
 					# We've reached the one extra which shows that there
@@ -778,23 +735,13 @@ class CategoryViewer extends ContextSource {
 	 * @return LinkTarget
 	 */
 	private function addFragmentToTitle( PageReference $page, string $section ): LinkTarget {
-		switch ( $section ) {
-			case 'page':
-				$fragment = 'mw-pages';
-				break;
-			case 'subcat':
-				$fragment = 'mw-subcategories';
-				break;
-			case 'file':
-				$fragment = 'mw-category-media';
-				break;
-			default:
-				throw new InvalidArgumentException( __METHOD__ .
-					" Invalid section $section." );
-		}
-
-		return new TitleValue( $page->getNamespace(),
-			$page->getDBkey(), $fragment );
+		$fragment = match ( $section ) {
+			'page' => 'mw-pages',
+			'subcat' => 'mw-subcategories',
+			'file' => 'mw-category-media',
+			default => throw new InvalidArgumentException( __METHOD__ . " Invalid section $section." )
+		};
+		return new TitleValue( $page->getNamespace(), $page->getDBkey(), $fragment );
 	}
 
 	/**

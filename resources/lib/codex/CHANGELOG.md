@@ -1,3 +1,233 @@
+# 2.3.2 / 2025-09-25
+
+## Styles
+- styles, Grid: Use `gap` shorthand for both, rows and columns (Volker E.)
+- styles, Grid: Refining container mixin with limiting to row gap params (Volker E.)
+- Accordion: build in more styles (Derek Torsani)
+- Accordion: fix small design details (Derek Torsani)
+- Accordion: Use Flexbox instead of positioning for action button (Eric Gardner)
+
+## Icons
+- icons: Add 'merge' and 'update' icons (Volker E.)
+- icons: Optimize and fix 'bookmarkList' icon (Thiemo Kreuz)
+- icons: SVGO optimize recent icons after addition (Volker E.)
+
+## Code
+- Codex: Add urlNewTab prop to support opening links in new tabs (Aditya Kumar)
+- Lookup: add readonly state and block menu interaction (spushpit)
+
+## Build
+- build: Deduplicate code for building mode outputs (Roan Kattouw)
+- build: Fix favicon paths in VitePress config (Volker E.)
+- .nvmrc: Update version of Node 20 to 20.19.5 (James D. Forrester)
+
+## Documentation
+- docs: Fix branch name and add Jest section to core (Volker E.)
+- docs: Apply HTML "`<tagged-element>` element" writing convention (Volker E.)
+- docs: clean up documentation (Vanshika)
+- Fix a couple dead links in the Codex documentation. (Brooke Vibber)
+
+# 2.3.1 / 2025-08-21
+
+## Styles
+- InputChip, styles: Fix horizontal spacing (Volker E.)
+
+## Icons
+- icons: Add 'bookmarkList' icon (Volker E.)
+
+## Code
+- TypeaheadSearch: Fix unavoidable deprecation warning in mobile view mode (Roan Kattouw)
+- TypeaheadSearch: Disable Menu teleportation (Roan Kattouw)
+- Menu: Make teleportation optional, triggered by CdxTeleportMenus (Roan Kattouw)
+
+## Build
+- build: sync node and npm versions across packages with ''.nvmrc' (Volker E.)
+- build: sync node and npm versions across packages with '.nvmrc' II (Volker E.)
+- tests: Remove getMenuRoot helper, no longer needed (Roan Kattouw)
+
+## Documentation
+- docs: Set up teleport target for docs site components (Roan Kattouw)
+- docs: Add support for Matomo pageview analytics (Roan Kattouw)
+- docs: Fix 'ARIA' acronym case in documentation (Volker E.)
+- docs: Better document teleportation and styling pitfalls (Roan Kattouw)
+
+# 2.3.0 / 2025-08-14
+
+## Features
+- Dialog, Popover: Support template ref as teleport target (Roan Kattouw)
+- useFloatingMenu: Pass in reference HTMLElement to autoUpdate() directly (Roan Kattouw)
+- Menu, Dialog: Teleport menus by default (Roan Kattouw)
+
+## Styles
+- Table, MenuButton: Ensure menu can overflow table (Anne Tomasevich)
+- Link, docs: Use new `color-link` token for Links and docs application (Volker E.)
+- tokens, docs: Update Source Serif Pro to Source Serif 4 (Derek Torsani)
+- tokens: Update Yellow and Blue option tokens (Derek Torsani)
+
+### New design tokens
+- tokens: Add default link tokens including all interaction and visited states (lmora)
+- tokens: Add `border-color-warning--*` interaction states (Volker E.)
+- tokens, InputChip: Add clear button component token (Volker E.)
+
+## Build
+- build: Enable ES modules for tests in all packages (Roan Kattouw)
+- build: Remove preserved output comments from types and constants files (Volker E.)
+- eslint: Use modern names for profiles, so this can upgrade (James D. Forrester)
+- build: Upgrade eslint-config-wikimedia from 0.28.2 to 0.31.0 (James D. Forrester)
+- build: Remove superfluous linting override (Volker E.)
+- build: Upgrade Vite to v7.0.4, bump Node requirement to v20.19.0 & upgrade dependencies (Roan Kattouw)
+- build: update browserslist db to v1.0.30001731 (Volker E.)
+
+## Documentation
+- docs: Update link to docs in icons.ts code comment (Roan Kattouw)
+- docs: Replace '/main' with '/latest' in links to Codex documentation (Volker E.)
+- docs: Fix "New components" link on Contributing overview (Derek Torsani)
+- docs: Add quiet progressive link fake button example (Volker E.)
+- docs, Image: Fix class references to proper placeholder image icon sizes (Volker E.)
+- docs: Fix z-index equivalence in comment (Volker E.)
+- docs: Fix internal Slack channel reference and expand Foundation acronym (Volker E.)
+
+# 2.2.1 / 2025-07-22
+
+## Features
+- Select: Add hidden HTML form element when a name is provided (Nick Garnsworthy)
+
+## Styles
+- Button, styles: Remove padding for icon-only Buttons (Derek Torsani)
+- Message, styles: Ensure icon never shrinks (Anne Tomasevich)
+- styles: Add WIP responsive Grid layout system with Less mixins (Volker E.)
+- styles, sandbox: apply typography mixin to Sandbox demo pages (Lauralyn Watson)
+- styles: add responsive styles to the Sandbox (Lauralyn Watson)
+- styles: Simplify calcs introduced in font modes (Derek Torsani)
+- TypeaheadSearch, styles: Improve footer styles for mobile view (Anne Tomasevich)
+- docs, styles: remove unused custom styles in contributing-icons.md (Lauralyn Watson)
+- TypeaheadSearch: Fix spacing in footer without thumbnails (Formasitchijoh)
+- Message: Update line-height of content (Derek Torsani)
+
+## Tokens
+- InputChip, tokens: Update max-height of chips (Derek Torsani)
+
+## Code
+- demo, sandbox: fix console warnings in the Sandbox (Lauralyn Watson)
+- demo: add Select with hidden input for forms to Sandbox (Lauralyn Watson)
+- Breadcrumb: Add WIP Breadcrumb component (Doğu Abaris)
+- Breadcrumb: Standardize and simplify code and docs (Anne Tomasevich)
+- Breadcrumb, demo: add demos and i18n translatable string (Lauralyn Watson)
+- Popover: Don't close when viewport scrollbar is clicked (Roan Kattouw)
+- Table: Remove nonexistent 'last' event (Roan Kattouw)
+- MenuButton: Enter key should expand the menu (Lauralyn Watson)
+
+## Build
+- build: Update build-if-missing script in icons package (Anne Tomasevich)
+- build: Set "moduleResolution" TypeScript config to "bundler" (Roan Kattouw)
+- build: Update 'stylelint' dependencies (Volker E.)
+- build: Update 'svglint' and 'svgo' dependencies (Volker E.)
+
+## Documentation
+- docs: Improve Lookup and MultiselectLookup demos with fetching (Anne Tomasevich)
+- docs: add favicon (Lauralyn Watson)
+- docs: Fix broken link to Wikifunctions (Timo Tijhof)
+- docs: Fix display of example icons on "Contibuting icons" page (Roan Kattouw)
+- docs: add favicon types (Lauralyn Watson)
+- docs: Minor optimizations to new favicon files (Thiemo Kreuz)
+- docs: Fix typo and use default fill shorthand color for icon example (Volker E.)
+- docs: Fix number props and type links with brackets (Anne Tomasevich)
+- docs: Expand on NVM for simpler onboarding and unify on "npm" term (Volker E.)
+- docs: Consolidate imports in contributing-icons.md (Roan Kattouw)
+
+# 2.2.0 / 2025-06-24
+
+## Deprecating changes
+- [DEPRECATING CHANGE] Throw deprecation warnings for old APIs (Anne Tomasevich)
+
+Some usages of component props are now officially deprecated. Check the console for warnings from
+the Dialog, Field, Label, Message, SearchInput, and TypeaheadSearch components.
+
+## Features
+- Image: move component out of WIP (Lauralyn Watson)
+- Button: create small size (Daphne Smit)
+- MenuButton: Fix selected prop type (Dillon)
+
+## Styles
+- Image, styles: unify placeholder, loading, and error states (Lauralyn Watson)
+- styles: Improve word-breaking and remove most hyphenation (Anne Tomasevich)
+
+## Tokens
+- token: Add new border color token (Derek Torsani)
+
+## Icons
+- icons: Fix 'logo-codex.svg' so it doesn't need `fill-rule` attribute (Thiemo Kreuz)
+
+## Build
+- build: prepare-release script sorts new commits in changelog (Lauralyn Watson)
+- build: Alias `lint:scripts` command to Wikimedia pseudo standard command (Volker E.)
+- tests: Reorganize unit tests (Anne Tomasevich)
+- Tests: Suppress some expected console warnings for better output (Eric Gardner)
+- tests, Combobox, MenuButton: Add snapshot tests (Anne Tomasevich)
+- tests: Fix snapshot test props, reorganize tests (Anne Tomasevich)
+
+## Documentation
+- docs: add guidelines for Image component (bmartinezcalvo)
+- docs: Redesign home page (Anne Tomasevich)
+- docs: Add initially selected chip to MultiselectLookupField example (Roan Kattouw)
+- docs: align ImageAspectRatios docs with colon separator change (Doğu Abaris)
+- docs: Include instructions to document types and constants (Anne Tomasevich)
+- docs: Add general data vizualization guidelines (Derek Torsani)
+- docs: Update RELEASING.md (Anne Tomasevich)
+- docs: update images in Codex homepage (Lauralyn Watson)
+- docs: Update Image guidelines for consistency (Anne Tomasevich)
+- docs: Document breaking changes process (Anne Tomasevich)
+- docs, Button: Reformat button size docs (Anne Tomasevich)
+
+# Code
+- Menu: Avoid scrolling the entire page when the menu opens (Roan Kattouw)
+- useResizeObserver: Check for valid ResizeObserver entry (bernardwang)
+
+# 2.1.0 / 2025-06-10
+
+## Features
+- TypeaheadSearch: Add support for mobile view TypeaheadSearch (bernardwang)
+- InfoChip, InputChip: add tooltip to display entire label (theprotonade)
+
+## Styles
+- Image, styles: update component based on design review (Lauralyn Watson)
+- Popover: adjust min-width and minClipWidth for small devices (Sergio Gimeno)
+
+## New design tokens
+- `@size-1200`
+
+## Icons
+- icons: Fix typo "anonynmous" → "anonymous" in "userAnonymous.svg" (Bartosz Dziewoński)
+
+## Code
+- TypeaheadSearch: Add mobile view TAHS sandbox demo (bernardwang)
+- TypeaheadSearch: fix box shadow showing when theres no empty search recommendations (bernardwang)
+- tests: Reorganize tests and remove unneeded ones (Anne Tomasevich)
+- Menu: Don't close when scrollbar is clicked (Roan Kattouw)
+- TypeaheadSearch: Ensure keyboard navigation works for empty search results (bernardwang)
+
+## Documentation
+- docs: make the home hero full width (theprotonade)
+- docs: update design contribution guidelines (bmartinezcalvo)
+- docs: update contribution guidelines (bmartinezcalvo)
+- docs: Re-architect usage and contributing sections (Anne Tomasevich)
+- docs: Update various docs pages part 2 (Derek Torsani)
+- docs: Update and simplify developer contribution docs (Anne Tomasevich)
+- docs: Update and improve icon documentation (Anne Tomasevich)
+- docs: Update various docs pages part 1 (Derek Torsani)
+- docs: Minor followup patch to I3a584dee62c96bfe05bf5b94cb2cf00659af16b7 to add details to AUTHORS.txt (theprotonade)
+- docs: remove unused files (Lauralyn Watson)
+- docs: Clean up recent changes (Anne Tomasevich)
+
+# 2.0.0 / 2025-06-02
+
+## Code
+- tests: Update tests in docs package (Anne Tomasevich)
+- tests: Update tests for composables (Anne Tomasevich)
+
+## Documentation
+- docs: Update linting command descriptions (Volker E.)
+
 # 2.0.0-rc.2 / 2025-05-21
 
 Codex 2.0 RC2 is a minor update to RC1 that includes a new design token
@@ -27,7 +257,6 @@ as well as a few other minor changes.
 - Fix bug where clicking on the svg of an action button closes the Accordion instead of firing the action button click event (Daphne Smit)
 - Update TAHS to work with empty search recommendations through new showEmptyQueryResults prop (bernardwang)
 - docs, ProgressBar: Fix `aria-label` controlsConfig prop name (Volker E.)
-
 
 ## Documentation
 - docs: Sync VitePress's `isDark` ref with color mode switcher (Anne Tomasevich)
@@ -597,7 +826,7 @@ Dummy release to fix a publishing problem with 1.19.0.
 - This release deprecates the `initialInputValue` prop of the Lookup component.
   This prop will be removed in the next major release of Codex (v2.0). In the
   meantime it is recommended that users stop using this prop in their own code;
-  the new `inputValue` prop should be used instead. See the Lookup component's
+  the new `inputValue` prop should be used instead. Refer to the Lookup component's
   documentation for more information.
 
 ## Features

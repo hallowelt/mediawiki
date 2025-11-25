@@ -21,11 +21,11 @@ const WatchlistTopSectionWidget = function MwRcfiltersUiWatchlistTopSectionWidge
 	WatchlistTopSectionWidget.super.call( this, config );
 	const $editWatchListButtonIcon = $( '<span>' ).append(
 		new OO.ui.IconWidget( { icon: 'edit', classes: [ 'mw-rcfilters-ui-watchlistTopSectionWidget-editWatchlistButtonIcon' ] } ).$element,
-		mw.msg( 'rcfilters-watchlist-edit-watchlist-button' )
+		mw.message( 'rcfilters-watchlist-edit-watchlist-button' ).escaped()
 	);
 	const $editSettingsIcon = $( '<span>' ).append(
 		new OO.ui.IconWidget( { icon: 'settings', classes: [ 'mw-rcfilters-ui-watchlistTopSectionWidget-editWatchlistButtonIcon' ] } ).$element,
-		mw.msg( 'rcfilters-watchlist-edit-watchlist-preferences-button' )
+		mw.message( 'rcfilters-watchlist-edit-watchlist-preferences-button' ).escaped()
 	);
 	const $editWatchlistButtonLink = $( '<a>' ).attr( 'href',
 		require( '../config.json' ).StructuredChangeFiltersEditWatchlistUrl )
@@ -50,14 +50,26 @@ const WatchlistTopSectionWidget = function MwRcfiltersUiWatchlistTopSectionWidge
 				.append(
 					$( '<div>' )
 						.addClass( 'mw-rcfilters-ui-cell' )
-						.addClass( 'mw-rcfilters-ui-watchlistTopSectionWidget-editWatchlistButton' )
-						.append( $editWatchlistButtonLink )
-				)
-				.append(
-					$( '<div>' )
-						.addClass( 'mw-rcfilters-ui-cell' )
-						.addClass( 'mw-rcfilters-ui-watchlistTopSectionWidget-editWatchlistButton' )
-						.append( $editWatchlistSettingsButtonLink )
+						.addClass( 'mw-rcfilters-ui-watchlistTopSectionWidget-buttonsSection' )
+						.append(
+							// eslint-disable-next-line mediawiki/class-doc
+							$( '<div>' )
+								.addClass(
+									// Do not add class in vector-2022 because it is redundant
+									mw.config.get( 'skin' ) !== 'vector-2022' && mw.config.get( 'skin' ) !== 'minerva' ?
+										'mw-rcfilters-ui-watchlistTopSectionWidget-editWatchlistButton' : undefined
+								)
+								.append(
+									// Do not append edit watchlist button in vector-2022 because it is redundant
+									mw.config.get( 'skin' ) !== 'vector-2022' && mw.config.get( 'skin' ) !== 'minerva' ?
+										$editWatchlistButtonLink : undefined
+								)
+						)
+						.append(
+							$( '<div>' )
+								.addClass( 'mw-rcfilters-ui-watchlistTopSectionWidget-editWatchlistButton' )
+								.append( $editWatchlistSettingsButtonLink )
+						)
 				)
 		);
 

@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 <ruleset name="MediaWiki">
 	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
-		<exclude name="MediaWiki.Commenting.FunctionComment.MissingDocumentationProtected" />
-		<exclude name="MediaWiki.Commenting.FunctionComment.MissingDocumentationPublic" />
-		<exclude name="MediaWiki.Commenting.FunctionComment.WrongStyle" />
 		<exclude name="MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName" />
 		<exclude name="MediaWiki.WhiteSpace.SpaceBeforeSingleLineComment.NewLineComment" />
 	</rule>
 	<rule ref="MediaWiki.NamingConventions.ValidGlobalName">
 		<properties>
-			<property name="ignoreList" type="array" value="$IP" />
+			<property name="ignoreList[]" value="$IP" />
 		</properties>
 	</rule>
 	<rule ref="MediaWiki.NamingConventions.ValidGlobalName.allowedPrefix">
 		<exclude-pattern>*/maintenance/doMaintenance\.php</exclude-pattern>
 		<exclude-pattern>*/maintenance/CommandLineInc\.php</exclude-pattern>
+	</rule>
+	<rule ref="Generic.PHP.RequireStrictTypes">
+		<include-pattern>*/OutputTransform/*</include-pattern>
+		<include-pattern>*/Parsoid/*</include-pattern>
 	</rule>
 	<rule ref="Generic.Files.LineLength">
 		<exclude-pattern>*/languages/messages/*</exclude-pattern>
@@ -101,7 +102,7 @@
 			Continue to allow existing violations, but enable the sniff to prevent
 			any new occurrences.
 		-->
-		<exclude-pattern>*/includes/export/DumpPipeOutput\.php</exclude-pattern>
+		<exclude-pattern>*/includes/Export/DumpPipeOutput\.php</exclude-pattern>
 		<exclude-pattern>*/includes/ResourceLoader/Image\.php</exclude-pattern>
 		<exclude-pattern>*/includes/shell/Command\.php</exclude-pattern>
 		<exclude-pattern>*/maintenance/includes/TextPassDumper\.php</exclude-pattern>

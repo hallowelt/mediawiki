@@ -52,6 +52,9 @@ class RestStructureTest extends MediaWikiIntegrationTestCase {
 		'https://www.mediawiki.org/schema/mwapi-1.0#' =>
 			MW_INSTALL_PATH . '/docs/rest/mwapi-1.0.json',
 
+		'https://www.mediawiki.org/schema/mwapi-1.1#' =>
+			MW_INSTALL_PATH . '/docs/rest/mwapi-1.1.json',
+
 		'https://www.mediawiki.org/schema/discovery-1.0#' =>
 			MW_INSTALL_PATH . '/docs/rest/discovery-1.0.json',
 	];
@@ -348,9 +351,27 @@ class RestStructureTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideModuleDefinitionFiles
 	 */
 	public function testModuleDefinitionFiles( stdClass $moduleSpec ) {
-		$schemaFile = MW_INSTALL_PATH . '/docs/rest/mwapi-1.0.json';
+		// The module definition files may include patch version, but the schema file names do not.
+		$m = [];
+		preg_match( '/^\d\.\d/', $moduleSpec->mwapi, $m );
+		$this->assertCount( 1, $m );
+
+		$schemaFile = MW_INSTALL_PATH . '/docs/rest/mwapi-' . $m[0] . '.json';
 
 		$this->assertMatchesJsonSchema( $schemaFile, $moduleSpec, self::SPEC_FILES );
+
+		$moduleId = $moduleSpec->moduleId;
+		$version = $moduleSpec->info->version;
+
+		// TODO: Consider allowing other suffixes. If so, the regex would be something like:
+		//  '!^[-_.\w]+/v[0-9]+(?:-beta|alpha|rc)?(?:[0-9+])?$!';
+		$moduleIdRegex = '!^[-_.\w]+/v[0-9]+(?:-beta)?(?:[0-9+])?$!';
+		$this->assertMatchesRegularExpression( $moduleIdRegex, $moduleId );
+
+		// TODO: Consider allowing other suffixes. If so, the regex would be something like:
+		//  '!^[0-9]+\.[0-9]+\.[0-9]+(?:-beta|alpha|rc)?(?:[0-9+])?$!'
+		$versionRegex = '!^[0-9]+\.[0-9]+\.[0-9]+(?:-beta)?(?:[0-9+])?$!';
+		$this->assertMatchesRegularExpression( $versionRegex, $version );
 	}
 
 	public function testGetModuleDescription(): void {

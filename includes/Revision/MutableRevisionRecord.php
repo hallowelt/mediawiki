@@ -2,21 +2,7 @@
 /**
  * Mutable RevisionRecord implementation, for building new revision entries programmatically.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  */
 
@@ -233,22 +219,6 @@ class MutableRevisionRecord extends RevisionRecord {
 	}
 
 	/**
-	 * Set revision hash, for optimization. Prevents getSha1() from re-calculating the hash.
-	 *
-	 * @note This should only be used if the calling code is sure that the given hash is correct
-	 * for the revision's content, and there is no chance of the content being manipulated
-	 * later. When in doubt, this method should not be called.
-	 *
-	 * @param string $sha1 SHA1 hash as a base36 string.
-	 * @return self
-	 */
-	public function setSha1( string $sha1 ) {
-		$this->mSha1 = $sha1;
-
-		return $this;
-	}
-
-	/**
 	 * Set nominal revision size, for optimization. Prevents getSize() from re-calculating the size.
 	 *
 	 * @note This should only be used if the calling code is sure that the given size is correct
@@ -369,10 +339,7 @@ class MutableRevisionRecord extends RevisionRecord {
 	 * @return string The revision hash, may be computed on the fly if not yet known.
 	 */
 	public function getSha1() {
-		// If not known, re-calculate and remember. Will be reset when slots change.
-		$this->mSha1 ??= $this->mSlots->computeSha1();
-
-		return $this->mSha1;
+		return $this->mSlots->computeSha1();
 	}
 
 	/**
@@ -391,7 +358,6 @@ class MutableRevisionRecord extends RevisionRecord {
 	 */
 	private function resetAggregateValues() {
 		$this->mSize = null;
-		$this->mSha1 = null;
 	}
 
 }

@@ -1,5 +1,5 @@
 
-// Codex Design Tokens v2.0.0-rc.2
+// Codex Design Tokens v2.3.2
 // Design System for Wikimedia
 // See https://doc.wikimedia.org/codex/latest/design-tokens/overview.html
 
@@ -82,6 +82,7 @@
 @size-300: 3rem;
 @size-400: 4rem;
 @size-800: 8rem;
+@size-1200: 12rem;
 @size-1600: 16rem;
 @size-2400: 24rem;
 @size-2800: 28rem;
@@ -131,11 +132,11 @@
 @font-family-base: sans-serif; // Reference Vector's default fallback sans instead of the deprecated value `font-family-sans` in WikimediaUI Base.
 @font-family-system-sans: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Inter', 'Helvetica', 'Arial', sans-serif;
 @font-family-sans--fallback: sans-serif;
-@font-family-serif: 'Linux Libertine', 'Georgia', 'Times', 'Source Serif Pro', serif;
+@font-family-serif: 'Linux Libertine', 'Georgia', 'Times', 'Source Serif 4', serif;
 @font-family-serif--fallback: serif;
 @font-family-monospace: 'Menlo', 'Consolas', 'Liberation Mono', 'Fira Code', 'Courier New', monospace;
 @font-family-monospace--fallback: monospace, monospace;
-@font-family-heading-main: 'Linux Libertine', 'Georgia', 'Times', 'Source Serif Pro', serif; // Legacy value from WikimediaUI Base. Use for first heading special treatment.
+@font-family-heading-main: 'Linux Libertine', 'Georgia', 'Times', 'Source Serif 4', serif; // Legacy value from WikimediaUI Base. Use for first heading special treatment.
 @font-size-x-small: var( --font-size-x-small, 0.75rem ); // `x` stands for extra. In this case extra small.
 @font-size-small: var( --font-size-small, 0.875rem );
 @font-size-medium: var( --font-size-medium, 1rem );
@@ -216,8 +217,8 @@
 @background-color-progressive--active: var( --background-color-progressive--active, #233566 );
 @background-color-progressive--focus: var( --background-color-progressive--focus, #36c );
 @background-color-progressive-subtle: var( --background-color-progressive-subtle, #f1f4fd );
-@background-color-progressive-subtle--hover: var( --background-color-progressive-subtle--hover, #dce3f9 );
-@background-color-progressive-subtle--active: var( --background-color-progressive-subtle--active, #cbd6f6 );
+@background-color-progressive-subtle--hover: var( --background-color-progressive-subtle--hover, #d9e2ff );
+@background-color-progressive-subtle--active: var( --background-color-progressive-subtle--active, #b6d4fb );
 @background-color-destructive: var( --background-color-destructive, #bf3c2c );
 @background-color-destructive--hover: var( --background-color-destructive--hover, #9f3526 );
 @background-color-destructive--active: var( --background-color-destructive--active, #612419 );
@@ -257,6 +258,7 @@
 @min-size-icon-small: 14px;
 @min-size-icon-medium: 18px;
 @min-size-input-binary: 20px;
+@min-size-input-chip-clear-button: 20px;
 @min-size-toggle-switch-grip: 18px;
 @min-width-medium: 256px;
 @min-width-breakpoint-mobile: 320px; // A mobile device's minimum available screen width. Many older feature phones have screens smaller than this value.
@@ -286,6 +288,7 @@
 @border-width-thick: 2px;
 @border-width-input-radio--checked: 6px;
 @border-color-base: var( --border-color-base, #a2a9b1 );
+@border-color-emphasized: var( --border-color-emphasized, #202122 );
 @border-color-subtle: var( --border-color-subtle, #c8ccd1 );
 @border-color-muted: var( --border-color-muted, #dadde3 );
 @border-color-interactive: var( --border-color-interactive, #72777d );
@@ -306,6 +309,8 @@
 @border-color-error--hover: var( --border-color-error--hover, #9f3526 );
 @border-color-error--active: var( --border-color-error--active, #612419 );
 @border-color-warning: var( --border-color-warning, #ab7f2a );
+@border-color-warning--hover: var( --border-color-warning--hover, #735421 );
+@border-color-warning--active: var( --border-color-warning--active, #453217 );
 @border-color-success: var( --border-color-success, #099979 );
 @border-color-notice: var( --border-color-notice, #72777d );
 @border-color-content-added: var( --border-color-content-added, #a3d3ff );
@@ -321,6 +326,14 @@
 @min-height-table-header: 40px;
 @min-height-table-footer: 40px;
 @min-height-toggle-switch: 28px;
+@max-height-chip: 1.375rem;
+@color-link: @color-progressive; // Default Link color and states
+@color-link--hover: @color-progressive--hover;
+@color-link--active: @color-progressive--active;
+@color-link--focus: @color-progressive--focus;
+@color-link--visited: @color-visited;
+@color-link--visited--hover: @color-visited--hover;
+@color-link--visited--active: @color-visited--active;
 @color-link-red: @color-destructive; // Red ('new') Link color and states
 @color-link-red--hover: @color-destructive--hover;
 @color-link-red--active: @color-destructive--active;
@@ -341,6 +354,8 @@
 @position-offset-border-width-base: -@border-width-base;
 @spacing-horizontal-button: @spacing-75 - @border-width-base; // Padding should equal 12px of spacing minus the width of the border
 @spacing-horizontal-button-icon-only: @spacing-35 - @border-width-base; // Padding should equal 6px of spacing minus the width of the border
+@spacing-horizontal-button-small-icon-only: @spacing-12 - @border-width-base; // Padding should equal 2px of spacing minus the width of the border
+@spacing-horizontal-button-small: @spacing-35 - @border-width-base; // Padding should equal 6px of spacing minus the width of the border
 @spacing-horizontal-button-large: @spacing-100 - @border-width-base; // Padding should equal 16px of spacing minus the width of the border
 @spacing-horizontal-input-text-two-end-icons: calc( @spacing-50 * 2 + @size-icon-small ); // Rely on `calc()` to make token output usable in all formats. When there are two end icons, (i.e. a clear icon and an end icon), we need to double the horizontal padding and account for the size of the extra icon. This token can be used to calculate the horizontal position of the clear icon and the padding-end of the text input.
 @spacing-start-typeahead-search-figure: @spacing-75; // The amount of space between the TypeaheadSearch figure's parent component and the TypeaheadSearch figure (input icon container, search result thumbnail, and footer icon container). We want this space to be uniform so that the figures vertically line up nicely. We use the same horizontal padding as the MenuItem.
@@ -356,6 +371,7 @@
 @border-subtle: @border-width-base @border-style-base @border-color-subtle;
 @border-progressive: @border-width-base @border-style-base @border-color-progressive;
 @border-destructive: @border-width-base @border-style-base @border-color-destructive;
+@border-transparent: @border-width-base @border-style-base @border-color-transparent;
 @outline-base--focus: @border-width-base solid transparent; // Enable Windows high contrast mode on certain widgets, that have default outlines overridden.
 @width-toggle-switch: calc( @font-size-medium * 3 );
 @height-toggle-switch: calc( @font-size-medium * 2 );

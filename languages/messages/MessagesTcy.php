@@ -20,8 +20,8 @@ $namespaceNames = [
 	NS_PROJECT_TALK     => '$1_ಪಾತೆರ',
 	NS_FILE             => 'ಫೈಲ್',
 	NS_FILE_TALK        => 'ಫೈಲ್_ಪಾತೆರ',
-	NS_MEDIAWIKI        => 'ಮಾದ್ಯಮೊ_ವಿಕಿ',
-	NS_MEDIAWIKI_TALK   => 'ಮಾದ್ಯಮೊ_ವಿಕಿ_ಪಾತೆರ',
+	NS_MEDIAWIKI        => 'ಮಾದ್ಯಮೊವಿಕಿ',
+	NS_MEDIAWIKI_TALK   => 'ಮಾದ್ಯಮೊವಿಕಿ_ಪಾತೆರ',
 	NS_TEMPLATE         => 'ಟೆಂಪ್ಲೇಟ್',
 	NS_TEMPLATE_TALK    => 'ಟೆಂಪ್ಲೇಟ್_ಪಾತೆರ',
 	NS_HELP             => 'ಸಕಾಯೊ',
@@ -29,3 +29,25 @@ $namespaceNames = [
 	NS_CATEGORY         => 'ವರ್ಗೊ',
 	NS_CATEGORY_TALK    => 'ವರ್ಗೊ_ಪಾತೆರ',
 ];
+
+$namespaceAliases = [
+	'ಮಾದ್ಯಮೊ_ವಿಕಿ' => NS_MEDIAWIKI,
+	'ಮಾದ್ಯಮೊ_ವಿಕಿ_ಪಾತೆರ' => NS_MEDIAWIKI_TALK,
+];
+
+$digitTransformTable = [
+	'0' => '೦', # U+0CE6
+	'1' => '೧', # U+0CE7
+	'2' => '೨', # U+0CE8
+	'3' => '೩', # U+0CE9
+	'4' => '೪', # U+0CEA
+	'5' => '೫', # U+0CEB
+	'6' => '೬', # U+0CEC
+	'7' => '೭', # U+0CED
+	'8' => '೮', # U+0CEE
+	'9' => '೯', # U+0CEF
+];
+
+$numberingSystem = 'knda';
+
+$digitGroupingPattern = "#,##,##0.###";

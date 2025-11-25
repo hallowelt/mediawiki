@@ -9,6 +9,7 @@ use MediaWiki\Page\PageReference;
 use MediaWiki\Title\Title;
 use MessageLocalizer;
 use RuntimeException;
+use Wikimedia\Message\ListType;
 use Wikimedia\Message\MessageParam;
 use Wikimedia\Message\MessageSpecifier;
 
@@ -335,15 +336,13 @@ class PagerNavigationBuilder {
 				Message::listParam( [
 					Message::rawParam( $firstLink ),
 					Message::rawParam( $lastLink )
-				], 'pipe' )
+				], ListType::PIPE )
 			)->escaped() . ' ';
 		}
 		$html .= $this->msg( 'viewprevnext' )->params(
 			Message::rawParam( $prevLink ),
 			Message::rawParam( $nextLink ),
-			Message::listParam( array_map( static function ( $limitLink ) {
-				return Message::rawParam( $limitLink );
-			}, $limitLinks ), 'pipe' )
+			Message::listParam( array_map( Message::rawParam( ... ), $limitLinks ), ListType::PIPE )
 		)->escaped();
 
 		return Html::rawElement( 'div', [ 'class' => 'mw-pager-navigation-bar' ], $html );

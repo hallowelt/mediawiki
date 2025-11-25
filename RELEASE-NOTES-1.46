@@ -1,0 +1,531 @@
+= MediaWiki 1.46 =
+
+PHP 8.1 workboard: https://phabricator.wikimedia.org/tag/php_8.1_support/
+PHP 8.2 workboard: https://phabricator.wikimedia.org/tag/php_8.2_support/
+PHP 8.3 workboard: https://phabricator.wikimedia.org/tag/php_8.3_support/
+PHP 8.4 workboard: https://phabricator.wikimedia.org/tag/php_8.4_support/
+PHP 8.5 workboard: https://phabricator.wikimedia.org/tag/php_8.5_support/
+
+== MediaWiki 1.46.0-PRERELEASE ==
+
+THIS IS NOT A RELEASE YET
+
+MediaWiki 1.46 is an alpha-quality development branch, and is not recommended
+for use in production.
+
+== Upgrading notes for 1.46 ==
+Don't forget to always back up your database before upgrading!
+
+See the file UPGRADE for more detailed per-version upgrade instructions from the
+oldest supported upgrading version, MediaWiki 1.35.
+
+Some specific notes for MediaWiki 1.46 upgrades are below:
+
+* …
+
+For notes on 1.45.x and older releases, see HISTORY.
+
+=== Configuration changes for system administrators in 1.46 ===
+
+* …
+
+==== New configuration ====
+
+* $wgEnableWatchlistLabels - Feature flag to enable the new watchlist labels
+  feature (see https://www.mediawiki.org/wiki/Help:Watchlist_labels for info).
+  Note that the two new database tables for watchlist labels will be created
+  regardless of the value of this flag. Defaults to false.
+* $wgUserJsPrefLimit – (T408733) This setting lets you limit the maximum number
+  of supported custom JS preferences each user can have, to reduce load. The
+  default value is 100.
+* …
+
+==== Changed configuration ====
+
+* …
+
+==== Removed configuration ====
+
+* (T276975) $wgAPIRequestLog, ignored since 1.43, has now been fully removed.
+* …
+
+=== New user-facing features in 1.46 ===
+
+* …
+
+=== New features for sysadmins in 1.46 ===
+
+* …
+
+=== New developer features in 1.46 ===
+
+* …
+
+=== External library changes in 1.46 ===
+
+==== New external libraries ====
+
+* …
+
+===== New development-only external libraries =====
+
+* Updated mck89/peast from 1.17.2 to 1.17.4.
+* Updated symfony/yaml from 6.4.25 to 6.4.26.
+* …
+
+==== Changed external libraries ====
+
+* …
+
+===== Changed development-only external libraries =====
+
+* …
+
+==== Removed external libraries ====
+
+* …
+
+=== Bug fixes in 1.46 ===
+
+* …
+
+=== Action API changes in 1.46 ===
+
+* In the `action=parse` API endpoint, the value `prop=sections` has been
+  deprecated. Use `prop=tocdata` instead (T319141).
+* When specifying the Action API output format as `xml` or `xmlfm`, the
+  `xslt` parameter has been removed.  No alternative is provided.
+
+=== Action API internal changes in 1.46 ===
+
+* …
+
+=== Languages updated in 1.46 ===
+MediaWiki supports over 350 languages. Many localisations are updated regularly.
+Below only new and removed languages are listed, as well as changes to languages
+because of Phabricator reports.
+
+* (T409708) Added language support for Bole (bol).
+* (T409393) Added language support for Javanese (Javanese script) (jv-java).
+* …
+
+=== Breaking changes in 1.46 ===
+
+* The SpecialWatchlistGetNonRevisionTypesHook has been removed. Instead,
+  extensions should ensure that rc_this_oldid is set to zero on recent changes
+  entries that do not relate to any particular revision.
+* MutableRevisionRecord::setSha1() has been removed without deprecation.
+* Localizations of behavior switches must begin and end with double
+  underscore (`_` or U+FF3F).  Some localizations present in 1.45 which
+  did not do so have been removed; check the category named by
+  [[MediaWiki::Bad-double-underscore-category]] before upgrade to see
+  if your local wiki contains affected wikitext.
+* Passing something other than an Authority for the $performer parameter to
+  WatchlistManager methods clearTitleUserNotifications() and
+  clearAllUserNotifications, deprecated since 1.37, will now throw. User
+  implements Authority and so is still permitted.
+* Passing something other than a PageReference for the $title parameter to
+  WatchlistManager::getTitleNotificationTimestamp and
+  clearTitleUserNotifications, deprecated since 1.37, will now throw.
+* Many WatchedItemStore methods took either PageIdentity or LinkTarget, with
+  LinkTarget being deprecated since 1.37. Passing a LinkTarget which is not a
+  PageReference will now throw.
+* Added an `isLegacy()` method to the `LogEntry` interface. All implementors in
+  core already defined this method, and the interface is not stable to
+  implement.
+* WatchedItemQueryService::getWatchedItemsWithRecentChangeInfo, deprecated since
+  1.45, has been removed. The associated constants, which were used as
+  parameters to that method, like WatchedItemQueryService::FILTER_MINOR, have
+  also been removed.
+* The following methods of SpecialUserRights, deprecated in 1.45, have been
+  removed: userCanChangeRights, expiryToTimestamp, doSaveUserGroups,
+  fetchUser, changeableGroups. Callers should now use the equivalent methods
+  from UserGroupAssignmentService or MultiFormatUserIdentityLookup.
+* UserGroupsSpecialPage::canProcessExpiries (formerly
+  SpecialUserRights::canProcessExpiries), deprecated in 1.45, has been removed.
+  There's no replacement; the special page always assumes it can process
+  expiries.
+* FileRepo no longer implements getUploadStash(), only LocalRepo does.
+* …
+
+=== Deprecations in 1.46 ===
+
+* (T166010) All PHP code in MediaWiki is slowly being moved to be in a class
+  namespace as appropriate, so that we can use PSR-4 auto-loading, which will
+  speed up general code loading of MediaWiki. The old global namespace class
+  names are being left behind as deprecated aliases.
+
+  In this release of MediaWiki, XXX classes now have a namespace and XXX do
+  not yet (XXX% done, up from XX% in MediaWiki 1.45.0). The following have newly
+  been moved:
+  - MediaWiki\Collation:
+    - AbkhazUppercaseCollation
+    - BashkirUppercaseCollation
+    - CentralKurdishUppercaseCollation
+    - Collation
+    - CollationCkb
+    - CustomUppercaseCollation
+    - IcuCollation
+    - IdentityCollation
+    - InariSaamiUppercaseCollation
+    - NumericUppercaseCollation
+    - RemoteIcuCollation
+    - UppercaseCollation
+  - MediaWiki\DB:
+    - CloneDatabase
+    - MWLBFactory
+  - MediaWiki\Debug:
+    - MW
+  - MediaWiki\Gallery:
+    - ImageGalleryBase
+    - NolinesImageGallery
+    - PackedHoverImageGallery
+    - PackedImageGallery
+    - PackedOverlayImageGallery
+    - SlideshowImageGallery
+    - TraditionalImageGallery
+  - MediaWiki\Gallery\Exception:
+    - ImageGalleryClassNotFoundException
+  - MediaWiki\Skins\Hook => MediaWiki\Language\Skin
+    - SkinAfterPortletHook
+    - SkinPageReadyConfigHook
+  - Skin related hooks: MediaWiki\Hook => MediaWiki\Skin\Hook
+    - GetNewMessagesAlertHook
+    - SidebarBeforeOutputHook
+	- SiteNoticeAfterHook
+	- SiteNoticeBeforeHook
+	- SkinAddFooterLinksHook
+	- SkinAfterBottomScriptsHook
+	- SkinAfterContentHook
+	- SkinBuildSidebarHook
+	- SkinCopyrightFooterMessageHook
+	- SkinEditSectionLinksHook
+	- SkinPreloadExistenceHook
+	- SkinSubPageSubtitleHook
+	- SkinTemplateGetLanguageLinkHook
+	- SkinTemplateNavigation__UniversalHook
+    - UndeletePageToolLinksHook
+  - Skin component related classes: MediaWiki\Skin => MediaWiki\Skin\Components
+    - ComponentRegistryContext
+    - SkinComponent
+    - SkinComponentCopyright
+    - SkinComponentFooter
+    - SkinComponentLastModified
+    - SkinComponentLink
+    - SkinComponentListItem
+    - SkinComponentLogo
+    - SkinComponentMenu
+    - SkinComponentRegistry
+    - SkinComponentRegistryContext
+    - SkinComponentRenderedWith
+    - SkinComponentSearch
+    - SkinComponentTableOfContents
+    - SkinComponentTempUserBanner
+    - SkinComponentUtils
+  - Actions related hooks: MediaWiki\Hook => MediaWiki\Actions\Hook
+    - ActionBeforeFormDisplayHook
+	- ActionModifyFormFieldsHook
+	- CustomEditorHook
+	- HistoryPageToolLinksHook
+	- HistoryToolsHook
+	- InfoActionHook
+	- PageHistoryBeforeListHook
+	- PageHistoryLineEndingHook
+	- PageHistoryPager__doBatchLookupsHook
+	- PageHistoryPager__getQueryInfoHook
+	- RawPageViewBeforeOutputHook
+	- UnwatchArticleCompleteHook
+	- UnwatchArticleHook
+	- WatchArticleCompleteHook
+	- WatchArticleHook
+  - Actions related pager: MediaWiki\Pager => MediaWiki\Actions\Pager
+    - HistoryPager
+  - Mail related hooks: MediaWiki\Hook => MediaWiki\Mail\Hook
+    - AbortTalkPageEmailNotificationHook
+    - AlternateUserMailerHook
+    - SendWatchlistEmailNotificationHook
+    - UpdateUserMailerFormattedPageStatusHook
+    - UserMailerChangeReturnPathHook
+    - UserMailerSplitToHook
+    - UserMailerTransformContentHook
+    - UserMailerTransformMessageHook
+  - RecentChanges related hooks: MediaWiki\Hook => MediaWiki\RecentChanges\Hook
+    - AbortEmailNotificationHook
+    - ChangesListInitRowsHook
+    - ChangesListInsertArticleLinkHook
+    - ChangesListInsertLogEntryHook
+    - EnhancedChangesListModifyBlockLineDataHook
+    - EnhancedChangesListModifyLineDataHook
+    - EnhancedChangesList__getLogTextHook
+    - FetchChangesListHook
+    - MarkPatrolledCompleteHook
+    - MarkPatrolledHook
+    - OldChangesListRecentChangesLineHook
+    - RecentChange_saveHook
+  - Parser related hooks: MediaWiki\Hook => MediaWiki\Parser\Hook
+    - AfterParserFetchFileAndTitleHook
+    - BeforeParserFetchFileAndTitleHook
+    - BeforeParserFetchTemplateRevisionRecordHook
+    - GetLinkColoursHook
+    - InternalParseBeforeLinksHook
+    - IsValidEmailAddrHook
+    - PageRenderingHashHook
+    - ParserAfterParseHook
+    - ParserAfterTidyHook
+    - ParserBeforeInternalParseHook
+    - ParserBeforePreprocessHook
+    - ParserCacheSaveCompleteHook
+    - ParserClearStateHook
+    - ParserClonedHook
+    - ParserFetchTemplateDataHook
+    - ParserFirstCallInitHook
+    - ParserGetVariableValueSwitchHook
+    - ParserGetVariableValueTsHook
+    - ParserLimitReportFormatHook
+    - ParserLimitReportPrepareHook
+    - ParserLogLinterDataHook
+    - ParserMakeImageParamsHook
+    - ParserModifyImageHTMLHook
+    - ParserOptionsRegisterHook
+    - ParserOutputPostCacheTransformHook
+    - ParserPreSaveTransformCompleteHook
+    - RejectParserCacheValueHook
+  - Specials related hooks: MediaWiki\Hook => MediaWiki\Specials\Hook
+    - AddNewAccountHook
+    - AncientPagesQueryHook
+    - BeforeWelcomeCreationHook
+    - BlockIpCompleteHook
+    - BlockIpHook
+    - BookInformationHook
+    - ChangeUserGroupsHook
+    - ContribsPager__getQueryInfoHook
+    - ContribsPager__reallyDoQueryHook
+    - ContributionsLineEndingHook
+    - ContributionsToolLinksHook
+    - DeletedContribsPager__reallyDoQueryHook
+    - DeletedContributionsLineEndingHook
+    - EmailUserCCHook
+    - EmailUserCompleteHook
+    - EmailUserFormHook
+    - EmailUserHook
+    - EmailUserPermissionsErrorsHook
+    - ExtensionTypesHook
+    - FileUndeleteCompleteHook
+    - GetLogTypesOnUserHook
+    - ImportLogInterwikiLinkHook
+    - ImportSourcesHook
+    - LanguageSelectorHook
+    - LoginFormValidErrorMessagesHook
+    - LonelyPagesQueryHook
+    - NewPagesLineEndingHook
+    - OtherAutoblockLogLinkHook
+    - OtherBlockLogLinkHook
+    - PostLoginRedirectHook
+    - PreferencesGetLegendHook
+    - PrefsEmailAuditHook
+    - RandomPageQueryHook
+    - ShortPagesQueryHook
+    - SoftwareInfoHook
+    - SpecialBlockModifyFormFieldsHook
+    - SpecialContributionsBeforeMainOutputHook
+    - SpecialContributions__formatRow__flagsHook
+    - SpecialContributions__getForm__filtersHook
+    - SpecialCreateAccountBenefitsHook
+    - SpecialExportGetExtraPagesHook
+    - SpecialListusersDefaultQueryHook
+    - SpecialListusersFormatRowHook
+    - SpecialListusersHeaderFormHook
+    - SpecialListusersHeaderHook
+    - SpecialListusersQueryInfoHook
+    - SpecialLogAddLogSearchRelationsHook
+    - SpecialLogResolveLogTypeHook
+    - SpecialMovepageAfterMoveHook
+    - SpecialMuteModifyFormFieldsHook
+    - SpecialNewPagesFiltersHook
+    - SpecialNewpagesConditionsHook
+    - SpecialPrefixIndexGetFormFiltersHook
+    - SpecialPrefixIndexQueryHook
+    - SpecialRandomGetRandomTitleHook
+    - SpecialRecentChangesPanelHook
+    - SpecialResetTokensTokensHook
+    - SpecialSearchCreateLinkHook
+    - SpecialSearchGoResultHook
+    - SpecialSearchNogomatchHook
+    - SpecialSearchProfilesHook
+    - SpecialSearchResultsAppendHook
+    - SpecialSearchResultsHook
+    - SpecialSearchResultsPrependHook
+    - SpecialSearchSetupEngineHook
+    - SpecialStatsAddExtraHook
+    - SpecialTrackingCategories__generateCatLinkHook
+    - SpecialTrackingCategories__preprocessHook
+    - SpecialUploadCompleteHook
+    - SpecialUserRightsChangeableGroupsHook
+    - SpecialVersionVersionUrlHook
+    - SpecialWhatLinksHereQueryHook
+    - UnblockUserCompleteHook
+    - UnblockUserHook
+    - UndeleteForm__showHistoryHook
+    - UndeleteForm__showRevisionHook
+    - UploadFormInitDescriptorHook
+    - UploadFormSourceDescriptorsHook
+    - UploadForm_BeforeProcessingHook
+    - UploadForm_getInitialPageTextHook
+    - UploadForm_initialHook
+    - UserCanChangeEmailHook
+    - UserLoginCompleteHook
+    - UserLogoutCompleteHook
+    - UsersPagerDoBatchLookupsHook
+    - WantedPages__getQueryInfoHook
+    - WatchlistEditorBeforeFormRenderHook
+    - WatchlistEditorBuildRemoveLineHook
+    - WhatLinksHerePropsHook
+  - Specials related pager: MediaWiki\Pager => MediaWiki\Specials\Pager
+    - ActiveUsersPager
+    - AllMessagesTablePager
+    - BlockListPager
+    - CategoryPager
+    - ContribsPager
+    - DeletedContribsPager
+    - EditWatchlistPager
+    - ImageListPager
+    - MergeHistoryPager
+    - NewFilesPager
+    - NewPagesPager
+    - PagerTools
+    - ProtectedPagesPager
+    - ProtectedTitlesPager
+    - UploadStashPager
+    - UsersPager
+  - Collation related hook: MediaWiki\Hook => MediaWiki\Collation\Hook
+    - Collation__factoryHook
+  - Context related hooks: MediaWiki\Hook => MediaWiki\Context\Hook
+    - RequestContextCreateSkinHook
+    - UserGetLanguageObjectHook
+  - Deferred related hooks: MediaWiki\Hook => MediaWiki\Deferred\Hook
+    - LinksUpdateCompleteHook
+    - LinksUpdateHook
+    - UserEditCountUpdateHook
+  - Exception related hook: MediaWiki\Hook => MediaWiki\Exception\Hook
+    - LogExceptionHook
+  - Export related hooks: MediaWiki\Hook => MediaWiki\Export\Hook
+    - ModifyExportQueryHook
+    - WikiExporter__dumpStableQueryHook
+    - XmlDumpWriterOpenPageHook
+    - XmlDumpWriterWriteRevisionHook
+  - FileRepo related hooks: MediaWiki\Hook => MediaWiki\FileRepo\Hook
+    - FileTransformedHook
+    - FileUploadHook
+    - LocalFilePurgeThumbnailsHook
+    - LocalFile__getHistoryHook
+  - Gallery related hook: MediaWiki\Hook => MediaWiki\Gallery\Hook
+    - GalleryGetModesHook
+  - Import related hooks: MediaWiki\Hook => MediaWiki\Import\Hook
+    - AfterImportPageHook
+    - ImportHandleContentXMLTagHook
+    - ImportHandleLogItemXMLTagHook
+    - ImportHandlePageXMLTagHook
+    - ImportHandleRevisionXMLTagHook
+    - ImportHandleToplevelXMLTagHook
+    - ImportHandleUploadXMLTagHook
+  - Jobs related hook: MediaWiki\Hook => MediaWiki\JobQueue\Jobs\Hook
+    - RecentChangesPurgeRowsHook
+  - Logging related hooks: MediaWiki\Hook => MediaWiki\Logging\Hook
+    - LogEventsListGetExtraInputsHook
+    - LogEventsListLineEndingHook
+    - LogEventsListShowLogExtractHook
+    - LogLineHook
+    - ManualLogEntryBeforePublishHook
+  - Logging related pager: MediaWiki\Pager => MediaWiki\Logging\Pager
+    - LogPager
+  - Media related hooks: MediaWiki\Hook => MediaWiki\Media\Hook
+    - BitmapHandlerCheckImageAreaHook
+    - BitmapHandlerTransformHook
+    - GetExtendedMetadataHook
+    - GetMetadataVersionHook
+    - ThumbnailBeforeProduceHTMLHook
+    - ValidateExtendedMetadataCacheHook
+  - Password related hook: MediaWiki\Hook => MediaWiki\Password\Hook
+    - PasswordPoliciesForUserHook
+  - RCFeed related hook: MediaWiki\Hook => MediaWiki\RCFeed\Hook
+    - IRCLineURLHook
+  - RevisionDelete related hook: MediaWiki\Hook => MediaWiki\RevisionDelete\Hook
+    - ArticleRevisionVisibilitySetHook
+  - Title related hooks: MediaWiki\Hook => MediaWiki\Title\Hook
+    - CanonicalNamespacesHook
+    - NamespaceIsMovableHook
+  - Upload related hooks: MediaWiki\Hook => MediaWiki\Upload\Hook
+    - IsUploadAllowedFromUrlHook
+    - UploadCompleteHook
+    - UploadCreateFromRequestHook
+    - UploadStashFileHook
+    - UploadVerifyFileHook
+    - UploadVerifyUploadHook
+  - Watchlist related hook: MediaWiki\Hook => MediaWiki\Watchlist\Hook
+    - WatchedItemQueryServiceExtensionsHook
+* Using an int for the $mode parameter of LanguageFallback::getAll() is now
+  deprecated.  Use the new LanguageFallbackMode enumeration instead.
+* LanguageFallback::MESSAGES and LanguageFallback::STRICT are deprecated; use
+  LanguageFallbackModes::{MESSAGES,STRICT} instead.
+* The AutopromoteCondition hook has been deprecated and will now trigger
+  deprecation warnings. Use UserRequirementsCondition hook, instead.
+* The RecentChange::parseToRCType and RecentChange::parseFromRCType methods are
+  deprecated and will now trigger deprecation warnings.
+* The WatchedItemQueryServiceExtensions hook is deprecated and is no longer
+  called. Use ApiQueryBaseBeforeQuery, ApiQueryBaseAfterQuery,
+  ApiQueryBaseProcessRow and ApiQueryWatchlistExtractOutputData.
+* The UserLinkRenderer service has been marked @internal and the
+  UserLinkRenderer::userLink() method has been deprecated. Use
+  LinkRenderer::makeUserLink() instead. Calls to Linker::userLink()
+  method, deprecated in 1.44, should also use LinkRenderer::makeUserLink().
+  Users of the UserLinkRenderer service should use LinkRenderer.
+* …
+
+=== Other changes in 1.46 ===
+
+* …
+
+== Compatibility ==
+
+MediaWiki 1.46 requires PHP 8.1.0 or later and the following PHP extensions:
+
+* ctype
+* dom
+* fileinfo
+* iconv
+* intl
+* json
+* mbstring
+* xml
+
+MariaDB is the recommended database software. MySQL, PostgreSQL, or SQLite can
+be used instead, but support for them is somewhat less mature.
+
+The supported versions are:
+
+* MariaDB 10.3 or higher
+* MySQL 5.7.0 or higher
+* PostgreSQL 10 or later
+* SQLite 3.8.0 or later
+
+== Online documentation ==
+Documentation for both end-users and site administrators is available on
+MediaWiki.org, and is covered under the GNU Free Documentation License (except
+for pages that explicitly state that their contents are in the public domain):
+
+  <https://www.mediawiki.org/wiki/Special:MyLanguage/Documentation>
+
+== Mailing list ==
+A mailing list is available for MediaWiki user support and discussion:
+
+  <https://lists.wikimedia.org/postorius/lists/mediawiki-l.lists.wikimedia.org/>
+
+A low-traffic announcements-only list is also available:
+
+  <https://lists.wikimedia.org/postorius/lists/mediawiki-announce.lists.wikimedia.org/>
+
+It's highly recommended that you sign up for one of these lists if you're
+going to run a public MediaWiki, so you can be notified of security fixes.
+
+== IRC help ==
+There's usually someone online in #mediawiki on irc.libera.chat.

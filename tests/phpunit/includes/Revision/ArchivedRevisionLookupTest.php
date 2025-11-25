@@ -13,8 +13,7 @@ use MediaWikiIntegrationTestCase;
 
 /**
  * @group Database
- * @coversDefaultClass \MediaWiki\Revision\ArchivedRevisionLookup
- * @covers ::__construct
+ * @covers \MediaWiki\Revision\ArchivedRevisionLookup
  */
 class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 
@@ -104,7 +103,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 				'ar_deleted' => '0',
 				'ar_rev_id' => strval( $this->secondRev->getId() ),
 				'ar_timestamp' => $this->getDb()->timestamp( $this->secondRev->getTimestamp() ),
-				'ar_sha1' => '0qdrpxl537ivfnx4gcpnzz0285yxryy',
 				'ar_page_id' => strval( $this->secondRev->getPageId() ),
 				'ar_comment_text' => 'just a test',
 				'ar_comment_data' => null,
@@ -124,7 +122,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 				'ar_deleted' => '0',
 				'ar_rev_id' => strval( $this->firstRev->getId() ),
 				'ar_timestamp' => $this->getDb()->timestamp( $this->firstRev->getTimestamp() ),
-				'ar_sha1' => 'pr0s8e18148pxhgjfa0gjrvpy8fiyxc',
 				'ar_page_id' => strval( $this->firstRev->getPageId() ),
 				'ar_comment_text' => 'testing',
 				'ar_comment_data' => null,
@@ -138,9 +135,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		];
 	}
 
-	/**
-	 * @covers ::listRevisions
-	 */
 	public function testListRevisions() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 		$revisions = $lookup->listRevisions( $this->archivedPage );
@@ -161,9 +155,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
-	/**
-	 * @covers ::listRevisions
-	 */
 	public function testListRevisions_slots() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 		$revisions = $lookup->listRevisions( $this->archivedPage );
@@ -183,9 +174,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
-	/**
-	 * @covers ::listRevisions
-	 */
 	public function testListRevisionsOffsetAndLimit() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 		$db = $this->getDb();
@@ -205,9 +193,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
-	/**
-	 * @covers ::getLastRevisionId
-	 */
 	public function testGetLastRevisionId() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 		$id = $lookup->getLastRevisionId( $this->archivedPage );
@@ -215,19 +200,12 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		$this->assertFalse( $lookup->getLastRevisionId( $this->neverExistingPage ) );
 	}
 
-	/**
-	 * @covers ::hasArchivedRevisions
-	 */
 	public function testHasArchivedRevisions() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 		$this->assertTrue( $lookup->hasArchivedRevisions( $this->archivedPage ) );
 		$this->assertFalse( $lookup->hasArchivedRevisions( $this->neverExistingPage ) );
 	}
 
-	/**
-	 * @covers ::getRevisionRecordByTimestamp
-	 * @covers ::getRevisionByConditions
-	 */
 	public function testGetRevisionRecordByTimestamp() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 		$revRecord = $lookup->getRevisionRecordByTimestamp(
@@ -244,10 +222,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		$this->assertNull( $revRecord );
 	}
 
-	/**
-	 * @covers ::getArchivedRevisionRecord
-	 * @covers ::getRevisionByConditions
-	 */
 	public function testGetArchivedRevisionRecord() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 		$revRecord = $lookup->getArchivedRevisionRecord(
@@ -264,10 +238,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		$this->assertNull( $revRecord );
 	}
 
-	/**
-	 * @covers ::getPreviousRevisionRecord
-	 * @covers ::getRevisionByConditions
-	 */
 	public function testGetPreviousRevisionRecord() {
 		$lookup = $this->getServiceContainer()->getArchivedRevisionLookup();
 
@@ -293,10 +263,6 @@ class ArchivedRevisionLookupTest extends MediaWikiIntegrationTestCase {
 		$this->assertNull( $prevRec );
 	}
 
-	/**
-	 * @covers ::getPreviousRevisionRecord
-	 * @covers ::getRevisionByConditions
-	 */
 	public function testGetPreviousRevisionRecord_recreatedPage() {
 		// recreate the archived page
 		$timestamp = wfTimestamp( TS_UNIX, $this->secondRev->getTimestamp() ) + 10;

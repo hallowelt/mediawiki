@@ -11,6 +11,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Parser\ParserCache;
 use MediaWiki\Parser\ParserCacheFactory;
+use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\Parsoid\Config\PageConfigFactory;
 use MediaWiki\Parser\Parsoid\HtmlToContentTransform;
 use MediaWiki\Parser\Parsoid\HtmlTransformFactory;
@@ -32,7 +33,7 @@ use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Tests\Rest\RestTestTrait;
 use MediaWiki\Tests\Unit\DummyServicesTrait;
-use MediaWiki\Title\TitleValue;
+use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentityValue;
 use MediaWikiIntegrationTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -121,6 +122,7 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 			$dataAccess,
 			$methodOverrides
 		) extends ParsoidHandler {
+			/** @var array */
 			private $overrides;
 
 			public function __construct(
@@ -308,13 +310,16 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 			$rev = $revIdOrText;
 		}
 
-		return $this->getServiceContainer()->getParsoidPageConfigFactory()->create( $page, null, $rev );
+		return $this->getServiceContainer()->getParsoidPageConfigFactory()
+			->createFromParserOptions(
+				ParserOptions::newFromAnon(), $page, $rev
+			);
 	}
 
 	private function getPageConfigFactory( PageIdentity $page ): PageConfigFactory {
 		/** @var PageConfigFactory|MockObject $pageConfigFactory */
-		$pageConfigFactory = $this->createNoOpMock( PageConfigFactory::class, [ 'create' ] );
-		$pageConfigFactory->method( 'create' )->willReturn( $this->getPageConfig( $page ) );
+		$pageConfigFactory = $this->createNoOpMock( PageConfigFactory::class, [ 'createFromParserOptions' ] );
+		$pageConfigFactory->method( 'createFromParserOptions' )->willReturn( $this->getPageConfig( $page ) );
 		return $pageConfigFactory;
 	}
 
@@ -943,7 +948,7 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function makePage( $title, $wikitext ): RevisionRecord {
-		$title = new TitleValue( NS_MAIN, $title );
+		$title = Title::makeTitle( NS_MAIN, $title );
 		$rev = $this->getServiceContainer()->getRevisionLookup()->getRevisionByTitle( $title );
 
 		if ( $rev ) {
@@ -1268,7 +1273,7 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 
 		// TODO: ResourceLimitExceededException from $parsoid->dom2wikitext -> 413
 		// TODO: ClientError from $parsoid->dom2wikitext -> 413
-		// TODO: Errors from PageBundle->validate
+		// TODO: Errors from HtmlPageBundle->validate
 	}
 
 	/**
@@ -1372,6 +1377,7 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 			$page,
 			$parsoid,
 			[],
+			$this->getServiceContainer()->getParsoidSiteConfig(),
 			$this->getPageConfigFactory( $page ),
 			$this->getServiceContainer()->getContentHandlerFactory()
 		) );
@@ -2184,12 +2190,17 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'Page 1 revision content', $data );
 
 		// Test 3 repeated with ParserCache to ensure nothing is written to cache!
-		$parserCache = $this->createNoOpMock( ParserCache::class, [ 'save', 'get', 'getDirty', 'makeParserOutputKey' ] );
+		$parserCache = $this->createNoOpMock(
+			ParserCache::class,
+			[ 'save', 'get', 'getDirty', 'getMetadata', 'makeParserOutputKey', ]
+		);
+
 		// This is the critical assertion -- no cache svaes for mismatched rev & page params
 		$parserCache->expects( $this->never() )->method( 'save' );
 		// Ensures there is a cache miss
 		$parserCache->method( 'get' )->willReturn( false );
 		$parserCache->method( 'getDirty' )->willReturn( false );
+		$parserCache->method( 'getMetadata' )->willReturn( null );
 		// Verify that the cache is queried
 		$parserCache->expects( $this->atLeastOnce() )->method( 'makeParserOutputKey' );
 		$parserCacheFactory = $this->createNoOpMock(
@@ -2209,13 +2220,18 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 		$page = $this->getExistingTestPage();
 		$pageConfig = $this->getPageConfig( $page );
 
-		$parserCache = $this->createNoOpMock( ParserCache::class, [ 'save', 'get', 'getDirty', 'makeParserOutputKey' ] );
+		$parserCache = $this->createNoOpMock(
+			ParserCache::class,
+			[ 'save', 'get', 'getDirty', 'getMetadata', 'makeParserOutputKey', ]
+		);
 
 		// This is the critical assertion in this test case: the save() method should
 		// be called exactly once!
 		$parserCache->expects( $this->once() )->method( 'save' );
 		$parserCache->method( 'get' )->willReturn( false );
 		$parserCache->method( 'getDirty' )->willReturn( false );
+		$parserCache->method( 'getMetadata' )->willReturn( null );
+
 		// These methods will be called by ParserOutputAccess:qa
 		$parserCache->expects( $this->atLeastOnce() )->method( 'makeParserOutputKey' );
 

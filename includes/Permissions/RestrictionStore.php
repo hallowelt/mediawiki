@@ -6,6 +6,8 @@ use MediaWiki\Cache\CacheKeyHelper;
 use MediaWiki\Cache\LinkCache;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Config\ServiceOptions;
+use MediaWiki\Deferred\LinksUpdate\ImageLinksTable;
+use MediaWiki\Deferred\LinksUpdate\TemplateLinksTable;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Linker\LinksMigration;
@@ -20,8 +22,8 @@ use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\DBAccessObjectUtils;
 use Wikimedia\Rdbms\IDBAccessObject;
-use Wikimedia\Rdbms\ILoadBalancer;
 use Wikimedia\Rdbms\IReadableDatabase;
+use Wikimedia\Rdbms\LBFactory;
 
 /**
  * @since 1.37
@@ -38,7 +40,7 @@ class RestrictionStore {
 
 	private ServiceOptions $options;
 	private WANObjectCache $wanCache;
-	private ILoadBalancer $loadBalancer;
+	private LBFactory $loadBalancerFactory;
 	private LinkCache $linkCache;
 	private LinksMigration $linksMigration;
 	private CommentStore $commentStore;
@@ -61,7 +63,7 @@ class RestrictionStore {
 	public function __construct(
 		ServiceOptions $options,
 		WANObjectCache $wanCache,
-		ILoadBalancer $loadBalancer,
+		LBFactory $loadBalancerFactory,
 		LinkCache $linkCache,
 		LinksMigration $linksMigration,
 		CommentStore $commentStore,
@@ -71,7 +73,7 @@ class RestrictionStore {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->options = $options;
 		$this->wanCache = $wanCache;
-		$this->loadBalancer = $loadBalancer;
+		$this->loadBalancerFactory = $loadBalancerFactory;
 		$this->linkCache = $linkCache;
 		$this->linksMigration = $linksMigration;
 		$this->commentStore = $commentStore;
@@ -149,10 +151,6 @@ class RestrictionStore {
 	 *     - expiry: 14-digit timestamp or 'infinity'
 	 *     - permission: string (pt_create_perm)
 	 *     - reason: string
-	 * @internal Only to be called by Title::getTitleProtection. When that is discontinued, this
-	 * will be too, in favor of getRestrictions( $page, 'create' ). If someone wants to know who
-	 * protected it or the reason, there should be a method that exposes that for all restriction
-	 * types.
 	 */
 	public function getCreateProtection( PageIdentity $page ): ?array {
 		$page->assertWiki( PageIdentity::LOCAL );
@@ -179,7 +177,7 @@ class RestrictionStore {
 	public function deleteCreateProtection( PageIdentity $page ): void {
 		$page->assertWiki( PageIdentity::LOCAL );
 
-		$dbw = $this->loadBalancer->getConnection( DB_PRIMARY );
+		$dbw = $this->loadBalancerFactory->getPrimaryDatabase();
 		$dbw->newDeleteQueryBuilder()
 			->deleteFrom( 'protected_titles' )
 			->where( [ 'pt_namespace' => $page->getNamespace(), 'pt_title' => $page->getDBkey() ] )
@@ -359,7 +357,7 @@ class RestrictionStore {
 			};
 
 			if ( $readLatest ) {
-				$dbr = $this->loadBalancer->getConnection( DB_PRIMARY );
+				$dbr = $this->loadBalancerFactory->getPrimaryDatabase();
 				$rows = $loadRestrictionsFromDb( $dbr );
 			} else {
 				$this->pageStore->getPageForLink( TitleValue::newFromPage( $page ) )->getId();
@@ -375,9 +373,9 @@ class RestrictionStore {
 						$this->wanCache->makeKey( 'page-restrictions', 'v1', $id, $latestRev ),
 						$this->wanCache::TTL_DAY,
 						function ( $curValue, &$ttl, array &$setOpts ) use ( $loadRestrictionsFromDb ) {
-							$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
+							$dbr = $this->loadBalancerFactory->getReplicaDatabase();
 							$setOpts += Database::getCacheSetOptions( $dbr );
-							if ( $this->loadBalancer->hasOrMadeRecentPrimaryChanges() ) {
+							if ( $this->loadBalancerFactory->hasOrMadeRecentPrimaryChanges() ) {
 								// TODO: cleanup Title cache and caller assumption mess in general
 								$ttl = WANObjectCache::TTL_UNCACHEABLE;
 							}
@@ -448,7 +446,7 @@ class RestrictionStore {
 				continue;
 			}
 
-			$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
+			$dbr = $this->loadBalancerFactory->getReplicaDatabase();
 			$expiry = $dbr->decodeExpiry( $row->pr_expiry );
 
 			// Only apply the restrictions if they haven't expired!
@@ -489,7 +487,7 @@ class RestrictionStore {
 		$cacheEntry = &$this->cache[CacheKeyHelper::getKeyForPage( $page )];
 
 		if ( !$cacheEntry || !array_key_exists( 'create_protection', $cacheEntry ) ) {
-			$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
+			$dbr = $this->loadBalancerFactory->getReplicaDatabase();
 			$commentQuery = $this->commentStore->getJoin( 'pt_reason' );
 			$row = $dbr->newSelectQueryBuilder()
 				->select( [ 'pt_user', 'pt_expiry', 'pt_create_perm' ] )
@@ -552,12 +550,13 @@ class RestrictionStore {
 			return $cacheEntry['cascade_sources'];
 		}
 
-		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
+		$dbr = $this->loadBalancerFactory->getReplicaDatabase();
+		$now = wfTimestampNow();
 
-		$baseQuery = $dbr->newSelectQueryBuilder()
+		$cascadeRestrictions = $dbr->newSelectQueryBuilder()
 			->select( [
-				'pr_expiry',
 				'pr_page',
+				'pr_expiry',
 				'page_namespace',
 				'page_title',
 				'pr_type',
@@ -565,67 +564,85 @@ class RestrictionStore {
 			] )
 			->from( 'page_restrictions' )
 			->join( 'page', null, 'page_id=pr_page' )
-			->where( [ 'pr_cascade' => 1 ] );
+			->where( [ 'pr_cascade' => 1 ] )
+			->caller( __METHOD__ )
+			->fetchResultSet();
 
-		$templateQuery = clone $baseQuery;
-		$templateQuery->join( 'templatelinks', null, 'tl_from=pr_page' )
-			->fields( [
-				'type' => $dbr->addQuotes( 'tl' ),
-			] )
-			->andWhere(
-				$this->linksMigration->getLinksConditions( 'templatelinks', TitleValue::newFromPage( $page ) )
-			);
-
-		if ( $page->getNamespace() === NS_FILE ) {
-			$imageQuery = clone $baseQuery;
-			$imageQuery->join( 'imagelinks', null, 'il_from=pr_page' )
-				->fields( [
-					'type' => $dbr->addQuotes( 'il' ),
-				] )
-				->andWhere( [ 'il_to' => $page->getDBkey() ] );
-
-			$unionQuery = $dbr->newUnionQueryBuilder()
-				->add( $imageQuery )
-				->add( $templateQuery )
-				->all();
-
-			$res = $unionQuery->caller( __METHOD__ )->fetchResultSet();
-		} else {
-			$res = $templateQuery->caller( __METHOD__ )->fetchResultSet();
+		if ( $cascadeRestrictions->numRows() === 0 ) {
+			return [ [], [], [], [] ];
 		}
+
+		$restrictionsByPage = [];
+		foreach ( $cascadeRestrictions as $row ) {
+			$expiry = $dbr->decodeExpiry( $row->pr_expiry );
+			if ( $expiry > $now ) {
+				if ( !isset( $restrictionsByPage[$row->pr_page] ) ) {
+					$restrictionsByPage[$row->pr_page] = [
+						'title' => PageIdentityValue::localIdentity(
+							(int)$row->pr_page,
+							(int)$row->page_namespace,
+							$row->page_title
+						),
+						'restrictions' => [
+							$row->pr_type => $row->pr_level
+						]
+					];
+				} else {
+					$restrictionsByPage[$row->pr_page]['restrictions'][$row->pr_type] = $row->pr_level;
+				}
+			}
+		}
+
+		$templateLinksDb = $this->loadBalancerFactory->getReplicaDatabase( TemplateLinksTable::VIRTUAL_DOMAIN );
+		$templateLinks = $templateLinksDb->newSelectQueryBuilder()
+			->select( 'tl_from' )
+			->from( 'templatelinks' )
+			->where( [ 'tl_from' => array_keys( $restrictionsByPage ) ] )
+			->andWhere( $this->linksMigration->getLinksConditions( 'templatelinks', TitleValue::newFromPage( $page ) ) )
+			->caller( __METHOD__ )
+			->fetchResultSet();
 
 		$tlSources = [];
 		$ilSources = [];
 		$pageRestrictions = [];
-		$now = wfTimestampNow();
-		foreach ( $res as $row ) {
-			$expiry = $dbr->decodeExpiry( $row->pr_expiry );
-			if ( $expiry > $now ) {
-				if ( $row->type === 'il' ) {
-					$ilSources[$row->pr_page] = new PageIdentityValue(
-						$row->pr_page,
-						$row->page_namespace,
-						$row->page_title,
-						PageIdentity::LOCAL
-					);
-				} elseif ( $row->type === 'tl' ) {
-					$tlSources[$row->pr_page] = new PageIdentityValue(
-						$row->pr_page,
-						$row->page_namespace,
-						$row->page_title,
-						PageIdentity::LOCAL
-					);
+
+		foreach ( $templateLinks as $link ) {
+			$pageData = $restrictionsByPage[$link->tl_from];
+			$tlSources[$link->tl_from] = $pageData['title'];
+			foreach ( $pageData['restrictions'] as $type => $level ) {
+				if ( !isset( $pageRestrictions[$type] ) ) {
+					$pageRestrictions[$type] = [];
 				}
 
-				// Add groups needed for each restriction type if its not already there
-				// Make sure this restriction type still exists
-
-				if ( !isset( $pageRestrictions[$row->pr_type] ) ) {
-					$pageRestrictions[$row->pr_type] = [];
+				if ( !in_array( $level, $pageRestrictions[$type] ) ) {
+					$pageRestrictions[$type][] = $level;
 				}
+			}
+		}
 
-				if ( !in_array( $row->pr_level, $pageRestrictions[$row->pr_type] ) ) {
-					$pageRestrictions[$row->pr_type][] = $row->pr_level;
+		if ( $page->getNamespace() === NS_FILE ) {
+			$imageLinksDb = $this->loadBalancerFactory->getReplicaDatabase( ImageLinksTable::VIRTUAL_DOMAIN );
+			$imageLinks = $imageLinksDb->newSelectQueryBuilder()
+				->select( 'il_from' )
+				->from( 'imagelinks' )
+				->where( [
+					'il_from' => array_keys( $restrictionsByPage ),
+					'il_to' => $page->getDBkey()
+				] )
+				->caller( __METHOD__ )
+				->fetchResultSet();
+
+			foreach ( $imageLinks as $link ) {
+				$pageData = $restrictionsByPage[$link->il_from];
+				$ilSources[$link->il_from] = $pageData['title'];
+				foreach ( $pageData['restrictions'] as $type => $level ) {
+					if ( !isset( $pageRestrictions[$type] ) ) {
+						$pageRestrictions[$type] = [];
+					}
+
+					if ( !in_array( $level, $pageRestrictions[$type] ) ) {
+						$pageRestrictions[$type][] = $level;
+					}
 				}
 			}
 		}

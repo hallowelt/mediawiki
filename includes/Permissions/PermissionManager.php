@@ -1,20 +1,6 @@
 <?php
 /**
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  */
 namespace MediaWiki\Permissions;
@@ -39,7 +25,6 @@ use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Page\RedirectLookup;
 use MediaWiki\Request\WebRequest;
-use MediaWiki\Session\SessionManager;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\SpecialPage\SpecialPageFactory;
 use MediaWiki\Title\NamespaceInfo;
@@ -53,6 +38,7 @@ use MediaWiki\User\UserGroupMembership;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityLookup;
 use StatusValue;
+use Wikimedia\Message\ListType;
 use Wikimedia\Message\MessageSpecifier;
 use Wikimedia\ScopedCallback;
 
@@ -81,7 +67,6 @@ class PermissionManager {
 		MainConfigNames::WhitelistReadRegexp,
 		MainConfigNames::EmailConfirmToEdit,
 		MainConfigNames::BlockDisablesLogin,
-		MainConfigNames::EnablePartialActionBlocks,
 		MainConfigNames::GroupPermissions,
 		MainConfigNames::RevokePermissions,
 		MainConfigNames::AvailableRights,
@@ -173,6 +158,7 @@ class PermissionManager {
 		'edituserjson',
 		'edituserjs',
 		'hideuser',
+		'ignore-restricted-groups',
 		'import',
 		'importupload',
 		'interwiki',
@@ -287,7 +273,7 @@ class PermissionManager {
 	 *
 	 * @return bool
 	 */
-	public function userCan( $action, User $user, LinkTarget $page, $rigor = self::RIGOR_SECURE ): bool {
+	public function userCan( $action, User $user, LinkTarget $page, $rigor = self::RIGOR_FULL ): bool {
 		return $this->getPermissionStatus( $action, $user, $page, $rigor, true )->isGood();
 	}
 
@@ -460,17 +446,12 @@ class PermissionManager {
 			$user = $this->userFactory->newTempPlaceholder();
 		}
 
-		// Use [ $this, 'methodName' ] for dynamic callbacks instead of just
-		// $methodName. Doing so lets code analyzers immediately infer that
-		// the value is used as a callable. Note: This can be changed to use
-		// first-class callable syntax when we require PHP 8.1.
-
 		# Read has special handling
 		if ( $action === 'read' ) {
 			$checks = [
-				[ $this, 'checkPermissionHooks' ],
-				[ $this, 'checkReadPermissions' ],
-				[ $this, 'checkUserBlock' ], // for wgBlockDisablesLogin
+				$this->checkPermissionHooks( ... ),
+				$this->checkReadPermissions( ... ),
+				$this->checkUserBlock( ... ), // for wgBlockDisablesLogin
 			];
 		} elseif ( $action === 'create' ) {
 			# Don't call checkSpecialsAndNSPermissions, checkSiteConfigPermissions
@@ -478,12 +459,12 @@ class PermissionManager {
 			# error messages. This is okay to do since anywhere that checks for
 			# create will also check for edit, and those checks are called for edit.
 			$checks = [
-				[ $this, 'checkQuickPermissions' ],
-				[ $this, 'checkPermissionHooks' ],
-				[ $this, 'checkPageRestrictions' ],
-				[ $this, 'checkCascadingSourcesRestrictions' ],
-				[ $this, 'checkActionPermissions' ],
-				[ $this, 'checkUserBlock' ],
+				$this->checkQuickPermissions( ... ),
+				$this->checkPermissionHooks( ... ),
+				$this->checkPageRestrictions( ... ),
+				$this->checkCascadingSourcesRestrictions( ... ),
+				$this->checkActionPermissions( ... ),
+				$this->checkUserBlock( ... ),
 			];
 		} else {
 			// Exclude checkUserConfigPermissions on actions that cannot change the
@@ -511,20 +492,20 @@ class PermissionManager {
 			];
 
 			$checks = [
-				[ $this, 'checkQuickPermissions' ],
-				[ $this, 'checkPermissionHooks' ],
-				[ $this, 'checkSpecialsAndNSPermissions' ],
-				[ $this, 'checkSiteConfigPermissions' ],
+				$this->checkQuickPermissions( ... ),
+				$this->checkPermissionHooks( ... ),
+				$this->checkSpecialsAndNSPermissions( ... ),
+				$this->checkSiteConfigPermissions( ... ),
 			];
 			if ( !in_array( $action, $skipUserConfigActions, true ) ) {
-				$checks[] = [ $this, 'checkUserConfigPermissions' ];
+				$checks[] = $this->checkUserConfigPermissions( ... );
 			}
 			$checks = [
 				...$checks,
-				[ $this, 'checkPageRestrictions' ],
-				[ $this, 'checkCascadingSourcesRestrictions' ],
-				[ $this, 'checkActionPermissions' ],
-				[ $this, 'checkUserBlock' ]
+				$this->checkPageRestrictions( ... ),
+				$this->checkCascadingSourcesRestrictions( ... ),
+				$this->checkActionPermissions( ... ),
+				$this->checkUserBlock( ... )
 			];
 		}
 
@@ -539,13 +520,6 @@ class PermissionManager {
 
 		// Clone the status to prevent users of this hook from modifying the original
 		$this->hookRunner->onPermissionStatusAudit( $page, $user, $action, $rigor, clone $status );
-
-		if ( !$status->isGood() ) {
-			// Deprecated method used only for a deprecated hook
-			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-			$errors = @$status->toLegacyErrorArray();
-			$this->hookRunner->onPermissionErrorAudit( $page, $user, $action, $rigor, $errors );
-		}
 
 		return $status;
 	}
@@ -712,7 +686,7 @@ class PermissionManager {
 		}
 
 		if ( !$allowed ) {
-			# If the title is not whitelisted, give extensions a chance to do so...
+			// If the title is not allowed, give extensions a chance to do so
 			$this->hookRunner->onTitleReadWhitelist( $title, $user, $allowed );
 			if ( !$allowed ) {
 				$this->missingPermissionError( $action, $short, $status );
@@ -731,6 +705,7 @@ class PermissionManager {
 		// We avoid expensive display logic for quickUserCan's and such
 		if ( $short ) {
 			$status->fatal( 'badaccess-group0' );
+			return;
 		}
 
 		// TODO: it would be a good idea to replace the method below with something else like
@@ -763,7 +738,7 @@ class PermissionManager {
 		if ( $groups ) {
 			return PermissionStatus::newFatal(
 				'badaccess-groups',
-				Message::listParam( $groups, 'comma' ),
+				Message::listParam( $groups, ListType::COMMA ),
 				count( $groups )
 			);
 		}
@@ -1013,7 +988,7 @@ class PermissionManager {
 
 		$isSubPage =
 			$this->nsInfo->hasSubpages( $title->getNamespace() ) &&
-			strpos( $title->getText(), '/' ) !== false;
+			str_contains( $title->getText(), '/' );
 
 		if ( $action === 'create' ) {
 			if (
@@ -1703,7 +1678,7 @@ class PermissionManager {
 		// unless there are no sessions for this endpoint.
 		if ( !defined( 'MW_NO_SESSION' ) ) {
 			// XXX: think what could be done with the below
-			$allowedRights = SessionManager::getGlobalSession()->getAllowedUserRights();
+			$allowedRights = RequestContext::getMain()->getRequest()->getSession()->getAllowedUserRights();
 			if ( $allowedRights !== null && !in_array( $right, $allowedRights, true ) ) {
 				$this->cachedRights[$right] = false;
 				return false;

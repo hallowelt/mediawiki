@@ -2,8 +2,8 @@
 
 namespace MediaWiki\Tests\Maintenance;
 
-use CloneDatabase;
 use DumpBackup;
+use MediaWiki\DB\CloneDatabase;
 use MediaWiki\MainConfigNames;
 use MediaWikiIntegrationTestCase;
 use WikiExporter;
@@ -17,7 +17,6 @@ use XmlDumpWriter;
  * @group Database
  * @group Dump
  * @covers \MediaWiki\Maintenance\BackupDumper
- *
  */
 class BackupDumperPageTest extends DumpTestCase {
 

@@ -218,6 +218,7 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 			$this->getServiceContainer()->getPageStore(),
 			$this->getServiceContainer()->getTitleFactory(),
 			$this->getServiceContainer()->getHookContainer(),
+			$this->getServiceContainer()->getRecentChangeLookup(),
 			$dbDomain
 		);
 
@@ -327,7 +328,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		isset( $details['parent'] ) ? $rev->setParentId( $details['parent'] ) : null;
 		isset( $details['page'] ) ? $rev->setPageId( $details['page'] ) : null;
 		isset( $details['size'] ) ? $rev->setSize( $details['size'] ) : null;
-		isset( $details['sha1'] ) ? $rev->setSha1( $details['sha1'] ) : null;
 		isset( $details['comment'] ) ? $rev->setComment( $details['comment'] ) : null;
 		isset( $details['timestamp'] ) ? $rev->setTimestamp( $details['timestamp'] ) : null;
 		isset( $details['minor'] ) ? $rev->setMinorEdit( $details['minor'] ) : null;
@@ -561,16 +561,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 				'timestamp' => '20171117010101',
 				'user' => true,
 				'size' => 123456
-			],
-			new PreconditionException( 'T239717' )
-		];
-		yield 'sha1 mismatch' => [
-			[
-				'slot' => SlotRecord::newUnsaved( SlotRecord::MAIN, new WikitextContent( 'Chicken' ) ),
-				'comment' => self::getRandomCommentStoreComment(),
-				'timestamp' => '20171117010101',
-				'user' => true,
-				'sha1' => 'DEADBEEF',
 			],
 			new PreconditionException( 'T239717' )
 		];
@@ -845,7 +835,7 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @dataProvider provideRevisionByTitle
+	 * @dataProvider provideRevisionByPageReference
 	 *
 	 * @param callable $getTitle
 	 */
@@ -879,6 +869,14 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		];
 	}
 
+	public static function provideRevisionByPageReference() {
+		$cases = self::provideRevisionByTitle();
+		$cases[] = [ static function ( self $testCase ) {
+			return $testCase->getTestPageTitle()->toPageReference();
+		} ];
+		return $cases;
+	}
+
 	private function executeWithForeignStore( string $dbDomain, callable $callback ) {
 		$services = $this->getServiceContainer();
 		// Configure the load balancer to route queries for the "foreign" domain to the test DB
@@ -898,6 +896,7 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 			$services->getPageStoreFactory()->getPageStore( $dbDomain ),
 			$services->getTitleFactory(),
 			$services->getHookContainer(),
+			$services->getRecentChangeLookup(),
 			$dbDomain
 		);
 
@@ -919,7 +918,7 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
-	public function testGetLatestKnownRevision_foreigh() {
+	public function testGetLatestKnownRevision_foreign() {
 		$page = $this->getTestPage();
 		$status = $this->editPage( $page, __METHOD__ );
 		$this->assertStatusGood( $status, 'edited a page' );
@@ -991,7 +990,7 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @dataProvider provideRevisionByTitle
+	 * @dataProvider provideRevisionByPageReference
 	 *
 	 * @param callable $getTitle
 	 */
@@ -1040,7 +1039,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 			'rev_deleted' => (string)$revRecord->getVisibility(),
 			'rev_len' => (string)$revRecord->getSize(),
 			'rev_parent_id' => (string)$revRecord->getParentId(),
-			'rev_sha1' => (string)$revRecord->getSha1(),
 		];
 
 		if ( in_array( 'page', $options ) ) {
@@ -1368,7 +1366,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 			'ar_deleted' => '0',
 			'ar_len' => '78',
 			'ar_parent_id' => '0',
-			'ar_sha1' => 'deadbeef',
 			'ar_comment_text' => 'whatever',
 			'ar_comment_data' => null,
 			'ar_comment_cid' => null,
@@ -1402,7 +1399,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 			'ar_deleted' => '0',
 			'ar_len' => '78',
 			'ar_parent_id' => '0',
-			'ar_sha1' => 'deadbeef',
 			'ar_comment_text' => 'whatever',
 			'ar_comment_data' => null,
 			'ar_comment_cid' => null,
@@ -1447,7 +1443,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 			'rev_deleted' => '0',
 			'rev_len' => '78',
 			'rev_parent_id' => '0',
-			'rev_sha1' => 'deadbeef',
 			'rev_comment_text' => 'whatever',
 			'rev_comment_data' => null,
 			'rev_comment_cid' => null,
@@ -1467,7 +1462,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $record->getId(), (int)$row->rev_id );
 		$this->assertSame( $record->getPageId(), $row->rev_page );
 		$this->assertSame( $record->getSize(), (int)$row->rev_len );
-		$this->assertSame( $record->getSha1(), $row->rev_sha1 );
 	}
 
 	/**
@@ -1487,7 +1481,6 @@ class RevisionStoreDbTest extends MediaWikiIntegrationTestCase {
 			'ar_deleted' => '0',
 			'ar_len' => '78',
 			'ar_parent_id' => '0',
-			'ar_sha1' => 'deadbeef',
 			'ar_comment_text' => 'whatever',
 			'ar_comment_data' => null,
 			'ar_comment_cid' => null,

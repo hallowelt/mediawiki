@@ -46,6 +46,9 @@ $GLOBALS['wgExtensionFunctions'][] = function() {
 $GLOBALS['wgExtensionFunctions'][] = function() {
 	$logKeys = $GLOBALS['wgLogTypes'];
 	foreach ( $logKeys as $logKey ) {
+		if ( $logKey === 'upload' ) {
+			continue;
+		}
 		if ( !isset( $GLOBALS['wgLogRestrictions'][$logKey] ) ) {
 			$GLOBALS['wgLogRestrictions'][$logKey] = 'wikiadmin';
 		}
@@ -62,6 +65,7 @@ $GLOBALS['wgReservedUsernames'][] = 'ContentStabilizationBot';
 $GLOBALS['wgReservedUsernames'][] = 'Contentstabilizationbot';
 $GLOBALS['wgReservedUsernames'][] = 'ContentTransferBot';
 $GLOBALS['wgReservedUsernames'][] = 'Contenttransferbot';
+$GLOBALS['wgReservedUsernames'][] = 'ContentTransfer bot';
 $GLOBALS['wgReservedUsernames'][] = 'DynamicPageList3 extension';
 $GLOBALS['wgReservedUsernames'][] = 'Dynamicpagelist3 extension';
 $GLOBALS['wgReservedUsernames'][] = 'Maintenance script';

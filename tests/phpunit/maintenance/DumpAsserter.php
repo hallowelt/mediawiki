@@ -270,12 +270,7 @@ class DumpAsserter {
 		Assert::assertEquals( XMLReader::ELEMENT, $this->xml->nodeType, "Node type" );
 		$actualAttributes = $this->getAttributeArray( $this->xml );
 
-		$attributes = array_map(
-			function ( $v ) {
-				return $this->resolveVars( $v );
-			},
-			$attributes
-		);
+		$attributes = array_map( $this->resolveVars( ... ), $attributes );
 		$actualAttributes = array_intersect_key( $actualAttributes, $attributes );
 
 		Assert::assertEquals( $attributes, $actualAttributes, "Attributes" );
@@ -483,7 +478,7 @@ class DumpAsserter {
 		$this->skipWhitespace();
 	}
 
-	public function assertText( $id, $text_id, $text_bytes, $text ) {
+	public function assertText( string $id, string $text_id, int|false $text_bytes, string|false $text ) {
 		$this->assertNodeStart( "text", false );
 		if ( $text_bytes !== false ) {
 			Assert::assertEquals( $this->xml->getAttribute( "bytes" ), $text_bytes,

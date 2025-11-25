@@ -6,6 +6,8 @@
 			"Siebrand"
 		]
 	},
+	"cdx-breadcrumb-navigation-label": "Broodkruimels",
+	"cdx-breadcrumb-overflow-label": "Meer navigatieopties",
 	"cdx-chip-input-chip-added": "Het trefwoord $1 is toegevoegd.",
 	"cdx-chip-input-chip-removed": "Het trefwoord $1 is verwijderd.",
 	"cdx-input-chip-aria-description": "Druk op Enter om te bewerken of op Delete om te verwijderen.",
@@ -29,6 +31,6 @@
 	"cdx-table-pagination-status-message-indeterminate-long": "Resultaten $1-$2 van vele",
 	"cdx-table-pagination-status-message-indeterminate-short": "$1-$2 van vele",
 	"cdx-table-pagination-status-message-indeterminate-final": "{{PLURAL:$1|Het laatste resultaat|De laatste $1 resultaten}}",
-	"cdx-table-pagination-status-message-pending": "Bezig met het laden van resultaten...",
+	"cdx-table-pagination-status-message-pending": "Resultaten worden geladen…",
 	"cdx-table-no-data-message": "Er zijn geen gegevens beschikbaar."
 }

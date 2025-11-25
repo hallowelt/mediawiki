@@ -2,21 +2,7 @@
 /**
  * A RevisionRecord representing an existing revision persisted in the revision table.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  */
 
@@ -97,7 +83,6 @@ class RevisionStoreRecord extends RevisionRecord {
 		// allows rev_parent_id to be NULL.
 		$this->mParentId = isset( $row->rev_parent_id ) ? intval( $row->rev_parent_id ) : null;
 		$this->mSize = isset( $row->rev_len ) ? intval( $row->rev_len ) : null;
-		$this->mSha1 = !empty( $row->rev_sha1 ) ? $row->rev_sha1 : null;
 
 		// NOTE: we must not call $this->mTitle->getLatestRevID() here, since the state of
 		// page_latest may be in limbo during revision creation. In that case, calling
@@ -154,6 +139,7 @@ class RevisionStoreRecord extends RevisionRecord {
 		return parent::isDeleted( $field );
 	}
 
+	/** @inheritDoc */
 	public function userCan( $field, Authority $performer ) {
 		if ( $this->isCurrent() && $field === self::DELETED_TEXT ) {
 			// Current revisions of pages cannot have the content hidden. Skipping this
@@ -191,11 +177,7 @@ class RevisionStoreRecord extends RevisionRecord {
 	 * @return string The revision hash, never null. May be computed on the fly.
 	 */
 	public function getSha1() {
-		// If hash is null, calculate it and remember (potentially SLOW!)
-		// This is for compatibility with old database rows that don't have the field set.
-		$this->mSha1 ??= $this->mSlots->computeSha1();
-
-		return $this->mSha1;
+		return $this->mSlots->computeSha1();
 	}
 
 	/**

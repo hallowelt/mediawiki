@@ -1,6 +1,4 @@
-'use strict';
-
-const { mkdir } = require( 'fs/promises' );
+import { mkdir } from 'fs/promises';
 
 /**
  * @since 1.1.0
@@ -53,16 +51,22 @@ async function saveScreenshot( title ) {
  * @param {string} title Test title
  * @return {Object} ffmpeg object is returned so it could be used in stopVideo()
  */
-function startVideo( ffmpeg, title ) {
+async function startVideo( ffmpeg, title ) {
 	if ( process.env.DISPLAY && process.env.DISPLAY.startsWith( ':' ) ) {
 		const videoPath = filePath( title, 'mp4' );
-		const { spawn } = require( 'child_process' );
+		const { spawn } = await import( 'child_process' );
 		ffmpeg = spawn( 'ffmpeg', [
 			'-f', 'x11grab', //  grab the X11 display
-			'-video_size', '1280x1024', // video size
-			'-i', process.env.DISPLAY, // input file url
+			'-video_size', `${ browser.options.capabilities[ 'mw:width' ] }x${ browser.options.capabilities[ 'mw:height' ] }`, // video size need to match our XVFB setup
+			'-framerate', '10', // Capture framerate is 10 fps
+			'-i', process.env.DISPLAY, // display used for input
+			'-draw_mouse', '0', // skip the mouse (do we need it?)
 			'-loglevel', 'error', // log only errors
 			'-y', // overwrite output files without asking
+			'-an', // skip sound
+			'-c:v', 'libx264', // specify encoder
+			'-preset', 'ultrafast', // fastest preset, reduse CPU overhead, creates larger files
+			'-crf', '42', // 23 is default, higher number makes files smaller but lower quality
 			'-pix_fmt', 'yuv420p', // QuickTime Player support, "Use -pix_fmt yuv420p for compatibility with outdated media players"
 			videoPath // output file
 		] );
@@ -95,7 +99,7 @@ function stopVideo( ffmpeg ) {
 	}
 }
 
-module.exports = {
+export {
 	makeFilenameDate,
 	saveScreenshot,
 	startVideo,

@@ -34,7 +34,7 @@ class CommentParserTest extends \MediaWikiIntegrationTestCase {
 		return $repoGroup;
 	}
 
-	private function getParser() {
+	private function getParser(): CommentParser {
 		$services = $this->getServiceContainer();
 		return new CommentParser(
 			$services->getLinkRenderer(),
@@ -51,9 +51,7 @@ class CommentParserTest extends \MediaWikiIntegrationTestCase {
 
 	private function getFormatter() {
 		$parserFactory = $this->createNoOpMock( CommentParserFactory::class, [ 'create' ] );
-		$parserFactory->method( 'create' )->willReturnCallback( function () {
-			return $this->getParser();
-		} );
+		$parserFactory->method( 'create' )->willReturnCallback( $this->getParser( ... ) );
 		return new CommentFormatter( $parserFactory );
 	}
 
@@ -524,7 +522,6 @@ class CommentParserTest extends \MediaWikiIntegrationTestCase {
 			$parser->preprocess( "[[interwiki:$present]] [[$present]]" )
 		);
 		$this->assertSame(
-			// phpcs:ignore Generic.Files.LineLength
 			"<a href=\"https://interwiki/$present\" class=\"extiw\" title=\"interwiki:$present\">interwiki:$present</a> <a href=\"/wiki/$present\" title=\"$present\">$present</a>",
 			$result
 		);
@@ -547,7 +544,7 @@ class CommentParserTest extends \MediaWikiIntegrationTestCase {
 		$result = $parser->finalize( $parser->preprocess( 'test [[User:AlwaysKnownFoo]]' ) );
 
 		$this->assertSame(
-			'test <a href="/wiki/User:AlwaysKnownFoo" title="User:AlwaysKnownFoo">User:AlwaysKnownFoo</a>',
+			'test <a href="/wiki/User:AlwaysKnownFoo" class="mw-userlink" title="User:AlwaysKnownFoo">User:AlwaysKnownFoo</a>',
 			$result
 		);
 	}

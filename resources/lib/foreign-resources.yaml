@@ -125,11 +125,11 @@ codex:
   license: GPL-2.0+
   homepage: https://doc.wikimedia.org/codex/
   authors: Design System team, Wikimedia Foundation
-  version: 2.0.0-rc.2
-  purl: pkg:npm/@wikimedia/codex@2.0.0-rc.2
+  version: 2.3.2
+  purl: pkg:npm/@wikimedia/codex@2.3.2
   type: tar
-  src: https://registry.npmjs.org/@wikimedia/codex/-/codex-2.0.0-rc.2.tgz
-  integrity: sha384-ZqvLskK9Kju6LQuhG2l7EKgH84LrAmC7e7zgrcHc5cvNZIEYNj3Ey+81EVnflHyY
+  src: https://registry.npmjs.org/@wikimedia/codex/-/codex-2.3.2.tgz
+  integrity: sha384-HkMG14/qVTD4yEt6W0qJUoW6Jorjja4oaHxT560RPdE4HLiDaiyc+1DXRDjOl0t6
   dest:
     package/dist/codex.cjs:
     package/dist/codex.js:
@@ -146,11 +146,11 @@ codex-design-tokens:
   license: GPL-2.0+
   homepage: https://doc.wikimedia.org/codex/
   authors: Design System team, Wikimedia Foundation
-  version: 2.0.0-rc.2
-  purl: pkg:npm/@wikimedia/codex-design-tokens@2.0.0-rc.2
+  version: 2.3.2
+  purl: pkg:npm/@wikimedia/codex-design-tokens@2.3.2
   type: tar
-  src: https://registry.npmjs.org/@wikimedia/codex-design-tokens/-/codex-design-tokens-2.0.0-rc.2.tgz
-  integrity: sha384-VZU8KqnK0DW/ShFvDvJ08fgnsuc6TjRLS85KsU+Z3vT0iNQpGvX7xFdsDoJ62Z8U
+  src: https://registry.npmjs.org/@wikimedia/codex-design-tokens/-/codex-design-tokens-2.3.2.tgz
+  integrity: sha384-yNtvAdpM/AHB332n1pR/GZkqT5MatikEnCiQjWCRWqgUsqkBdcuSRnuwF79JGiA8
   dest:
     package/dist/theme-*.less:
     package/dist/theme-wikimedia-ui-root.css:
@@ -162,11 +162,11 @@ codex-icons:
   license: MIT
   homepage: https://doc.wikimedia.org/codex/
   authors: Design System team, Wikimedia Foundation
-  version: 2.0.0-rc.2
-  purl: pkg:npm/@wikimedia/codex-icons@2.0.0-rc.2
+  version: 2.3.2
+  purl: pkg:npm/@wikimedia/codex-icons@2.3.2
   type: tar
-  src: https://registry.npmjs.org/@wikimedia/codex-icons/-/codex-icons-2.0.0-rc.2.tgz
-  integrity: sha384-58uo6kRdOwDdSuf0OL1syG/i0u0RuhLOzYCVtN/cxxU5B9LHVHpaWV1Ny/D6Uben
+  src: https://registry.npmjs.org/@wikimedia/codex-icons/-/codex-icons-2.3.2.tgz
+  integrity: sha384-fJmNuSQurBxTkHV126/vxk2XrOpXJH35CtLZG9dFeF2q1DDg4ylyrHWtIbsjZxuc
   dest:
     package/dist/codex-icons.json:
     package/dist/codex-icon-paths.less:
@@ -345,11 +345,11 @@ ooui:
   license: MIT
   homepage: https://www.mediawiki.org/wiki/OOUI
   authors: OOUI Team and other contributors
-  version: 0.51.7
-  purl: pkg:npm/oojs-ui@0.51.7
+  version: 0.53.0
+  purl: pkg:npm/oojs-ui@0.53.0
   type: tar
-  src: https://registry.npmjs.org/oojs-ui/-/oojs-ui-0.51.7.tgz
-  integrity: sha384-4qCOHXoxweCN6ilkHmm2alWe91hQssdF3tieSwzFVTsPgGn57nNrMm0Zhp70TRvu
+  src: https://registry.npmjs.org/oojs-ui/-/oojs-ui-0.53.0.tgz
+  integrity: sha384-y7oUrg4Fr2pMgJcXX0x77xFpaYRulHBfe1RBHREGylln/aOBMyhZTpqeUYD1eHxs
 
   dest:
     # Main stuff

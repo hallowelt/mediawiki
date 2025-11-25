@@ -1,4 +1,5 @@
 <?php
+declare( strict_types = 1 );
 
 namespace MediaWiki\OutputTransform\Stages;
 
@@ -35,8 +36,7 @@ class HandleSectionLinks extends ContentTextTransformStage {
 	}
 
 	public function shouldRun( ParserOutput $po, ?ParserOptions $popts, array $options = [] ): bool {
-		$isParsoid = $options['isParsoidContent'] ?? false;
-		return !$isParsoid;
+		return !( $po->getContentHolder()->isParsoidContent() );
 	}
 
 	protected function transformText( string $text, ParserOutput $po, ?ParserOptions $popts, array &$options ): string {
@@ -183,8 +183,7 @@ class HandleSectionLinks extends ContentTextTransformStage {
 			// Should be unreachable
 			return $text;
 		}
-		$titleText = $po->getTitleText();
-		return preg_replace_callback( self::EDITSECTION_REGEX, function ( $m ) use ( $skin, $titleText ) {
+		return preg_replace_callback( self::EDITSECTION_REGEX, function ( $m ) use ( $skin ) {
 			$editsectionPage = $this->titleFactory->newFromTextThrow( htmlspecialchars_decode( $m[1] ) );
 			$editsectionSection = htmlspecialchars_decode( $m[2] );
 			$editsectionContent = Sanitizer::decodeCharReferences( $m[3] );

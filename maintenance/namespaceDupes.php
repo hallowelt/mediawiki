@@ -5,21 +5,7 @@
  * Copyright © 2005-2007 Brooke Vibber <bvibber@wikimedia.org>
  * https://www.mediawiki.org/
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  * @ingroup Maintenance
  */
@@ -29,10 +15,14 @@ require_once __DIR__ . '/Maintenance.php';
 // @codeCoverageIgnoreEnd
 
 use MediaWiki\Deferred\DeferredUpdates;
+use MediaWiki\Deferred\LinksUpdate\ImageLinksTable;
 use MediaWiki\Deferred\LinksUpdate\LinksDeletionUpdate;
+use MediaWiki\Deferred\LinksUpdate\PageLinksTable;
+use MediaWiki\Deferred\LinksUpdate\TemplateLinksTable;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Maintenance\Maintenance;
+use MediaWiki\Page\PageIdentity;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
@@ -436,7 +426,17 @@ class NamespaceDupes extends Maintenance {
 	private function checkLinkTable( $table, $fieldPrefix, $ns, $name, $options,
 		$extraConds = []
 	) {
-		$dbw = $this->getPrimaryDB();
+		$domainMap = [
+			'templatelinks' => TemplateLinksTable::VIRTUAL_DOMAIN,
+			'imagelinks' => ImageLinksTable::VIRTUAL_DOMAIN,
+			'pagelinks' => PageLinksTable::VIRTUAL_DOMAIN,
+		];
+
+		if ( isset( $domainMap[$table] ) ) {
+			$dbw = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase( $domainMap[$table] );
+		} else {
+			$dbw = $this->getPrimaryDB();
+		}
 
 		$batchConds = [];
 		$fromField = "{$fieldPrefix}_from";
@@ -452,6 +452,7 @@ class NamespaceDupes extends Maintenance {
 			[ $namespaceField, $titleField ] = $linksMigration->getTitleFields( $table );
 			$schemaMigrationStage = $linksMigration::$mapping[$table]['config'] === -1
 				? MIGRATION_NEW
+				// @phan-suppress-next-line PhanTypeMismatchArgument
 				: $this->getConfig()->get( $linksMigration::$mapping[$table]['config'] );
 			$linkTargetLookup = $this->getServiceContainer()->getLinkTargetLookup();
 			$targetIdField = $linksMigration::$mapping[$table]['target_id'];
@@ -714,15 +715,24 @@ class NamespaceDupes extends Maintenance {
 		// Update *_from_namespace in links tables
 		$fromNamespaceTables = [
 			[ 'templatelinks', 'tl', [ 'tl_target_id' ] ],
-			[ 'imagelinks', 'il', [ 'il_to' ] ]
+			[ 'imagelinks', 'il', [ 'il_to' ] ],
+			[ 'pagelinks', 'pl', [ 'pl_target_id' ] ],
 		];
-		if ( $this->getConfig()->get( MainConfigNames::PageLinksSchemaMigrationStage ) & SCHEMA_COMPAT_WRITE_OLD ) {
-			$fromNamespaceTables[] = [ 'pagelinks', 'pl', [ 'pl_namespace', 'pl_title' ] ];
-		} else {
-			$fromNamespaceTables[] = [ 'pagelinks', 'pl', [ 'pl_target_id' ] ];
-		}
 		$updateRowsPerQuery = $this->getConfig()->get( MainConfigNames::UpdateRowsPerQuery );
+
 		foreach ( $fromNamespaceTables as [ $table, $fieldPrefix, $additionalPrimaryKeyFields ] ) {
+			$domainMap = [
+				'templatelinks' => TemplateLinksTable::VIRTUAL_DOMAIN,
+				'imagelinks' => ImageLinksTable::VIRTUAL_DOMAIN,
+				'pagelinks' => PageLinksTable::VIRTUAL_DOMAIN,
+			];
+
+			if ( isset( $domainMap[$table] ) ) {
+				$dbw = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase( $domainMap[$table] );
+			} else {
+				$dbw = $this->getPrimaryDB();
+			}
+
 			$fromField = "{$fieldPrefix}_from";
 			$fromNamespaceField = "{$fieldPrefix}_from_namespace";
 
@@ -765,13 +775,13 @@ class NamespaceDupes extends Maintenance {
 	 * recentchanges review, etc.
 	 *
 	 * @param int $id The page_id
-	 * @param LinkTarget $linkTarget The new link target
+	 * @param PageIdentity $page
 	 * @param string &$logStatus This is set to the log status message on failure @phan-output-reference
 	 * @return bool
 	 */
-	private function canMerge( $id, LinkTarget $linkTarget, &$logStatus ) {
+	private function canMerge( $id, PageIdentity $page, &$logStatus ) {
 		$revisionLookup = $this->getServiceContainer()->getRevisionLookup();
-		$latestDest = $revisionLookup->getRevisionByTitle( $linkTarget, 0,
+		$latestDest = $revisionLookup->getRevisionByTitle( $page, 0,
 			IDBAccessObject::READ_LATEST );
 		$latestSource = $revisionLookup->getRevisionByPageId( $id, 0,
 			IDBAccessObject::READ_LATEST );

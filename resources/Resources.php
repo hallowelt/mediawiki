@@ -2,21 +2,7 @@
 /**
  * Definition of core ResourceLoader modules.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  */
 
@@ -36,7 +22,6 @@ use MediaWiki\ResourceLoader\FilePath;
 use MediaWiki\ResourceLoader\ForeignApiModule;
 use MediaWiki\ResourceLoader\LessVarFileModule;
 use MediaWiki\ResourceLoader\Module;
-use MediaWiki\ResourceLoader\MwUrlModule;
 use MediaWiki\ResourceLoader\OOUIFileModule;
 use MediaWiki\ResourceLoader\OOUIIconPackModule;
 use MediaWiki\ResourceLoader\OOUIImageModule;
@@ -119,12 +104,21 @@ return [
 		'packageFiles' => [
 			'resources/src/mediawiki.skinning.typeaheadSearch/index.js',
 			'resources/src/mediawiki.skinning.typeaheadSearch/App.vue',
+			'resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue',
+			[
+				'name' => 'resources/src/mediawiki.skinning.typeaheadSearch/icons.json',
+				'callback' => 'MediaWiki\\ResourceLoader\\CodexModule::getIcons',
+				'callbackParam' => [
+					'cdxIconArrowPrevious'
+				],
+			],
 			'resources/src/mediawiki.skinning.typeaheadSearch/instrumentation.js',
 			'resources/src/mediawiki.skinning.typeaheadSearch/fetch.js',
 			'resources/src/mediawiki.skinning.typeaheadSearch/restSearchClient.js',
 			'resources/src/mediawiki.skinning.typeaheadSearch/urlGenerator.js',
 		],
 		'messages' => [
+			'search-close',
 			'searchbutton',
 			'searchresults',
 			'search-loader',
@@ -163,8 +157,6 @@ return [
 			'mediawiki.base.js',
 			'log.js',
 			'errorLogger.js',
-
-			// (not this though)
 			[ 'name' => 'config.json', 'callback' => [ ResourceLoader::class, 'getSiteConfigSettings' ] ],
 			[
 				'name' => 'user.json',
@@ -678,6 +670,9 @@ return [
 	'mediawiki.codex.typeaheadSearch' => [
 		'class' => 'MediaWiki\\ResourceLoader\\CodexModule',
 		'codexComponents' => [
+			"CdxIcon",
+			"CdxButton",
+			"CdxDialog",
 			'CdxTypeaheadSearch'
 		]
 	],
@@ -772,6 +767,7 @@ return [
 		'packageFiles' => [
 			'resources/src/mediawiki.diff/diff.js',
 			'resources/src/mediawiki.diff/inlineFormatToggle.js',
+			'resources/src/mediawiki.diff/undoButtonToggle.js',
 		],
 		'styles' => [
 			'resources/src/mediawiki.diff/styles.less'
@@ -907,7 +903,7 @@ return [
 		],
 		'dependencies' => [
 			'mediawiki.util',
-			'mediawiki.widgets.visibleLengthLimit',
+			'jquery.lengthLimit',
 		]
 	],
 	'mediawiki.htmlform.ooui' => [
@@ -954,6 +950,7 @@ return [
 	],
 	'mediawiki.notification' => [
 		'styles' => [
+			'resources/src/mediawiki.notification/aria-live-region.less',
 			'resources/src/mediawiki.notification/common.css',
 			'resources/src/mediawiki.notification/print.css'
 				=> [ 'media' => 'print' ],
@@ -993,7 +990,12 @@ return [
 		],
 	],
 	'mediawiki.pager.codex' => [
-		'scripts' => 'resources/src/mediawiki.pager.codex/codexTablePager.js',
+		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.pager.codex',
+		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.pager.codex",
+		'packageFiles' => [
+			'init.js',
+			'limitSelectors.js',
+		],
 	],
 	'mediawiki.pager.codex.styles' => [
 		'class' => CodexModule::class,
@@ -1184,29 +1186,10 @@ return [
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.Uri",
 		'packageFiles' => [
 			'Uri.js',
-			[ 'name' => 'loose.regexp.js',
-				'callback' => static function ( Context $context, Config $config ) {
-					return MwUrlModule::makeJsFromExtendedRegExp(
-						file_get_contents( MW_INSTALL_PATH . '/resources/src/mediawiki.Uri/loose.regexp' )
-					);
-				},
-				'versionCallback' => static function () {
-					return new FilePath( 'loose.regexp' );
-				},
-			],
-			[ 'name' => 'strict.regexp.js',
-				'callback' => static function ( Context $context, Config $config ) {
-					return MwUrlModule::makeJsFromExtendedRegExp(
-						file_get_contents( MW_INSTALL_PATH . '/resources/src/mediawiki.Uri/strict.regexp' )
-					);
-				},
-				'versionCallback' => static function () {
-					return new FilePath( 'strict.regexp' );
-				},
-			],
 		],
 		'dependencies' => 'mediawiki.util',
-		'deprecated' => '[1.43] Please use browser native URL.',
+		'deprecated' =>
+			'[1.43] Please use browser native URL. See https://www.mediawiki.org/wiki/Migrating_mw.Uri_to_URL',
 	],
 	'mediawiki.user' => [
 		'scripts' => 'resources/src/mediawiki.user.js',
@@ -1296,7 +1279,6 @@ return [
 			'stash.js',
 			'watchlistExpiry.js',
 		],
-		'styles' => 'edit.css',
 		'dependencies' => [
 			'mediawiki.action.edit.styles',
 			'mediawiki.editfont.styles',
@@ -1703,8 +1685,10 @@ return [
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.page.ready",
 		'packageFiles' => [
 			'ready.js',
+			'enableSearchDialog.js',
 			'checkboxShift.js',
 			'checkboxHack.js',
+			'clearAddressBar.js',
 			'teleportTarget.js',
 			'toggleAllCollapsibles.js',
 			[ 'name' => 'config.json', 'callback' => static function (
@@ -1716,7 +1700,7 @@ return [
 					'searchModule' => 'mediawiki.searchSuggest',
 					'collapsible' => true,
 					'sortable' => true,
-					'selectorLogoutLink' => '#pt-logout a[data-mw="interface"]'
+					'selectorLogoutLink' => '#pt-logout a[data-mw="interface"], #pt-logout a[data-mw-interface]'
 				];
 
 				( new HookRunner( MediaWikiServices::getInstance()->getHookContainer() ) )
@@ -1734,6 +1718,12 @@ return [
 			'collapsible-collapse-all-tooltip',
 			'collapsible-expand-all-text',
 			'collapsible-expand-all-tooltip',
+			'userlogout-temp',
+			'userlogout-temp-moreinfo',
+			'userlogout-temp-messagebox-title',
+			'userlogout-temp-messagebox-body',
+			'userlogout-submit',
+			'temp-user-logout-confirm-title',
 			'logging-out-notify'
 		],
 		'skinStyles' => [
@@ -2078,7 +2068,8 @@ return [
 			'resources/src/mediawiki.special/newpages.less',
 			'resources/src/mediawiki.special/pagesWithProp.css',
 			'resources/src/mediawiki.special/upload.css',
-			'resources/src/mediawiki.special/userrights.css',
+			'resources/src/mediawiki.special/uploadstash.css',
+			'resources/src/mediawiki.special/userrights.less',
 			'resources/src/mediawiki.special/watchlist.css',
 			'resources/src/mediawiki.special/whatlinkshere.less',
 			'resources/src/mediawiki.special/block.less',
@@ -2168,6 +2159,7 @@ return [
 			'apisandbox-request-php-label',
 			'apisandbox-request-time',
 			'apisandbox-request-post',
+			'apisandbox-request-post2',
 			'apisandbox-request-formdata',
 			'apisandbox-results-fixtoken',
 			'apisandbox-results-fixtoken-fail',
@@ -2458,6 +2450,7 @@ return [
 			'ipbenableautoblock',
 			'ipbhidename',
 			'ipbwatchuser',
+			'ip_range_toolarge',
 			'log-action-filter-block-block',
 			'log-action-filter-block-reblock',
 			'log-action-filter-block-unblock',
@@ -2604,6 +2597,10 @@ return [
 			'edit-recovery-special-recovered-on',
 			'edit-recovery-special-recovered-on-tooltip',
 		],
+	],
+	'mediawiki.special.mergeHistory' => [
+		'scripts' => 'resources/src/mediawiki.special.mergeHistory/mergeHistory.js',
+		'styles' => 'resources/src/mediawiki.special.mergeHistory/mergeHistory.css',
 	],
 	'mediawiki.special.search' => [
 		'scripts' => 'resources/src/mediawiki.special.search/search.js',
@@ -2752,7 +2749,7 @@ return [
 		'localBasePath' => MW_INSTALL_PATH . '/resources/src',
 		'remoteBasePath' => "$wgResourceBasePath/resources/src",
 		'packageFiles' => [
-			'mediawiki.special.specialpages.js',
+			'mediawiki.special.specialpages/init.js',
 		],
 		'dependencies' => [
 			'oojs-ui-core',
@@ -2763,12 +2760,6 @@ return [
 		'remoteBasePath' => "$wgResourceBasePath/resources/src",
 		'packageFiles' => [
 			'mediawiki.special.userrights.js',
-			[
-				'name' => 'config.json',
-				'config' => [
-					MainConfigNames::UserrightsInterwikiDelimiter
-				],
-			],
 		],
 		'dependencies' => [
 			'mediawiki.notification.convertmessagebox',
@@ -2802,6 +2793,17 @@ return [
 			'oojs-ui-core',
 			'oojs-ui.styles.icons-interactions',
 			'user.options',
+		],
+	],
+	'mediawiki.special.watchlistlabels' => [
+		'class' => CodexModule::class,
+		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.special.watchlistlabels',
+		'styles' => [
+			'labelmanager.less',
+		],
+		'codexStyleOnly' => true,
+		'dependencies' => [
+			'codex-styles',
 		],
 	],
 	'mediawiki.tempUserBanner.styles' => [
@@ -2842,13 +2844,6 @@ return [
 			'mediawiki.util',
 		],
 	],
-	/* MediaWiki Installer */
-
-	// Used in the web installer. Test it after modifying this definition!
-
-	/* MediaWiki Legacy */
-
-	// Used in the web installer. Test it after modifying this definition!
 
 	/* MediaWiki UI */
 
@@ -2925,9 +2920,18 @@ return [
 				$userLang = $services->getLanguageFactory()->getLanguage( $langCode );
 				$converter = $services->getLanguageConverterFactory()
 					->getLanguageConverter( $services->getContentLanguage() );
+
+				$isContLangVariant = $converter->hasVariant( $langCode );
+				$namespaces = $userLang->getFormattedNamespaces();
+				if ( $isContLangVariant ) {
+					foreach ( $namespaces as $nsId => $_ ) {
+						$namespaces[$nsId] = $converter->convertNamespace( $nsId, $langCode );
+					}
+				}
+
 				return [
-					'isContLangVariant' => $converter->hasVariant( $langCode ),
-					'formattedNamespaces' => $userLang->getFormattedNamespaces(),
+					'isContLangVariant' => $isContLangVariant,
+					'formattedNamespaces' => $namespaces,
 				];
 			} ],
 			'mw.widgets.NamespaceInputWidget.js',
@@ -3333,7 +3337,8 @@ return [
 		],
 		'styles' => 'WatchlistExpiryWidget.css',
 		'dependencies' => [
-			'oojs-ui'
+			'oojs-ui',
+			'mediawiki.api'
 		],
 		'messages' => [
 			'accesskey-ca-watch',

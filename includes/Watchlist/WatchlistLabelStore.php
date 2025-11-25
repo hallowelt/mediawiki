@@ -1,0 +1,148 @@
+<?php
+
+namespace MediaWiki\Watchlist;
+
+use InvalidArgumentException;
+use MediaWiki\User\UserIdentity;
+use Wikimedia\Rdbms\IConnectionProvider;
+
+/**
+ * Service class for storage of watchlist labels.
+ *
+ * @since 1.46
+ */
+class WatchlistLabelStore {
+
+	public const TABLE_WATCHLIST_LABEL = 'watchlist_label';
+	public const TABLE_WATCHLIST_LABEL_MEMBER = 'watchlist_label_member';
+
+	public function __construct( private IConnectionProvider $dbProvider ) {
+	}
+
+	/**
+	 * Save a watchlist label to the database.
+	 * If this results in a new row, the label's ID will be set.
+	 */
+	public function save( WatchlistLabel $label ): void {
+		$dbw = $this->dbProvider->getPrimaryDatabase();
+		if ( $label->getId() ) {
+			$dbw->newUpdateQueryBuilder()
+				->table( self::TABLE_WATCHLIST_LABEL )
+				->set( [ 'wll_name' => $label->getName() ] )
+				->where( [ 'wll_id' => $label->getId() ] )
+				->caller( __METHOD__ )
+				->execute();
+		} else {
+			$userId = $label->getUser()->getId();
+			if ( !$userId ) {
+				throw new InvalidArgumentException( 'user ID must not be zero' );
+			}
+			$dbw->newInsertQueryBuilder()
+				->insertInto( self::TABLE_WATCHLIST_LABEL )
+				->row( [ 'wll_user' => $userId, 'wll_name' => $label->getName() ] )
+				->ignore()
+				->caller( __METHOD__ )
+				->execute();
+			if ( $dbw->affectedRows() > 0 ) {
+				$label->setId( $dbw->insertId() );
+			}
+		}
+	}
+
+	/**
+	 * Delete a set of watchlist labels, by ID.
+	 *
+	 * @param UserIdentity $user
+	 * @param int[] $ids watchlist_label IDs to delete.
+	 *
+	 * @return bool True on success, false on failure.
+	 */
+	public function delete( UserIdentity $user, array $ids ): bool {
+		$dbw = $this->dbProvider->getPrimaryDatabase();
+		$dbw->startAtomic( __METHOD__ );
+		// Confirm that the user owns all the supplied labels.
+		sort( $ids );
+		$confirmedIdValues = $dbw->newSelectQueryBuilder()
+			->from( self::TABLE_WATCHLIST_LABEL )
+			->field( 'wll_id' )
+			->where( [ 'wll_id' => $ids, 'wll_user' => $user->getId() ] )
+			->orderBy( 'wll_id' )
+			->caller( __METHOD__ )
+			->fetchFieldValues();
+		$confirmedIds = array_map( 'intval', $confirmedIdValues );
+		if ( $confirmedIds !== $ids ) {
+			$dbw->cancelAtomic( __METHOD__ );
+			return false;
+		}
+		$dbw->newDeleteQueryBuilder()
+			->deleteFrom( self::TABLE_WATCHLIST_LABEL_MEMBER )
+			->where( [ 'wlm_label' => $confirmedIds ] )
+			->caller( __METHOD__ )
+			->execute();
+		$dbw->newDeleteQueryBuilder()
+			->deleteFrom( self::TABLE_WATCHLIST_LABEL )
+			->where( [ 'wll_id' => $confirmedIds ] )
+			->caller( __METHOD__ )
+			->execute();
+		$dbw->endAtomic( __METHOD__ );
+		return true;
+	}
+
+	/**
+	 * Load a single watchlist label by ID.
+	 *
+	 * @param UserIdentity $user
+	 * @param int $id The watchlist_label ID.
+	 *
+	 * @return ?WatchlistLabel The label, or null if not found.
+	 */
+	public function loadById( UserIdentity $user, int $id ): ?WatchlistLabel {
+		$select = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
+		$result = $select->table( self::TABLE_WATCHLIST_LABEL )
+			->fields( [ 'wll_id', 'wll_name' ] )
+			// It's not necessary to query for the user, but it adds an extra check.
+			->where( [ 'wll_id' => $id, 'wll_user' => $user->getId() ] )
+			->caller( __METHOD__ )
+			->fetchRow();
+		return $result
+			? new WatchlistLabel( $user, $result->wll_name, $result->wll_id )
+			: null;
+	}
+
+	/**
+	 * Get all of a user's watchlist labels.
+	 *
+	 * @param UserIdentity $user
+	 *
+	 * @return WatchlistLabel[] Labels indexed by ID
+	 */
+	public function loadAllForUser( UserIdentity $user ): array {
+		$select = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
+		$results = $select->table( self::TABLE_WATCHLIST_LABEL )
+			->fields( [ 'wll_id', 'wll_name' ] )
+			->where( [ 'wll_user' => $user->getId() ] )
+			->caller( __METHOD__ )
+			->fetchResultSet();
+		$labels = [];
+		foreach ( $results as $result ) {
+			$labels[ (int)$result->wll_id ] = new WatchlistLabel( $user, $result->wll_name, $result->wll_id );
+		}
+		return $labels;
+	}
+
+	/**
+	 * Get the current total count of a user's watchlist labels.
+	 *
+	 * @param UserIdentity $user
+	 *
+	 * @return int
+	 */
+	public function countAllForUser( UserIdentity $user ): int {
+		$select = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
+		return (int)$select->table( self::TABLE_WATCHLIST_LABEL )
+			->field( 'COUNT(*)' )
+			->where( [ 'wll_user' => $user->getId() ] )
+			->caller( __METHOD__ )
+			->fetchField();
+	}
+}

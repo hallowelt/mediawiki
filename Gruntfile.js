@@ -61,13 +61,17 @@ module.exports = function ( grunt ) {
 				disallowBlankTranslations: false
 			},
 			core: 'languages/i18n/',
+			botpasswords: 'languages/i18n/botpasswords/',
 			codex: 'languages/i18n/codex/',
 			datetime: 'languages/i18n/datetime/',
 			exif: 'languages/i18n/exif/',
+			nontranslatable: 'languages/i18n/nontranslatable/',
+			interwiki: 'languages/i18n/interwiki/',
 			preferences: 'languages/i18n/preferences/',
-			api: 'includes/api/i18n/',
+			languageconverter: 'languages/i18n/languageconverter/',
+			api: 'includes/Api/i18n/',
 			rest: 'includes/Rest/i18n/',
-			installer: 'includes/installer/i18n/',
+			installer: 'includes/Installer/i18n/',
 			paramvalidator: 'includes/libs/ParamValidator/i18n/'
 		},
 		stylelint: {

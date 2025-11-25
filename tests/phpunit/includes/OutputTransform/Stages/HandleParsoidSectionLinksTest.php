@@ -1,4 +1,5 @@
 <?php
+declare( strict_types = 1 );
 
 namespace MediaWiki\Tests\OutputTransform\Stages;
 
@@ -12,7 +13,7 @@ use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
 use MediaWiki\Skin\Skin;
 use MediaWiki\Tests\OutputTransform\OutputTransformStageTestBase;
 use Psr\Log\NullLogger;
-use Wikimedia\Parsoid\Core\PageBundle;
+use Wikimedia\Parsoid\Core\HtmlPageBundle;
 use Wikimedia\Parsoid\Core\TOCData;
 
 /** @covers \MediaWiki\OutputTransform\Stages\HandleParsoidSectionLinks */
@@ -27,11 +28,11 @@ class HandleParsoidSectionLinksTest extends OutputTransformStageTestBase {
 	}
 
 	public static function provideShouldRun(): iterable {
-		yield [ new ParserOutput(), null, [ 'isParsoidContent' => true ] ];
+		yield [ PageBundleParserOutputConverter::parserOutputFromPageBundle( new HtmlPageBundle( '' ) ), null, [] ];
 	}
 
 	public static function provideShouldNotRun(): iterable {
-		yield [ new ParserOutput(), null, [ 'isParsoidContent' => false ] ];
+		yield [ new ParserOutput(), null, [] ];
 	}
 
 	private static function newParserOutput(
@@ -40,12 +41,9 @@ class HandleParsoidSectionLinksTest extends OutputTransformStageTestBase {
 		?TOCData $toc = null,
 		string ...$flags
 	) {
-		$po = new ParserOutput();
-		if ( $rawText !== null ) {
-			$po = PageBundleParserOutputConverter::parserOutputFromPageBundle(
-				new PageBundle( $rawText )
-			);
-		}
+		$po = PageBundleParserOutputConverter::parserOutputFromPageBundle(
+			new HtmlPageBundle( $rawText ?? '' )
+		);
 		if ( $parserOptions !== null ) {
 			$po->setFromParserOptions( $parserOptions );
 		}
@@ -59,7 +57,9 @@ class HandleParsoidSectionLinksTest extends OutputTransformStageTestBase {
 	}
 
 	/** @dataProvider provideTransform */
-	public function testTransform( $parserOutput, $parserOptions, $options, $expected, $message = '' ) {
+	public function testTransform( ParserOutput $parserOutput, ?ParserOptions $parserOptions, array $options,
+		ParserOutput $expected, string $message = ''
+	): void {
 		if ( array_key_exists( 'skin', $options ) ) {
 			$skin = $this->createNoOpMock(
 				Skin::class, [ 'getLanguage', 'doEditSectionLink' ]
@@ -77,7 +77,6 @@ class HandleParsoidSectionLinksTest extends OutputTransformStageTestBase {
 
 	public static function provideTransform(): iterable {
 		$options = [
-			'isParsoidContent' => true,
 			'enableSectionEditLinks' => true,
 			'skin' => null,
 		];

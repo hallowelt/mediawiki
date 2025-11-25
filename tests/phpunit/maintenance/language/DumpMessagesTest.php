@@ -4,7 +4,7 @@ namespace MediaWiki\Tests\Maintenance;
 
 use DumpMessages;
 use MediaWiki\Json\FormatJson;
-use MediaWiki\Tests\Language\MockLocalisationCacheTrait;
+use MediaWiki\Tests\Mocks\Language\MockLocalisationCacheTrait;
 
 /**
  * @covers \DumpMessages
@@ -20,6 +20,8 @@ class DumpMessagesTest extends MaintenanceBaseTestCase {
 	/** @dataProvider provideExecute */
 	public function testExecute( $enMessageJsonFile ) {
 		$this->setService( 'LocalisationCache', $this->getMockLocalisationCache() );
+		// Clear any local overrides, possibly from other extensions.
+		$this->clearHook( 'MessageCacheFetchOverrides' );
 		$this->expectOutputString(
 			"MediaWiki " . MW_VERSION . " language file\n" .
 			serialize( FormatJson::decode( file_get_contents( $enMessageJsonFile ), true ) )

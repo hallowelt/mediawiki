@@ -1,0 +1,195 @@
+<?php
+/**
+ * @license GPL-3.0-or-later
+ * @file
+ */
+
+namespace MediaWiki\Specials;
+
+use InvalidArgumentException;
+use MediaWiki\Html\Html;
+use MediaWiki\HTMLForm\HTMLForm;
+use MediaWiki\MainConfigNames;
+use MediaWiki\Message\Message;
+use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Status\Status;
+use MediaWiki\Watchlist\WatchlistLabel;
+use MediaWiki\Watchlist\WatchlistLabelStore;
+use MediaWiki\Watchlist\WatchlistSpecialPage;
+use StatusValue;
+use Wikimedia\Codex\Utility\Codex;
+
+/**
+ * A special page for viewing a user's watchlist labels and performing CRUD operations on them.
+ *
+ * @ingroup SpecialPage
+ * @ingroup Watchlist
+ */
+class SpecialWatchlistLabels extends SpecialPage {
+
+	private const SUBPAGE_EDIT = 'edit';
+	private const PARAM_ID = 'wll_id';
+	private const PARAM_NAME = 'wll_name';
+
+	use WatchlistSpecialPage;
+
+	private ?WatchlistLabel $watchlistLabel = null;
+
+	/** @inheritDoc */
+	public function __construct(
+		private WatchlistLabelStore $labelStore,
+		$name = 'WatchlistLabels',
+		$restriction = 'viewmywatchlist',
+	) {
+		parent::__construct( $name, $restriction, false );
+	}
+
+	/** @inheritDoc */
+	public function execute( $subPage ) {
+		$output = $this->getOutput();
+		$output->setPageTitleMsg( $this->msg( 'watchlistlabels-title' ) );
+		$this->addHelpLink( 'Help:Watchlist labels' );
+		if ( !$this->getConfig()->get( MainConfigNames::EnableWatchlistLabels ) ) {
+			$output->addHTML( Html::errorBox( $this->msg( 'watchlistlabels-not-enabled' )->escaped() ) );
+			return;
+		}
+		$output->addSubtitle( $this->getWatchlistOwnerHtml() );
+		if ( $subPage === self::SUBPAGE_EDIT ) {
+			$this->showForm();
+		} else {
+			$this->showTable();
+		}
+	}
+
+	/**
+	 * Get the label editing form.
+	 */
+	private function showForm() {
+		$id = $this->getRequest()->getInt( self::PARAM_ID );
+		$descriptor = [
+			self::PARAM_NAME => [
+				'type' => 'text',
+				'name' => self::PARAM_NAME,
+				'label-message' => 'watchlistlabels-form-field-name',
+				'validation-callback' => [ $this, 'validateName' ],
+				'required' => true,
+			],
+		];
+		$msgSuffix = 'new';
+		if ( $id ) {
+			$this->watchlistLabel = $this->labelStore->loadById( $this->getUser(), $id );
+			if ( $this->watchlistLabel ) {
+				$descriptor[self::PARAM_NAME]['default'] = $this->watchlistLabel->getName();
+				$descriptor[self::PARAM_ID] = [
+					'type' => 'hidden',
+					'name' => self::PARAM_ID,
+					'default' => $this->watchlistLabel->getId(),
+				];
+				$msgSuffix = 'edit';
+			}
+		}
+		$form = HTMLForm::factory( 'codex', $descriptor, $this->getContext() )
+			// Messages used here:
+			// - watchlistlabels-form-header-new
+			// - watchlistlabels-form-header-edit
+			->setHeaderHtml( Html::element( 'h3', [], $this->msg( "watchlistlabels-form-header-$msgSuffix" )->text() ) )
+			->showCancel( true )
+			->setCancelTarget( $this->getPageTitle() )
+			// Messages used here:
+			// - watchlistlabels-form-submit-new
+			// - watchlistlabels-form-submit-edit
+			->setSubmitTextMsg( "watchlistlabels-form-submit-$msgSuffix" )
+			->setSubmitCallback( [ $this, 'onSubmit' ] );
+		$form->show();
+	}
+
+	/**
+	 * @param mixed $value
+	 * @param ?array $alldata
+	 * @param ?HTMLForm $form
+	 *
+	 * @return (StatusValue|string|bool|Message)|null
+	 */
+	public function validateName( $value, ?array $alldata, ?HTMLForm $form ) {
+		$length = strlen( trim( $value ) );
+		if ( $length === 0 ) {
+			return Status::newFatal( $this->msg( 'watchlistlabels-form-name-too-short', $length ) );
+		}
+		if ( $length > 255 ) {
+			return Status::newFatal( $this->msg( 'watchlistlabels-form-name-too-long', $length ) );
+		}
+		return Status::newGood();
+	}
+
+	/**
+	 * Handle the form submission, for saving new or existing labels.
+	 *
+	 * @param mixed $data Form submission data.
+	 * @return Status
+	 */
+	public function onSubmit( $data ): Status {
+		if ( !isset( $data[self::PARAM_NAME] ) ) {
+			throw new InvalidArgumentException( 'No name data submitted.' );
+		}
+		if ( !$this->watchlistLabel ) {
+			$this->watchlistLabel = new WatchlistLabel( $this->getUser(), $data[self::PARAM_NAME] );
+		} else {
+			$this->watchlistLabel->setName( $data[self::PARAM_NAME] );
+		}
+		$this->labelStore->save( $this->watchlistLabel );
+		$this->getOutput()->redirect( $this->getPageTitle()->getLocalURL() );
+		return Status::newGood();
+	}
+
+	/**
+	 * Show the table of all labels.
+	 */
+	private function showTable() {
+		$codex = new Codex();
+		$this->getOutput()->addModules( 'mediawiki.special.watchlistlabels' );
+
+		// Page title and description.
+		$this->getOutput()->addHTML(
+			Html::element( 'h3', [], $this->msg( 'watchlistlabels-table-title' )->text() )
+			. Html::element( 'p', [], $this->msg( 'watchlistlabels-table-description' )->text() ),
+		);
+
+		// Buttons in the table header.
+		$params = [
+			'href' => $this->getPageTitle( self::SUBPAGE_EDIT )->getLinkURL(),
+			// @todo Remove Codex classes when T406372 is resolved.
+			'class' => 'cdx-button cdx-button--fake-button cdx-button--fake-button--enabled'
+				. ' cdx-button--action-progressive cdx-button--weight-primary'
+		];
+		$addNew = Html::element( 'a', $params, $this->msg( 'watchlistlabels-table-new-link' )->text() );
+
+		// Data.
+		$data = [];
+		foreach ( $this->labelStore->loadAllForUser( $this->getUser() ) as $label ) {
+			$url = $this->getPageTitle( self::SUBPAGE_EDIT )->getLocalURL( [ self::PARAM_ID => $label->getId() ] );
+			$params = [
+				'href' => $url,
+				'class' => 'mw-specialwatchlistlabels-icon--edit',
+				'title' => $this->msg( 'watchlistlabels-table-edit' )->text(),
+			];
+			$data[] = [
+				'name' => $label->getName(),
+				'edit' => Html::element( 'a', $params ),
+			];
+		}
+
+		// Put it all together in the table.
+		$table = $codex->table()
+			->setAttributes( [ 'class' => 'mw-specialwatchlistlabels-table' ] )
+			->setCaption( $this->msg( 'watchlistlabels-table-header' )->text() )
+			->setHeaderContent( $addNew )
+			->setColumns( [
+				[ 'id' => 'name', 'label' => $this->msg( 'watchlistlabels-table-col-name' )->escaped() ],
+				[ 'id' => 'edit', 'label' => $this->msg( 'watchlistlabels-table-col-actions' )->escaped() ],
+			] )
+			->setData( $data )
+			->setPaginate( false )
+			->build();
+		$this->getOutput()->addHTML( $table->getHtml() );
+	}
+}

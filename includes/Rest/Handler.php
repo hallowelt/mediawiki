@@ -376,6 +376,39 @@ abstract class Handler {
 	}
 
 	/**
+	 * Indicates whether this is deprecated.
+	 *
+	 * Whenever possible, module deprecation is preferred to endpoint deprecation.
+	 * Modules and endpoints are normally deprecated in module or route definition .json files
+	 * rather than by overriding this function.
+	 *
+	 * @since 1.45
+	 * @stable to override
+	 * @return bool
+	 */
+	protected function isDeprecated(): bool {
+		return isset( $this->getModule()->getModuleDescription()['info']['deprecationSettings'] ) ||
+			isset( $this->openApiSpec['deprecationSettings'] );
+	}
+
+	/**
+	 * Returns the timestamp at which this was or will be deprecated, or null if none.
+	 *
+	 * Whenever possible, module deprecation is preferred to endpoint deprecation.
+	 * Modules and endpoints are normally deprecated in module or route definition .json files
+	 * rather than by overriding this function.
+	 *
+	 * @since 1.45
+	 * @stable to override
+	 * @return ?int deprecation date, as a unix timestamp, or null if none
+	 */
+	protected function getDeprecatedDate(): ?int {
+		return $this->getModule()->getModuleDescription()['info']['deprecationSettings']['since']
+			?? $this->openApiSpec['deprecationSettings']['since']
+			?? null;
+	}
+
+	/**
 	 * Validate the request parameters/attributes and body. If there is a validation
 	 * failure, a response with an error message should be returned or an
 	 * HttpException should be thrown.
@@ -415,6 +448,22 @@ abstract class Handler {
 		}
 
 		$this->postValidationSetup();
+	}
+
+	/**
+	 * Apply Deprecation header per RFC 9745.
+	 *
+	 * @since 1.45
+	 * @stable to override
+	 * @see https://www.rfc-editor.org/rfc/rfc9745.txt
+	 *
+	 * @param ResponseInterface $response
+	 */
+	public function applyDeprecationHeader( ResponseInterface $response ) {
+		$dd = $this->getDeprecatedDate();
+		if ( $dd !== null && !$response->getHeaderLine( 'Deprecation' ) ) {
+			$response->setHeader( 'Deprecation', '@' . $dd );
+		}
 	}
 
 	/**
@@ -499,9 +548,9 @@ abstract class Handler {
 			// We can't make them public without breaking all subclasses that
 			// override them. So we pass closures for now.
 			$this->conditionalHeaderUtil->setValidators(
-				fn () => $this->getETag(),
-				fn () => $this->getLastModified(),
-				fn () => $this->hasRepresentation()
+				$this->getETag( ... ),
+				$this->getLastModified( ... ),
+				$this->hasRepresentation( ... )
 			);
 		}
 		return $this->conditionalHeaderUtil;
@@ -679,6 +728,11 @@ abstract class Handler {
 		// TODO: Allow additional information about parameters and responses to
 		//       be provided in the route definition.
 		$spec += $this->openApiSpec;
+
+		if ( $this->isDeprecated() ) {
+			$spec['deprecated'] = true;
+			unset( $spec['deprecationSettings'] );
+		}
 
 		return $spec;
 	}
@@ -961,7 +1015,7 @@ abstract class Handler {
 			case RequestInterface::MULTIPART_FORM_DATA_CONTENT_TYPE:
 				$params = $request->getPostParams();
 				foreach ( $params as $key => $value ) {
-					$params[ $key ] = UtfNormalValidator::cleanUp( $value );
+					$params[ $key ] = $this->recursiveUtfCleanup( $value );
 					// TODO: Warn if normalization was applied
 				}
 				return $params;
@@ -992,6 +1046,29 @@ abstract class Handler {
 					new MessageValue( 'rest-unsupported-content-type', [ $contentType ?? '(null)' ] ),
 					415
 				);
+		}
+	}
+
+	/**
+	 * Recursively applies unicode normalization
+	 *
+	 * @param mixed $value
+	 *
+	 * @return mixed
+	 */
+	private function recursiveUtfCleanup( $value ) {
+		if ( is_string( $value ) ) {
+			return UtfNormalValidator::cleanUp( $value );
+		} elseif ( is_array( $value ) ) {
+			foreach ( $value as $k => $v ) {
+				$value[ $k ] = $this->recursiveUtfCleanup( $v );
+				// TODO: Warn if normalization was applied
+				// TODO: also normalize key
+			}
+
+			return $value;
+		} else {
+			return $value;
 		}
 	}
 

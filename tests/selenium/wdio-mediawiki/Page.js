@@ -1,11 +1,9 @@
-'use strict';
-
-const querystring = require( 'querystring' );
+import querystring from 'node:querystring';
 
 /**
  * Based on https://webdriver.io/docs/pageobjects
  */
-class Page {
+export default class Page {
 
 	/**
 	 * Navigate the browser to a given page.
@@ -24,16 +22,5 @@ class Page {
 			querystring.stringify( query ) +
 			( fragment ? ( '#' + fragment ) : '' )
 		);
-		// Wait for the page to be fully loaded. TODO: This can be replaced by the `wait` option to
-		// browser.url in webdriverio 9 (T363704).
-		await browser.waitUntil(
-			async () => ( await browser.execute( () => document.readyState ) ) === 'complete',
-			{
-				timeout: 10 * 1000,
-				timeoutMsg: 'Page did not load in time'
-			}
-		);
 	}
 }
-
-module.exports = Page;

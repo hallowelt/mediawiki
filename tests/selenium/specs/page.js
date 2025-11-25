@@ -1,32 +1,30 @@
-'use strict';
-
-const BlankPage = require( 'wdio-mediawiki/BlankPage' );
-const Api = require( 'wdio-mediawiki/Api' );
-const DeletePage = require( '../pageobjects/delete.page' );
-const RestorePage = require( '../pageobjects/restore.page' );
-const EditPage = require( '../pageobjects/edit.page' );
-const HistoryPage = require( '../pageobjects/history.page' );
-const UndoPage = require( '../pageobjects/undo.page' );
-const ProtectPage = require( '../pageobjects/protect.page' );
-const LoginPage = require( 'wdio-mediawiki/LoginPage' );
-const Util = require( 'wdio-mediawiki/Util' );
+import BlankPage from 'wdio-mediawiki/BlankPage.js';
+import { createApiClient } from 'wdio-mediawiki/Api.js';
+import DeletePage from '../pageobjects/delete.page.js';
+import RestorePage from '../pageobjects/restore.page.js';
+import EditPage from '../pageobjects/edit.page.js';
+import HistoryPage from '../pageobjects/history.page.js';
+import UndoPage from '../pageobjects/undo.page.js';
+import ProtectPage from '../pageobjects/protect.page.js';
+import LoginPage from 'wdio-mediawiki/LoginPage.js';
+import { getTestString, isTargetNotWikitext } from 'wdio-mediawiki/Util.js';
 
 describe( 'Page', () => {
-	let content, name, bot;
+	let content, name, apiClient;
 
 	before( async () => {
-		bot = await Api.bot();
+		apiClient = await createApiClient();
 	} );
 
 	beforeEach( async function () {
 		await browser.deleteAllCookies();
-		content = Util.getTestString( 'beforeEach-content-' );
-		name = Util.getTestString( 'BeforeEach-name-' );
+		content = getTestString( 'beforeEach-content-' );
+		name = getTestString( 'BeforeEach-name-' );
 
 		// First try to load a blank page, so the next command works.
 		await BlankPage.open();
 		// Don't try to run wikitext-specific tests if the test namespace isn't wikitext by default.
-		if ( await Util.isTargetNotWikitext( name ) ) {
+		if ( await isTargetNotWikitext( name ) ) {
 			this.skip();
 		}
 	} );
@@ -40,10 +38,6 @@ describe( 'Page', () => {
 		await expect( EditPage.content ).toBeDisplayed( { message: 'editor is still present' } );
 		await expect( EditPage.conflictingContent ).not.toBeDisplayed( { message: 'no edit conflict happened' } );
 
-		// T269566: Popup with text
-		// 'Leave site? Changes that you made may not be saved. Cancel/Leave'
-		// appears after the browser tries to leave the page with the preview.
-		await browser.reloadSession();
 	} );
 
 	it( 'should be creatable', async () => {
@@ -57,11 +51,11 @@ describe( 'Page', () => {
 	} );
 
 	it( 'should be re-creatable', async () => {
-		const initialContent = Util.getTestString( 'initialContent-' );
+		const initialContent = getTestString( 'initialContent-' );
 
 		// create and delete
-		await bot.edit( name, initialContent, 'create for delete' );
-		await bot.delete( name, 'delete prior to recreate' );
+		await apiClient.edit( name, initialContent, 'create for delete' );
+		await apiClient.delete( name, 'delete prior to recreate' );
 
 		// re-create
 		await LoginPage.loginAdmin();
@@ -74,20 +68,20 @@ describe( 'Page', () => {
 
 	it( 'should be editable @daily', async () => {
 		// create
-		await bot.edit( name, content, 'create for edit' );
+		await apiClient.edit( name, content, 'create for edit' );
 
 		// edit
-		const editContent = Util.getTestString( 'editContent-' );
+		const editContent = getTestString( 'editContent-' );
 		await EditPage.edit( name, editContent );
 
 		// check
 		await expect( EditPage.heading ).toHaveText( name );
-		await expect( EditPage.displayedContent ).toHaveTextContaining( editContent );
+		await expect( EditPage.displayedContent ).toHaveText( expect.stringContaining( editContent ) );
 	} );
 
 	it( 'should have history @daily', async () => {
 		// create
-		await bot.edit( name, content, `created with "${ content }"` );
+		await apiClient.edit( name, content, `created with "${ content }"` );
 
 		// check
 		await HistoryPage.open( name );
@@ -96,7 +90,7 @@ describe( 'Page', () => {
 
 	it( 'should be deletable', async () => {
 		// create
-		await bot.edit( name, content, 'create for delete' );
+		await apiClient.edit( name, content, 'create for delete' );
 
 		// login
 		await LoginPage.loginAdmin();
@@ -104,13 +98,13 @@ describe( 'Page', () => {
 		await DeletePage.delete( name, 'delete reason' );
 
 		// check
-		await expect( DeletePage.displayedContent ).toHaveTextContaining( `"${ name }" has been deleted.` );
+		await expect( DeletePage.displayedContent ).toHaveText( expect.stringContaining( `"${ name }" has been deleted.` ) );
 	} );
 
 	it( 'should be restorable', async () => {
 		// create and delete
-		await bot.edit( name, content, 'create for delete' );
-		await bot.delete( name, 'delete for restore' );
+		await apiClient.edit( name, content, 'create for delete' );
+		await apiClient.delete( name, 'delete for restore' );
 
 		// login
 		await LoginPage.loginAdmin();
@@ -119,12 +113,12 @@ describe( 'Page', () => {
 		await RestorePage.restore( name, 'restore reason' );
 
 		// check
-		await expect( RestorePage.displayedContent ).toHaveTextContaining( `${ name } has been undeleted` );
+		await expect( RestorePage.displayedContent ).toHaveText( expect.stringContaining( `${ name } has been undeleted` ) );
 	} );
 
 	it( 'should be protectable', async () => {
 
-		await bot.edit( name, content, 'create for protect' );
+		await apiClient.edit( name, content, 'create for protect' );
 
 		// login
 		await LoginPage.loginAdmin();
@@ -147,16 +141,16 @@ describe( 'Page', () => {
 	it( 'should be undoable @daily', async () => {
 
 		// create
-		await bot.edit( name, content, 'create to edit and undo' );
+		await apiClient.edit( name, content, 'create to edit and undo' );
 
 		// edit
-		const response = await bot.edit( name, Util.getTestString( 'editContent-' ) );
+		const response = await apiClient.edit( name, getTestString( 'editContent-' ) );
 		const previousRev = response.edit.oldrevid;
 		const undoRev = response.edit.newrevid;
 
 		await UndoPage.undo( name, previousRev, undoRev );
 
-		await expect( EditPage.displayedContent ).toHaveTextContaining( content );
+		await expect( EditPage.displayedContent ).toHaveText( expect.stringContaining( content ) );
 	} );
 
 } );

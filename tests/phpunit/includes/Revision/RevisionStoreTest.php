@@ -304,7 +304,6 @@ class RevisionStoreTest extends MediaWikiIntegrationTestCase {
 				'rev_deleted' => 0,
 				'rev_len' => 10,
 				'rev_parent_id' => 123,
-				'rev_sha1' => 'abc',
 				'rev_comment_text' => 'blabla',
 				'rev_comment_data' => 'blablabla',
 				'rev_comment_cid' => 1,
@@ -323,8 +322,6 @@ class RevisionStoreTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $expect, $this->getRevisionStore()->isRevisionRow( $row ) );
 	}
 
-	/**
-	 */
 	public function testFailOnNull() {
 		$revStore = TestingAccessWrapper::newFromObject( $this->getRevisionStore() );
 		// Success - not null
@@ -388,7 +385,7 @@ class RevisionStoreTest extends MediaWikiIntegrationTestCase {
 		}
 		$revStore->checkContent(
 			$content,
-			new PageIdentityValue( 0, NS_MAIN, 'Example', PageIdentityValue::LOCAL ),
+			PageIdentityValue::localIdentity( 0, NS_MAIN, 'Example' ),
 			SlotRecord::MAIN
 		);
 		// Avoid issues with no assertions for the non-exception case

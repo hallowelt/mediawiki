@@ -1,0 +1,67 @@
+/*!
+ * Styles for Special:UserRights
+ */
+@import 'mediawiki.skin.variables.less';
+
+.mw-special-UserGroupsSpecialPage {
+	#mw-userrights-form2 {
+
+		/* Customizations for 2-column layout of form for editing groups */
+
+		.oo-ui-panelLayout-framed {
+			border: 0;
+			display: inline-block;
+			box-sizing: border-box;
+			width: 50%;
+			vertical-align: top;
+		}
+
+		.oo-ui-panelLayout-padded {
+			padding: 0;
+		}
+
+		@media ( max-width: @max-width-breakpoint-mobile ) {
+			display: flex;
+			flex-direction: column;
+
+			.oo-ui-panelLayout:has( #mw-htmlform-unchangeable-col ) {
+				// Place this last; use a large number in case more elements are added to the form
+				order: 100;
+				width: 100%;
+			}
+
+			.oo-ui-panelLayout-framed {
+				display: block;
+				width: 100%;
+			}
+		}
+
+		.mw-userrights-groupcheckbox {
+			margin-top: @spacing-12;
+		}
+
+		/* Customizations for group expiry field */
+
+		.mw-htmlform-field-HTMLSelectOrOtherField {
+			margin-top: @spacing-12;
+			padding-left: 26px;
+		}
+
+		.mw-widget-selectWithInputWidget .oo-ui-textInputWidget {
+			padding-top: @spacing-25;
+
+			/*
+			 * Make maximum width consistent with the dropdown, as defined in
+			 * mw.widgets.SelectWithInputWidget.base.less
+			 */
+			max-width: 20em;
+
+			/*
+			 * Avoid FOUC on page load, since the default value will never be "Other".
+			 * When the user selects "Other", OOUI adds styles that will make this
+			 * visible again.
+			 */
+			display: none;
+		}
+	}
+}

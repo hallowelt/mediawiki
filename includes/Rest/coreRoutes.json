@@ -10,7 +10,11 @@
 			"PageStore",
 			"TitleFormatter",
 			"PageRestHelperFactory"
-		]
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-page-history",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-history"
+		}
 	},
 	{
 		"path": "/v1/page/{title}/history/counts/{type}",
@@ -24,7 +28,11 @@
 			"PageStore",
 			"PageRestHelperFactory",
 			"TempUserConfig"
-		]
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-page-history-counts",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-history-counts"
+		}
 	},
 	{
 		"path": "/v1/revision/{from}/compare/{to}",
@@ -32,7 +40,11 @@
 		"services": [
 			"RevisionLookup",
 			"ParserFactory"
-		]
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-revision-compare",
+			"x-i18n-summary": "rest-endpoint-summ-get-revision-compare"
+		}
 	},
 	{
 		"path": "/v1/revision/{id}",
@@ -42,7 +54,8 @@
 		],
 		"format": "source",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-revision-id"
+			"x-i18n-description": "rest-endpoint-desc-get-revision-id",
+			"x-i18n-summary": "rest-endpoint-summ-get-revision-id"
 		}
 	},
 	{
@@ -53,7 +66,8 @@
 		],
 		"format": "html",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-revision-id-html"
+			"x-i18n-description": "rest-endpoint-desc-get-revision-id-html",
+			"x-i18n-summary": "rest-endpoint-summ-get-revision-id-html"
 		}
 	},
 	{
@@ -64,7 +78,20 @@
 		],
 		"format": "with_html",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-revision-id-with-html"
+			"x-i18n-description": "rest-endpoint-desc-get-revision-id-with-html",
+			"x-i18n-summary": "rest-endpoint-summ-get-revision-id-with-html"
+		}
+	},
+	{
+		"path": "/v1/revision/{id}/lint",
+		"class": "MediaWiki\\Rest\\Handler\\RevisionLintHandler",
+		"services": [
+			"PageRestHelperFactory",
+			"LintErrorChecker"
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-revision-id-lint",
+			"x-i18n-summary": "rest-endpoint-summ-get-revision-id-lint"
 		}
 	},
 	{
@@ -75,7 +102,8 @@
 		],
 		"format": "bare",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-revision-id-bare"
+			"x-i18n-description": "rest-endpoint-desc-get-revision-id-bare",
+			"x-i18n-summary": "rest-endpoint-summ-get-revision-id-bare"
 		}
 	},
 	{
@@ -84,7 +112,11 @@
 		"services": [
 			"MainConfig",
 			"UrlUtils"
-		]
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-search",
+			"x-i18n-summary": "rest-endpoint-summ-get-search"
+		}
 	},
 	{
 		"path": "/v1/search/page",
@@ -99,7 +131,11 @@
 			"PageStore",
 			"TitleFormatter"
 		],
-		"mode": "fulltext"
+		"mode": "fulltext",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-search-page",
+			"x-i18n-summary": "rest-endpoint-summ-get-search-page"
+		}
 	},
 	{
 		"path": "/v1/search/title",
@@ -114,7 +150,11 @@
 			"PageStore",
 			"TitleFormatter"
 		],
-		"mode": "completion"
+		"mode": "completion",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-search-title",
+			"x-i18n-summary": "rest-endpoint-summ-get-search-title"
+		}
 	},
 	{
 		"path": "/v1/page/{title}/links/language",
@@ -126,7 +166,11 @@
 			"TitleParser",
 			"PageStore",
 			"PageRestHelperFactory"
-		]
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-page-title-language",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-title-language"
+		}
 	},
 	{
 		"path": "/v1/page/{title}",
@@ -137,7 +181,8 @@
 		],
 		"format": "source",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-page-title"
+			"x-i18n-description": "rest-endpoint-desc-get-page-title",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-title"
 		}
 	},
 	{
@@ -149,7 +194,8 @@
 		],
 		"format": "bare",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-page-title-bare"
+			"x-i18n-description": "rest-endpoint-desc-get-page-title-bare",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-title-bare"
 		}
 	},
 	{
@@ -160,7 +206,8 @@
 		],
 		"format": "html",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-page-title-html"
+			"x-i18n-description": "rest-endpoint-desc-get-page-title-html",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-title-html"
 		}
 	},
 	{
@@ -171,7 +218,20 @@
 		],
 		"format": "with_html",
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-get-page-title-with-html"
+			"x-i18n-description": "rest-endpoint-desc-get-page-title-with-html",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-title-with-html"
+		}
+	},
+	{
+		"path": "/v1/page/{title}/lint",
+		"class": "MediaWiki\\Rest\\Handler\\PageLintHandler",
+		"services": [
+			"PageRestHelperFactory",
+			"LintErrorChecker"
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-page-title-lint",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-title-lint"
 		}
 	},
 	{
@@ -181,7 +241,11 @@
 			"DBLoadBalancerFactory",
 			"RepoGroup",
 			"PageStore"
-		]
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-page-title-media",
+			"x-i18n-summary": "rest-endpoint-summ-get-page-title-media"
+		}
 	},
 	{
 		"path": "/v1/file/{title}",
@@ -189,7 +253,11 @@
 		"services": [
 			"RepoGroup",
 			"PageStore"
-		]
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-file-title",
+			"x-i18n-summary": "rest-endpoint-summ-get-file-title"
+		}
 	},
 	{
 		"method": "PUT",
@@ -203,7 +271,8 @@
 			"RevisionStore"
 		],
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-put-page-title"
+			"x-i18n-description": "rest-endpoint-desc-put-page-title",
+			"x-i18n-summary": "rest-endpoint-summ-put-page-title"
 		}
 	},
 	{
@@ -218,103 +287,233 @@
 			"RevisionStore"
 		],
 		"openApiSpec": {
-			"x-i18n-description": "rest-endpoint-desc-post-page"
+			"x-i18n-description": "rest-endpoint-desc-post-page",
+			"x-i18n-summary": "rest-endpoint-summ-post-page"
 		}
 	},
 	{
 		"method": "POST",
-		"path": "/v1/transform/{from}/to/html/{title}/{revision}",
-		"class": "MediaWiki\\Rest\\Handler\\TransformHandler",
-		"factory": "MediaWiki\\Rest\\Handler\\TransformHandler::factory",
+		"path": "/v1/transform/wikitext/to/html/{title}/{revision}",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlRevisionHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlRevisionHandler::factory",
+		"from": "wikitext",
 		"format": "html",
-		"transformations": {
-			"wikitext": [
-				"html",
-				"lint"
-			],
-			"html": [
-				"wikitext"
-			]
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-html-title-revision",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-html"
 		}
 	},
 	{
 		"method": "POST",
-		"path": "/v1/transform/{from}/to/wikitext/{title}/{revision}",
-		"class": "MediaWiki\\Rest\\Handler\\TransformHandler",
-		"factory": "MediaWiki\\Rest\\Handler\\TransformHandler::factory",
+		"path": "/v1/transform/html/to/wikitext/{title}/{revision}",
+		"class": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextRevisionHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextRevisionHandler::factory",
+		"from": "html",
 		"format": "wikitext",
-		"transformations": {
-			"wikitext": [
-				"html",
-				"lint"
-			],
-			"html": [
-				"wikitext"
-			]
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-html-to-wikitext-title-revision",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-html-to-wikitext"
 		}
 	},
 	{
 		"method": "POST",
-		"path": "/v1/transform/{from}/to/html",
-		"class": "MediaWiki\\Rest\\Handler\\TransformHandler",
-		"factory": "MediaWiki\\Rest\\Handler\\TransformHandler::factory",
+		"path": "/v1/transform/wikitext/to/lint/{title}/{revision}",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintRevisionHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintRevisionHandler::factory",
+		"from": "wikitext",
+		"format": "lint",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-lint",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-lint"
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/wikitext/to/html",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlHandler::factory",
+		"from": "wikitext",
 		"format": "html",
-		"transformations": {
-			"wikitext": [
-				"html",
-				"lint"
-			],
-			"html": [
-				"wikitext"
-			]
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-html",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-html"
 		}
 	},
 	{
 		"method": "POST",
-		"path": "/v1/transform/{from}/to/wikitext",
-		"class": "MediaWiki\\Rest\\Handler\\TransformHandler",
-		"factory": "MediaWiki\\Rest\\Handler\\TransformHandler::factory",
-		"format": "wikitext",
-		"transformations": {
-			"wikitext": [
-				"html",
-				"lint"
-			],
-			"html": [
-				"wikitext"
-			]
-		}
-	},
-	{
-		"method": "POST",
-		"path": "/v1/transform/{from}/to/html/{title}",
-		"class": "MediaWiki\\Rest\\Handler\\TransformHandler",
-		"factory": "MediaWiki\\Rest\\Handler\\TransformHandler::factory",
+		"path": "/v1/transform/wikitext/to/html/",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlHandler::factory",
+		"from": "wikitext",
 		"format": "html",
-		"transformations": {
-			"wikitext": [
-				"html",
-				"lint"
-			],
-			"html": [
-				"wikitext"
-			]
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-html",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-html",
+			"deprecationSettings": {
+				"since": 1759795200
+			}
+
 		}
 	},
 	{
 		"method": "POST",
-		"path": "/v1/transform/{from}/to/wikitext/{title}",
-		"class": "MediaWiki\\Rest\\Handler\\TransformHandler",
-		"factory": "MediaWiki\\Rest\\Handler\\TransformHandler::factory",
+		"path": "/v1/transform/html/to/wikitext",
+		"class": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextHandler::factory",
+		"from": "html",
 		"format": "wikitext",
-		"transformations": {
-			"wikitext": [
-				"html",
-				"lint"
-			],
-			"html": [
-				"wikitext"
-			]
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-html-to-wikitext",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-html-to-wikitext"
 		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/html/to/wikitext/",
+		"class": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextHandler::factory",
+		"from": "html",
+		"format": "wikitext",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-html-to-wikitext",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-html-to-wikitext",
+			"deprecationSettings": {
+				"since": 1759795200
+			}
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/wikitext/to/lint",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintHandler::factory",
+		"from": "wikitext",
+		"format": "lint",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-lint",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-lint"
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/wikitext/to/lint/",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintHandler::factory",
+		"from": "wikitext",
+		"format": "lint",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-lint",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-lint",
+			"deprecationSettings": {
+				"since": 1759795200
+			}
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/wikitext/to/html/{title}",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlTitleHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlTitleHandler::factory",
+		"from": "wikitext",
+		"format": "html",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-html",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-html"
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/wikitext/to/html/{title}/",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlTitleHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToHtmlTitleHandler::factory",
+		"from": "wikitext",
+		"format": "html",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-html",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-html",
+			"deprecationSettings": {
+				"since": 1759795200
+			}
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/html/to/wikitext/{title}",
+		"class": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextTitleHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextTitleHandler::factory",
+		"from": "html",
+		"format": "wikitext",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-html-to-wikitext",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-html-to-wikitext"
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/html/to/wikitext/{title}/",
+		"class": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextTitleHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformHtmlToWikitextTitleHandler::factory",
+		"from": "html",
+		"format": "wikitext",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-html-to-wikitext-title",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-html-to-wikitext",
+			"deprecationSettings": {
+				"since": 1759795200
+			}
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/wikitext/to/lint/{title}",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintTitleHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintTitleHandler::factory",
+		"from": "wikitext",
+		"format": "lint",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-lint",
+			"x-i18n-summary": "rest-endpoint-desc-post-transform-wikitext-to-lint"
+		}
+	},
+	{
+		"method": "POST",
+		"path": "/v1/transform/wikitext/to/lint/{title}/",
+		"class": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintTitleHandler",
+		"factory": "MediaWiki\\Rest\\Handler\\TransformWikitextToLintTitleHandler::factory",
+		"from": "wikitext",
+		"format": "lint",
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-post-transform-wikitext-to-lint",
+			"x-i18n-summary": "rest-endpoint-summ-post-transform-wikitext-to-lint",
+			"deprecationSettings": {
+				"since": 1759795200
+			}
+		}
+	},
+	{
+		"method": "GET",
+		"path": "/site/v1/sitemap/{indexId}",
+		"class": "MediaWiki\\Rest\\Handler\\SitemapIndexHandler",
+		"services": [
+			"MainConfig",
+			"LanguageConverterFactory",
+			"ContentLanguage",
+			"PermissionManager",
+			"ConnectionProvider"
+		]
+	},
+	{
+		"method": "GET",
+		"path": "/site/v1/sitemap/{indexId}/page/{fileId}",
+		"class": "MediaWiki\\Rest\\Handler\\SitemapFileHandler",
+		"services": [
+			"MainConfig",
+			"LanguageConverterFactory",
+			"ContentLanguage",
+			"PermissionManager",
+			"ConnectionProvider",
+			"GenderCache",
+			"MainWANObjectCache"
+		]
 	}
 ]

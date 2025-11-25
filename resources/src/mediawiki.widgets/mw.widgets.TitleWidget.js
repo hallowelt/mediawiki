@@ -32,7 +32,7 @@
 	 * @param {boolean} [config.searchFragments=false] Search for hash fragments on a specific page when typed
 	 * @param {boolean} [config.addQueryInput=true] Add exact user's input query to results
 	 * @param {boolean} [config.excludeCurrentPage=false] Exclude the current page from suggestions
-	 * @param {boolean} [config.excludeDynamicNamespaces=false] Exclude pages whose namespace is negative
+	 * @param {boolean} [config.creatable=false] Show only pages that can be created (not special pages)
 	 * @param {boolean} [config.validateTitle=true] Whether the input must be a valid title
 	 * @param {boolean} [config.required=false] Whether the input must not be empty
 	 * @param {boolean} [config.highlightSearchQuery=true] Highlight the partial query the user used for this title
@@ -41,17 +41,14 @@
 	 */
 	mw.widgets.TitleWidget = function MwWidgetsTitleWidget( config ) {
 		// Config initialization
-		config = Object.assign( {
-			maxLength: 255,
-			limit: 10
-		}, config );
+		config = config || {};
 
 		// Properties
-		this.limit = config.limit;
-		this.maxLength = config.maxLength;
+		this.limit = config.limit || 10;
+		this.maxLength = config.maxLength || 255;
 		this.namespace = config.namespace !== undefined ? config.namespace : null;
-		this.relative = config.relative !== undefined ? config.relative : true;
-		this.suggestions = config.suggestions !== undefined ? config.suggestions : true;
+		this.relative = config.relative !== false;
+		this.suggestions = config.suggestions !== false;
 		this.showRedirectTargets = config.showRedirectTargets !== false;
 		this.showImages = !!config.showImages;
 		this.showDescriptions = !!config.showDescriptions;
@@ -61,9 +58,9 @@
 		this.searchFragments = !!config.searchFragments;
 		this.addQueryInput = config.addQueryInput !== false;
 		this.excludeCurrentPage = !!config.excludeCurrentPage;
-		this.excludeDynamicNamespaces = !!config.excludeDynamicNamespaces;
-		this.validateTitle = config.validateTitle !== undefined ? config.validateTitle : true;
-		this.highlightSearchQuery = config.highlightSearchQuery === undefined ? true : !!config.highlightSearchQuery;
+		this.creatable = !!config.creatable;
+		this.validateTitle = config.validateTitle !== false;
+		this.highlightSearchQuery = config.highlightSearchQuery !== false;
 		this.cache = config.cache;
 		this.api = config.api || new mw.Api();
 		this.compare = new Intl.Collator(
@@ -123,13 +120,14 @@
 		const key = api.defaults.ajax.url;
 
 		if ( !Object.prototype.hasOwnProperty.call( cache, key ) ) {
+			// Cache client-side for a day since this info is mostly static
+			const oneDay = 60 * 60 * 24;
 			cache[ key ] = api.get( {
 				action: 'query',
 				meta: 'siteinfo',
 				siprop: 'interwikimap',
-				// Cache client-side for a day since this info is mostly static
-				maxage: 60 * 60 * 24,
-				smaxage: 60 * 60 * 24,
+				maxage: oneDay,
+				smaxage: oneDay,
 				// Workaround T97096 by setting uselang=content
 				uselang: 'content'
 			} ).then( ( data ) => data.query.interwikimap.map( ( iw ) => iw.prefix ) );
@@ -369,21 +367,14 @@
 				continue;
 			}
 
-			// When excludeDynamicNamespaces is set, ignore all pages with negative namespace
-			if ( this.excludeDynamicNamespaces && suggestionPage.ns < 0 ) {
+			// If requested, ignore all pages that cannot be created (pages in negative namespace)
+			if ( this.creatable && suggestionPage.ns < 0 ) {
 				continue;
 			}
-			pageData[ suggestionPage.title ] = {
-				known: suggestionPage.known !== undefined,
-				missing: suggestionPage.missing !== undefined,
-				redirect: suggestionPage.redirect !== undefined,
-				disambiguation: OO.getProp( suggestionPage, 'pageprops', 'disambiguation' ) !== undefined,
-				imageUrl: OO.getProp( suggestionPage, 'thumbnail', 'source' ),
-				description: suggestionPage.description,
-				// Sort index
-				index: suggestionPage.index !== undefined ? suggestionPage.index : redirectIndices[ suggestionPage.title ],
-				originalData: suggestionPage
-			};
+			pageData[ suggestionPage.title ] = this.getPageData(
+				suggestionPage,
+				redirectIndices[ suggestionPage.title ]
+			);
 
 			// Throw away pages from wrong namespaces. This can happen when 'showRedirectTargets' is true
 			// and we encounter a cross-namespace redirect.
@@ -451,6 +442,28 @@
 		}
 
 		return items.concat( disambigs );
+	};
+
+	/**
+	 * Get the data to pass to createOptionWidget from the relevant part of the API response
+	 *
+	 * @param {Object} page The page properties from the API response.pages[i]
+	 * @param {number|undefined} redirectIndex The index of the redirect, or
+	 *   undefined if there is no redirect to this page
+	 * @return {Object}
+	 */
+	mw.widgets.TitleWidget.prototype.getPageData = function ( page, redirectIndex ) {
+		return {
+			known: page.known !== undefined,
+			missing: page.missing !== undefined,
+			redirect: page.redirect !== undefined,
+			disambiguation: OO.getProp( page, 'pageprops', 'disambiguation' ) !== undefined,
+			imageUrl: OO.getProp( page, 'thumbnail', 'source' ),
+			description: page.description,
+			// Sort index
+			index: page.index !== undefined ? page.index : redirectIndex,
+			originalData: page
+		};
 	};
 
 	/**

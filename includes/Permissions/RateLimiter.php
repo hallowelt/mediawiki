@@ -1,20 +1,6 @@
 <?php
 /**
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  */
 
@@ -182,7 +168,7 @@ class RateLimiter {
 			return false;
 		}
 		$actionMetric = $this->statsFactory->getCounter( 'RateLimiter_limit_actions_total' )
-			->setLabel( 'action', $action );
+			->setLabel( 'action', $action === '' ? '[view]' : $action );
 
 		$user = $subject->getUser();
 		$ip = $subject->getIP();
@@ -193,7 +179,6 @@ class RateLimiter {
 		if ( !$this->hookRunner->onPingLimiter( $legacyUser, $action, $result, $incrBy ) ) {
 			$statsResult = ( $result ? 'tripped_by_hook' : 'passed_by_hook' );
 			$actionMetric->setLabel( 'result', $statsResult )
-				->copyToStatsdAt( "RateLimiter.limit.$action.result." . $statsResult )
 				->increment();
 			return $result;
 		}
@@ -205,7 +190,6 @@ class RateLimiter {
 		// Some groups shouldn't trigger the ping limiter, ever
 		if ( $this->canBypass( $action ) && $this->isExempt( $subject ) ) {
 			$actionMetric->setLabel( 'result', 'exempt' )
-				->copyToStatsdAt( "RateLimiter.limit.$action.result.exempt" )
 				->increment();
 			return false;
 		}
@@ -329,14 +313,12 @@ class RateLimiter {
 				] + $loggerInfo
 			);
 			$failedMetric->setLabel( 'tripped_by', $type )
-				->copyToStatsdAt( "RateLimiter.limit.$action.tripped_by.$type" )
 				->increment();
 		}
 
 		$allowed = $batchResult->isAllowed();
 
 		$actionMetric->setLabel( 'result', ( $allowed ? 'passed' : 'tripped' ) )
-			->copyToStatsdAt( "RateLimiter.limit.$action.result." . ( $allowed ? 'passed' : 'tripped' ) )
 			->increment();
 
 		return !$allowed;

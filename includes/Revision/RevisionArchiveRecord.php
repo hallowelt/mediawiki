@@ -2,21 +2,7 @@
 /**
  * A RevisionRecord representing a revision of a deleted page persisted in the archive table.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
+ * @license GPL-2.0-or-later
  * @file
  */
 
@@ -90,7 +76,6 @@ class RevisionArchiveRecord extends RevisionRecord {
 		$this->mMinorEdit = (bool)$row->ar_minor_edit;
 		$this->mDeleted = intval( $row->ar_deleted );
 		$this->mSize = isset( $row->ar_len ) ? intval( $row->ar_len ) : null;
-		$this->mSha1 = !empty( $row->ar_sha1 ) ? $row->ar_sha1 : null;
 
 		Assert::parameter(
 			$page->canExist(),
@@ -151,11 +136,7 @@ class RevisionArchiveRecord extends RevisionRecord {
 	 * @return string The revision hash, never null. May be computed on the fly.
 	 */
 	public function getSha1() {
-		// If hash is null, calculate it and remember (potentially SLOW!)
-		// This is for compatibility with old database rows that don't have the field set.
-		$this->mSha1 ??= $this->mSlots->computeSha1();
-
-		return $this->mSha1;
+		return $this->mSlots->computeSha1();
 	}
 
 	/**
@@ -188,6 +169,7 @@ class RevisionArchiveRecord extends RevisionRecord {
 		return parent::getTimestamp();
 	}
 
+	/** @inheritDoc */
 	public function userCan( $field, Authority $performer ) {
 		// This revision belongs to a deleted page, so check the relevant permissions as well. (T345777)
 
@@ -213,6 +195,7 @@ class RevisionArchiveRecord extends RevisionRecord {
 		return parent::userCan( $field, $performer );
 	}
 
+	/** @inheritDoc */
 	public function audienceCan( $field, $audience, ?Authority $performer = null ) {
 		// This revision belongs to a deleted page, so check the relevant permissions as well. (T345777)
 		// See userCan().

@@ -238,7 +238,7 @@ abstract class Module {
 	 * @return never
 	 * @throws HttpException
 	 */
-	protected function throwNoMatch( string $path, string $method, array $allowed ): void {
+	protected function throwNoMatch( string $path, string $method, array $allowed ): never {
 		// Check for CORS Preflight. This response will *not* allow the request unless
 		// an Access-Control-Allow-Origin header is added to this response.
 		if ( $this->cors && $method === 'OPTIONS' && $allowed ) {
@@ -346,7 +346,6 @@ abstract class Module {
 				->setLabel( 'path', $pathForMetrics )
 				->setLabel( 'method', $requestMethod )
 				->setLabel( 'status', "$statusCode" )
-				->copyToStatsdAt( [ "rest_api_errors.$pathForMetrics.$requestMethod.$statusCode" ] )
 				->increment();
 		} else {
 			// measure how long it takes to generate a response
@@ -354,9 +353,44 @@ abstract class Module {
 				->setLabel( 'path', $pathForMetrics )
 				->setLabel( 'method', $requestMethod )
 				->setLabel( 'status', "$statusCode" )
-				->copyToStatsdAt( "rest_api_latency.$pathForMetrics.$requestMethod.$statusCode" )
 				->observeNanoseconds( $latency );
 		}
+
+		// New unified metrics for the API
+		// Only record those if there's a handler
+		if ( !$handler ) {
+			return;
+		}
+		$moduleDescription = $this->getModuleDescription();
+
+		$metricsLabels = [
+			'api_module' => $moduleDescription['moduleId'],
+			// as a starting point, we'll use the Handler class name for the endpoint
+			'api_endpoint' => $handler::class,
+			'path' => $pathForMetrics,
+			'method' => $requestMethod,
+			'status' => "$statusCode",
+		];
+
+		// Hit metrics
+		$metricHitStats = $this->stats->getCounter( 'rest_api_modules_hit_total' )
+			->setLabel( 'api_type', 'REST_API' );
+		foreach ( $metricsLabels as $label => $value ) {
+			if ( $value ) {
+				$metricHitStats->setLabel( $label, $value );
+			}
+		}
+		$metricHitStats->increment();
+
+		// Latency metrics
+		$metricLatencyStats = $this->stats->getTiming( 'rest_api_modules_latency' )
+			->setLabel( 'api_type', 'REST_API' );
+		foreach ( $metricsLabels as $label => $value ) {
+			if ( $value ) {
+				$metricLatencyStats->setLabel( $label, $value );
+			}
+		}
+		$metricLatencyStats->observeNanoseconds( $latency );
 	}
 
 	/**
@@ -419,6 +453,9 @@ abstract class Module {
 		if ( !( $response instanceof ResponseInterface ) ) {
 			$response = $this->responseFactory->createFromReturnValue( $response );
 		}
+
+		// Deprecation header per RFC 9745
+		$handler->applyDeprecationHeader( $response );
 
 		// Set Last-Modified and ETag headers in the response if available
 		$handler->applyConditionalResponseHeaders( $response );
@@ -498,7 +535,7 @@ abstract class Module {
 	 * Supported keys are described in /docs/discovery-1.0.json#/definitions/Module
 	 *
 	 * @see /docs/discovery-1.0.json
-	 * @see /docs/mwapi-1.0.json
+	 * @see /docs/mwapi-1.1.json
 	 * @see DiscoveryHandler
 	 */
 	public function getModuleDescription(): array {
@@ -508,9 +545,9 @@ abstract class Module {
 		$moduleId = $this->getPathPrefix();
 
 		// Fields from openApiSpec info to include.
-		// Note that mwapi-1.0 is based on OAS 3.0, so it doesn't support the
+		// Note that mwapi-1.1 and earlier are based on OAS 3.0, so they don't support the
 		// "summary" property introduced in 3.1.
-		$infoFields = [ 'version', 'title', 'description' ];
+		$infoFields = [ 'version', 'title', 'description', 'deprecationSettings' ];
 
 		return [
 			'moduleId' => $moduleId,

@@ -198,7 +198,9 @@ const ApiSandbox = {
 	 *   The form fields will be updated to match.
 	 */
 	sendRequest: function ( params ) {
-		let method = 'get';
+		let method = 'get',
+			infoMessage;
+
 		const paramsAreForced = !!params,
 			deferreds = [],
 			displayParams = {},
@@ -225,10 +227,11 @@ const ApiSandbox = {
 			if ( checkPage.tokenWidget ) {
 				tokenWidgets.push( checkPage.tokenWidget );
 			}
-			deferreds.push( checkPage.apiCheckValid() );
+			deferreds.push( ...checkPage.apiCheckValid() );
 			checkPage.getQueryParams( params, displayParams, ajaxOptions );
 			if ( checkPage.paramInfo.mustbeposted !== undefined ) {
 				method = 'post';
+				infoMessage = mw.message( 'apisandbox-request-post' ).parseDom();
 			}
 			const subpages = checkPage.getSubpages();
 			subpages.forEach( ( subpage ) => {
@@ -300,7 +303,26 @@ const ApiSandbox = {
 				return;
 			}
 
+			if ( params.format === undefined ) {
+				// While not required by the API, the sandbox UI makes the 'format' parameter required.
+				// If we reach this point without any value for it, that's a bug, so stop here
+				// (it would result in incorrect formatting on the results panel) (T395063).
+				throw new Error( "'format' parameter is required" );
+			}
+			if ( params.action === undefined ) {
+				// While not required by the API, the sandbox UI makes the 'action' parameter required.
+				// If we reach this point without any value for it, that's a bug, so stop here
+				// (it would result in dumping the entire HTML help output on the results panel) (T395063).
+				throw new Error( "'action' parameter is required" );
+			}
+
 			const query = $.param( displayParams );
+
+			// Force POST if we have huge payload (T406283)
+			if ( method !== 'post' && query.length > 7500 ) {
+				method = 'post';
+				infoMessage = mw.message( 'apisandbox-request-post2' ).parseDom();
+			}
 
 			const formatItems = Util.formatRequest( displayParams, params, method, ajaxOptions );
 
@@ -359,7 +381,7 @@ const ApiSandbox = {
 
 			if ( method === 'post' ) {
 				page.$element.append( new OO.ui.LabelWidget( {
-					label: mw.message( 'apisandbox-request-post' ).parseDom(),
+					label: infoMessage,
 					classes: [ 'oo-ui-inline-help' ]
 				} ).$element );
 			}
@@ -435,7 +457,7 @@ const ApiSandbox = {
 							.append( Util.parseMsg( 'apisandbox-results-login-suppressed' ) )
 							.appendTo( $result );
 					}
-					let loadTime, match;
+					let loadTime;
 					if ( /^text\/mediawiki-api-prettyprint-wrapped(?:;|$)/.test( ct ) ) {
 						try {
 							data = JSON.parse( data );
@@ -454,11 +476,6 @@ const ApiSandbox = {
 						}
 						$result.append( Util.parseHTML( data.html ) );
 						loadTime = data.time;
-					} else if ( ( match = data.match( /<pre[ >][\s\S]*<\/pre>/ ) ) ) {
-						$result.append( Util.parseHTML( match[ 0 ] ) );
-						if ( ( match = data.match( /"wgBackendResponseTime":\s*(\d+)/ ) ) ) {
-							loadTime = parseInt( match[ 1 ], 10 );
-						}
 					} else {
 						$( '<pre>' )
 							.addClass( 'api-pretty-content' )

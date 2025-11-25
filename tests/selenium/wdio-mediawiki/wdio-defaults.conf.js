@@ -1,22 +1,21 @@
 /**
  * Base WebdriverIO configuration, meant to be imported from skins and extensions like so:
  *
- *   const { config } = require( 'wdio-mediawiki/wdio-defaults.conf.js' );
+ *   import { config as wdioDefaults } from 'wdio-mediawiki/wdio-defaults.conf.js';
  *
- *   exports.config = { ...config,
- *     logLevel: 'info'
- *   };
+ *   export const config = { ...wdioDefaults,
+ *     logLevel: 'info',
+ *   }
  */
 
-'use strict';
-
 let ffmpeg;
-const fs = require( 'fs' );
-const path = require( 'path' );
+import fs from 'fs';
+import path from 'path';
+import { PrometheusFileReporter, writeAllProjectMetrics } from './PrometheusFileReporter.js';
 const logPath = process.env.LOG_DIR || path.join( process.cwd(), 'tests/selenium/log' );
-const { makeFilenameDate, saveScreenshot, startVideo, stopVideo } = require( 'wdio-mediawiki' );
+import { makeFilenameDate, saveScreenshot, startVideo, stopVideo } from 'wdio-mediawiki';
 // T355556: remove when T324766 is resolved
-const dns = require( 'dns' );
+import dns from 'dns';
 
 if ( !process.env.MW_SERVER || !process.env.MW_SCRIPT_PATH ) {
 	throw new Error( 'MW_SERVER or MW_SCRIPT_PATH not defined.\nSee https://www.mediawiki.org/wiki/Selenium/How-to/Set_environment_variables\n' );
@@ -43,7 +42,7 @@ process.on( 'unhandledRejection', ( reason, promise ) => {
  * - https://webdriver.io/docs/configurationfile
  * - https://webdriver.io/docs/configuration
  */
-exports.config = {
+export const config = {
 	// ==================
 	// Runner Configuration
 	// ==================
@@ -53,7 +52,7 @@ exports.config = {
 	// Test Files
 	// ==================
 	specs: [
-		'./tests/selenium/specs/**/*.js'
+		'./specs/**/*.js'
 	],
 	// Set the waitForTimeout for all wait for commands
 	// https://v8.webdriver.io/docs/timeouts/#waitfor-timeout
@@ -78,6 +77,16 @@ exports.config = {
 		// It is also used by afterTest for capturing screenshots.
 		'mw:screenshotPath': logPath,
 
+		// Setting that enables video recording of the test.
+		// Recording videos is currently supported only on Linux,
+		// and is triggered by the DISPLAY value starting with a colon.
+		// https://www.mediawiki.org/wiki/Selenium/How-to/Record_videos_of_test_runs
+		'mw:recordVideo': true,
+
+		// Browser width and height
+		'mw:width': 1280,
+		'mw:height': 1024,
+
 		// For Chrome/Chromium https://www.w3.org/TR/webdriver
 		browserName: 'chrome',
 		// Use correct browser and driver in CI
@@ -86,6 +95,9 @@ exports.config = {
 				binary: '/usr/bin/chromedriver'
 			}
 		} ),
+		// Can be changed when we update to newer browser versions
+		// Bidi is still under development in Chrome/Firefox
+		'wdio:enforceWebDriverClassic': true,
 		'goog:chromeOptions': {
 			...( process.env.CI && {
 				binary: '/usr/bin/chromium'
@@ -97,7 +109,36 @@ exports.config = {
 				'--enable-automation',
 				...( process.env.DISPLAY ? [] : [ '--headless' ] ),
 				// Chrome sandbox does not work in Docker. Disable GPU to prevent crashes (T389536#10677201)
+				// For disable-dev-shm-usage: We map /tmp to tmpfs for the container in CI
 				...( fs.existsSync( '/.dockerenv' ) ? [ '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage' ] : [] ),
+				// Disable as much as possible to make Chrome clean
+				// https://github.com/GoogleChrome/chrome-launcher/blob/main/docs/chrome-flags-for-tools.md
+				// https://peter.sh/experiments/chromium-command-line-switches/
+				'--ash-no-nudges',
+				'--disable-background-networking',
+				'--disable-background-timer-throttling',
+				'--disable-backgrounding-occluded-windows',
+				'--disable-breakpad',
+				'--disable-client-side-phishing-detection',
+				'--disable-component-extensions-with-background-page',
+				'--disable-component-update',
+				'--disable-default-apps',
+				'--disable-domain-reliability',
+				'--disable-features=InterestFeedContentSuggestions',
+				'--disable-features=Translate',
+				'--disable-fetching-hints-at-navigation-start',
+				'--disable-hang-monitor',
+				'--disable-infobars',
+				'--disable-ipc-flooding-protection',
+				'--disable-prompt-on-repost',
+				'--disable-renderer-backgrounding',
+				'--disable-sync',
+				'--disable-search-engine-choice-screen',
+				'--disable-site-isolation-trials',
+				'--mute-audio',
+				'--no-default-browser-check',
+				'--no-first-run',
+				'--propagate-iph-for-testing',
 				// Workaround inputs not working consistently post-navigation on Chrome 90
 				// https://issuetracker.google.com/issues/42322798
 				'--allow-pre-commit-input'
@@ -141,6 +182,18 @@ exports.config = {
 				const random = Math.random().toString( 16 ).slice( 2, 10 );
 				return `WDIO.xunit-${ makeFilenameDate() }-${ random }.xml`;
 			}
+		} ],
+		[ PrometheusFileReporter, {
+			outputDir: logPath,
+			outputFileName: function () {
+				const random = Math.random().toString( 16 ).slice( 2, 10 );
+				return `WDIO.prometheus-${ makeFilenameDate() }-${ random }.prom`;
+			},
+			tags: {
+				project: process.env.npm_package_name || process.env.ZUUL_PROJECT || 'test',
+				// eslint-disable-next-line camelcase
+				wdio_target: process.env.WDIO_TARGET || 'ci'
+			}
 		} ]
 	],
 
@@ -148,6 +201,14 @@ exports.config = {
 	// Hooks
 	// =====
 
+	/**
+	 * Gets executed once before all workers get launched.
+	 *
+	 * @param {Object} wdioConfig wdio configuration object
+	 */
+	onPrepare: function ( wdioConfig ) {
+		console.log( `Run test targeting ${ wdioConfig.baseUrl }` );
+	},
 	/**
 	 * Gets executed just before initializing the webdriver session and test framework.
 	 * It allows you to manipulate configurations depending on the capability or spec.
@@ -163,12 +224,26 @@ exports.config = {
 	},
 
 	/**
+	 * Gets executed before test execution begins. At this point you can access to all global
+	 * variables like `browser`. It is the perfect place to define custom commands.
+	 *
+	 * @param {Array.<Object>} capabilities list of capabilities details
+	 * @param {Array.<string>} specs        List of spec file paths that are to be run
+	 * @param {Object}         browser      instance of created browser/device session
+	 */
+	before: async function () {
+		await browser.setWindowSize( browser.options.capabilities[ 'mw:width' ], browser.options.capabilities[ 'mw:height' ] );
+	},
+
+	/**
 	 * Executed before a Mocha test starts.
 	 *
 	 * @param {Object} test Mocha Test object
 	 */
-	beforeTest: function ( test ) {
-		ffmpeg = startVideo( ffmpeg, `${ test.parent }-${ test.title }` );
+	beforeTest: async function ( test ) {
+		if ( browser.options.capabilities[ 'mw:recordVideo' ] === true ) {
+			ffmpeg = await startVideo( ffmpeg, `${ test.parent }-${ test.title }` );
+		}
 	},
 
 	/**
@@ -182,7 +257,18 @@ exports.config = {
 		try {
 			await saveScreenshot( `${ test.parent }-${ test.title }${ result.passed ? '' : '-failed' }` );
 		} finally {
-			stopVideo( ffmpeg );
+			if ( browser.options.capabilities[ 'mw:recordVideo' ] === true ) {
+				stopVideo( ffmpeg );
+			}
 		}
+	},
+
+	/**
+	 * Executed after all runners are done.
+	 */
+	onComplete() {
+		const random = Math.random().toString( 16 ).slice( 2, 10 );
+		const fileName = `project-metrics-${ makeFilenameDate() }-${ random }`;
+		writeAllProjectMetrics( logPath, fileName );
 	}
 };

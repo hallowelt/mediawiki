@@ -11,6 +11,12 @@ const mockedRequests = !process.env.TEST_LIVE_REQUESTS;
 describe( 'restApiSearchClient', () => {
 	beforeAll( () => {
 		jestFetchMock.enableFetchMocks();
+		const mockConfig = {
+			wgMainPage: false,
+			wgNamespaceNumber: 0,
+			wgContentNamespaces: [ 0 ]
+		};
+		mw.config.get.mockImplementation( ( key ) => mockConfig[ key ] );
 	} );
 
 	afterAll( () => {
@@ -103,6 +109,31 @@ describe( 'restApiSearchClient', () => {
 				{ headers: { accept: 'application/json' }, signal: controller.signal }
 			);
 		}
+	} );
+
+	test( 'no recommendations service', async () => {
+		const client = await restSearchClient( searchApiUrl, urlGenerator );
+		expect( client.fetchRecommendationByTitle ).toBe( undefined );
+	} );
+
+	test( 'recommendations service', async () => {
+		fetchMock.mockOnce( JSON.stringify( {
+			pages: [
+				{
+					id: 1,
+					title: 'R'
+				}
+			]
+		} ) );
+		const searchResult = await restSearchClient( searchApiUrl, urlGenerator, recommendationApiUrl )
+			.fetchRecommendationByTitle(
+				'recommendMe'
+			).fetch;
+		expect( searchResult.query ).toStrictEqual( '' );
+		expect( searchResult.results ).toBeTruthy();
+		expect( searchResult.results.length ).toBe( 1 );
+		expect( searchResult.results[ 0 ].title ).toBe( 'R' );
+
 	} );
 
 	if ( mockedRequests ) {

@@ -2,10 +2,10 @@
 
 // phpcs:disable MediaWiki.Commenting.PhpunitAnnotations.NotClass
 // phpcs:disable MediaWiki.Commenting.FunctionComment.MissingParamTag -- Traits are not excluded
+// phpcs:disable MediaWiki.Commenting.FunctionComment.MissingDocumentationPublic -- Test traits are not excluded
 
 namespace MediaWiki\Tests\Unit\Revision;
 
-use DummyContentForTesting;
 use LogicException;
 use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Content\Content;
@@ -16,6 +16,7 @@ use MediaWiki\Revision\RevisionSlots;
 use MediaWiki\Revision\RevisionStoreRecord;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Revision\SuppressedDataException;
+use MediaWiki\Tests\Mocks\Content\DummyContentForTesting;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWiki\User\UserIdentityValue;
 
@@ -90,7 +91,7 @@ trait RevisionRecordTests {
 		$this->assertEquals( 1, $revision->getParentId() );
 	}
 
-	abstract protected static function expectedDefaultFieldVisibility( $field ): bool;
+	abstract protected static function expectedDefaultFieldVisibility( int $field ): bool;
 
 	private static function provideAudienceCheckData( int $field ): iterable {
 		yield 'field accessible for oversighter (ALL)' => [
@@ -504,7 +505,6 @@ trait RevisionRecordTests {
 				'rev_minor_edit' => 0,
 				'rev_parent_id' => '5',
 				'rev_len' => $slots->computeSize(),
-				'rev_sha1' => $slots->computeSha1(),
 				'page_latest' => '18',
 			],
 			$slots

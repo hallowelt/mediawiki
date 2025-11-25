@@ -1,19 +1,6 @@
 <?php
 /**
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
+ * @license GPL-2.0-or-later
  */
 
 use MediaWiki\Logging\DatabaseLogEntry;
@@ -171,7 +158,7 @@ class DeleteAutoPatrolLogs extends Maintenance {
 			if ( array_key_exists( '6::auto', $params ) ) {
 				// Between 2011-2016 autopatrol logs
 				$auto = $params['6::auto'] === true;
-			} elseif ( $logEntry->isLegacy() === true && array_key_exists( 2, $params ) ) {
+			} elseif ( $logEntry->isLegacy() && array_key_exists( 2, $params ) ) {
 				// Pre-2011 autopatrol logs
 				$auto = $params[2] === '1';
 			} else {

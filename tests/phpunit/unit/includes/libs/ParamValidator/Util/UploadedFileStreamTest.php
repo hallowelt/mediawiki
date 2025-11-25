@@ -5,7 +5,6 @@ namespace Wikimedia\Tests\ParamValidator\Util;
 require_once __DIR__ . '/UploadedFileTestBase.php';
 
 use Error;
-use PHPUnit\Framework\AssertionFailedError;
 use RuntimeException;
 use TypeError;
 use Wikimedia\ParamValidator\Util\UploadedFileStream;
@@ -45,12 +44,9 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 		$fp = TestingAccessWrapper::newFromObject( $stream )->fp;
 		$this->assertSame( 'f', fread( $fp, 1 ), 'read check' );
 		unset( $stream );
-		try {
-			// PHP 7 raises warnings
-			$this->assertFalse( @fread( $fp, 1 ) );
-		} catch ( TypeError $ex ) {
-			// PHP 8 throws
-		}
+
+		$this->expectException( TypeError::class );
+		fread( $fp, 1 );
 	}
 
 	public function testToString() {
@@ -105,9 +101,7 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 		// Stream operations now fail.
 		try {
 			$stream->seek( 0 );
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 
 		// Stream close doesn't affect the file descriptor
@@ -163,15 +157,11 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 		$stream->close();
 		try {
 			$stream->seek( 0 );
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 		try {
 			$stream->tell();
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 	}
 
@@ -221,9 +211,7 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 		$stream->close();
 		try {
 			$stream->rewind();
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 	}
 
@@ -233,9 +221,7 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 
 		try {
 			$stream->write( 'foo' );
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 	}
 
@@ -252,9 +238,7 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 		$stream->close();
 		try {
 			$stream->read( 1 );
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 	}
 
@@ -270,9 +254,7 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 		$stream->close();
 		try {
 			$stream->getContents();
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 	}
 
@@ -293,9 +275,7 @@ class UploadedFileStreamTest extends UploadedFileTestBase {
 		$stream->close();
 		try {
 			$stream->getMetadata();
-		} catch ( AssertionFailedError $ex ) {
-			throw $ex;
-		} catch ( RuntimeException $ex ) {
+		} catch ( RuntimeException ) {
 		}
 	}
 

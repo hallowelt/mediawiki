@@ -42,7 +42,6 @@ class RevisionArchiveRecordTest extends MediaWikiIntegrationTestCase {
 			'ar_minor_edit' => 0,
 			'ar_parent_id' => '5',
 			'ar_len' => $slots->computeSize(),
-			'ar_sha1' => $slots->computeSha1(),
 		];
 
 		$row = $protoRow;
@@ -56,7 +55,7 @@ class RevisionArchiveRecordTest extends MediaWikiIntegrationTestCase {
 		];
 
 		yield 'all info, local' => [
-			new PageIdentityValue( 17, NS_MAIN, 'Dummy', PageIdentity::LOCAL ),
+			PageIdentityValue::localIdentity( 17, NS_MAIN, 'Dummy' ),
 			$user,
 			$comment,
 			(object)$row,
@@ -99,9 +98,8 @@ class RevisionArchiveRecordTest extends MediaWikiIntegrationTestCase {
 
 		$row = $protoRow;
 		$row['ar_len'] = null;
-		$row['ar_sha1'] = '';
 
-		yield 'ar_len is null, ar_sha1 is ""' => [
+		yield 'ar_len is null' => [
 			$title,
 			$user,
 			$comment,
@@ -168,12 +166,6 @@ class RevisionArchiveRecordTest extends MediaWikiIntegrationTestCase {
 			$this->assertSame( $slots->computeSize(), $rec->getSize(), 'getSize' );
 		}
 
-		if ( !empty( $row->ar_sha1 ) ) {
-			$this->assertSame( $row->ar_sha1, $rec->getSha1(), 'getSha1' );
-		} else {
-			$this->assertSame( $slots->computeSha1(), $rec->getSha1(), 'getSha1' );
-		}
-
 		$this->assertTrue(
 			TitleValue::newFromPage( $page )->isSameLinkAs( $rec->getPageAsLinkTarget() ),
 			'getPageAsLinkTarget'
@@ -201,17 +193,15 @@ class RevisionArchiveRecordTest extends MediaWikiIntegrationTestCase {
 			'ar_minor_edit' => 0,
 			'ar_parent_id' => '5',
 			'ar_len' => $slots->computeSize(),
-			'ar_sha1' => $slots->computeSha1(),
 		];
 
 		$row = $protoRow;
 
 		yield 'mismatching wiki ID' => [
-			new PageIdentityValue(
+			PageIdentityValue::localIdentity(
 				$title->getArticleID(),
 				$title->getNamespace(),
-				$title->getDBkey(),
-				PageIdentity::LOCAL
+				$title->getDBkey()
 			),
 			$user,
 			$comment,

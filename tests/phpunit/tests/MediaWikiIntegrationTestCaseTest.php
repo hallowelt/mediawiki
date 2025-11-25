@@ -262,8 +262,6 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotSame( $mockLogger, $curLogger );
 	}
 
-	/**
-	 */
 	public function testLoggersAreRestoredOnTearDown_replacingNonExistingLogger__before() {
 		$logger = new NullLogger();
 		$this->setLogger( 'foo', $logger );
@@ -487,7 +485,7 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 		try {
 			$httpRequestFactory->get( 'http://0.0.0.0/' );
 			$prevented = false;
-		} catch ( AssertionFailedError $e ) {
+		} catch ( AssertionFailedError ) {
 			// pass
 		}
 
@@ -496,7 +494,7 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 		try {
 			$httpRequestFactory->post( 'http://0.0.0.0/' );
 			$prevented = false;
-		} catch ( AssertionFailedError $e ) {
+		} catch ( AssertionFailedError ) {
 			// pass
 		}
 
@@ -505,7 +503,7 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 		try {
 			$httpRequestFactory->request( 'HEAD', 'http://0.0.0.0/' );
 			$prevented = false;
-		} catch ( AssertionFailedError $e ) {
+		} catch ( AssertionFailedError ) {
 			// pass
 		}
 
@@ -514,7 +512,7 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 		try {
 			$httpRequestFactory->create( 'http://0.0.0.0/' );
 			$prevented = false;
-		} catch ( AssertionFailedError $e ) {
+		} catch ( AssertionFailedError ) {
 			// pass
 		}
 
@@ -524,7 +522,7 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 			$client = $httpRequestFactory->createGuzzleClient();
 			$client->get( 'http://0.0.0.0/' );
 			$prevented = false;
-		} catch ( AssertionFailedError $e ) {
+		} catch ( AssertionFailedError ) {
 			// pass
 		}
 
@@ -536,7 +534,7 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 		try {
 			$multiClient->run( $req );
 			$prevented = false;
-		} catch ( AssertionFailedError $e ) {
+		} catch ( AssertionFailedError ) {
 			// pass
 		}
 
@@ -545,7 +543,7 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 		try {
 			$multiClient->runMulti( [ $req ] );
 			$prevented = false;
-		} catch ( AssertionFailedError $e ) {
+		} catch ( AssertionFailedError ) {
 			// pass
 		}
 
@@ -606,11 +604,11 @@ class MediaWikiIntegrationTestCaseTest extends MediaWikiIntegrationTestCase {
 				'expectedFullText' => 'User:Test'
 			],
 			'PageIdentityValue object' => [
-				'title' => new PageIdentityValue( 0, NS_MAIN, 'Test', PageIdentityValue::LOCAL ),
+				'title' => PageIdentityValue::localIdentity( 0, NS_MAIN, 'Test' ),
 				'expectedFullText' => 'Test'
 			],
 			'PageIdentityValue object with namespace' => [
-				'title' => new PageIdentityValue( 0, NS_USER, 'Test', PageIdentityValue::LOCAL ),
+				'title' => PageIdentityValue::localIdentity( 0, NS_USER, 'Test' ),
 				'expectedFullText' => 'User:Test'
 			],
 		];

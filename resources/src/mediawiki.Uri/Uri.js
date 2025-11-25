@@ -21,19 +21,76 @@
 	}
 
 	/**
-	 * Regular expressions to parse many common URIs.
+	 * As they are gnarly expressions, we use a an 'extended' regular expression format
+	 * (which JavaScript doesn't natively support), where we can use:
 	 *
-	 * These are gnarly expressions. For improved readability, they have been moved to a separate
-	 * file where they make use of named capture groups. That syntax isn't valid in JavaScript ES5,
-	 * so the server-side strips these before delivering to the client.
+	 * - Free whitespace over multiple lines, to improve readability.
+	 * - Named capture groups, to make long regexes self-documenting for developer convenience.
+	 *
+	 * @private
+	 * @static
+	 * @param {string} s
+	 * @return {RegExp}
+	 */
+	function parseRegExp( s ) {
+		return new RegExp(
+			s
+				// Remove whitespace
+				.replace( /\s+/g, '' )
+				// Remove named capturing groups
+				.replace( /\?<\w+?>/g, '' )
+		);
+	}
+
+	/**
+	 * Regular expressions to parse many common URIs.
 	 *
 	 * @private
 	 * @static
 	 * @property {Object} parser
 	 */
 	const parser = {
-		strict: require( './strict.regexp.js' ),
-		loose: require( './loose.regexp.js' )
+		strict: parseRegExp(
+			`^
+			(?:(?<protocol>[^:/?#]+):)?
+			(?://(?:
+				(?:
+					(?<user>[^:@/?#]*)
+					(?::(?<password>[^:@/?#]*))?
+				)?@)?
+				(?<host>[^:/?#]*)
+				(?::(?<port>\\d*))?
+			)?
+			(?<path>(?:[^?#/]*/)*[^?#]*)
+			(?:\\?(?<query>[^#]*))?
+			(?:\\#(?<fragment>.*))?
+			`
+		),
+		loose: parseRegExp(
+			`^
+			(?:
+				(?![^:@]+:[^:@/]*@)
+				(?<protocol>[^:/?#.]+):
+			)?
+			(?://)?
+			(?:(?:
+				(?<user>[^:@/?#]*)
+				(?::(?<password>[^:@/?#]*))?
+			)?@)?
+			(?<host>[^:/?#]*)
+			(?::(?<port>\\d*))?
+			(
+				(?:/
+					(?:[^?#]
+						(?![^?#/]*\\.[^?#/.]+(?:[?#]|$))
+					)*/?
+				)?
+				[^?#/]*
+			)
+			(?:\\?(?<query>[^#]*))?
+			(?:\\#(?<fragment>.*))?
+			`
+		)
 	};
 
 	/**
@@ -94,6 +151,10 @@
 		/**
 		 * @classdesc Create and manipulate MediaWiki URIs.
 		 *
+		 * **DEPRECATED: mw.Uri has been deprecated in MediaWiki 1.43.**
+		 * Please use the browser native {@link URL} class instead.
+		 * See {@link https://www.mediawiki.org/wiki/Migrating_mw.Uri_to_URL migration guide}.
+		 *
 		 * Intended to be minimal, but featureful; do not expect full RFC 3986 compliance. The use cases we
 		 * have in mind are constructing 'next page' or 'previous page' URLs, detecting whether we need to
 		 * use cross-domain proxies for an API, constructing simple URL-based API calls, etc. Parsing here
@@ -139,6 +200,10 @@
 		 *
 		 * Parsing based on parseUri 1.2.2 (c) Steven Levithan <http://stevenlevithan.com>, MIT License.
 		 * <http://stevenlevithan.com/demo/parseuri/js/>
+		 *
+		 * @deprecated since MediaWiki 1.43.
+		 * Please use the browser native {@link URL} class instead.
+		 * See {@link https://www.mediawiki.org/wiki/Migrating_mw.Uri_to_URL migration guide}.
 		 *
 		 * @class
 		 * @name mw.Uri
