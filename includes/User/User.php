@@ -245,7 +245,7 @@ class User implements Stringable, Authority, UserIdentity, UserEmailContact {
 	/**
 	 * @internal since 1.36, use the UserFactory service instead
 	 *
-	 * @see MediaWiki\User\UserFactory
+	 * @see \MediaWiki\User\UserFactory
 	 *
 	 * @see newFromName()
 	 * @see newFromId()
@@ -2568,9 +2568,10 @@ class User implements Stringable, Authority, UserIdentity, UserEmailContact {
 				return Status::newFatal( 'userexists' );
 			}
 			$this->mId = $dbw->insertId();
+			$this->queryFlagsUsed = IDBAccessObject::READ_LATEST;
 
 			// Don't pass $this, since calling ::getId, ::getName might force ::load
-			// and this user might not be ready for the yet.
+			// and this user might not be ready for that yet.
 			$this->mActorId = MediaWikiServices::getInstance()
 				->getActorNormalization()
 				->acquireActorId( new UserIdentityValue( $this->mId, $this->mName ), $dbw );
@@ -3188,13 +3189,18 @@ class User implements Stringable, Authority, UserIdentity, UserEmailContact {
 	 *   this method is getInstanceFromPrimary() with the READ_EXCLUSIVE flag, but most callers
 	 *   didn't actually need an exclusive lock, and overusing it is harmful, so consider whether
 	 *   you really need locking.
+	 *   Note that getInstanceFromPrimary() is not guaranteed to return a new instance if the
+	 *   original User object was already from the primary DB.
 	 */
 	public function getInstanceForUpdate() {
 		return $this->getInstanceFromPrimary( IDBAccessObject::READ_EXCLUSIVE );
 	}
 
 	/**
-	 * Get a new instance of this user that was loaded from the primary DB
+	 * Get an instance of this user that was loaded from the primary DB.
+	 *
+	 * If the user object was already from the primary DB (and more generally matches $loadFlags),
+	 * it will be returned; otherwise a DB query will be performed and a new User instance returned.
 	 *
 	 * Use this instead of the main context User when updating that user or updating something else
 	 * based on the user's data, to avoid updating based on outdated information.
@@ -3208,8 +3214,10 @@ class User implements Stringable, Authority, UserIdentity, UserEmailContact {
 	 * @since 1.45
 	 */
 	public function getInstanceFromPrimary( int $loadFlags = IDBAccessObject::READ_LATEST ): ?User {
-		if ( !$this->getId() ) {
-			return null; // anon
+		if ( $this->isAnon() ) {
+			return null;
+		} elseif ( ( $loadFlags & $this->queryFlagsUsed ) === $loadFlags ) {
+			return $this;
 		}
 
 		$user = self::newFromId( $this->getId() );
