@@ -261,7 +261,7 @@ $wgSettings->apply();
 require __DIR__ . '/SetupDynamicConfig.php';
 
 if ( defined( 'MW_AUTOLOAD_TEST_CLASSES' ) ) {
-	require_once __DIR__ . '/../tests/common/TestsAutoLoader.php';
+	require_once __DIR__ . '/../tests/Common/TestsAutoLoader.php';
 }
 
 // Start time limit
@@ -596,10 +596,7 @@ if ( !defined( 'MW_NO_SESSION' ) && MW_ENTRY_POINT !== 'cli' ) {
 	) {
 		MediaWikiServices::getInstance()->getAuthManager()->autoCreateUser(
 			$sessionUser,
-			MediaWiki\Auth\AuthManager::AUTOCREATE_SOURCE_SESSION,
-			true,
-			true,
-			$sessionUser
+			MediaWiki\Auth\AuthManager::AUTOCREATE_SOURCE_SESSION
 		);
 	}
 	unset( $sessionUser );
