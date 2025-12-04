@@ -11,6 +11,7 @@ use LogicException;
 use MediaWiki\Auth\Hook\AuthManagerVerifyAuthenticationHook;
 use MediaWiki\Block\AbstractBlock;
 use MediaWiki\Block\BlockManager;
+use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Deferred\DeferredUpdates;
@@ -22,7 +23,6 @@ use MediaWiki\Language\Language;
 use MediaWiki\Languages\LanguageConverterFactory;
 use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Notification\NotificationService;
 use MediaWiki\Notification\RecipientSet;
 use MediaWiki\Page\PageIdentity;
@@ -41,10 +41,12 @@ use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityLookup;
+use MediaWiki\User\UserIdentityUtils;
 use MediaWiki\User\UserNameUtils;
 use MediaWiki\User\UserRigorOptions;
 use MediaWiki\User\WelcomeNotification;
 use MediaWiki\Watchlist\WatchlistManager;
+use ObjectCacheFactory;
 use Profiler;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -213,68 +215,43 @@ class AuthManager implements LoggerAwareInterface {
 	/** @var CreatedAccountAuthenticationRequest[] */
 	private $createdAccountAuthenticationRequests = [];
 
-	private WebRequest $request;
-	private Config $config;
-	private ObjectFactory $objectFactory;
 	private LoggerInterface $logger;
-	private UserNameUtils $userNameUtils;
-	private HookContainer $hookContainer;
+	private LoggerInterface $authEventsLogger;
 	private HookRunner $hookRunner;
-	private ReadOnlyMode $readOnlyMode;
-	private BlockManager $blockManager;
-	private WatchlistManager $watchlistManager;
-	private ILoadBalancer $loadBalancer;
-	private Language $contentLanguage;
-	private LanguageConverterFactory $languageConverterFactory;
-	private BotPasswordStore $botPasswordStore;
-	private UserFactory $userFactory;
-	private UserIdentityLookup $userIdentityLookup;
-	private UserOptionsManager $userOptionsManager;
-	private NotificationService $notificationService;
-	private SessionManagerInterface $sessionManager;
 
 	public function __construct(
-		WebRequest $request,
-		Config $config,
-		ObjectFactory $objectFactory,
-		HookContainer $hookContainer,
-		ReadOnlyMode $readOnlyMode,
-		UserNameUtils $userNameUtils,
-		BlockManager $blockManager,
-		WatchlistManager $watchlistManager,
-		ILoadBalancer $loadBalancer,
-		Language $contentLanguage,
-		LanguageConverterFactory $languageConverterFactory,
-		BotPasswordStore $botPasswordStore,
-		UserFactory $userFactory,
-		UserIdentityLookup $userIdentityLookup,
-		UserOptionsManager $userOptionsManager,
-		NotificationService $notificationService,
-		SessionManagerInterface $sessionManager
+		private readonly WebRequest $request,
+		private readonly Config $config,
+		private readonly ChangeTagsStore $changeTagsStore,
+		private readonly ObjectFactory $objectFactory,
+		private readonly ObjectCacheFactory $objectCacheFactory,
+		private readonly HookContainer $hookContainer,
+		private readonly ReadOnlyMode $readOnlyMode,
+		private readonly UserNameUtils $userNameUtils,
+		private readonly BlockManager $blockManager,
+		private readonly WatchlistManager $watchlistManager,
+		private readonly ILoadBalancer $loadBalancer,
+		private readonly Language $contentLanguage,
+		private readonly LanguageConverterFactory $languageConverterFactory,
+		private readonly BotPasswordStore $botPasswordStore,
+		private readonly UserFactory $userFactory,
+		private readonly UserIdentityLookup $userIdentityLookup,
+		private readonly UserIdentityUtils $identityUtils,
+		private readonly UserOptionsManager $userOptionsManager,
+		private readonly NotificationService $notificationService,
+		private readonly SessionManagerInterface $sessionManager,
 	) {
-		$this->request = $request;
-		$this->config = $config;
-		$this->objectFactory = $objectFactory;
-		$this->hookContainer = $hookContainer;
 		$this->hookRunner = new HookRunner( $hookContainer );
 		$this->setLogger( new NullLogger() );
-		$this->readOnlyMode = $readOnlyMode;
-		$this->userNameUtils = $userNameUtils;
-		$this->blockManager = $blockManager;
-		$this->watchlistManager = $watchlistManager;
-		$this->loadBalancer = $loadBalancer;
-		$this->contentLanguage = $contentLanguage;
-		$this->languageConverterFactory = $languageConverterFactory;
-		$this->botPasswordStore = $botPasswordStore;
-		$this->userFactory = $userFactory;
-		$this->userIdentityLookup = $userIdentityLookup;
-		$this->userOptionsManager = $userOptionsManager;
-		$this->notificationService = $notificationService;
-		$this->sessionManager = $sessionManager;
+		$this->setAuthEventsLogger( new NullLogger() );
 	}
 
 	public function setLogger( LoggerInterface $logger ): void {
 		$this->logger = $logger;
+	}
+
+	public function setAuthEventsLogger( LoggerInterface $authEventsLogger ): void {
+		$this->authEventsLogger = $authEventsLogger;
 	}
 
 	/**
@@ -1473,7 +1450,7 @@ class AuthManager implements LoggerAwareInterface {
 			}
 
 			// Avoid account creation races on double submissions
-			$cache = MediaWikiServices::getInstance()->getObjectCacheFactory()->getLocalClusterInstance();
+			$cache = $this->objectCacheFactory->getLocalClusterInstance();
 			$lock = $cache->getScopedLock( $cache->makeGlobalKey( 'account', md5( $user->getName() ) ) );
 			if ( !$lock ) {
 				// Don't clear AuthManager::accountCreationState for this code
@@ -1864,7 +1841,6 @@ class AuthManager implements LoggerAwareInterface {
 	 * @param string $source What caused the auto-creation, see {@link autoCreateUser}
 	 * @param bool $login Whether to also log the user in
 	 * @return void
-	 * @todo Inject both identityUtils and logger
 	 */
 	private function logAutocreationAttempt( Status $status, User $targetUser, $source, $login ) {
 		if ( $status->isOK() && !$status->isGood() ) {
@@ -1872,13 +1848,12 @@ class AuthManager implements LoggerAwareInterface {
 		}
 
 		$firstMessage = $status->getMessages( 'error' )[0] ?? $status->getMessages( 'warning' )[0] ?? null;
-		$identityUtils = MediaWikiServices::getInstance()->getUserIdentityUtils();
 
-		\MediaWiki\Logger\LoggerFactory::getInstance( 'authevents' )->info( 'Autocreation attempt', [
+		$this->authEventsLogger->info( 'Autocreation attempt', [
 			'event' => 'autocreate',
 			'successful' => $status->isGood(),
 			'status' => $firstMessage ? $firstMessage->getKey() : '-',
-			'accountType' => $identityUtils->getShortUserTypeInternal( $targetUser ),
+			'accountType' => $this->identityUtils->getShortUserTypeInternal( $targetUser ),
 			'source' => $source,
 			'login' => $login,
 		] );
@@ -2073,8 +2048,7 @@ class AuthManager implements LoggerAwareInterface {
 		}
 
 		// Avoid account creation races on double submissions
-		$services = MediaWikiServices::getInstance();
-		$cache = $services->getObjectCacheFactory()->getLocalClusterInstance();
+		$cache = $this->objectCacheFactory->getLocalClusterInstance();
 		$lock = $cache->getScopedLock( $cache->makeGlobalKey( 'account', md5( $username ) ) );
 		if ( !$lock ) {
 			$this->logger->debug( __METHOD__ . ': Could not acquire account creation lock', [
@@ -2213,7 +2187,7 @@ class AuthManager implements LoggerAwareInterface {
 
 			if ( $tags !== [] ) {
 				// ManualLogEntry::insert doesn't insert tags
-				$services->getChangeTagsStore()->addTags( $tags, null, null, $logid );
+				$this->changeTagsStore->addTags( $tags, null, null, $logid );
 			}
 		}
 

@@ -90,6 +90,7 @@ class SpecialWatchlistLabels extends SpecialPage {
 				'name' => self::PARAM_NAME,
 				'label-message' => 'watchlistlabels-form-field-name',
 				'validation-callback' => [ $this, 'validateName' ],
+				'filter-callback' => [ $this, 'filterName' ],
 				'required' => true,
 			],
 		];
@@ -122,6 +123,20 @@ class SpecialWatchlistLabels extends SpecialPage {
 	}
 
 	/**
+	 * Filter the 'name' field value.
+	 *
+	 * @param ?mixed $value
+	 * @param ?array $alldata
+	 * @param ?HTMLForm $form
+	 *
+	 * @return (StatusValue|string|bool|Message)|null
+	 */
+	public function filterName( $value, ?array $alldata, ?HTMLForm $form ) {
+		$label = new WatchlistLabel( $this->getUser(), $value ?? '' );
+		return $label->getName();
+	}
+
+	/**
 	 * @param mixed $value
 	 * @param ?array $alldata
 	 * @param ?HTMLForm $form
@@ -135,6 +150,11 @@ class SpecialWatchlistLabels extends SpecialPage {
 		}
 		if ( $length > 255 ) {
 			return Status::newFatal( $this->msg( 'watchlistlabels-form-name-too-long', $length ) );
+		}
+		$existingLabel = $this->labelStore->loadByName( $this->getUser(), $value );
+		$thisId = $alldata[self::PARAM_ID] ?? null;
+		if ( $existingLabel && $thisId && $existingLabel->getId() !== (int)$thisId ) {
+			return Status::newFatal( $this->msg( 'watchlistlabels-form-name-exists', $existingLabel->getName() ) );
 		}
 		return Status::newGood();
 	}
@@ -154,9 +174,11 @@ class SpecialWatchlistLabels extends SpecialPage {
 		} else {
 			$this->watchlistLabel->setName( $data[self::PARAM_NAME] );
 		}
-		$this->labelStore->save( $this->watchlistLabel );
-		$this->getOutput()->redirect( $this->getPageTitle()->getLocalURL() );
-		return Status::newGood();
+		$saved = $this->labelStore->save( $this->watchlistLabel );
+		if ( $saved->isOK() ) {
+			$this->getOutput()->redirect( $this->getPageTitle()->getLocalURL() );
+		}
+		return $saved;
 	}
 
 	/**
@@ -164,7 +186,7 @@ class SpecialWatchlistLabels extends SpecialPage {
 	 */
 	private function showTable() {
 		$codex = new Codex();
-		$this->getOutput()->addModules( 'mediawiki.special.watchlistlabels' );
+		$this->getOutput()->addModuleStyles( 'mediawiki.special.watchlistlabels' );
 
 		// Page title and description.
 		$this->getOutput()->addHTML(
@@ -185,6 +207,7 @@ class SpecialWatchlistLabels extends SpecialPage {
 		$data = [];
 		$labels = $this->labelStore->loadAllForUser( $this->getUser() );
 		$labelCounts = $this->labelStore->countItems( array_keys( $labels ) );
+		$editIcon = Html::element( 'span', [ 'class' => 'cdx-button__icon mw-specialwatchlistlabels-icon--edit' ] );
 		foreach ( $labels as $label ) {
 			$id = $label->getId();
 			if ( !$id ) {
@@ -193,13 +216,15 @@ class SpecialWatchlistLabels extends SpecialPage {
 			$url = $this->getPageTitle( self::SUBPAGE_EDIT )->getLocalURL( [ self::PARAM_ID => $id ] );
 			$params = [
 				'href' => $url,
-				'class' => 'mw-specialwatchlistlabels-icon--edit',
+				'role' => 'button',
+				'class' => 'cdx-button cdx-button--fake-button cdx-button--fake-button--enabled'
+					. ' cdx-button--weight-quiet cdx-button--icon-only cdx-button--size-small',
 				'title' => $this->msg( 'watchlistlabels-table-edit' )->text(),
 			];
 			$data[] = [
 				'name' => htmlspecialchars( $label->getName() ),
 				'count' => $this->getLanguage()->formatNum( $labelCounts[ $id ] ),
-				'edit' => Html::element( 'a', $params ),
+				'edit' => Html::rawElement( 'a', $params, $editIcon ),
 			];
 		}
 
