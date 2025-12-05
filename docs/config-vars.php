@@ -2412,6 +2412,12 @@ $wgNoFollowDomainExceptions = null;
 $wgRegisterInternalExternals = null;
 
 /**
+ * Config variable stub for the ExternalLinksIgnoreDomains setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::ExternalLinksIgnoreDomains
+ */
+$wgExternalLinksIgnoreDomains = null;
+
+/**
  * Config variable stub for the AllowDisplayTitle setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::AllowDisplayTitle
  */
@@ -3773,6 +3779,12 @@ $wgWatchlistExpiry = null;
  * @see MediaWiki\MainConfigSchema::EnableWatchlistLabels
  */
 $wgEnableWatchlistLabels = null;
+
+/**
+ * Config variable stub for the WatchlistLabelsMaxPerUser setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::WatchlistLabelsMaxPerUser
+ */
+$wgWatchlistLabelsMaxPerUser = null;
 
 /**
  * Config variable stub for the WatchlistPurgeRate setting, for use by phpdoc and IDEs.

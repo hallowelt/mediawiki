@@ -2427,6 +2427,12 @@ class MainConfigNames {
 	public const RegisterInternalExternals = 'RegisterInternalExternals';
 
 	/**
+	 * Name constant for the ExternalLinksIgnoreDomains setting, for use with Config::get()
+	 * @see MainConfigSchema::ExternalLinksIgnoreDomains
+	 */
+	public const ExternalLinksIgnoreDomains = 'ExternalLinksIgnoreDomains';
+
+	/**
 	 * Name constant for the AllowDisplayTitle setting, for use with Config::get()
 	 * @see MainConfigSchema::AllowDisplayTitle
 	 */
@@ -3788,6 +3794,12 @@ class MainConfigNames {
 	 * @see MainConfigSchema::EnableWatchlistLabels
 	 */
 	public const EnableWatchlistLabels = 'EnableWatchlistLabels';
+
+	/**
+	 * Name constant for the WatchlistLabelsMaxPerUser setting, for use with Config::get()
+	 * @see MainConfigSchema::WatchlistLabelsMaxPerUser
+	 */
+	public const WatchlistLabelsMaxPerUser = 'WatchlistLabelsMaxPerUser';
 
 	/**
 	 * Name constant for the WatchlistPurgeRate setting, for use with Config::get()

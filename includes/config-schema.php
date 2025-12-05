@@ -852,6 +852,8 @@ return [
 				'mediawiki.org',
 			],
 			'RegisterInternalExternals' => false,
+			'ExternalLinksIgnoreDomains' => [
+			],
 			'AllowDisplayTitle' => true,
 			'RestrictDisplayTitle' => true,
 			'ExpensiveParserFunctionLimit' => 100,
@@ -2129,6 +2131,7 @@ return [
 			],
 			'WatchlistExpiry' => false,
 			'EnableWatchlistLabels' => false,
+			'WatchlistLabelsMaxPerUser' => 100,
 			'WatchlistPurgeRate' => 0.1,
 			'WatchlistExpiryMaxDuration' => '1 year',
 			'EnableChangesListQueryPartitioning' => false,
@@ -2994,6 +2997,7 @@ return [
 			'ParsoidExperimentalParserFunctionOutput' => 'boolean',
 			'NoFollowNsExceptions' => 'array',
 			'NoFollowDomainExceptions' => 'array',
+			'ExternalLinksIgnoreDomains' => 'array',
 			'EnableMagicLinks' => 'object',
 			'ManualRevertSearchRadius' => 'integer',
 			'RevertedTagMaxDepth' => 'integer',
@@ -3143,6 +3147,7 @@ return [
 			'RecentChangesFlags' => 'object',
 			'WatchlistExpiry' => 'boolean',
 			'EnableWatchlistLabels' => 'boolean',
+			'WatchlistLabelsMaxPerUser' => 'integer',
 			'WatchlistPurgeRate' => 'number',
 			'WatchlistExpiryMaxDuration' => [
 				'string',
