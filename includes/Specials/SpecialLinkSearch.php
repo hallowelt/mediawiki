@@ -143,6 +143,16 @@ class SpecialLinkSearch extends QueryPage {
 				$out->addWikiMsg( 'linksearch-error' );
 			}
 		}
+		$ignoredDomains = $this->getConfig()->get( MainConfigNames::ExternalLinksIgnoreDomains );
+		if ( $ignoredDomains ) {
+			$out->addWikiMsg(
+				'linksearch-text-ignored-domains',
+				$this->getLanguage()->listToText(
+					array_map( static fn ( $domain ) => "<code>$domain</code>", $ignoredDomains )
+				),
+				count( $ignoredDomains )
+			);
+		}
 	}
 
 	/**
