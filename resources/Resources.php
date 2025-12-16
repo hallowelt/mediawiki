@@ -133,9 +133,11 @@ return [
 			'index.js',
 			'LanguageSelector.vue',
 			'LookupLanguageSelector.vue',
+			'MultiselectLookupLanguageSelector.vue',
 			'languageSearch.js',
 			'factory.js',
 			'debounce.js',
+			'menuHelper.js',
 			[
 				'name' => 'supportedLanguages.json',
 				'callback' => static function ( Context $context ) {
@@ -157,7 +159,8 @@ return [
 			],
 		],
 		'codexComponents' => [
-			'CdxLookup'
+			'CdxLookup',
+			'CdxMultiselectLookup'
 		],
 		'messages' => [
 			'languageselector-no-results'
@@ -2265,6 +2268,9 @@ return [
 			'mediawiki.htmlform',
 			'moment',
 		],
+		'messages' => [
+			'block-target-ip-tempuser-info',
+		],
 	],
 	// This bundles various small (under 5 KB?) JavaScript files that:
 	// - .. are never loaded when viewing or editing wiki pages.
@@ -2441,6 +2447,7 @@ return [
 			'block-success',
 			'block-target',
 			'block-target-placeholder',
+			'block-target-ip-tempuser-info',
 			'block-update',
 			'block-updated-message',
 			'block-user-active-blocks',
@@ -2864,6 +2871,31 @@ return [
 		'codexComponents' => [
 			'CdxTable',
 			'CdxButton',
+		],
+	],
+	'mediawiki.special.watchlistlabels.onboarding' => [
+		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.special.watchlistlabels',
+		'packageFiles' => [
+			'label-onboarding.js',
+			'LabelOnboarding.vue',
+		],
+		'dependencies' => [
+			'vue',
+			'@wikimedia/codex'
+		],
+		"messages" => [
+			"watchlistlabels-onboarding-progress",
+			"watchlistlabels-onboarding-prev",
+			"watchlistlabels-onboarding-next",
+			"watchlistlabels-onboarding-final",
+			"watchlistlabels-onboarding-manage-title",
+			"watchlistlabels-onboarding-manage-body",
+			"watchlistlabels-onboarding-edit-title",
+			"watchlistlabels-onboarding-edit-body",
+			"watchlistlabels-onboarding-editmanage-title",
+			"watchlistlabels-onboarding-editmanage-body",
+			"watchlistlabels-onboarding-filter-title",
+			"watchlistlabels-onboarding-filter-body"
 		],
 	],
 	'mediawiki.tempUserBanner.styles' => [
