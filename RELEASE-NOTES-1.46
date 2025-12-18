@@ -55,6 +55,10 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 === New features for sysadmins in 1.46 ===
 
+* The 'arrays' localisation cache backend is more compact: a redundant list of
+  message keys, and fallback data from other languages, are now deduplicated.
+  Old cache files should either auto-update or continue to be readable where
+  unchanged.
 * …
 
 === New developer features in 1.46 ===
@@ -79,7 +83,8 @@ For notes on 1.45.x and older releases, see HISTORY.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.3.2 to v2.3.3.
 * Updated wikimedia/timestamp from 5.0.0 to 5.1.0.
-* Updated css-sanitizer from 6.1.0 to 6.2.0
+* Updated wikimedia/css-sanitizer from 6.1.0 to 6.2.0.
+* Updated jsonrainbow/json-schema from 5.3.0 to 5.3.1.
 * …
 
 ===== Changed development-only external libraries =====
