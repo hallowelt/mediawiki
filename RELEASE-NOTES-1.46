@@ -85,6 +85,7 @@ For notes on 1.45.x and older releases, see HISTORY.
 * Updated wikimedia/timestamp from 5.0.0 to 5.1.0.
 * Updated wikimedia/css-sanitizer from 6.1.0 to 6.2.0.
 * Updated jsonrainbow/json-schema from 5.3.0 to 5.3.1.
+* Updated oojs/oojs-ui (OOUI) from v0.53.0 to v0.53.1.
 * …
 
 ===== Changed development-only external libraries =====
@@ -521,6 +522,8 @@ because of Phabricator reports.
   deprecated.  Use the new LanguageFallbackMode enumeration instead.
 * LanguageFallback::MESSAGES and LanguageFallback::STRICT are deprecated; use
   LanguageFallbackModes::{MESSAGES,STRICT} instead.
+* IDatabase::lockIsFree is deprecated. For non-blocking locks, use
+  IDatabase::lock with timeout 0 instead.
 * The AutopromoteCondition hook has been deprecated and will now trigger
   deprecation warnings. Use UserRequirementsCondition hook, instead.
 * The RecentChange::parseToRCType and RecentChange::parseFromRCType methods are
@@ -533,6 +536,10 @@ because of Phabricator reports.
   LinkRenderer::makeUserLink() instead. Calls to Linker::userLink()
   method, deprecated in 1.44, should also use LinkRenderer::makeUserLink().
   Users of the UserLinkRenderer service should use LinkRenderer.
+* User::getInstanceForUpdate() has been deprecated and now emits deprecation
+  warnings. In most cases (such as for use with UserOptionsManager) calling
+  this method is no longer needed. In other cases use getInstanceFromPrimary()
+  instead.
 * …
 
 === Other changes in 1.46 ===
