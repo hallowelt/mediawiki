@@ -59,6 +59,9 @@ For notes on 1.45.x and older releases, see HISTORY.
   message keys, and fallback data from other languages, are now deduplicated.
   Old cache files should either auto-update or continue to be readable where
   unchanged.
+* The update.php maintenance script and the web-based schema updater now skips
+  messages about schema updates that were already applied in earlier MediaWiki
+  versions.
 * …
 
 === New developer features in 1.46 ===
@@ -119,6 +122,7 @@ MediaWiki supports over 350 languages. Many localisations are updated regularly.
 Below only new and removed languages are listed, as well as changes to languages
 because of Phabricator reports.
 
+* (T407507) Updated namespace translations for Igbo (ig) language.
 * (T409708) Added language support for Bole (bol).
 * (T409393) Added language support for Javanese (Javanese script) (jv-java).
 * (T411884) Added language support for Nawat (ppl).
