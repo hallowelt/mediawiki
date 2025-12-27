@@ -16,7 +16,10 @@ namespace MediaWiki\Api;
 use Exception;
 use MediaWiki\ChangeTags\ChangeTags;
 use MediaWiki\Config\Config;
+use MediaWiki\FileRepo\File\File;
 use MediaWiki\FileRepo\File\LocalFile;
+use MediaWiki\FileRepo\LocalRepo;
+use MediaWiki\FileRepo\RepoGroup;
 use MediaWiki\JobQueue\JobQueueGroup;
 use MediaWiki\JobQueue\Jobs\AssembleUploadChunksJob;
 use MediaWiki\JobQueue\Jobs\PublishStashedFileJob;
@@ -64,6 +67,7 @@ class ApiUpload extends ApiBase {
 	protected $mParams;
 
 	private JobQueueGroup $jobQueueGroup;
+	private readonly LocalRepo $localRepo;
 
 	private LoggerInterface $log;
 
@@ -73,10 +77,12 @@ class ApiUpload extends ApiBase {
 		JobQueueGroup $jobQueueGroup,
 		WatchlistManager $watchlistManager,
 		WatchedItemStoreInterface $watchedItemStore,
-		UserOptionsLookup $userOptionsLookup
+		UserOptionsLookup $userOptionsLookup,
+		RepoGroup $repoGroup,
 	) {
 		parent::__construct( $mainModule, $moduleName );
 		$this->jobQueueGroup = $jobQueueGroup;
+		$this->localRepo = $repoGroup->getLocalRepo();
 
 		// Variables needed in ApiWatchlistTrait trait
 		$this->watchlistExpiryEnabled = $this->getConfig()->get( MainConfigNames::WatchlistExpiry );
@@ -95,12 +101,14 @@ class ApiUpload extends ApiBase {
 		}
 
 		$user = $this->getUser();
+		$config = $this->getConfig();
 
 		// Parameter handling
 		$this->mParams = $this->extractRequestParams();
 		// Check if async mode is actually supported (jobs done in cli mode)
-		$this->mParams['async'] = ( $this->mParams['async'] &&
-			$this->getConfig()->get( MainConfigNames::EnableAsyncUploads ) );
+		$this->mParams['async'] = $this->mParams['async'] &&
+			$config->get( MainConfigNames::EnableAsyncUploads ) &&
+			( !$this->mParams['url'] || $config->get( MainConfigNames::EnableAsyncUploadsByURL ) );
 
 		// Copy the session key to the file key, for backward compatibility.
 		if ( !$this->mParams['filekey'] && $this->mParams['sessionkey'] ) {
@@ -181,6 +189,10 @@ class ApiUpload extends ApiBase {
 		$this->mUpload->cleanupTempFile();
 	}
 
+	/**
+	 * @deprecated Since 1.46, subclasses of ApiUpload can use
+	 * ApiUpload::getUploadImageInfo() instead.
+	 */
 	public static function getDummyInstance(): self {
 		$services = MediaWikiServices::getInstance();
 		return new ApiUpload(
@@ -190,7 +202,8 @@ class ApiUpload extends ApiBase {
 			$services->getJobQueueGroup(),
 			$services->getWatchlistManager(),
 			$services->getWatchedItemStore(),
-			$services->getUserOptionsLookup()
+			$services->getUserOptionsLookup(),
+			$services->getRepoGroup(),
 		);
 	}
 
@@ -202,30 +215,37 @@ class ApiUpload extends ApiBase {
 	 * the "result" object down just so it can do that with the appropriate
 	 * format, presumably.
 	 *
-	 * @internal For use in upload jobs and a deprecated method on UploadBase.
-	 * @todo Extract the logic actually needed by the jobs, and separate it
-	 *       from the structure used in API responses.
+	 * @internal For use in a deprecated method on UploadBase.
 	 *
 	 * @return array Image info
 	 */
 	public function getUploadImageInfo( UploadBase $upload ): array {
-		$result = $this->getResult();
 		$stashFile = $upload->getStashFile();
+		if ( $stashFile ) {
+			$info = $this->getUploadImageInfoInternal( $stashFile, true );
+		} else {
+			$localFile = $upload->getLocalFile();
+			$info = $this->getUploadImageInfoInternal( $localFile, false );
+		}
 
+		return $info;
+	}
+
+	private function getUploadImageInfoInternal( File $file, bool $stashedImageInfos ): array {
+		$result = $this->getResult();
 		// Calling a different API module depending on whether the file was stashed is less than optimal.
 		// In fact, calling API modules here at all is less than optimal. Maybe it should be refactored.
-		if ( $stashFile ) {
+		if ( $stashedImageInfos ) {
 			$imParam = ApiQueryStashImageInfo::getPropertyNames();
 			$info = ApiQueryStashImageInfo::getInfo(
-				$stashFile,
+				$file,
 				array_fill_keys( $imParam, true ),
 				$result
 			);
 		} else {
-			$localFile = $upload->getLocalFile();
-			$imParam = ApiQueryImageInfo::getPropertyNames();
+			$imParam = ApiQueryImageInfo::getPropertyNames( [ 'uploadwarning' ] );
 			$info = ApiQueryImageInfo::getInfo(
-				$localFile,
+				$file,
 				array_fill_keys( $imParam, true ),
 				$result
 			);
@@ -646,13 +666,16 @@ class ApiUpload extends ApiBase {
 		}
 
 		// Status report for "upload to stash"/"upload from stash"/"upload by url"
-		if ( $this->mParams['checkstatus'] && ( $this->mParams['filekey'] || $this->mParams['url'] ) ) {
+		if ( $this->mParams['checkstatus'] &&
+			( $this->mParams['filekey'] || ( $this->mParams['url'] && $this->mParams['filename'] ) )
+		) {
 			$statusKey = $this->mParams['filekey'] ?: UploadFromUrl::getCacheKey( $this->mParams );
 			$progress = UploadBase::getSessionStatus( $this->getUser(), $statusKey );
 			if ( !$progress ) {
 				$this->log->info( "Cannot check upload status due to missing upload session for {user}",
 					[
 						'user' => $this->getUser()->getName(),
+						'url' => $this->mParams['url'] ?? '-',
 						'filename' => $this->mParams['filename'] ?? '-',
 						'filekey' => $this->mParams['filekey'] ?? '-'
 					]
@@ -673,8 +696,26 @@ class ApiUpload extends ApiBase {
 			// remove Status object
 			unset( $progress['status'] );
 			$imageinfo = null;
-			if ( isset( $progress['imageinfo'] ) ) {
-				$imageinfo = $progress['imageinfo'];
+			if ( $progress['result'] === 'Success' ) {
+				if ( isset( $progress['filekey'] ) ) {
+					// assembled file, load stashed file from upload stash for imageinfo
+					$file = $this->localRepo->getUploadStash()->getFile( $progress['filekey'] );
+					if ( $file ) {
+						$imageinfo = $this->getUploadImageInfoInternal( $file, true );
+					}
+				} elseif ( isset( $progress['filename'] ) && isset( $progress['timestamp'] ) ) {
+					// published file, load local file from local repo for imageinfo
+					$file = $this->localRepo->findFile(
+						$progress['filename'],
+						[ 'time' => $progress['timestamp'], 'latest' => true ]
+					);
+					if ( $file ) {
+						$imageinfo = $this->getUploadImageInfoInternal( $file, false );
+					}
+				} elseif ( isset( $progress['imageinfo'] ) ) {
+					// status cache includes imageinfo from older entries (b/c for rollback of deployment)
+					$imageinfo = $progress['imageinfo'];
+				}
 				unset( $progress['imageinfo'] );
 			}
 
@@ -758,8 +799,10 @@ class ApiUpload extends ApiBase {
 			}
 
 			$this->mUpload = new UploadFromUrl;
+			// This will not create the temp file in initialize() in async mode.
+			// We still have enough information to call checkWarnings() and such.
 			$this->mUpload->initialize( $this->mParams['filename'],
-				$this->mParams['url'] );
+				$this->mParams['url'], !$this->mParams['async'] );
 		}
 
 		return true;
@@ -906,10 +949,6 @@ class ApiUpload extends ApiBase {
 
 				ApiResult::setIndexedTagName( $dupes, 'ver' );
 				$warnings['duplicateversions'] = $dupes;
-			}
-			// We haven't downloaded the file, so this will result in an empty file warning
-			if ( $this->mParams['async'] && $this->mParams['url'] ) {
-				unset( $warnings['empty-file'] );
 			}
 		}
 
