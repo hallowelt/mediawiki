@@ -173,6 +173,7 @@ because of Phabricator reports.
   SpecialUserRights::canProcessExpiries), deprecated in 1.45, has been removed.
   There's no replacement; the special page always assumes it can process
   expiries.
+* MimeAnalyzer::isPHPImageType, deprecated in 1.40, has been removed.
 * FileRepo no longer implements getUploadStash(), only LocalRepo does.
 * DatbaseBlock::delete, deprecated in 1.36, has been removed. Please use
   DatabaseBlockStore::deleteBlock instead.
@@ -531,6 +532,15 @@ because of Phabricator reports.
     - SearchMySQL
     - SqlSearchResult
     - SqlSearchResultSet
+    - BaseSearchResultSet
+    - ISearchResultSet
+    - PrefixSearch
+    - RevisionSearchResult
+    - SearchEngineConfig
+    - SearchResult
+    - SearchResultSet
+    - SearchResultTrait
+    - TitlePrefixSearch
 * Using an int for the $mode parameter of LanguageFallback::getAll() is now
   deprecated.  Use the new LanguageFallbackMode enumeration instead.
 * LanguageFallback::MESSAGES and LanguageFallback::STRICT are deprecated; use
