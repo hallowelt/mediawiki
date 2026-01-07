@@ -2200,11 +2200,11 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 	 * @param int $queryFlags
 	 *
 	 * @return StatusValue<array<int,array<string,stdClass>>>
-	 *         a status containing, if isOK() returns true, a two-level nested
-	 *         associative array, mapping from revision ID to an associative array that maps from
-	 *         role name to an anonymous object containing two fields:
-	 *         - model_name: the name of the content's model
-	 *         - blob_data: serialized content data
+	 *   a status containing, if isOK() returns true, a two-level nested
+	 *   associative array, mapping from revision ID to an associative array that maps from
+	 *   role name to an anonymous object containing two fields:
+	 *   - model_name: the name of the content's model
+	 *   - blob_data: serialized content data
 	 */
 	public function getContentBlobsForBatch(
 		$rowsOrIds,
@@ -2473,22 +2473,19 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 	 */
 	public function getSlotsQueryInfo( $options = [] ) {
 		$ret = [
-			'tables' => [],
-			'fields' => [],
+			'tables' => [ 'slots' ],
+			'fields' => [
+				'slot_revision_id',
+				'slot_content_id',
+				'slot_origin',
+				'slot_role_id',
+			],
 			'joins'  => [],
-			'keys'  => [],
+			'keys'  => [
+				'rev_id' => 'slot_revision_id',
+				'role_id' => 'slot_role_id',
+			],
 		];
-
-		$ret['keys']['rev_id'] = 'slot_revision_id';
-		$ret['keys']['role_id'] = 'slot_role_id';
-
-		$ret['tables'][] = 'slots';
-		$ret['fields'] = array_merge( $ret['fields'], [
-			'slot_revision_id',
-			'slot_content_id',
-			'slot_origin',
-			'slot_role_id',
-		] );
 
 		if ( in_array( 'role', $options, true ) ) {
 			// Use left join to attach role name, so we still find the revision row even

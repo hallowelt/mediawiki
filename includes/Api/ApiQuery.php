@@ -8,19 +8,19 @@
 
 namespace MediaWiki\Api;
 
-use DumpStringOutput;
+use MediaWiki\Export\DumpStringOutput;
+use MediaWiki\Export\WikiExporter;
 use MediaWiki\Export\WikiExporterFactory;
+use MediaWiki\Export\XmlDumpWriter;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\Title\TitleFormatter;
-use WikiExporter;
 use Wikimedia\ObjectFactory\ObjectFactory;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ScopedCallback;
-use XmlDumpWriter;
 
 /**
  * This is the main query class. It behaves similar to ApiMain: based on the
@@ -867,10 +867,11 @@ class ApiQuery extends ApiBase {
 
 		// Report any missing titles
 		foreach ( $pageSet->getMissingPages() as $fakeId => $page ) {
-			$vals = [];
-			$vals['ns'] = $page->getNamespace();
-			$vals['title'] = $this->titleFormatter->getPrefixedText( $page );
-			$vals['missing'] = true;
+			$vals = [
+				'ns' => $page->getNamespace(),
+				'title' => $this->titleFormatter->getPrefixedText( $page ),
+				'missing' => true,
+			];
 			$title = $this->titleFactory->newFromPageIdentity( $page );
 			if ( $title->isKnown() ) {
 				$vals['known'] = true;
@@ -891,10 +892,11 @@ class ApiQuery extends ApiBase {
 		// Report special pages
 		/** @var \MediaWiki\Page\PageReference $page */
 		foreach ( $pageSet->getSpecialPages() as $fakeId => $page ) {
-			$vals = [];
-			$vals['ns'] = $page->getNamespace();
-			$vals['title'] = $this->titleFormatter->getPrefixedText( $page );
-			$vals['special'] = true;
+			$vals = [
+				'ns' => $page->getNamespace(),
+				'title' => $this->titleFormatter->getPrefixedText( $page ),
+				'special' => true,
+			];
 			$title = $this->titleFactory->newFromPageReference( $page );
 			if ( !$title->isKnown() ) {
 				$vals['missing'] = true;
@@ -904,11 +906,11 @@ class ApiQuery extends ApiBase {
 
 		// Output general page information for found titles
 		foreach ( $pageSet->getGoodPages() as $pageid => $page ) {
-			$vals = [];
-			$vals['pageid'] = $pageid;
-			$vals['ns'] = $page->getNamespace();
-			$vals['title'] = $this->titleFormatter->getPrefixedText( $page );
-			$pages[$pageid] = $vals;
+			$pages[$pageid] = [
+				'pageid' => $pageid,
+				'ns' => $page->getNamespace(),
+				'title' => $this->titleFormatter->getPrefixedText( $page ),
+			];
 		}
 
 		if ( count( $pages ) ) {

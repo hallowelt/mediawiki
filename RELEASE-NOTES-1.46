@@ -27,6 +27,7 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 === Configuration changes for system administrators in 1.46 ===
 
+* $wgSVGConverter inkscape now requires Inkscape 1.0 or newer
 * …
 
 ==== New configuration ====
@@ -83,9 +84,6 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 ===== New development-only external libraries =====
 
-* Updated mck89/peast from 1.17.2 to 1.17.4.
-* Updated symfony/yaml from 6.4.25 to 6.4.26.
-* Updated wikimedia/ip-utils from 5.0.0 to 6.0.0.
 * …
 
 ==== Changed external libraries ====
@@ -95,9 +93,14 @@ For notes on 1.45.x and older releases, see HISTORY.
 * Updated wikimedia/css-sanitizer from 6.1.0 to 6.2.0.
 * Updated wikimedia/less.php from 5.2.2 to 5.5.0.
 * Updated wikimedia/relpath from 4.0.2 to 4.1.0.
+* Updated wikimedia/running-stat from 2.1.0 to 2.2.0.
+* Updated wikimedia/shellbox from 4.3.0 to 4.4.0.
 * Updated wikimedia/timestamp from 5.0.0 to 5.1.0.
+* Updated wikimedia/wrappedstring from 4.0.1 to 4.1.0.
 * Updated jsonrainbow/json-schema from 5.3.0 to 5.3.1.
 * Updated oojs/oojs-ui (OOUI) from v0.53.0 to v0.53.1.
+* Updated symfony/yaml from 6.4.26 to 6.4.30.
+* Updated pear/net_smtp from 1.12.1 to 1.12.2.
 * …
 
 ===== Changed development-only external libraries =====
@@ -105,10 +108,14 @@ For notes on 1.45.x and older releases, see HISTORY.
 * Updated doctrine/dbal from 3.10.0 to 3.10.3.
 * Updated doctrine/sql-formatter from 1.5.2 to 1.5.3.
 * Updated eslint-config-wikimedia from 0.31.0 to 0.32.3.
+* Updated mck89/peast from 1.17.2 to 1.17.4.
+* Updated symfony/yaml from 6.4.25 to 6.4.26.
+* Updated wikimedia/ip-utils from 5.0.0 to 6.0.0.
 * …
 
 ==== Removed external libraries ====
 
+* Removed symfony/polyfill-php82.
 * …
 
 === Bug fixes in 1.46 ===
@@ -178,7 +185,8 @@ because of Phabricator reports.
   override the linksTargetNormalizationStage method to return MIGRATION_OLD.
 * MimeAnalyzer::isPHPImageType, deprecated in 1.40, has been removed.
 * FileRepo no longer implements getUploadStash(), only LocalRepo does.
-* DatbaseBlock::delete, deprecated in 1.36, has been removed. Please use
+* EtcdConfig::setLogger(), deprecated in 1.41, has been removed.
+* DatabaseBlock::delete, deprecated in 1.36, has been removed. Please use
   DatabaseBlockStore::deleteBlock instead.
 * The UserIsBlockedGlobally hook, deprecated in 1.40, has been removed
 * …
@@ -442,6 +450,25 @@ because of Phabricator reports.
     - UserEditCountUpdateHook
   - Exception related hook: MediaWiki\Hook => MediaWiki\Exception\Hook
     - LogExceptionHook
+  - MediaWiki\Export:
+    - BaseDump
+    - DumpBZip2Output
+    - DumpNamespaceFilter
+    - Dump7ZipOutput
+    - DumpFileOutput
+    - WikiExporter
+    - DumpLatestFilter
+    - XmlDumpWriter
+    - DumpDBZip2Output
+    - DumpOutput
+    - DumpNotalkFilter
+    - DumpLBZip2Output
+    - DumpMultiWriter
+    - DumpStringOutput
+    - ExportProgressFilter
+    - DumpPipeOutput
+    - DumpGZipOutput
+    - DumpFilter
   - Export related hooks: MediaWiki\Hook => MediaWiki\Export\Hook
     - ModifyExportQueryHook
     - WikiExporter__dumpStableQueryHook
@@ -456,6 +483,20 @@ because of Phabricator reports.
     - LocalFile__getHistoryHook
   - Gallery related hook: MediaWiki\Hook => MediaWiki\Gallery\Hook
     - GalleryGetModesHook
+  - MediaWiki\Import:
+    - WikiImporterFactory
+    - ImportableOldRevisionImporter
+    - ImportStreamSource
+    - ImportableUploadRevisionImporter
+    - OldRevisionImporter
+    - WikiRevision
+    - ImportableOldRevision
+    - ImportStringSource
+    - ImportableUploadRevision
+    - ImportSource
+    - UploadRevisionImporter
+    - WikiImporter
+    - UploadSourceAdapter
   - Import related hooks: MediaWiki\Hook => MediaWiki\Import\Hook
     - AfterImportPageHook
     - ImportHandleContentXMLTagHook
@@ -487,6 +528,22 @@ because of Phabricator reports.
     - IRCLineURLHook
   - RevisionDelete related hook: MediaWiki\Hook => MediaWiki\RevisionDelete\Hook
     - ArticleRevisionVisibilitySetHook
+  - MediaWiki\RevisionDelete:
+    - RevisionDeleter
+    - RevDelFileItem
+    - RevDelRevisionItem
+    - RevDelLogList
+    - RevisionDeleteUser
+    - RevDelList
+    - RevDelFileList
+    - RevDelArchivedFileList
+    - RevDelLogItem
+    - RevDelRevisionList
+    - RevDelArchivedFileItem
+    - RevDelItem
+    - RevDelArchivedRevisionItem
+    - RevDelArchiveList
+    - RevDelArchiveItem
   - Title related hooks: MediaWiki\Hook => MediaWiki\Title\Hook
     - CanonicalNamespacesHook
     - NamespaceIsMovableHook
@@ -544,6 +601,28 @@ because of Phabricator reports.
     - SearchResultSet
     - SearchResultTrait
     - TitlePrefixSearch
+    - PaginatingSearchEngine
+    - SearchHighlighter
+    - StringPrefixSearch
+    - SearchIndexField
+    - PerRowAugmentor
+    - ResultAugmentor
+    - NullIndexField
+    - SearchIndexFieldDefinition
+    - FauxSearchResultSet
+    - SearchSuggestion
+    - SearchEngine
+    - SearchSqlite
+    - SearchResultSetTrait
+    - SearchNearMatchResultSet
+    - ResultSetAugmentor
+    - SearchEngineFactory
+    - SearchSuggestionSet
+    - SearchPostgres
+    - SearchDatabase
+    - DummySearchIndexFieldDefinition
+    - SearchExactMatchRescorer
+    - FauxSearchResult
 * Using an int for the $mode parameter of LanguageFallback::getAll() is now
   deprecated.  Use the new LanguageFallbackMode enumeration instead.
 * LanguageFallback::MESSAGES and LanguageFallback::STRICT are deprecated; use

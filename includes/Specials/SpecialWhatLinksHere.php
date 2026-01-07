@@ -19,11 +19,11 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\Message\Message;
 use MediaWiki\Navigation\PagerNavigationBuilder;
 use MediaWiki\Page\PageIdentity;
+use MediaWiki\Search\SearchEngineFactory;
 use MediaWiki\SpecialPage\FormSpecialPage;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
-use SearchEngineFactory;
 use stdClass;
 use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Rdbms\IReadableDatabase;
@@ -187,9 +187,7 @@ class SpecialWhatLinksHere extends FormSpecialPage {
 		];
 		$conds['pagelinks'] = $this->linksMigration->getLinksConditions( 'pagelinks', $target );
 		$conds['templatelinks'] = $this->linksMigration->getLinksConditions( 'templatelinks', $target );
-		$conds['imagelinks'] = [
-			'il_to' => $target->getDBkey(),
-		];
+		$conds['imagelinks'] = $this->linksMigration->getLinksConditions( 'imagelinks', $target );
 
 		$namespace = $this->formData['namespace'];
 		if ( $namespace !== '' ) {

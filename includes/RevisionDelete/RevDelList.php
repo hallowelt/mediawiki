@@ -5,6 +5,9 @@
  * @ingroup RevisionDelete
  */
 
+namespace MediaWiki\RevisionDelete;
+
+use LogEntry;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Logging\ManualLogEntry;
@@ -13,6 +16,7 @@ use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\RevisionList\RevisionListBase;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
+use UnexpectedValueException;
 use Wikimedia\Rdbms\LBFactory;
 
 /**
@@ -279,9 +283,6 @@ abstract class RevDelList extends RevisionListBase {
 		}
 
 		// Log it
-		$authorFields = [];
-		$authorFields['authorActors'] = $authorActors;
-
 		$tags = $params['tags'] ?? [];
 
 		$logEntry = $this->updateLog(
@@ -294,7 +295,8 @@ abstract class RevDelList extends RevisionListBase {
 				'comment' => $comment,
 				'ids' => $idsForLog,
 				'tags' => $tags,
-			] + $authorFields
+				'authorActors' => $authorActors,
+			]
 		);
 
 		$this->emitEvents( $bitPars, $visibilityChangeMap, $tags, $logEntry, $useSuppressLog );
@@ -453,3 +455,6 @@ abstract class RevDelList extends RevisionListBase {
 	}
 
 }
+
+/** @deprecated class alias since 1.46 */
+class_alias( RevDelList::class, 'RevDelList' );

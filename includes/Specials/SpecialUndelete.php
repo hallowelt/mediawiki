@@ -42,6 +42,7 @@ use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\RevisionRenderer;
 use MediaWiki\Revision\RevisionStore;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\Search\SearchEngineFactory;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Storage\NameTableAccessException;
 use MediaWiki\Storage\NameTableStore;
@@ -63,7 +64,6 @@ use OOUI\Layout;
 use OOUI\PanelLayout;
 use OOUI\TextInputWidget;
 use OOUI\Widget;
-use SearchEngineFactory;
 use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Rdbms\IDBAccessObject;
 use Wikimedia\Rdbms\IResultWrapper;
@@ -1302,15 +1302,11 @@ class SpecialUndelete extends SpecialPage {
 			$history .= $this->formatRevisionHistory( $revisions );
 
 			if ( $showLoadMore ) {
-				$history .=
-					Html::openElement( 'div' ) .
-					Html::element(
-						'span',
-						[ 'id' => 'mw-load-more-revisions' ],
+				$history .= Html::rawElement( 'div', [],
+					Html::element( 'span', [ 'id' => 'mw-load-more-revisions' ],
 						$this->msg( 'undelete-load-more-revisions' )->text()
-					) .
-					Html::closeElement( 'div' ) .
-					"\n";
+					)
+				) . "\n";
 			}
 		} else {
 			$out->addWikiMsg( 'nohistory' );
