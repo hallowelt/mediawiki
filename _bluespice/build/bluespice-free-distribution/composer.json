@@ -20,6 +20,7 @@
 		"mediawiki/menu-editor": "dev-REL1_43-3.1.x",
 		"mediawiki/notify-me": "dev-REL1_43-2.0.x",
 		"mediawiki/oojsplus": "dev-REL1_43-3.1.x",
+		"mediawiki/page-header": "dev-REL1_43-3.0.x",
 		"mediawiki/pdf-creator": "dev-REL1_43-1.1.x",
 		"mediawiki/renameuser": "dev-REL1_43",
 		"mediawiki/rss": "dev-REL1_43",
