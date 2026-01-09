@@ -5,7 +5,7 @@ wfLoadExtension( 'BlueSpiceDistributionConnector' );
 wfLoadExtension( 'CategoryTree' );
 wfLoadExtension( 'CodeEditor' );
 wfLoadExtension( 'ContentDroplets' );
-wfLoadExtension( 'DynamicPageList3' );
+wfLoadExtension( 'DynamicPageList4' );
 
 wfLoadExtension( 'EmbedVideo');
 $GLOBALS['wgEmbedVideoFetchExternalThumbnails'] = false;
