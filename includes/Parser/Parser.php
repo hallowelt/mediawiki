@@ -2647,7 +2647,7 @@ class Parser {
 					}
 					# cloak any absolute URLs inside the image markup, so handleExternalLinks() won't touch them
 					$s .= $prefix . $this->armorLinks(
-						$this->makeImage( $nt, $text, $holders ) ) . $trail;
+						$this->makeImageInternal( $nt, $text, $holders ) ) . $trail;
 					continue;
 				} elseif ( $ns === NS_CATEGORY ) {
 					# Strip newlines from the left hand context of Category
@@ -5103,6 +5103,7 @@ class Parser {
 	 * @deprecated since 1.34; should not be used outside parser class.
 	 */
 	public function replaceLinkHolders( &$text ) {
+		wfDeprecated( __METHOD__, '1.46' );
 		$this->replaceLinkHoldersPrivate( $text );
 	}
 
@@ -5257,10 +5258,10 @@ class Parser {
 					switch ( $paramName ) {
 						case 'gallery-internal-alt':
 							$hasAlt = true;
-							$alt = $this->stripAltText( $match, false );
+							$alt = $this->stripAltText( $match );
 							break;
 						case 'gallery-internal-link':
-							$linkValue = $this->stripAltText( $match, false );
+							$linkValue = $this->stripAltText( $match );
 							if ( preg_match( '/^-{R\|(.*)}-$/', $linkValue ) ) {
 								// Result of LanguageConverter::markNoConversion
 								// invoked on an external link.
@@ -5290,9 +5291,9 @@ class Parser {
 
 			// Match makeImage when !$hasVisibleCaption
 			if ( !$hasAlt && $label !== '' ) {
-				$alt = $this->stripAltText( $label, false );
+				$alt = $this->stripAltText( $label );
 			}
-			$imageOptions['title'] = $this->stripAltText( $label, false );
+			$imageOptions['title'] = $this->stripAltText( $label );
 
 			// Match makeImage which sets this unconditionally
 			$handlerOptions['targetlang'] = $this->getTargetLanguage()->getCode();
@@ -5365,11 +5366,51 @@ class Parser {
 	 *
 	 * @param LinkTarget $link
 	 * @param string $options
+	 * @return string HTML
+	 * @since 1.46
+	 */
+	public function makeImageHtml( LinkTarget $link, string $options ): string {
+		return $this->makeImageInternal(
+			$link, $options, shouldReplaceLinkHolders: true
+		);
+	}
+
+	/**
+	 * Parse image options text and use it to make an image
+	 *
+	 * @param LinkTarget $link
+	 * @param string $options
 	 * @param LinkHolderArray|false $holders
+	 *  If $holders is `false`, link holders are replaced in the alt text but
+	 *  may still be present elsewhere in the returned HTML.
+	 *  Use ::makeImageHtml if you want to ensure no link holders remain in
+	 *  the returned HTML.
 	 * @return string HTML
 	 * @since 1.5
+	 * @deprecated since 1.46; use ::makeImageHtml() instead
 	 */
 	public function makeImage( LinkTarget $link, $options, $holders = false ) {
+		wfDeprecated( __METHOD__, '1.46' );
+		return $this->makeImageInternal(
+			$link, $options, $holders ?: null, shouldReplaceLinkHolders: false
+		);
+	}
+
+	/**
+	 * Parse image options text and use it to make an image
+	 *
+	 * @param LinkTarget $link
+	 * @param string $options
+	 * @param ?LinkHolderArray $holders
+	 * @return string HTML
+	 * @since 1.46
+	 */
+	private function makeImageInternal(
+		LinkTarget $link,
+		string $options,
+		?LinkHolderArray $holders = null,
+		bool $shouldReplaceLinkHolders = false
+	): string {
 		# Check if the options text is of the form "options|alt text"
 		# Options are:
 		#  * thumbnail  make a thumbnail with enlarge-icon and caption, alignment depends on lang
@@ -5568,6 +5609,9 @@ class Parser {
 		if ( $file ) {
 			$this->modifyImageHtml( $file, $params, $ret );
 		}
+		if ( $shouldReplaceLinkHolders ) {
+			$this->replaceLinkHoldersPrivate( $ret );
+		}
 
 		return $ret;
 	}
@@ -5654,16 +5698,11 @@ class Parser {
 		$this->hookRunner->onParserModifyImageHTML( $this, $file, $params, $html );
 	}
 
-	/**
-	 * @param string $caption
-	 * @param LinkHolderArray|false $holders
-	 * @return string
-	 */
-	private function stripAltText( $caption, $holders ) {
+	private function stripAltText( string $caption, ?LinkHolderArray $holders = null ): string {
 		# Strip bad stuff out of the title (tooltip).  We can't just use
 		# replaceLinkHoldersText() here, because if this function is called
 		# from handleInternalLinks2(), mLinkHolders won't be up-to-date.
-		if ( $holders ) {
+		if ( $holders !== null ) {
 			$tooltip = $holders->replaceText( $caption );
 		} else {
 			$tooltip = $this->replaceLinkHoldersText( $caption );
@@ -6136,24 +6175,6 @@ class Parser {
 			$this->mRevisionSize = $revObject ? $revObject->getSize() : $this->mInputSize;
 		}
 		return $this->mRevisionSize;
-	}
-
-	/**
-	 * Accessor for the 'defaultsort' page property.
-	 * Will use the empty string if none is set.
-	 *
-	 * This value is treated as a prefix, so the
-	 * empty string is equivalent to sorting by
-	 * page name.
-	 *
-	 * @return string
-	 * @since 1.9
-	 * @deprecated since 1.38, use
-	 * $parser->getOutput()->getPageProperty('defaultsort') ?? ''
-	 */
-	public function getDefaultSort() {
-		wfDeprecated( __METHOD__, '1.38' );
-		return $this->mOutput->getPageProperty( 'defaultsort' ) ?? '';
 	}
 
 	private static function getSectionNameFromStrippedText( string $text ): string {

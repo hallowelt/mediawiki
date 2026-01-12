@@ -41,9 +41,8 @@ class OutputTransformPipeline {
 	 *  - enableSectionEditLinks: (bool) Include section edit links, assuming
 	 *     section edit link tokens are present in the HTML. Default is true,
 	 *     but might be statefully overridden.
-	 *  - userLang: (Language) Language object used for localizing UX messages,
-	 *    for example the heading of the table of contents. If omitted, will
-	 *    use the language of the main request context.
+	 *  - userLang: (Language) Unused since MW 1.46; use
+	 *    ParserOptions::getUserLangObj() instead. (deprecated)
 	 *  - skin: (Skin) Skin object used for transforming section edit links.
 	 *  - unwrap: (bool) Return text without a wrapper div. Default is false,
 	 *    meaning a wrapper div will be added if getWrapperDivClass() returns
@@ -75,10 +74,6 @@ class OutputTransformPipeline {
 			// for some legacy codepaths.
 			$out = $in;
 		}
-
-		// T413227: skin doesn't mark user interface language as used, but
-		// it is.
-		$popts->getUserLangObj();
 
 		foreach ( $this->stages as $stage ) {
 			if ( $stage->shouldRun( $out, $popts, $options ) ) {

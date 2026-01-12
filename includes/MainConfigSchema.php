@@ -1899,11 +1899,9 @@ class MainConfigSchema {
 	public const SVGConverters = [
 		'default' => [
 			'ImageMagick' => '$path/convert -background "#ffffff00" -thumbnail $widthx$height\\! $input PNG:$output',
-			'sodipodi' => '$path/sodipodi -z -w $width -f $input -e $output',
 			'inkscape' => '$path/inkscape -w $width -o $output $input',
 			'batik' => 'java -Djava.awt.headless=true -jar $path/batik-rasterizer.jar -w $width -d $output $input',
 			'rsvg' => '$path/rsvg-convert -w $width -h $height -o $output $input',
-			'imgserv' => '$path/imgserv-wrapper -i svg -o png -w$width $input $output',
 			'ImagickExt' => [ 'SvgHandler::rasterizeImagickExt', ],
 		],
 		'type' => 'map',
@@ -7953,28 +7951,6 @@ class MainConfigSchema {
 	public const EnableMultiBlocks = [
 		'default' => false,
 		'type' => 'boolean',
-	];
-
-	/**
-	 *  Ipblocks table schema migration stage, for normalizing ipb_address field and
-	 * 	adding the block_target table.
-	 *
-	 * Use the SCHEMA_COMPAT_XXX flags. Supported values:
-	 *
-	 *   - SCHEMA_COMPAT_OLD
-	 *   - SCHEMA_COMPAT_WRITE_BOTH | SCHEMA_COMPAT_READ_OLD
-	 *   - SCHEMA_COMPAT_NEW
-	 *
-	 * History:
-	 *   - 1.42: Added
-	 *   - 1.43: Default changed from SCHEMA_COMPAT_OLD to SCHEMA_COMPAT_NEW
-	 *   - 1.43: Deprecated, ignored, SCHEMA_COMPAT_NEW is implied
-	 *
-	 * @deprecated since 1.43
-	 */
-	public const BlockTargetMigrationStage = [
-		'default' => SCHEMA_COMPAT_NEW,
-		'type' => 'integer',
 	];
 
 	/**

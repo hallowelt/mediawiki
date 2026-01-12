@@ -65,7 +65,6 @@ class WikitextContentHandlerIntegrationTest extends TextContentHandlerIntegratio
 			'expensiveParserFunctionLimit',
 			'maxPPExpandDepth',
 			'maxPPNodeCount',
-			'userlang',
 		];
 		$commonParsoidOptions = array_merge( $commonOptions, [
 			'currentRevisionRecordCallback',
@@ -90,6 +89,34 @@ class WikitextContentHandlerIntegrationTest extends TextContentHandlerIntegratio
 				'Sections' => [
 				],
 				'UsedOptions' => $commonLegacyOptions,
+			],
+		];
+		yield 'Basic render (section edit links)' => [
+			'title' => 'WikitextContentTest_testGetParserOutput',
+			'model' => CONTENT_MODEL_WIKITEXT,
+			'text' => "== Hello ==",
+			'expectedHtml' => '<div class="mw-content-ltr mw-parser-output" lang="en" dir="ltr"><div class="mw-heading mw-heading2"><h2 id="Hello">Hello</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=WikitextContentTest_testGetParserOutput&amp;action=edit&amp;section=1" title="Edit section: Hello"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div></div>',
+			'expectedFields' => [
+				'LinkList!LOCAL' => [
+					'_args_' => [ ParserOutputLinkTypes::LOCAL ],
+				],
+				'Sections' => [
+					[
+						'toclevel' => 1,
+						'level' => '2',
+						'line' => 'Hello',
+						'number' => '1',
+						'index' => '1',
+						'fromtitle' => 'WikitextContentTest_testGetParserOutput',
+						'byteoffset' => 0,
+						'anchor' => 'Hello',
+						'linkAnchor' => 'Hello',
+					],
+				],
+				'UsedOptions' => array_merge( $commonLegacyOptions, [
+					'userlang',
+					'suppressTOC',
+				] ),
 			],
 		];
 		yield 'Basic Parsoid render' => [
@@ -148,7 +175,9 @@ class WikitextContentHandlerIntegrationTest extends TextContentHandlerIntegratio
 						'linkAnchor' => 'Hello',
 					],
 				],
-				'UsedOptions' => $commonParsoidOptions,
+				'UsedOptions' => array_merge( $commonParsoidOptions, [
+					'userlang',
+				] ),
 			],
 			'options' => [ 'useParsoid' => true ],
 		];
