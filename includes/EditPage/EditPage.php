@@ -61,7 +61,6 @@ use MediaWiki\Page\Article;
 use MediaWiki\Page\CategoryPage;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageReference;
-use MediaWiki\Page\RedirectLookup;
 use MediaWiki\Page\WikiPage;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
@@ -441,7 +440,6 @@ class EditPage implements IEditObject {
 	private PermissionManager $permManager;
 	private RevisionStore $revisionStore;
 	private WatchlistManager $watchlistManager;
-	private RedirectLookup $redirectLookup;
 	private UserOptionsLookup $userOptionsLookup;
 	private TempUserCreator $tempUserCreator;
 	private UserFactory $userFactory;
@@ -507,7 +505,6 @@ class EditPage implements IEditObject {
 			&& $this->getContext()->getConfig()->get( MainConfigNames::WatchlistExpiry );
 		$this->watchedItemStore = $services->getWatchedItemStore();
 		$this->watchlistManager = $services->getWatchlistManager();
-		$this->redirectLookup = $services->getRedirectLookup();
 		$this->userOptionsLookup = $services->getUserOptionsLookup();
 		$this->tempUserCreator = $services->getTempUserCreator();
 		$this->userFactory = $services->getUserFactory();
@@ -1907,7 +1904,6 @@ class EditPage implements IEditObject {
 			case self::AS_HOOK_ERROR_EXPECTED:
 			case self::AS_ARTICLE_WAS_DELETED:
 			case self::AS_CONFLICT_DETECTED:
-			case self::AS_SUMMARY_NEEDED:
 			case self::AS_END:
 			case self::AS_REVISION_WAS_DELETED:
 				return true;
@@ -1926,11 +1922,17 @@ class EditPage implements IEditObject {
 			case self::AS_MAX_ARTICLE_SIZE_EXCEEDED:
 			case self::AS_PARSE_ERROR:
 			case self::AS_SELF_REDIRECT:
+			case self::AS_SUMMARY_NEEDED:
 			case self::AS_TEXTBOX_EMPTY:
 			case self::AS_UNABLE_TO_ACQUIRE_TEMP_ACCOUNT:
 			case self::AS_UNICODE_NOT_SUPPORTED:
-				foreach ( $status->getMessages() as $msg ) {
+				foreach ( $status->getMessages( 'error' ) as $msg ) {
 					$out->addHTML( Html::errorBox(
+						$this->context->msg( $msg )->parse()
+					) );
+				}
+				foreach ( $status->getMessages( 'warning' ) as $msg ) {
+					$out->addHTML( Html::warningBox(
 						$this->context->msg( $msg )->parse()
 					) );
 				}
@@ -2471,7 +2473,8 @@ class EditPage implements IEditObject {
 				new NewSectionMissingSubjectConstraint(
 					$this->section,
 					$this->sectiontitle ?? '',
-					$this->allowBlankSummary
+					$this->allowBlankSummary,
+					$submitButtonLabel
 				)
 			);
 			$constraintRunner->addConstraint(
@@ -2484,7 +2487,8 @@ class EditPage implements IEditObject {
 					$this->autoSumm,
 					$this->allowBlankSummary,
 					$content,
-					$this->getOriginalContent( $authority )
+					$this->getOriginalContent( $authority ),
+					$submitButtonLabel
 				)
 			);
 			// Check the constraints
@@ -2529,14 +2533,13 @@ class EditPage implements IEditObject {
 		$constraintRunner = new EditConstraintRunner();
 		if ( !$this->ignoreProblematicRedirects ) {
 			$constraintRunner->addConstraint(
-				new RedirectConstraint(
+				$constraintFactory->newRedirectConstraint(
 					$this->allowedProblematicRedirectTarget,
 					$content,
 					$this->getCurrentContent(),
 					$this->getTitle(),
 					$submitButtonLabel,
 					$this->contentFormat,
-					$this->redirectLookup
 				)
 			);
 		}
@@ -3377,22 +3380,6 @@ class EditPage implements IEditObject {
 				if ( $sectionTitle !== false ) {
 					$this->summary = "/* $sectionTitle */ ";
 				}
-			}
-
-			$buttonLabel = $this->context->msg( $this->getSubmitButtonLabel() )->text();
-
-			if ( $this->missingSummary && $this->section !== 'new' ) {
-				$out->wrapWikiMsg(
-					"<div id='mw-missingsummary'>\n$1\n</div>",
-					[ 'missingsummary', $buttonLabel ]
-				);
-			}
-
-			if ( $this->missingSummary && $this->section === 'new' ) {
-				$out->wrapWikiMsg(
-					"<div id='mw-missingcommentheader'>\n$1\n</div>",
-					[ 'missingcommentheader', $buttonLabel ]
-				);
 			}
 
 			if ( $this->hookError !== '' ) {
