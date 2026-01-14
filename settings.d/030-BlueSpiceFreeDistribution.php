@@ -123,6 +123,8 @@ wfLoadExtension( 'NotifyMe' );
 wfLoadExtension( 'Echo', $GLOBALS['IP'] . '/extensions/BlueSpiceDistributionConnector/extension-shims/Echo/extension.json' );
 
 wfLoadExtension( 'OOJSPlus' );
+$GLOBALS['wgOOJSPlusUseSplitTitleInputWidgetOptions'] = true;
+
 wfLoadExtension( 'PageHeader' );
 wfLoadExtension( 'PDFCreator' );
 wfLoadExtension( 'PdfHandler' );
