@@ -6,6 +6,7 @@
 
 namespace MediaWiki\EditPage\Constraint;
 
+use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\Content;
 use MediaWiki\Context\IContextSource;
@@ -21,6 +22,8 @@ use MediaWiki\Permissions\RateLimitSubject;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 use MediaWiki\User\UserIdentity;
+use Wikimedia\Message\MessageValue;
+use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Rdbms\ReadOnlyMode;
 
 /**
@@ -64,6 +67,9 @@ class EditConstraintFactory {
 		private readonly RateLimiter $rateLimiter,
 		// RedirectConstraint
 		private readonly RedirectLookup $redirectLookup,
+		// AccidentalRecreationConstraint
+		private readonly IConnectionProvider $connectionProvider,
+		private readonly CommentStore $commentStore,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 	}
@@ -180,9 +186,9 @@ class EditConstraintFactory {
 	public function newRedirectConstraint(
 		?Title $allowedProblematicRedirectTarget,
 		Content $newContent,
-		Content $originalContent,
+		?Content $originalContent,
 		LinkTarget $title,
-		string $submitButtonLabel,
+		MessageValue $errorMessageWrapper,
 		?string $contentFormat,
 	): RedirectConstraint {
 		return new RedirectConstraint(
@@ -190,9 +196,27 @@ class EditConstraintFactory {
 			$newContent,
 			$originalContent,
 			$title,
-			$submitButtonLabel,
+			$errorMessageWrapper,
 			$contentFormat,
 			$this->redirectLookup
+		);
+	}
+
+	public function newAccidentalRecreationConstraint(
+		IContextSource $context,
+		Title $title,
+		bool $allowRecreation,
+		?string $startTime,
+		?string $submitButtonLabel = null,
+	): AccidentalRecreationConstraint {
+		return new AccidentalRecreationConstraint(
+			$this->connectionProvider,
+			$this->commentStore,
+			$context,
+			$title,
+			$allowRecreation,
+			$startTime,
+			$submitButtonLabel,
 		);
 	}
 

@@ -636,9 +636,6 @@ class ApiEditPage extends ApiBase {
 						case EditPage::AS_NO_CHANGE_CONTENT_MODEL:
 							$status->fatal( 'apierror-cantchangecontentmodel' );
 							break;
-						case EditPage::AS_ARTICLE_WAS_DELETED:
-							$status->fatal( 'apierror-pagedeleted' );
-							break;
 						case EditPage::AS_CONFLICT_DETECTED:
 							$status->fatal( 'edit-conflict' );
 							break;
@@ -653,9 +650,6 @@ class ApiEditPage extends ApiBase {
 							break;
 						case EditPage::AS_READ_ONLY_PAGE_LOGGED:
 							$status->fatal( 'apierror-noedit' );
-							break;
-						case EditPage::AS_RATE_LIMITED:
-							$status->fatal( 'apierror-ratelimited' );
 							break;
 						case EditPage::AS_NO_CREATE_PERMISSION:
 							$status->fatal( 'nocreate-loggedin' );
