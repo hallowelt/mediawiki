@@ -66,6 +66,7 @@ $GLOBALS['wgReservedUsernames'][] = 'ContentStabilizationBot';
 $GLOBALS['wgReservedUsernames'][] = 'Contentstabilizationbot';
 $GLOBALS['wgReservedUsernames'][] = 'ContentTransferBot';
 $GLOBALS['wgReservedUsernames'][] = 'Contenttransferbot';
+$GLOBALS['wgReservedUsernames'][] = 'ContentTransfer bot';
 $GLOBALS['wgReservedUsernames'][] = 'DynamicPageList3 extension';
 $GLOBALS['wgReservedUsernames'][] = 'Dynamicpagelist3 extension';
 $GLOBALS['wgReservedUsernames'][] = 'Maintenance script';
