@@ -66,7 +66,7 @@ EOF
 				<<<EOF
 <style data-mw-deduplicate="duplicate1">.Duplicate1 {}</style>
 <span data-mw='{"name":"ref","attrs":{"name":"blank"},"body":{"html":"&lt;style data-mw-deduplicate=\"duplicate1\">.Duplicate1 {}&lt;/style>"}}'></span>
-<link rel="mw-deduplicated-inline-style" href="mw-data:duplicate1" id="mwAA"/>
+<link rel="mw-deduplicated-inline-style" href="mw-data:duplicate1"/>
 EOF
 			]
 		];
