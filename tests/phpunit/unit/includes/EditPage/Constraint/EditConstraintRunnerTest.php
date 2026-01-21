@@ -19,7 +19,7 @@ use Wikimedia\TestingAccessWrapper;
  */
 class EditConstraintRunnerTest extends MediaWikiUnitTestCase {
 
-	private function getConstraint( $result ) {
+	private function getConstraint( StatusValue $result ) {
 		$constraint = $this->getMockBuilder( IEditConstraint::class )
 			->onlyMethods( [ 'checkConstraint' ] )
 			->getMockForAbstractClass();
@@ -31,18 +31,19 @@ class EditConstraintRunnerTest extends MediaWikiUnitTestCase {
 
 	public function testCheckConstraint_pass() {
 		$runner = new EditConstraintRunner();
-		$constraint = $this->getConstraint( IEditConstraint::CONSTRAINT_PASSED );
+		$constraint = $this->getConstraint( StatusValue::newGood() );
 
 		$runner->addConstraint( $constraint );
-		$this->assertTrue( $runner->checkConstraints() );
+		$this->assertStatusGood( $runner->checkConstraints() );
 	}
 
 	public function testCheckConstraint_fail() {
 		$runner = new EditConstraintRunner();
-		$constraint = $this->getConstraint( IEditConstraint::CONSTRAINT_FAILED );
+		$status = StatusValue::newFatal( 'test-error' );
+		$constraint = $this->getConstraint( $status );
 
 		$runner->addConstraint( $constraint );
-		$this->assertFalse( $runner->checkConstraints() );
+		$this->assertEquals( $status, $runner->checkConstraints() );
 		$this->assertSame(
 			$constraint,
 			$runner->getFailedConstraint()
@@ -51,16 +52,36 @@ class EditConstraintRunnerTest extends MediaWikiUnitTestCase {
 
 	public function testCheckConstraint_multi() {
 		$runner = new EditConstraintRunner();
-		$constraintPass = $this->getConstraint( IEditConstraint::CONSTRAINT_PASSED );
-		$constraintFail = $this->getConstraint( IEditConstraint::CONSTRAINT_FAILED );
+		$constraintPass = $this->getConstraint( StatusValue::newGood() );
+		$constraintFail = $this->getConstraint( StatusValue::newFatal( 'test-error' ) );
 
 		$runner->addConstraint( $constraintPass );
 		$runner->addConstraint( $constraintFail );
-		$this->assertFalse( $runner->checkConstraints() );
+		$this->assertStatusError( 'test-error', $runner->checkConstraints() );
 		$this->assertSame(
 			$constraintFail,
 			$runner->getFailedConstraint()
 		);
+	}
+
+	public function testCheckAllConstraints_pass() {
+		$runner = new EditConstraintRunner();
+		$runner->addConstraint( $this->getConstraint( StatusValue::newGood() ) );
+		$runner->addConstraint( $this->getConstraint( StatusValue::newGood() ) );
+
+		$this->assertStatusGood( $runner->checkAllConstraints() );
+	}
+
+	public function testCheckAllConstraints_fail() {
+		$runner = new EditConstraintRunner();
+		$runner->addConstraint( $this->getConstraint( StatusValue::newGood()->warning( 'testwarning' ) ) );
+		$runner->addConstraint( $this->getConstraint( StatusValue::newFatal( 'testerror' ) ) );
+		$runner->addConstraint( $this->getConstraint( StatusValue::newGood() ) );
+
+		$status = $runner->checkAllConstraints();
+		$this->assertStatusNotOK( $status );
+		$this->assertStatusError( 'testerror', $status );
+		$this->assertStatusMessage( 'testwarning', $status );
 	}
 
 	public function testGetFailedConstraint_exception() {

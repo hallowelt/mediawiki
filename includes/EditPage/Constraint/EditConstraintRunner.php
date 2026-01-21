@@ -8,6 +8,7 @@ namespace MediaWiki\EditPage\Constraint;
 
 use MediaWiki\Logger\LoggerFactory;
 use Psr\Log\LoggerInterface;
+use StatusValue;
 use Wikimedia\Assert\Assert;
 
 /**
@@ -59,38 +60,62 @@ class EditConstraintRunner {
 	}
 
 	/**
-	 * Run constraint checks
+	 * Run constraint checks until one fails.
 	 *
-	 * Returns true if all constraints pass, false otherwise.
-	 * Check getLegacyStatus for the reason
+	 * @return StatusValue Good if all constraints pass, otherwise the status returned by the constraint that failed.
 	 */
-	public function checkConstraints(): bool {
+	public function checkConstraints(): StatusValue {
 		foreach ( $this->constraints as $constraint ) {
-			$result = $constraint->checkConstraint();
-			if ( $result !== IEditConstraint::CONSTRAINT_PASSED ) {
-				// Use `info` instead of `debug` for the one constraint that failed
-				$this->logger->info(
-					'Checked {name}, got result: {result}',
-					[
-						'name' => $this->getConstraintName( $constraint ),
-						'result' => $result
-					]
-				);
+			$status = $constraint->checkConstraint();
+			$this->logConstraintCheck( $constraint, $status );
 
+			if ( !$status->isOK() ) {
 				$this->failedConstraint = $constraint;
-				return false;
+				return $status;
 			}
+		}
 
-			// Pass, log at `debug` level
+		return StatusValue::newGood();
+	}
+
+	/**
+	 * Run all constraint checks and merge the returned statuses.
+	 *
+	 * @return StatusValue Good if all constraints pass, otherwise a StatusValue that was merged with all
+	 * statuses that were returned by constraint checks.
+	 */
+	public function checkAllConstraints(): StatusValue {
+		$statusValue = StatusValue::newGood();
+
+		foreach ( $this->constraints as $constraint ) {
+			$constraintStatus = $constraint->checkConstraint();
+			$this->logConstraintCheck( $constraint, $constraintStatus );
+			$statusValue->merge( $constraintStatus );
+		}
+
+		return $statusValue;
+	}
+
+	/**
+	 * Log the result of a constraint check.
+	 * Passes use the `debug` level; failures use `info`.
+	 */
+	private function logConstraintCheck( IEditConstraint $constraint, StatusValue $statusValue ): void {
+		if ( $statusValue->isOK() ) {
 			$this->logger->debug(
-				'Checked {name}, got result: {result}',
+				'Check for {name} succeeded',
 				[
 					'name' => $this->getConstraintName( $constraint ),
-					'result' => $result
+				]
+			);
+		} else {
+			$this->logger->info(
+				'Check for {name} failed',
+				[
+					'name' => $this->getConstraintName( $constraint ),
 				]
 			);
 		}
-		return true;
 	}
 
 	private function getConstraintName( IEditConstraint $constraint ): string {

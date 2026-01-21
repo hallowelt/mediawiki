@@ -58,7 +58,6 @@ use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
-use MediaWiki\Output\OutputPage;
 use MediaWiki\Page\Article;
 use MediaWiki\Page\CategoryPage;
 use MediaWiki\Page\PageIdentity;
@@ -83,6 +82,7 @@ use MediaWiki\Status\Status;
 use MediaWiki\Storage\EditResult;
 use MediaWiki\Storage\PageUpdateCauses;
 use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleValue;
 use MediaWiki\User\ExternalUserNames;
 use MediaWiki\User\Options\UserOptionsLookup;
 use MediaWiki\User\Registration\UserRegistrationLookup;
@@ -102,6 +102,7 @@ use OOUI\FieldLayout;
 use RuntimeException;
 use StatusValue;
 use Wikimedia\Assert\Assert;
+use Wikimedia\Message\MessageSpecifier;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\TypeDef\ExpiryDef;
 use Wikimedia\Rdbms\IConnectionProvider;
@@ -1922,7 +1923,7 @@ class EditPage implements IEditObject {
 			case self::AS_TEXTBOX_EMPTY:
 			case self::AS_UNABLE_TO_ACQUIRE_TEMP_ACCOUNT:
 			case self::AS_UNICODE_NOT_SUPPORTED:
-				$this->outputConstraintStatus( $out, $status );
+				$out->addHTML( $this->formatConstraintStatus( $status ) );
 				return true;
 
 			case self::AS_SUCCESS_NEW_ARTICLE:
@@ -1994,19 +1995,34 @@ class EditPage implements IEditObject {
 	}
 
 	/**
-	 * Wrap warning/error messages in styled message boxes and add them to the output.
+	 * Wrap warning/error messages in styled message boxes.
+	 * @return string Html
 	 */
-	private function outputConstraintStatus( OutputPage $out, StatusValue $status ): void {
-		foreach ( $status->getMessages( 'error' ) as $msg ) {
-			$out->addHTML( Html::errorBox(
-				$this->context->msg( $msg )->parse()
-			) );
+	private function formatConstraintStatus( StatusValue $status ): string {
+		return $this->createMessageBox( $status->getMessages( 'error' ), 'error' ) .
+			$this->createMessageBox( $status->getMessages( 'warning' ), 'warning' );
+	}
+
+	/**
+	 * Create a message box containing multiple messages.
+	 * @param MessageSpecifier[] $messages
+	 * @param string $type `warning` or `error`
+	 */
+	private function createMessageBox( array $messages, string $type ): string {
+		if ( !$messages ) {
+			// Don't create a box if there are no messages
+			return '';
 		}
-		foreach ( $status->getMessages( 'warning' ) as $msg ) {
-			$out->addHTML( Html::warningBox(
-				$this->context->msg( $msg )->parse()
-			) );
+
+		$html = implode(
+			Html::openElement( 'br' ),
+			array_map( fn ( $msg ) => $this->context->msg( $msg )->parse(), $messages )
+		);
+
+		if ( $type === 'warning' ) {
+			return Html::warningBox( $html );
 		}
+		return Html::errorBox( $html );
 	}
 
 	/**
@@ -2261,7 +2277,8 @@ class EditPage implements IEditObject {
 		);
 
 		// Check the constraints
-		if ( !$constraintRunner->checkConstraints() ) {
+		$constraintStatus = $constraintRunner->checkConstraints();
+		if ( !$constraintStatus->isOK() ) {
 			$failed = $constraintRunner->getFailedConstraint();
 
 			// Need to check SpamRegexConstraint here, to avoid needing to pass
@@ -2269,10 +2286,10 @@ class EditPage implements IEditObject {
 			if ( $failed instanceof SpamRegexConstraint ) {
 				$result['spam'] = $failed->getMatch();
 			} else {
-				$this->handleFailedConstraint( $failed );
+				$this->handleFailedConstraint( $failed, $constraintStatus );
 			}
 
-			return Status::wrap( $failed->getLegacyStatus() );
+			return Status::wrap( $constraintStatus );
 		}
 		// END OF MIGRATION TO EDITCONSTRAINT SYSTEM (continued below)
 
@@ -2326,10 +2343,11 @@ class EditPage implements IEditObject {
 			);
 
 			// Check the constraints
-			if ( !$constraintRunner->checkConstraints() ) {
+			$constraintStatus = $constraintRunner->checkConstraints();
+			if ( !$constraintStatus->isOK() ) {
 				$failed = $constraintRunner->getFailedConstraint();
-				$this->handleFailedConstraint( $failed );
-				return Status::wrap( $failed->getLegacyStatus() );
+				$this->handleFailedConstraint( $failed, $constraintStatus );
+				return Status::wrap( $constraintStatus );
 			}
 			// END OF MIGRATION TO EDITCONSTRAINT SYSTEM (continued below)
 		} else { # not $new
@@ -2485,10 +2503,11 @@ class EditPage implements IEditObject {
 				)
 			);
 			// Check the constraints
-			if ( !$constraintRunner->checkConstraints() ) {
+			$constraintStatus = $constraintRunner->checkConstraints();
+			if ( !$constraintStatus->isOK() ) {
 				$failed = $constraintRunner->getFailedConstraint();
-				$this->handleFailedConstraint( $failed );
-				return Status::wrap( $failed->getLegacyStatus() );
+				$this->handleFailedConstraint( $failed, $constraintStatus );
+				return Status::wrap( $constraintStatus );
 			}
 			// END OF MIGRATION TO EDITCONSTRAINT SYSTEM (continued below)
 
@@ -2548,10 +2567,11 @@ class EditPage implements IEditObject {
 			)
 		);
 		// Check the constraints
-		if ( !$constraintRunner->checkConstraints() ) {
+		$constraintStatus = $constraintRunner->checkConstraints();
+		if ( !$constraintStatus->isOK() ) {
 			$failed = $constraintRunner->getFailedConstraint();
-			$this->handleFailedConstraint( $failed );
-			return Status::wrap( $failed->getLegacyStatus() );
+			$this->handleFailedConstraint( $failed, $constraintStatus );
+			return Status::wrap( $constraintStatus );
 		}
 		// END OF MIGRATION TO EDITCONSTRAINT SYSTEM
 
@@ -2635,12 +2655,12 @@ class EditPage implements IEditObject {
 	 * each of the points the constraints are checked. Eventually, this will act on the
 	 * result from the backend.
 	 */
-	private function handleFailedConstraint( IEditConstraint $failed ): void {
+	private function handleFailedConstraint( IEditConstraint $failed, StatusValue $statusValue ): void {
 		if ( $failed instanceof AuthorizationConstraint ) {
 			// Auto-block user's IP if the account was "hard" blocked
 			if (
 				!MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly()
-				&& $failed->getLegacyStatus()->value === self::AS_BLOCKED_PAGE_FOR_USER
+				&& $statusValue->value === self::AS_BLOCKED_PAGE_FOR_USER
 			) {
 				$this->context->getUser()->spreadAnyEditBlock();
 			}
@@ -2653,7 +2673,7 @@ class EditPage implements IEditObject {
 			// since the edit was loaded, which doesn't indicate a missing summary
 			(
 				$failed instanceof ExistingSectionEditConstraint
-				&& $failed->getLegacyStatus()->value === self::AS_SUMMARY_NEEDED
+				&& $statusValue->value === self::AS_SUMMARY_NEEDED
 			) ||
 			$failed instanceof NewSectionMissingSubjectConstraint
 		) {
@@ -3091,11 +3111,11 @@ class EditPage implements IEditObject {
 				)
 			);
 
-			if ( !$constraintRunner->checkConstraints() ) {
+			$constraintStatus = $constraintRunner->checkConstraints();
+			if ( !$constraintStatus->isOK() ) {
 				$failed = $constraintRunner->getFailedConstraint();
 				// No call to $this->handleFailedConstraint() here to avoid setting wpRedirect
-				$status = $failed->getLegacyStatus();
-				$this->outputConstraintStatus( $out, $status );
+				$out->addHTML( $this->formatConstraintStatus( $constraintStatus ) );
 			}
 		}
 
@@ -3990,7 +4010,8 @@ class EditPage implements IEditObject {
 			return $parsedNote;
 		}
 
-		$note = '';
+		$previewStatus = StatusValue::newGood();
+		$previewNoteHtml = '';
 
 		try {
 			$content = $this->toEditContent( $this->textbox1 );
@@ -4002,21 +4023,27 @@ class EditPage implements IEditObject {
 				return $previewHTML;
 			}
 
-			# provide a anchor link to the editform
-			$continueEditing = '<span class="mw-continue-editing">' .
-				'[[#' . self::EDITFORM_ID . '|' .
-				$this->context->getLanguage()->getArrow() . ' ' .
-				$this->context->msg( 'continue-editing' )->text() . ']]</span>';
+			$continueEditingHtml = Html::rawElement(
+				'span',
+				[ 'class' => 'mw-continue-editing' ],
+				$this->linkRenderer->makePreloadedLink(
+					new TitleValue( NS_MAIN, '', self::EDITFORM_ID ),
+					$this->context->getLanguage()->getArrow() . ' ' . $this->context->msg( 'continue-editing' )->text()
+				)
+			);
+
 			if ( $this->mTriedSave && !$this->mTokenOk ) {
-				$note = $this->context->msg( 'session_fail_preview' )->plain();
+				$previewStatus->fatal( 'session_fail_preview' );
 				$this->incrementEditFailureStats( 'session_loss' );
 			} elseif ( $this->incompleteForm ) {
-				$note = $this->context->msg( 'edit_form_incomplete' )->plain();
+				$previewStatus->fatal( 'edit_form_incomplete' );
 				if ( $this->mTriedSave ) {
 					$this->incrementEditFailureStats( 'incomplete_form' );
 				}
 			} else {
-				$note = $this->context->msg( 'previewnote' )->plain() . ' ' . $continueEditing;
+				$previewNoteHtml = Html::noticeBox(
+					$this->context->msg( 'previewnote' )->parse() . ' ' . $continueEditingHtml
+				);
 			}
 
 			# don't parse non-wikitext pages, show message about preview
@@ -4057,9 +4084,11 @@ class EditPage implements IEditObject {
 				# Messages: usercsspreview, userjsonpreview, userjspreview,
 				#   sitecsspreview, sitejsonpreview, sitejspreview
 				if ( $level && $format ) {
-					$note = "<div id='mw-{$level}{$format}preview'>" .
-						$this->context->msg( "{$level}{$format}preview" )->plain() .
-						' ' . $continueEditing . "</div>";
+					$previewNoteHtml = Html::noticeBox( Html::rawElement(
+						'div',
+						[ 'id' => "mw-{$level}{$format}preview" ],
+						$this->context->msg( "{$level}{$format}preview" )->parse() . $continueEditingHtml
+					) );
 				}
 			}
 
@@ -4079,10 +4108,6 @@ class EditPage implements IEditObject {
 				$out->addContentOverride( $this->getTitle(), $content );
 			}
 
-			foreach ( $parserOutput->getWarningMsgs() as $mv ) {
-				$note .= "\n\n" . $this->context->msg( $mv )->text();
-			}
-
 			// T394016 - Run some edit constraints on page preview
 			/** @var EditConstraintFactory $constraintFactory */
 			$constraintFactory = MediaWikiServices::getInstance()->getService( '_EditConstraintFactory' );
@@ -4097,23 +4122,18 @@ class EditPage implements IEditObject {
 				$this->contentFormat,
 			) );
 
-			if ( !$constraintRunner->checkConstraints() ) {
-				$failed = $constraintRunner->getFailedConstraint();
-				$status = $failed->getLegacyStatus();
+			$previewStatus->merge( $constraintRunner->checkAllConstraints() );
 
-				foreach ( $status->getMessages() as $message ) {
-					$note .= "\n\n" . $this->context->msg( $message )->text();
-				}
+			foreach ( $parserOutput->getWarningMsgs() as $warning ) {
+				$previewStatus->warning( $warning );
 			}
-
 		} catch ( MWContentSerializationException $ex ) {
-			$m = $this->context->msg(
+			$previewStatus->fatal(
 				'content-failed-to-parse',
 				$this->contentModel,
 				$this->contentFormat,
 				$ex->getMessage()
 			);
-			$note .= "\n\n" . $m->plain(); # gets parsed down below
 			$previewHTML = '';
 		}
 
@@ -4131,10 +4151,7 @@ class EditPage implements IEditObject {
 			Html::element(
 				'h2', [ 'id' => 'mw-previewheader' ],
 				$this->context->msg( 'preview' )->text()
-			) .
-			Html::warningBox(
-				$out->parseAsInterface( $note )
-			) . $conflict
+			) . $this->formatConstraintStatus( $previewStatus ) . $previewNoteHtml . $conflict
 		);
 
 		return $previewhead . $previewHTML . $this->previewTextAfterContent;
