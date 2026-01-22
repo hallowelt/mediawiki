@@ -49,7 +49,6 @@ use MediaWiki\Xml\XmlSelect;
 use NumberFormatter;
 use RuntimeException;
 use UtfNormal\Validator as UtfNormalValidator;
-use Wikimedia\AtEase\AtEase;
 use Wikimedia\Bcp47Code\Bcp47Code;
 use Wikimedia\DebugInfo\DebugInfoTrait;
 use Wikimedia\Message\MessageParam;
@@ -2965,10 +2964,8 @@ class Language implements Bcp47Code {
 		# *input* string. We just ignore those too.
 		# REF: https://bugs.php.net/bug.php?id=37166
 		# REF: https://phabricator.wikimedia.org/T18885
-		AtEase::suppressWarnings();
-		$text = iconv( $in, $out . '//IGNORE', $string );
-		AtEase::restoreWarnings();
-		return $text;
+		// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+		return @iconv( $in, $out . '//IGNORE', $string );
 	}
 
 	/**
@@ -3534,25 +3531,27 @@ class Language implements Bcp47Code {
 	 * See $separatorTransformTable on MessageIs.php for
 	 * the , => . and . => , implementation.
 	 *
-	 * @param string|int|float $number Expected to be a pre-formatted (e.g. leading zeros, number
-	 *  of decimal places) numeric string. Any non-string will be cast to string.
+	 * @param string|int|float $number The numeric string to be formatted, or integer
+	 *  or a floating point number.
 	 * @return string
 	 */
 	public function formatNum( $number ) {
-		return $this->formatNumInternal( (string)$number, false );
+		return $this->formatNumInternal( $number, false );
 	}
 
 	/**
 	 * Internal implementation function, shared between formatNum and formatNumNoSeparators.
 	 *
-	 * @param string $number The stringification of a valid PHP number
+	 * @param string|int|float $number Expected to be a pre-formatted (e.g. leading zeros, number
+	 *  of decimal places) numeric string. Any non-string will be cast to string.
 	 * @param bool $noSeparators Whether to add separators
 	 * @return string
 	 */
-	private function formatNumInternal(
-		string $number, bool $noSeparators
-	): string {
-		$translateNumerals = $this->config->get( MainConfigNames::TranslateNumerals );
+	private function formatNumInternal( $number, bool $noSeparators ): string {
+		// From PHP 8.5, we can't cast NAN to string, and since the method
+		// accepts float, there's no way to exclude NAN, which is subtype.
+		// So handle it explicitly.
+		$number = is_float( $number ) && is_nan( $number ) ? 'NAN' : (string)$number;
 
 		if ( $number === '' ) {
 			return $number;
@@ -3642,7 +3641,7 @@ class Language implements Bcp47Code {
 			}
 		}
 
-		if ( $translateNumerals ) {
+		if ( $this->config->get( MainConfigNames::TranslateNumerals ) ) {
 			// This is often unnecessary: PHP's NumberFormatter will often
 			// do the digit transform itself (T267614)
 			$s = $this->digitTransformTable();
@@ -3667,13 +3666,13 @@ class Language implements Bcp47Code {
 	/**
 	 * Front-end for non-commafied formatNum
 	 *
-	 * @param string|int|float $number The string to be formatted, should be an integer
+	 * @param string|int|float $number The numeric string to be formatted, or integer
 	 *        or a floating point number.
 	 * @since 1.21
 	 * @return string
 	 */
 	public function formatNumNoSeparators( $number ) {
-		return $this->formatNumInternal( (string)$number, true );
+		return $this->formatNumInternal( $number, true );
 	}
 
 	/**
