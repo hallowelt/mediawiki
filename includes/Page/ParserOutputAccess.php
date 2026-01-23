@@ -591,6 +591,7 @@ class ParserOutputAccess implements LoggerAwareInterface {
 		}
 
 		if ( $doSample ) {
+			# Keep these labels in sync with those in RefreshLinksJob
 			$labels = [
 				'source' => 'ParserOutputAccess',
 				'type' => $previousOutput === null ? 'full' : 'selective',
@@ -677,25 +678,17 @@ class ParserOutputAccess implements LoggerAwareInterface {
 		$options[self::OPT_POOL_COUNTER] = false;
 		// Default behavior (no caching)
 		$callbacks = [
-			'doWork' => function () use ( $page, $parserOptions, $revision, $options ) {
-				return $this->renderRevision(
-					$page,
-					$parserOptions,
-					$revision,
-					$options
-				);
-			},
-			'doCachedWork' => static function () {
-				// uncached
-				return false;
-			},
-			'fallback' => static function ( $fast ) {
-				// no fallback
-				return false;
-			},
-			'error' => static function ( $status ) {
-				return $status;
-			}
+			'doWork' => fn () => $this->renderRevision(
+				$page,
+				$parserOptions,
+				$revision,
+				$options
+			),
+			// uncached
+			'doCachedWork' => static fn () => false,
+			// no fallback
+			'fallback' => static fn ( $fast ) => false,
+			'error' => static fn ( $status ) => $status,
 		];
 
 		$useCache = $this->shouldUseCache( $page, $revision );
