@@ -2236,11 +2236,7 @@ return [
 		'packageFiles' => [
 			"src/mediawiki.special.restsandbox/restsandbox.js",
 			"lib/swagger-ui/swagger-ui-bundle.js",
-			"lib/swagger-ui/swagger-ui-standalone-preset.js",
-			[
-				'name' => 'src/mediawiki.special.restsandbox/config.json',
-				'config' => [ 'RestSandboxSpecs' ],
-			],
+			"lib/swagger-ui/swagger-ui-standalone-preset.js"
 		],
 		'styles' => [
 			'lib/swagger-ui/swagger-ui.css',
@@ -2862,6 +2858,11 @@ return [
 		],
 		"messages" => [
 			'cancel',
+			'ok',
+			'watchlistedit-table-remove-selected',
+			'watchlistedit-unwatch-confirmation',
+			'watchlistedit-unwatch-confirmation-empty',
+			'watchlistedit-unwatch-confirmation-accept',
 			'watchlistlabels-editwatchlist-dialog-button',
 			'watchlistlabels-editwatchlist-dialog-button-unassign',
 			'watchlistlabels-editwatchlist-dialog-intro',

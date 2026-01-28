@@ -519,7 +519,6 @@ class SpecialPageFactory {
 				'BlockActionInfo',
 				'TitleFormatter',
 				'NamespaceInfo',
-				'UserOptionsLookup',
 				'WatchlistManager'
 			]
 		],
@@ -868,6 +867,8 @@ class SpecialPageFactory {
 			'class' => SpecialRestSandbox::class,
 			'services' => [
 				'UrlUtils',
+				'MessageFormatterFactory',
+				'LocalServerObjectCache'
 			]
 		],
 		'Statistics' => [
