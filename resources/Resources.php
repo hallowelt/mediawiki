@@ -2866,7 +2866,11 @@ return [
 			'watchlistlabels-editwatchlist-dialog-button',
 			'watchlistlabels-editwatchlist-dialog-button-unassign',
 			'watchlistlabels-editwatchlist-dialog-intro',
+			'watchlistlabels-editwatchlist-dialog-intro-nolabels',
+			'watchlistlabels-editwatchlist-dialog-intro-noitems',
 			'watchlistlabels-editwatchlist-dialog-intro-unassign',
+			'watchlistlabels-editwatchlist-dialog-intro-unassign-noitems',
+			'watchlistlabels-editwatchlist-dialog-intro-unassign-noitemlabels',
 			'watchlistlabels-editwatchlist-dialog-intro-more',
 			'watchlistlabels-editwatchlist-dialog-assign',
 			'watchlistlabels-editwatchlist-dialog-unassign',
@@ -3416,6 +3420,14 @@ return [
 			'oojs-ui-widgets',
 			// FIXME: Needs TitleInputWidget only
 			'mediawiki.widgets',
+		],
+	],
+	'mediawiki.widgets.LanguageSelectWidget' => [
+		'scripts' => [
+			'resources/src/mediawiki.widgets/mw.widgets.LanguageSelectWidget.js',
+		],
+		'dependencies' => [
+			'mediawiki.languageselector',
 		],
 	],
 	'mediawiki.widgets.TagMultiselectWidget.styles' => [
