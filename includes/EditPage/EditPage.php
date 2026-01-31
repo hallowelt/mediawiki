@@ -7,7 +7,6 @@
 namespace MediaWiki\EditPage;
 
 use BadMethodCallException;
-use LogicException;
 use MediaWiki\Actions\WatchAction;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\CommentStore\CommentStore;
@@ -29,7 +28,6 @@ use MediaWiki\EditPage\Constraint\EditConstraintFactory;
 use MediaWiki\EditPage\Constraint\EditConstraintRunner;
 use MediaWiki\EditPage\Constraint\EditFilterMergedContentHookConstraint;
 use MediaWiki\EditPage\Constraint\ExistingSectionEditConstraint;
-use MediaWiki\EditPage\Constraint\IEditConstraint;
 use MediaWiki\EditPage\Constraint\ImageRedirectConstraint;
 use MediaWiki\EditPage\Constraint\MissingCommentConstraint;
 use MediaWiki\EditPage\Constraint\NewSectionMissingSubjectConstraint;
@@ -438,6 +436,7 @@ class EditPage implements IEditObject {
 	private AuthManager $authManager;
 	private UserRegistrationLookup $userRegistrationLookup;
 	private SessionManager $sessionManager;
+	private EditConstraintFactory $constraintFactory;
 
 	/** @var User|null */
 	private $placeholderTempUser;
@@ -503,6 +502,7 @@ class EditPage implements IEditObject {
 		$this->authManager = $services->getAuthManager();
 		$this->userRegistrationLookup = $services->getUserRegistrationLookup();
 		$this->sessionManager = $services->getSessionManager();
+		$this->constraintFactory = $services->getService( '_EditConstraintFactory' );
 
 		$this->deprecatePublicProperty( 'textbox2', '1.44', __CLASS__ );
 		$this->deprecatePublicProperty( 'action', '1.38', __CLASS__ );
@@ -693,6 +693,10 @@ class EditPage implements IEditObject {
 		if ( $this->formtype === 'save' ) {
 			$resultDetails = null;
 			$status = $this->attemptSave( $resultDetails );
+			if ( !( $status instanceof EditPageStatus ) ) {
+				// Hooks and subclasses can cause attemptSave to return a normal Status, so wrap it if necessary
+				$status = EditPageStatus::wrap( $status );
+			}
 			if ( !$this->handleStatus( $status, $resultDetails ) ) {
 				return;
 			}
@@ -1835,6 +1839,9 @@ class EditPage implements IEditObject {
 			&& $this->getAuthority()->isAllowed( 'minoredit' );
 
 		$status = $this->internalAttemptSave( $resultDetails, $markAsBot, $markAsMinor );
+		if ( !$status->isOK() ) {
+			$this->handleFailedConstraint( $status );
+		}
 
 		$this->getHookRunner()->onEditPage__attemptSave_after( $this, $status, $resultDetails );
 
@@ -1855,13 +1862,13 @@ class EditPage implements IEditObject {
 	/**
 	 * Handle status, such as after attempt save
 	 *
-	 * @param Status $status
+	 * @param EditPageStatus $status
 	 * @param array|false $resultDetails
 	 *
 	 * @throws ErrorPageError
 	 * @return bool False, if output is done, true if rest of the form should be displayed
 	 */
-	private function handleStatus( Status $status, $resultDetails ): bool {
+	private function handleStatus( EditPageStatus $status, $resultDetails ): bool {
 		$statusValue = is_int( $status->value ) ? $status->value : 0;
 
 		/**
@@ -1959,11 +1966,8 @@ class EditPage implements IEditObject {
 			case self::AS_NO_CREATE_PERMISSION:
 			case self::AS_READ_ONLY_PAGE_ANON:
 			case self::AS_READ_ONLY_PAGE_LOGGED:
-				/** @var PermissionStatus $status */
-				'@phan-var PermissionStatus $status';
-				$status->throwErrorPageError();
-				// This should never happen since AuthorizationConstraint always returns a bad status.
-				throw new LogicException( 'Permission checks failed, but status did not throw an exception!' );
+				$status->throwError();
+				// No break statement here as throwError() will always throw an exception
 
 			case self::AS_IMAGE_REDIRECT_ANON:
 			case self::AS_IMAGE_REDIRECT_LOGGED:
@@ -2096,7 +2100,7 @@ class EditPage implements IEditObject {
 	 *     and the bot wishes the edit to be marked as such.
 	 * @param bool $markAsMinor True if edit should be marked as minor.
 	 *
-	 * @return Status Status object, possibly with a message, but always with
+	 * @return EditPageStatus Status object, possibly with a message, but always with
 	 *   one of the AS_* constants in $status->value,
 	 *
 	 * @todo FIXME: This interface is TERRIBLE, but hard to get rid of due to
@@ -2109,9 +2113,8 @@ class EditPage implements IEditObject {
 	private function internalAttemptSave( &$result, $markAsBot = false, $markAsMinor = false ) {
 		// If an attempt to acquire a temporary name failed, don't attempt to do anything else.
 		if ( $this->unableToAcquireTempName ) {
-			$status = Status::newFatal( 'temp-user-unable-to-acquire' );
-			$status->value = self::AS_UNABLE_TO_ACQUIRE_TEMP_ACCOUNT;
-			return $status;
+			return EditPageStatus::newFatal( 'temp-user-unable-to-acquire' )
+				->setValue( self::AS_UNABLE_TO_ACQUIRE_TEMP_ACCOUNT );
 		}
 		// Auto-create the temporary account user, if the feature is enabled.
 		// We create the account before any constraint checks or edit hooks fire, to ensure
@@ -2121,7 +2124,7 @@ class EditPage implements IEditObject {
 		// eventually successful account creation)
 		$tempAccountStatus = $this->createTempUser();
 		if ( !$tempAccountStatus->isOK() ) {
-			return $tempAccountStatus;
+			return EditPageStatus::wrap( $tempAccountStatus );
 		}
 		if ( $tempAccountStatus instanceof CreateStatus ) {
 			$result['savedTempUser'] = $tempAccountStatus->getUser();
@@ -2131,38 +2134,34 @@ class EditPage implements IEditObject {
 		$useRCPatrol = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::UseRCPatrol );
 		if ( !$this->getHookRunner()->onEditPage__attemptSave( $this ) ) {
 			wfDebug( "Hook 'EditPage::attemptSave' aborted article saving" );
-			$status = Status::newFatal( 'hookaborted' );
-			$status->value = self::AS_HOOK_ERROR;
-			return $status;
+			return EditPageStatus::newFatal( 'hookaborted' )
+				->setValue( self::AS_HOOK_ERROR );
 		}
 
 		if ( !$this->getHookRunner()->onEditFilter( $this, $this->textbox1, $this->section,
 			$this->hookError, $this->summary )
 		) {
 			# Error messages etc. could be handled within the hook...
-			$status = Status::newFatal( 'hookaborted' );
-			$status->value = self::AS_HOOK_ERROR;
-			return $status;
+			return EditPageStatus::newFatal( 'hookaborted' )
+				->setValue( self::AS_HOOK_ERROR );
 		} elseif ( $this->hookError ) {
 			# ...or the hook could be expecting us to produce an error
-			$status = Status::newFatal( 'hookaborted' );
-			$status->value = self::AS_HOOK_ERROR_EXPECTED;
-			return $status;
+			return EditPageStatus::newFatal( 'hookaborted' )
+				->setValue( self::AS_HOOK_ERROR_EXPECTED );
 		}
 
 		try {
 			# Construct Content object
 			$textbox_content = $this->toEditContent( $this->textbox1 );
 		} catch ( MWContentSerializationException $ex ) {
-			$status = Status::newFatal(
+			return EditPageStatus::newFatal(
 				'content-failed-to-parse',
 				$this->contentModel,
 				$this->contentFormat,
-				$ex->getMessage()
-			);
-			$status->value = self::AS_PARSE_ERROR;
-			return $status;
+				$ex->getMessage(),
+			)->setValue( self::AS_PARSE_ERROR );
 		}
+		'@phan-var Content $textbox_content';
 
 		$this->contentLength = strlen( $this->textbox1 );
 
@@ -2176,96 +2175,33 @@ class EditPage implements IEditObject {
 			$oldContentModel = $this->getTitle()->getContentModel();
 		}
 
-		// BEGINNING OF MIGRATION TO EDITCONSTRAINT SYSTEM (see T157658)
-		/** @var EditConstraintFactory $constraintFactory */
-		$constraintFactory = MediaWikiServices::getInstance()->getService( '_EditConstraintFactory' );
-
-		// Message key of the label of the submit button - used by some constraint error messages
-		$submitButtonLabel = $this->getSubmitButtonLabel();
-
 		// Load the page data from the primary DB. If anything changes in the meantime,
 		// we detect it by using page_latest like a token in a 1 try compare-and-swap.
 		$this->page->loadPageData( IDBAccessObject::READ_LATEST );
 		$new = !$this->page->exists();
 
-		$constraintRunner = new EditConstraintRunner(
-			// Ensure that `$this->unicodeCheck` is the correct unicode
-			new UnicodeConstraint( $this->unicodeCheck ),
+		// Message key of the label of the submit button - used by some constraint error messages
+		$submitButtonLabel = $this->getSubmitButtonLabel();
 
-			// Ensure that the context request does not have `wpAntispam` set
-			// Use $user since there is no permissions aspect
-			$constraintFactory->newSimpleAntiSpamConstraint(
-				$this->context->getRequest()->getText( 'wpAntispam' ),
-				$requestUser,
-				$this->getTitle()
-			),
-
-			// Ensure that the summary and text don't match the spam regex
-			$constraintFactory->newSpamRegexConstraint(
-				$this->summary,
-				$this->sectiontitle,
-				$this->textbox1,
-				$this->context->getRequest()->getIP(),
-				$this->getTitle()
-			),
-
-			new ImageRedirectConstraint(
-				$textbox_content,
-				$this->getTitle(),
-				$authority
-			),
-
-			$constraintFactory->newReadOnlyConstraint(),
-
-			new AuthorizationConstraint(
-				$authority,
-				$this->page,
-				$new
-			),
-
-			new ContentModelChangeConstraint(
-				$authority,
-				$this->getTitle(),
-				$this->contentModel
-			),
-
-			$constraintFactory->newLinkPurgeRateLimitConstraint( $requestUser->toRateLimitSubject() ),
-
-			// Same constraint is used to check size before and after merging the
-			// edits, which use different failure codes
-			$constraintFactory->newPageSizeConstraint(
-				$this->contentLength,
-				PageSizeConstraint::BEFORE_MERGE
-			),
-
-			new ChangeTagsConstraint( $authority, $this->changeTags ),
-
-			// If the article has been deleted while editing, don't save it without confirmation
-			$constraintFactory->newAccidentalRecreationConstraint(
-				$this->context,
-				$this->getTitle(),
-				$this->recreate,
-				$this->starttime,
-				$submitButtonLabel,
-			)
+		$preliminaryChecksRunner = $this->getPreliminaryChecksRunner(
+			$authority,
+			$new,
+			$textbox_content,
+			$requestUser,
+			$submitButtonLabel,
 		);
-
-		// Check the constraints
-		$constraintStatus = $constraintRunner->checkConstraints();
-		if ( !$constraintStatus->isOK() ) {
-			$failed = $constraintRunner->getFailedConstraint();
+		$status = $preliminaryChecksRunner->checkConstraints();
+		if ( !$status->isOK() ) {
+			$failed = $status->getFailedConstraint();
 
 			// Need to check SpamRegexConstraint here, to avoid needing to pass
 			// $result by reference again
 			if ( $failed instanceof SpamRegexConstraint ) {
 				$result['spam'] = $failed->getMatch();
-			} else {
-				$this->handleFailedConstraint( $failed, $constraintStatus );
 			}
 
-			return Status::wrap( $constraintStatus );
+			return $status;
 		}
-		// END OF MIGRATION TO EDITCONSTRAINT SYSTEM (continued below)
 
 		$flags = EDIT_AUTOSUMMARY |
 			( $new ? EDIT_NEW : EDIT_UPDATE ) |
@@ -2285,41 +2221,19 @@ class EditPage implements IEditObject {
 			}
 
 			$pageUpdater = $this->page->newPageUpdater( $pstUser )
-				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable False positive
 				->setContent( SlotRecord::MAIN, $content );
 			$pageUpdater->prepareUpdate( $flags );
 
-			// BEGINNING OF MIGRATION TO EDITCONSTRAINT SYSTEM (see T157658)
-			// Create a new runner to avoid rechecking the prior constraints, use the same factory
-			$constraintRunner = new EditConstraintRunner(
-				// Don't save a new page if it's blank or if it's a MediaWiki:
-				// message with content equivalent to default (allow empty pages
-				// in this case to disable messages, see T52124)
-				new DefaultTextConstraint(
-					$this->getTitle(),
-					$this->allowBlankArticle,
-					$this->textbox1,
-					$submitButtonLabel
-				),
-
-				$constraintFactory->newEditFilterMergedContentHookConstraint(
-					$content,
-					$this->context,
-					$this->summary,
-					$markAsMinor,
-					$this->context->getLanguage(),
-					$pstUser
-				),
+			$newPageChecksRunner = $this->getNewPageChecksRunner(
+				$content,
+				$markAsMinor,
+				$pstUser,
+				$submitButtonLabel,
 			);
-
-			// Check the constraints
-			$constraintStatus = $constraintRunner->checkConstraints();
-			if ( !$constraintStatus->isOK() ) {
-				$failed = $constraintRunner->getFailedConstraint();
-				$this->handleFailedConstraint( $failed, $constraintStatus );
-				return Status::wrap( $constraintStatus );
+			$status = $newPageChecksRunner->checkConstraints();
+			if ( !$status->isOK() ) {
+				return $status;
 			}
-			// END OF MIGRATION TO EDITCONSTRAINT SYSTEM (continued below)
 		} else { # not $new
 
 			# Article exists. Check for edit conflict.
@@ -2430,62 +2344,24 @@ class EditPage implements IEditObject {
 			}
 
 			if ( $this->isConflict ) {
-				return Status::newGood( self::AS_CONFLICT_DETECTED )->setOK( false );
+				return EditPageStatus::newGood( self::AS_CONFLICT_DETECTED )->setOK( false );
 			}
 
 			$pageUpdater = $this->page->newPageUpdater( $pstUser )
 				->setContent( SlotRecord::MAIN, $content );
 			$pageUpdater->prepareUpdate( $flags );
 
-			// BEGINNING OF MIGRATION TO EDITCONSTRAINT SYSTEM (see T157658)
-			// Create a new runner to avoid rechecking the prior constraints, use the same factory
-			$constraintRunner = new EditConstraintRunner(
-				$constraintFactory->newEditFilterMergedContentHookConstraint(
-					$content,
-					$this->context,
-					$this->summary,
-					$markAsMinor,
-					$this->context->getLanguage(),
-					$pstUser
-				),
-				new NewSectionMissingSubjectConstraint(
-					$this->section,
-					$this->sectiontitle ?? '',
-					$this->allowBlankSummary,
-					$submitButtonLabel
-				),
-				new MissingCommentConstraint( $this->section, $this->textbox1 ),
-				new ExistingSectionEditConstraint(
-					$this->section,
-					$this->summary,
-					$this->autoSumm,
-					$this->allowBlankSummary,
-					$content,
-					$this->getOriginalContent( $authority ),
-					$submitButtonLabel
-				),
-				new RevisionDeletedConstraint(
-					$this->mArticle,
-					$this->ignoreRevisionDeletedWarning,
-					$this->oldid,
-					$this->section,
-					$this->getTitle(),
-					$pstUser,
-					MessageValue::new(
-						'edit-constraint-warning-wrapper-save-deleted-revision',
-						[ MessageValue::new( $submitButtonLabel ) ],
-					),
-				),
+			$existingPageChecksRunner = $this->getExistingPageChecksRunner(
+				$authority,
+				$content,
+				$markAsMinor,
+				$pstUser,
+				$submitButtonLabel,
 			);
-
-			// Check the constraints
-			$constraintStatus = $constraintRunner->checkConstraints();
-			if ( !$constraintStatus->isOK() ) {
-				$failed = $constraintRunner->getFailedConstraint();
-				$this->handleFailedConstraint( $failed, $constraintStatus );
-				return Status::wrap( $constraintStatus );
+			$status = $existingPageChecksRunner->checkConstraints();
+			if ( !$status->isOK() ) {
+				return $status;
 			}
-			// END OF MIGRATION TO EDITCONSTRAINT SYSTEM (continued below)
 
 			# All's well
 			$sectionAnchor = '';
@@ -2516,40 +2392,14 @@ class EditPage implements IEditObject {
 		// Check for length errors again now that the section is merged in
 		$this->contentLength = strlen( $this->toEditText( $content ) );
 
-		// BEGINNING OF MIGRATION TO EDITCONSTRAINT SYSTEM (see T157658)
-		// Create a new runner to avoid rechecking the prior constraints, use the same factory
-		$constraintRunner = new EditConstraintRunner();
-		if ( !$this->ignoreProblematicRedirects ) {
-			$constraintRunner->addConstraint(
-				$constraintFactory->newRedirectConstraint(
-					$this->allowedProblematicRedirectTarget,
-					$content,
-					$this->getCurrentContent(),
-					$this->getTitle(),
-					MessageValue::new(
-						'edit-constraint-warning-wrapper-save',
-						[ MessageValue::new( $submitButtonLabel ) ],
-					),
-					$this->contentFormat,
-				)
-			);
-		}
-		$constraintRunner->addConstraint(
-			// Same constraint is used to check size before and after merging the
-			// edits, which use different failure codes
-			$constraintFactory->newPageSizeConstraint(
-				$this->contentLength,
-				PageSizeConstraint::AFTER_MERGE
-			)
+		$postMergeChecksRunner = $this->getPostMergeChecksRunner(
+			$content,
+			$submitButtonLabel,
 		);
-		// Check the constraints
-		$constraintStatus = $constraintRunner->checkConstraints();
-		if ( !$constraintStatus->isOK() ) {
-			$failed = $constraintRunner->getFailedConstraint();
-			$this->handleFailedConstraint( $failed, $constraintStatus );
-			return Status::wrap( $constraintStatus );
+		$status = $postMergeChecksRunner->checkConstraints();
+		if ( !$status->isOK() ) {
+			return $status;
 		}
-		// END OF MIGRATION TO EDITCONSTRAINT SYSTEM
 
 		if ( $this->undidRev && $this->isUndoClean( $content ) ) {
 			// As the user can change the edit's content before saving, we only mark
@@ -2588,13 +2438,10 @@ class EditPage implements IEditObject {
 				$doEditStatus->failedBecauseOfConflict()
 			) {
 				$this->isConflict = true;
-				// Create a new status since doEditStatus returns a Status<array>, but we want to return a Status<int>
-				$status = Status::newGood();
-				$status->merge( $doEditStatus );
-				$status->value = self::AS_END;
-				return $status;
+				return EditPageStatus::wrap( $doEditStatus )
+					->setValue( self::AS_END );
 			}
-			return $doEditStatus;
+			return EditPageStatus::wrap( $doEditStatus );
 		}
 
 		$result['nullEdit'] = !$doEditStatus->wasRevisionCreated();
@@ -2623,7 +2470,183 @@ class EditPage implements IEditObject {
 		// when it is returned, either at an earlier point due to an error or here
 		// due to a successful edit.
 		$statusCode = ( $new ? self::AS_SUCCESS_NEW_ARTICLE : self::AS_SUCCESS_UPDATE );
-		return Status::newGood( $statusCode );
+		return EditPageStatus::newGood( $statusCode );
+	}
+
+	private function getPreliminaryChecksRunner(
+		Authority $authority,
+		bool $new,
+		Content $newContent,
+		User $requestUser,
+		string $submitButtonLabel,
+	): EditConstraintRunner {
+		return new EditConstraintRunner(
+			// Ensure that `$this->unicodeCheck` is the correct unicode
+			new UnicodeConstraint( $this->unicodeCheck ),
+
+			// Ensure that the context request does not have `wpAntispam` set
+			// Use $user since there is no permissions aspect
+			$this->constraintFactory->newSimpleAntiSpamConstraint(
+				$this->context->getRequest()->getText( 'wpAntispam' ),
+				$requestUser,
+				$this->getTitle()
+			),
+
+			// Ensure that the summary and text don't match the spam regex
+			$this->constraintFactory->newSpamRegexConstraint(
+				$this->summary,
+				$this->sectiontitle,
+				$this->textbox1,
+				$this->context->getRequest()->getIP(),
+				$this->getTitle()
+			),
+
+			new ImageRedirectConstraint(
+				$newContent,
+				$this->getTitle(),
+				$authority
+			),
+
+			$this->constraintFactory->newReadOnlyConstraint(),
+
+			new AuthorizationConstraint(
+				$authority,
+				$this->page,
+				$new
+			),
+
+			new ContentModelChangeConstraint(
+				$authority,
+				$this->getTitle(),
+				$this->contentModel
+			),
+
+			$this->constraintFactory->newLinkPurgeRateLimitConstraint( $requestUser->toRateLimitSubject() ),
+
+			// Same constraint is used to check size before and after merging the
+			// edits, which use different failure codes
+			$this->constraintFactory->newPageSizeConstraint(
+				$this->contentLength,
+				PageSizeConstraint::BEFORE_MERGE
+			),
+
+			new ChangeTagsConstraint( $authority, $this->changeTags ),
+
+			// If the article has been deleted while editing, don't save it without confirmation
+			$this->constraintFactory->newAccidentalRecreationConstraint(
+				$this->context,
+				$this->getTitle(),
+				$this->recreate,
+				$this->starttime,
+				$submitButtonLabel,
+			)
+		);
+	}
+
+	private function getNewPageChecksRunner(
+		Content $content,
+		bool $markAsMinor,
+		User $pstUser,
+		string $submitButtonLabel,
+	): EditConstraintRunner {
+		return new EditConstraintRunner(
+			// Don't save a new page if it's blank or if it's a MediaWiki:
+			// message with content equivalent to default (allow empty pages
+			// in this case to disable messages, see T52124)
+			new DefaultTextConstraint(
+				$this->getTitle(),
+				$this->allowBlankArticle,
+				$this->textbox1,
+				$submitButtonLabel
+			),
+
+			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
+				$content,
+				$this->context,
+				$this->summary,
+				$markAsMinor,
+				$this->context->getLanguage(),
+				$pstUser
+			),
+		);
+	}
+
+	private function getExistingPageChecksRunner(
+		Authority $authority,
+		Content $content,
+		bool $markAsMinor,
+		User $pstUser,
+		string $submitButtonLabel,
+	): EditConstraintRunner {
+		return new EditConstraintRunner(
+			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
+				$content,
+				$this->context,
+				$this->summary,
+				$markAsMinor,
+				$this->context->getLanguage(),
+				$pstUser
+			),
+			new NewSectionMissingSubjectConstraint(
+				$this->section,
+				$this->sectiontitle ?? '',
+				$this->allowBlankSummary,
+				$submitButtonLabel
+			),
+			new MissingCommentConstraint( $this->section, $this->textbox1 ),
+			new ExistingSectionEditConstraint(
+				$this->section,
+				$this->summary,
+				$this->autoSumm,
+				$this->allowBlankSummary,
+				$content,
+				$this->getOriginalContent( $authority ),
+				$submitButtonLabel
+			),
+			new RevisionDeletedConstraint(
+				$this->mArticle,
+				$this->ignoreRevisionDeletedWarning,
+				$this->oldid,
+				$this->section,
+				$this->getTitle(),
+				$pstUser,
+				MessageValue::new(
+					'edit-constraint-warning-wrapper-save-deleted-revision',
+					[ MessageValue::new( $submitButtonLabel ) ],
+				),
+			),
+		);
+	}
+
+	private function getPostMergeChecksRunner(
+		Content $content,
+		string $submitButtonLabel,
+	): EditConstraintRunner {
+		$constraintRunner = new EditConstraintRunner();
+		if ( !$this->ignoreProblematicRedirects ) {
+			$constraintRunner->addConstraint(
+				$this->constraintFactory->newRedirectConstraint(
+					$this->allowedProblematicRedirectTarget,
+					$content,
+					$this->getCurrentContent(),
+					$this->getTitle(),
+					MessageValue::new(
+						'edit-constraint-warning-wrapper-save',
+						[ MessageValue::new( $submitButtonLabel ) ],
+					),
+					$this->contentFormat,
+				)
+			);
+		}
+		$constraintRunner->addConstraint(
+			// Same constraint is used to check size before and after merging the
+			// edits, which use different failure codes
+			$this->constraintFactory->newPageSizeConstraint(
+				$this->contentLength,
+				PageSizeConstraint::AFTER_MERGE
+			)
+		);
+		return $constraintRunner;
 	}
 
 	/**
@@ -2632,12 +2655,13 @@ class EditPage implements IEditObject {
 	 * each of the points the constraints are checked. Eventually, this will act on the
 	 * result from the backend.
 	 */
-	private function handleFailedConstraint( IEditConstraint $failed, StatusValue $statusValue ): void {
+	private function handleFailedConstraint( EditPageStatus $status ): void {
+		$failed = $status->getFailedConstraint();
 		if ( $failed instanceof AuthorizationConstraint ) {
 			// Auto-block user's IP if the account was "hard" blocked
 			if (
 				!MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly()
-				&& $statusValue->value === self::AS_BLOCKED_PAGE_FOR_USER
+				&& $status->value === self::AS_BLOCKED_PAGE_FOR_USER
 			) {
 				$this->context->getUser()->spreadAnyEditBlock();
 			}
@@ -2650,7 +2674,7 @@ class EditPage implements IEditObject {
 			// since the edit was loaded, which doesn't indicate a missing summary
 			(
 				$failed instanceof ExistingSectionEditConstraint
-				&& $statusValue->value === self::AS_SUMMARY_NEEDED
+				&& $status->value === self::AS_SUMMARY_NEEDED
 			) ||
 			$failed instanceof NewSectionMissingSubjectConstraint
 		) {
