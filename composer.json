@@ -36,7 +36,7 @@
 		"ext-xmlreader": "*",
 		"guzzlehttp/guzzle": "7.10.0",
 		"justinrainbow/json-schema": "5.3.1",
-		"lcobucci/jwt": "4.1.5",
+		"lcobucci/jwt": "4.3.0",
 		"liuggio/statsd-php-client": "1.0.18",
 		"mck89/peast": "1.17.4",
 		"monolog/monolog": "2.11.0",
@@ -90,7 +90,7 @@
 	},
 	"require-dev": {
 		"composer/spdx-licenses": "1.5.9",
-		"doctrine/dbal": "3.10.3",
+		"doctrine/dbal": "3.10.4",
 		"doctrine/sql-formatter": "1.5.3",
 		"ext-simplexml": "*",
 		"giorgiosironi/eris": "^0.14.0",
