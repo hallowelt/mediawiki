@@ -6,6 +6,7 @@ use MediaWiki\Config\HashConfig;
 use MediaWiki\Config\MultiConfig;
 use MediaWiki\Content\Content;
 use MediaWiki\Content\ContentHandler;
+use MediaWiki\Context\DerivativeContext;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\DB\CloneDatabase;
 use MediaWiki\Deferred\DeferredUpdates;
@@ -215,6 +216,9 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 	private static WeakMap $originalTablePrefixes;
 	private static WeakMap $curTestClasses;
 	private static WeakMap $activeSchemaOverrides;
+
+	/** @var string[] */
+	private array $warningsToPrint = [];
 
 	/**
 	 * @stable to call
@@ -819,6 +823,14 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 		// This has to happen after restoreMwServices(), as it depends on various services actually
 		// working and not being poorly mocked, e.g. SessionManager.
 		$user->clearInstanceCache( $user->mFrom );
+
+		// Output any test warnings at the end of the run, so they're visible but not disruptive.
+		if ( $this->warningsToPrint ) {
+			print( "Some tests raised warnings:\n" );
+			foreach ( $this->warningsToPrint as $warning ) {
+				print( $warning );
+			}
+		}
 	}
 
 	/**
@@ -2667,9 +2679,12 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 	protected function deletePage( $page, string $summary = '', ?Authority $deleter = null ): void {
 		$page = $this->makeWikiPage( $page );
 		$deleter ??= new UltimateAuthority( new UserIdentityValue( 0, 'MediaWiki default' ) );
-		MediaWikiServices::getInstance()->getDeletePageFactory()
+		$res = MediaWikiServices::getInstance()->getDeletePageFactory()
 			->newDeletePage( $page, $deleter )
 			->deleteUnsafe( $summary );
+		if ( !$res->isGood() ) {
+			$this->fail( "Could not delete page:\n$res" );
+		}
 	}
 
 	/**
@@ -2692,13 +2707,17 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 		// Make sure the context user is set to a named user account, otherwise
 		// ::createList will fail when temp accounts are enabled, because
 		// that generates a log entry which requires a named or temp account actor
-		RequestContext::getMain()->setUser( $this->getTestUser()->getUser() );
-		RevisionDeleter::createList(
-			'revision', RequestContext::getMain(), $rev->getPage(), [ $rev->getId() ]
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setAuthority( new UltimateAuthority( $this->getTestSysop()->getUser() ) );
+		$res = RevisionDeleter::createList(
+			'revision', $context, $rev->getPage(), [ $rev->getId() ]
 		)->setVisibility( [
 			'value' => $value,
 			'comment' => $comment,
 		] );
+		if ( !$res->isGood() ) {
+			$this->fail( "Could not perform revision delete:\n$res" );
+		}
 	}
 
 	/**
@@ -2769,5 +2788,9 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 					"Error for job of type {$jobStatus['type']}" );
 			}
 		}
+	}
+
+	protected function addEndOfRunTestWarning( string $message ): void {
+		$this->warningsToPrint[] = $message;
 	}
 }
