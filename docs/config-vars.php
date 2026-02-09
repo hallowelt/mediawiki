@@ -927,18 +927,6 @@ $wgEnableEmail = null;
 $wgEnableUserEmail = null;
 
 /**
- * Config variable stub for the EnableSpecialMute setting, for use by phpdoc and IDEs.
- * @see MediaWiki\MainConfigSchema::EnableSpecialMute
- */
-$wgEnableSpecialMute = null;
-
-/**
- * Config variable stub for the EnableUserEmailMuteList setting, for use by phpdoc and IDEs.
- * @see MediaWiki\MainConfigSchema::EnableUserEmailMuteList
- */
-$wgEnableUserEmailMuteList = null;
-
-/**
  * Config variable stub for the UserEmailUseReplyTo setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::UserEmailUseReplyTo
  */

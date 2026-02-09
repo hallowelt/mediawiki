@@ -40,7 +40,6 @@ class EmailUserTest extends MediaWikiUnitTestCase {
 			$configOverrides + [
 				MainConfigNames::EnableEmail => true,
 				MainConfigNames::EnableUserEmail => true,
-				MainConfigNames::EnableSpecialMute => true,
 				MainConfigNames::PasswordSender => 'foo@bar.baz',
 				MainConfigNames::UserEmailUseReplyTo => true,
 			]

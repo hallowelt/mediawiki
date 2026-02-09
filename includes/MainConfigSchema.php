@@ -2615,26 +2615,6 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * Set to true to enable the Special Mute page. This allows users
-	 * to mute unwanted communications from other users, and is linked
-	 * to from emails originating from Special:Email.
-	 *
-	 * @since 1.34
-	 */
-	public const EnableSpecialMute = [
-		'default' => false,
-	];
-
-	/**
-	 * Set to true to enable user-to-user e-mail mutelist.
-	 *
-	 * @since 1.37; previously $wgEnableUserEmailBlacklist
-	 */
-	public const EnableUserEmailMuteList = [
-		'default' => false,
-	];
-
-	/**
 	 * If true put the sending user's email in a Reply-To header
 	 * instead of From (false). ($wgPasswordSender will be used as From.)
 	 *

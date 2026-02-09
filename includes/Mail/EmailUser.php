@@ -41,7 +41,6 @@ class EmailUser {
 	public const CONSTRUCTOR_OPTIONS = [
 		MainConfigNames::EnableEmail,
 		MainConfigNames::EnableUserEmail,
-		MainConfigNames::EnableSpecialMute,
 		MainConfigNames::PasswordSender,
 		MainConfigNames::UserEmailUseReplyTo,
 	];
@@ -245,17 +244,15 @@ class EmailUser {
 			MessageValue::new( 'emailuserfooter', [ $fromAddress->name, $toAddress->name ] )
 		);
 
-		if ( $this->options->get( MainConfigNames::EnableSpecialMute ) ) {
-			$text .= "\n" . $this->contLangMsgFormatter->format(
-				MessageValue::new(
-					'specialmute-email-footer',
-					[
-						$this->getSpecialMuteCanonicalURL( $senderIdentity->getName() ),
-						$senderIdentity->getName()
-					]
-				)
-			);
-		}
+		$text .= "\n" . $this->contLangMsgFormatter->format(
+			MessageValue::new(
+				'specialmute-email-footer',
+				[
+					$this->getSpecialMuteCanonicalURL( $senderIdentity->getName() ),
+					$senderIdentity->getName()
+				]
+			)
+		);
 
 		$error = false;
 		// TODO Remove deprecated ugly hook

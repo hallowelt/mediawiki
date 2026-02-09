@@ -32,11 +32,6 @@ if ( isset( $wgMimeTypeBlacklist ) ) {
 } else {
 	$wgMimeTypeBlacklist = $wgMimeTypeExclusions;
 }
-if ( isset( $wgEnableUserEmailBlacklist ) ) {
-	$wgEnableUserEmailMuteList = $wgEnableUserEmailBlacklist;
-} else {
-	$wgEnableUserEmailBlacklist = $wgEnableUserEmailMuteList;
-}
 if ( isset( $wgShortPagesNamespaceBlacklist ) ) {
 	$wgShortPagesNamespaceExclusions = $wgShortPagesNamespaceBlacklist;
 } else {

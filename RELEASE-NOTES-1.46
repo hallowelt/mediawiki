@@ -56,6 +56,8 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 * (T276975) $wgAPIRequestLog, ignored since 1.43, has now been fully removed.
 * $wgBlockTargetMigrationStage, ignored since 1.43, has now been fully removed.
+* (T413867) $wgEnableSpecialMute and $wgEnableUserEmailMuteList feature flags
+  have been removed.
 * …
 
 === New user-facing features in 1.46 ===
@@ -70,6 +72,7 @@ For notes on 1.45.x and older releases, see HISTORY.
   talk page and displaying an easy-to-miss error message)
 * (T85393) Special:MovePage will now require explicit confirmation if the
   page you are trying to move to is protected against creation.
+* (T413867) Special:Mute is always unconditionally enabled.
 * …
 
 === New features for sysadmins in 1.46 ===

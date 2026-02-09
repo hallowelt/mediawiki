@@ -1337,7 +1337,6 @@ class SpecialPageFactory {
 		MainConfigNames::EmailAuthentication,
 		MainConfigNames::EnableEmail,
 		MainConfigNames::EnableJavaScriptTest,
-		MainConfigNames::EnableSpecialMute,
 		MainConfigNames::EnableEditRecovery,
 		MainConfigNames::PageLanguageUseDB,
 		MainConfigNames::SpecialPages,
@@ -1435,17 +1434,15 @@ class SpecialPageFactory {
 				];
 			}
 
-			if ( $this->options->get( MainConfigNames::EnableSpecialMute ) ) {
-				$this->list['Mute'] = [
-					'class' => SpecialMute::class,
-					'services' => [
-						'CentralIdLookup',
-						'UserOptionsManager',
-						'UserIdentityLookup',
-						'UserIdentityUtils',
-					]
-				];
-			}
+			$this->list['Mute'] = [
+				'class' => SpecialMute::class,
+				'services' => [
+					'CentralIdLookup',
+					'UserOptionsManager',
+					'UserIdentityLookup',
+					'UserIdentityUtils',
+				]
+			];
 
 			if ( $this->options->get( MainConfigNames::PageLanguageUseDB ) ) {
 				$this->list['PageLanguage'] = [

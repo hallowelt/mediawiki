@@ -124,7 +124,6 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 		MainConfigNames::EnableEditRecovery,
 		MainConfigNames::EnableEmail,
 		MainConfigNames::EnableUserEmail,
-		MainConfigNames::EnableUserEmailMuteList,
 		MainConfigNames::EnableWatchlistLabels,
 		MainConfigNames::EnotifMinorEdits,
 		MainConfigNames::EnotifRevealEditorAddress,
@@ -886,16 +885,14 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 					'disabled' => $disableEmailPrefs,
 				];
 
-				if ( $this->options->get( MainConfigNames::EnableUserEmailMuteList ) ) {
-					$defaultPreferences['email-blacklist'] = [
-						'type' => 'usersmultiselect',
-						'label-message' => 'email-mutelist-label',
-						'section' => 'personal/email',
-						'disabled' => $disableEmailPrefs,
-						'filter' => MultiUsernameFilter::class,
-						'excludetemp' => true,
-					];
-				}
+				$defaultPreferences['email-blacklist'] = [
+					'type' => 'usersmultiselect',
+					'label-message' => 'email-mutelist-label',
+					'section' => 'personal/email',
+					'disabled' => $disableEmailPrefs,
+					'filter' => MultiUsernameFilter::class,
+					'excludetemp' => true,
+				];
 			}
 
 			if ( $this->options->get( MainConfigNames::EnotifWatchlist ) ) {

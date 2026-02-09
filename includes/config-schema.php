@@ -342,8 +342,6 @@ return [
 			'NoReplyAddress' => false,
 			'EnableEmail' => true,
 			'EnableUserEmail' => true,
-			'EnableSpecialMute' => false,
-			'EnableUserEmailMuteList' => false,
 			'UserEmailUseReplyTo' => true,
 			'PasswordReminderResendTime' => 24,
 			'NewPasswordExpiry' => 604800,

@@ -736,7 +736,6 @@ class SkinTest extends MediaWikiIntegrationTestCase {
 		$this->overrideConfigValues( [
 			MainConfigNames::UploadNavigationUrl => false,
 			MainConfigNames::EnableUploads => false,
-			MainConfigNames::EnableSpecialMute => false,
 		] );
 
 		$skin = new class extends Skin {
@@ -795,7 +794,6 @@ class SkinTest extends MediaWikiIntegrationTestCase {
 		$this->overrideConfigValues( [
 			MainConfigNames::UploadNavigationUrl => false,
 			MainConfigNames::EnableUploads => false,
-			MainConfigNames::EnableSpecialMute => true,
 		] );
 		$foo1 = new class( 'foo' ) extends Skin {
 			public function outputPage() {

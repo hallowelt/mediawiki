@@ -1601,18 +1601,6 @@ config-schema:
         description: |-
             Set to true to enable user-to-user e-mail.
             This can potentially be abused, as it's hard to track.
-    EnableSpecialMute:
-        default: false
-        description: |-
-            Set to true to enable the Special Mute page. This allows users
-            to mute unwanted communications from other users, and is linked
-            to from emails originating from Special:Email.
-            @since 1.34
-    EnableUserEmailMuteList:
-        default: false
-        description: |-
-            Set to true to enable user-to-user e-mail mutelist.
-            @since 1.37; previously $wgEnableUserEmailBlacklist
     UserEmailUseReplyTo:
         default: true
         description: |-

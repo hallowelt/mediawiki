@@ -942,18 +942,6 @@ class MainConfigNames {
 	public const EnableUserEmail = 'EnableUserEmail';
 
 	/**
-	 * Name constant for the EnableSpecialMute setting, for use with Config::get()
-	 * @see MainConfigSchema::EnableSpecialMute
-	 */
-	public const EnableSpecialMute = 'EnableSpecialMute';
-
-	/**
-	 * Name constant for the EnableUserEmailMuteList setting, for use with Config::get()
-	 * @see MainConfigSchema::EnableUserEmailMuteList
-	 */
-	public const EnableUserEmailMuteList = 'EnableUserEmailMuteList';
-
-	/**
 	 * Name constant for the UserEmailUseReplyTo setting, for use with Config::get()
 	 * @see MainConfigSchema::UserEmailUseReplyTo
 	 */

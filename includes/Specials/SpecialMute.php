@@ -182,10 +182,6 @@ class SpecialMute extends FormSpecialPage {
 			throw new ErrorPageError( 'specialmute', 'specialmute-error-email-disabled' );
 		}
 
-		if ( !$config->get( MainConfigNames::EnableUserEmailMuteList ) ) {
-			throw new ErrorPageError( 'specialmute', 'specialmute-error-mutelist-disabled' );
-		}
-
 		if ( !$this->getUser()->isEmailConfirmed() ) {
 			throw new ErrorPageError( 'specialmute', 'specialmute-error-no-email-set' );
 		}

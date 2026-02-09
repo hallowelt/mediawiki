@@ -3,8 +3,6 @@ namespace MediaWiki\Tests\Specials;
 
 use MediaWiki\Exception\ErrorPageError;
 use MediaWiki\Exception\UserNotLoggedIn;
-use MediaWiki\HookContainer\HookContainer;
-use MediaWiki\MainConfigNames;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Specials\SpecialMute;
 use MediaWiki\User\Options\UserOptionsManager;
@@ -23,7 +21,6 @@ class SpecialMuteTest extends SpecialPageTestBase {
 		parent::setUp();
 
 		$this->userOptionsManager = $this->getServiceContainer()->getUserOptionsManager();
-		$this->overrideConfigValue( MainConfigNames::EnableUserEmailMuteList, true );
 	}
 
 	/**
@@ -47,25 +44,6 @@ class SpecialMuteTest extends SpecialPageTestBase {
 		$this->expectExceptionMessage( "username requested could not be found" );
 		$this->executeSpecialPage(
 			'InvalidUser', null, 'qqx', $user
-		);
-	}
-
-	/**
-	 * @covers \MediaWiki\Specials\SpecialMute::execute
-	 */
-	public function testEmailBlacklistNotEnabled() {
-		$this->setTemporaryHook(
-			'SpecialMuteModifyFormFields',
-			HookContainer::NOOP
-		);
-
-		$this->overrideConfigValue( MainConfigNames::EnableUserEmailMuteList, false );
-
-		$user = $this->getTestUser()->getUser();
-		$this->expectException( ErrorPageError::class );
-		$this->expectExceptionMessage( "Mute features are unavailable" );
-		$this->executeSpecialPage(
-			$user->getName(), null, 'qqx', $user
 		);
 	}
 

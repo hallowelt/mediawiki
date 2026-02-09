@@ -127,8 +127,6 @@ class SetupDynamicConfigTest extends MediaWikiUnitTestCase {
 			MainConfigNames::SharedPrefix => '',
 			MainConfigNames::SharedSchema => null,
 			MainConfigNames::MetaNamespace => 'MediaWiki',
-			MainConfigNames::EnableUserEmailMuteList => false,
-			'EnableUserEmailBlacklist' => false,
 			MainConfigNames::NamespaceProtection => [ NS_MEDIAWIKI => 'editinterface' ],
 			MainConfigNames::LockManagers => [ [
 				'name' => 'fsLockManager',
@@ -301,33 +299,6 @@ class SetupDynamicConfigTest extends MediaWikiUnitTestCase {
 			[
 				MainConfigNames::MimeTypeExclusions => [ 'evil', 'eviler' ],
 				'MimeTypeBlacklist' => [ 'eviler' ],
-			],
-		];
-		yield '$wgEnableUserEmailMuteList set' => [
-			[ MainConfigNames::EnableUserEmailMuteList => true ],
-			[
-				MainConfigNames::EnableUserEmailMuteList => true,
-				'EnableUserEmailBlacklist' => true,
-			],
-		];
-		yield '$wgEnableUserEmailMuteList and $wgEnableUserEmailBlacklist both true' => [
-			[
-				MainConfigNames::EnableUserEmailMuteList => true,
-				'EnableUserEmailBlacklist' => true,
-			],
-			[
-				MainConfigNames::EnableUserEmailMuteList => true,
-				'EnableUserEmailBlacklist' => true,
-			],
-		];
-		yield '$wgEnableUserEmailMuteList true and $wgEnableUserEmailBlacklist false' => [
-			[
-				MainConfigNames::EnableUserEmailMuteList => true,
-				'EnableUserEmailBlacklist' => false,
-			],
-			[
-				MainConfigNames::EnableUserEmailMuteList => false,
-				'EnableUserEmailBlacklist' => false,
 			],
 		];
 		yield '$wgShortPagesNamespaceExclusions set' => [
