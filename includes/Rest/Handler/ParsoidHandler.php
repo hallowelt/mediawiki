@@ -942,11 +942,12 @@ abstract class ParsoidHandler extends Handler {
 			$attribs['envOptions']['outputContentVersion']
 		);
 		if ( $downgrade ) {
-			$pb = new HtmlPageBundle(
-				$revision['html']['body'],
-				$revision['data-parsoid']['body'] ?? null,
-				$revision['data-mw']['body'] ?? null
-			);
+			$pb = HtmlPageBundle::newFromJsonArray( [
+				'html' => $revision['html']['body'],
+				'parsoid' => $revision['data-parsoid']['body'] ?? null,
+				'mw' => $revision['data-mw']['body'] ?? null,
+				'counters' => $revision['counters'] ?? null,
+			] );
 			$this->validatePb( $pb, $attribs['envOptions']['inputContentVersion'] );
 			Parsoid::downgrade( $downgrade, $pb, $this->siteConfig );
 
@@ -984,14 +985,15 @@ abstract class ParsoidHandler extends Handler {
 	) {
 		$parsoid = $this->newParsoid();
 
-		$pb = new HtmlPageBundle(
-			html: $revision['html']['body'],
-			parsoid: $revision['data-parsoid']['body'] ?? null,
-			mw: $revision['data-mw']['body'] ?? null,
-			version: $attribs['envOptions']['inputContentVersion'],
-			headers: $revision['html']['headers'] ?? null,
-			contentmodel: $revision['contentmodel'] ?? null
-		);
+		$pb = HtmlPageBundle::newFromJsonArray( [
+			'html' => $revision['html']['body'],
+			'parsoid' => $revision['data-parsoid']['body'] ?? null,
+			'mw' => $revision['data-mw']['body'] ?? null,
+			'counters' => $revision['counters'] ?? null,
+			'version' => $attribs['envOptions']['inputContentVersion'],
+			'headers' => $revision['html']['headers'] ?? null,
+			'contentmodel' => $revision['contentmodel'] ?? null,
+		] );
 
 		$out = $parsoid->pb2pb( $pageConfig, 'redlinks', $pb, [] );
 
@@ -1029,14 +1031,15 @@ abstract class ParsoidHandler extends Handler {
 
 		$pageIdentity = $this->tryToCreatePageIdentity( $attribs );
 
-		$pb = new HtmlPageBundle(
-			html: $revision['html']['body'],
-			parsoid: $revision['data-parsoid']['body'] ?? null,
-			mw: $revision['data-mw']['body'] ?? null,
-			version: $attribs['envOptions']['inputContentVersion'],
-			headers: $revision['html']['headers'] ?? null,
-			contentmodel: $revision['contentmodel'] ?? null
-		);
+		$pb = HtmlPageBundle::newFromJsonArray( [
+			'html' => $revision['html']['body'],
+			'parsoid' => $revision['data-parsoid']['body'] ?? null,
+			'mw' => $revision['data-mw']['body'] ?? null,
+			'counters' => $revision['counters'] ?? null,
+			'version' => $attribs['envOptions']['inputContentVersion'],
+			'headers' => $revision['html']['headers'] ?? null,
+			'contentmodel' => $revision['contentmodel'] ?? null,
+		] );
 
 		// XXX: DI should inject HtmlTransformFactory
 		$languageVariantConverter = MediaWikiServices::getInstance()

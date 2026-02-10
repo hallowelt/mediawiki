@@ -483,7 +483,7 @@
 	"apihelp-query-param-export": "Exporteer de huidige versies van alle opgegeven of gegenereerde pagina’s.",
 	"apihelp-query-param-exportnowrap": "Retourneer de export-XML zonder deze in een XML-resultaat te verpakken (dezelfde indeling als [[Special:Export]]). Kan alleen worden gebruikt met $1export.",
 	"apihelp-query-param-exportschema": "Richt bij het exporteren op de gegeven versie van het XML-dump-formaat. Kan alleen worden gebruikt met <var>$1export</var>.",
-	"apihelp-query-param-iwurl": "Of de volledige URL moet worden opgehaald als de titel een interwiki-link is.",
+	"apihelp-query-param-iwurl": "Of de volledige URL moet worden opgehaald als de titel een interwiki-koppeling is.",
 	"apihelp-query-param-rawcontinue": "Retourneer onbewerkte <samp>query-continue</samp>-gegevens voor voortzetting.",
 	"apihelp-query-example-revisions": "Haal de [[Special:ApiHelp/query+siteinfo|site-informatie]] en de [[Special:ApiHelp/query+revisions|versies]] op van [[{{MediaWiki:Mainpage}}]].",
 	"apihelp-query-example-allpages": "Haal de versies op van pagina’s die beginnen met <kbd>API/</kbd>.",

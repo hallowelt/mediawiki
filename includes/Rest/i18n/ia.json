@@ -293,5 +293,12 @@
 	"rest-requestheader-desc-authorization": "Forni credentiales que authentica un agente de usator sur un servitor, permittente le accesso a ressources protegite.",
 	"rest-requestheader-desc-xrequestid": "Permitte traciar e correlatar requestas HTTP individual a mesura que illos flue per systemas distribuite, tales como microservicios, passarellas de API, e equilibratores de carga.",
 	"rest-requestheader-desc-useragent": "Invia un catena characteristic a servitores web, permittente que illos identifica le application, systema operative, venditor, e/o version del software cliente requestante.",
-	"rest-requestheader-desc-ifmatch": "Rende un requesta conditional, assecurante que le action requestate (como un actualisation o deletion) es solmente executate si le ressource sur le servitor corresponde a un version specific (identificate per su ETag) fornite per le cliente."
+	"rest-requestheader-desc-ifmatch": "Rende un requesta conditional, assecurante que le action requestate (como un actualisation o deletion) es solmente executate si le ressource sur le servitor corresponde a un version specific (identificate per su ETag) fornite per le cliente.",
+	"rest-endpoint-desc-get-sitemap-index": "Retorna un lista XML de paginas disponibile intra le mappa del sito. Le indice predefinite es 0; le presentia de indices additional essera listate in robots.txt. Usque a 10 000 paginas se associa a cata indice.",
+	"rest-endpoint-summ-get-sitemap-index": "Obtener un lista de paginas de mappa de sito",
+	"rest-endpoint-desc-get-sitemap-page": "Retorna un lista XML de articulos presente in le sito. Cata entrata contine un URL al pagina e le data del ultime modification. Cata pagina contine usque a 10.000 entratas de URL.",
+	"rest-endpoint-summ-get-sitemap-page": "Obtener un lista de locos de articulo per pagina.",
+	"rest-param-desc-sitemap-index-id": "Le indice del mappa del sito, comenciante a 0. Indices additional disponibile es specificate in robots.txt.",
+	"rest-param-desc-sitemap-page-id": "Le desirate pagina de articulos.",
+	"rest-param-desc-sitemap-include-namespace": "Identificatores de spatio de nomines a includer in le mappa del sito. Si non es specificate, on usa le valor predefinite del sito."
 }

@@ -20,6 +20,7 @@ use MediaWiki\FileRepo\RepoGroup;
 use MediaWiki\Html\Html;
 use MediaWiki\Html\TocGeneratorTrait;
 use MediaWiki\Language\Language;
+use MediaWiki\Language\MessageParser;
 use MediaWiki\Languages\LanguageNameUtils;
 use MediaWiki\Linker\Linker;
 use MediaWiki\Linker\LinkRenderer;
@@ -70,6 +71,7 @@ class InfoAction extends FormlessAction {
 		private readonly LinkRenderer $linkRenderer,
 		private readonly IConnectionProvider $dbProvider,
 		private readonly MagicWordFactory $magicWordFactory,
+		private readonly MessageParser $messageParser,
 		private readonly NamespaceInfo $namespaceInfo,
 		private readonly PageProps $pageProps,
 		private readonly RepoGroup $repoGroup,
@@ -183,14 +185,30 @@ class InfoAction extends FormlessAction {
 			$content .= "\n" . $below;
 		}
 
+		// Page footer
+		$message = $this->msg( 'pageinfo-footer' );
+		if ( !$message->isDisabled() ) {
+			// Parse the message like this in order to include custom headings in the TOC.
+			// In the future when T66969 is resolved, perhaps we can make this simpler.
+			$parserOutput = $this->messageParser->parse(
+				$message->plain(),
+				$this->getTitle(),
+				/*linestart*/ true,
+				/*interface*/ true,
+				$message->getLanguage()
+			);
+			$content .= $parserOutput->getContentHolderText();
+
+			if ( $parserOutput->getTOCData() ) {
+				foreach ( $parserOutput->getTOCData()->getSections() as $s ) {
+					$this->addTocSection( $s->anchor, 'rawmessage', $s->line );
+				}
+			}
+		}
+
 		// Add TOC (this must be done after the addTocSection() calls for compatibility
 		// with old TOC style, e.g. on Minerva or Monobook).
 		$this->getOutput()->addTOCPlaceholder( $this->getTocData() );
-
-		// Page footer
-		if ( !$this->msg( 'pageinfo-footer' )->isDisabled() ) {
-			$content .= $this->msg( 'pageinfo-footer' )->parse();
-		}
 
 		return $content;
 	}

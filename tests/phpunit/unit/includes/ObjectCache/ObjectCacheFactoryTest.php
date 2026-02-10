@@ -7,7 +7,7 @@ use Wikimedia\Stats\StatsFactory;
 use Wikimedia\Telemetry\NoopTracer;
 
 /**
- * @covers \ObjectCacheFactory
+ * @covers \MediaWiki\ObjectCache\ObjectCacheFactory
  */
 class ObjectCacheFactoryTest extends MediaWikiUnitTestCase {
 	private function newObjectCacheFactory() {

@@ -6,6 +6,8 @@
 
 use MediaWiki\Logger\ConsoleLogger;
 use MediaWiki\Maintenance\Maintenance;
+use MediaWiki\Tests\Language\MessageTest;
+use Wikimedia\Tests\SerializationTestTrait;
 use Wikimedia\Tests\SerializationTestUtils;
 
 define( 'MW_AUTOLOAD_TEST_CLASSES', true );
@@ -33,6 +35,7 @@ class ValidateMessageTestData extends Maintenance {
 	}
 
 	public function execute() {
+		/** @var SerializationTestTrait[] $tests */
 		$tests = [
 			MessageTest::class,
 		];
@@ -54,7 +57,7 @@ class ValidateMessageTestData extends Maintenance {
 	 * If the respective options are set in the constructor, this will create missing files or
 	 * update mismatching files.
 	 *
-	 * @param string $className
+	 * @param class-string $className
 	 * @param string $defaultDirectory
 	 * @param array $supportedFormats
 	 * @param array $testInstances

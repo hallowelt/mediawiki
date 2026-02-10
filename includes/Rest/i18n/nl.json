@@ -299,5 +299,12 @@
 	"rest-requestheader-desc-authorization": "Biedt aanmeldgegevens waarmee een gebruikersagent zich kan authenticeren bij een server, waardoor toegang tot beveiligde bronnen mogelijk wordt.",
 	"rest-requestheader-desc-xrequestid": "Maakt het mogelijk om individuele HTTP-verzoeken te traceren en te correleren terwijl ze door gedistribueerde systemen stromen, zoals microservices, API-gateways en loadbalancers.",
 	"rest-requestheader-desc-useragent": "Verstuurt een karakteristieke tekenreeks naar webservers, waardoor deze de applicatie, het besturingssysteem, de leverancier en/of de versie van de aanvragende clientsoftware kunnen identificeren.",
-	"rest-requestheader-desc-ifmatch": "Hiermee wordt een verzoek voorwaardelijk gemaakt, zodat de gevraagde actie (zoals een update of verwijdering) alleen wordt uitgevoerd als de bron op de server overeenkomt met een specifieke versie (geïdentificeerd door de ETag) die door de client is verstrekt."
+	"rest-requestheader-desc-ifmatch": "Hiermee wordt een verzoek voorwaardelijk gemaakt, zodat de gevraagde actie (zoals een update of verwijdering) alleen wordt uitgevoerd als de bron op de server overeenkomt met een specifieke versie (geïdentificeerd door de ETag) die door de client is verstrekt.",
+	"rest-endpoint-desc-get-sitemap-index": "Geeft een XML-lijst terug met beschikbare pagina's binnen de sitemap. De standaardindex is 0; de aanwezigheid van extra indexen wordt vermeld in robots.txt. Aan elke index kunnen maximaal 10.000 pagina's worden gekoppeld.",
+	"rest-endpoint-summ-get-sitemap-index": "Een lijst met sitemap-pagina's opvragen",
+	"rest-endpoint-desc-get-sitemap-page": "Geeft een XML-lijst terug met pagina's die op de site aanwezig zijn. Elk item bevat een URL naar de pagina en de datum van de laatste wijziging. Elke pagina kan maximaal 10.000 URL-items bevatten.",
+	"rest-endpoint-summ-get-sitemap-page": "Een lijst met artikelposities per pagina opvragen",
+	"rest-param-desc-sitemap-index-id": "De sitemap-index begint bij 0. Aanvullende beschikbare indexen worden gespecificeerd in robots.txt.",
+	"rest-param-desc-sitemap-page-id": "De gewenste pagina met artikelen.",
+	"rest-param-desc-sitemap-include-namespace": "Namespace-ID's die in de sitemap moeten worden opgenomen. Indien niet gespecificeerd, wordt de standaardsitemap gebruikt."
 }

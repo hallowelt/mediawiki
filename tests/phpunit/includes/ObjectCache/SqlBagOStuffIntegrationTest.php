@@ -3,7 +3,7 @@
 /**
  * @group BagOStuff
  * @group Database
- * @covers \SqlBagOStuff
+ * @covers \MediaWiki\ObjectCache\SqlBagOStuff
  */
 class SqlBagOStuffIntegrationTest extends BagOStuffTestBase {
 	protected function newCacheInstance() {

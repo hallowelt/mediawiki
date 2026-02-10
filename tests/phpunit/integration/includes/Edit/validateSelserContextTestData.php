@@ -5,6 +5,7 @@ namespace Wikimedia\Tests\Message;
 use MediaWiki\Logger\ConsoleLogger;
 use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\Tests\Integration\Edit\SimpleParsoidOutputStashSerializationTest;
+use Wikimedia\Tests\SerializationTestTrait;
 use Wikimedia\Tests\SerializationTestUtils;
 
 define( 'MW_AUTOLOAD_TEST_CLASSES', true );
@@ -32,6 +33,7 @@ class ValidateSelserContextTestData extends Maintenance {
 	}
 
 	public function execute() {
+		/** @var SerializationTestTrait[] $tests */
 		$tests = [
 			SimpleParsoidOutputStashSerializationTest::class,
 		];
@@ -53,7 +55,7 @@ class ValidateSelserContextTestData extends Maintenance {
 	 * If the respective options are set in the constructor, this will create missing files or
 	 * update mismatching files.
 	 *
-	 * @param string $className
+	 * @param class-string $className
 	 * @param string $defaultDirectory
 	 * @param array $supportedFormats
 	 * @param array $testInstances

@@ -73,5 +73,6 @@
 	"apierror-missingtitle": "আপনার নির্দিষ্ট করা পাতাটির অস্তিত্ব নেই।",
 	"apierror-mustbeloggedin": "$1 জন্য আপনাকে অবশ্যই প্রবেশ করতে হবে।",
 	"apierror-nosuchuserid": "$1 আইডি যুক্ত কোনো ব্যবহারকারী নেই।",
-	"apierror-permissiondenied": "আপনার $1 অনুমতি নেই।"
+	"apierror-permissiondenied": "আপনার $1 অনুমতি নেই।",
+	"apierror-ratelimited": "আপনি নির্ধারিত অনুরোধের সীমা অতিক্রম করেছেন। অনুগ্রহ করে অপেক্ষা করুন এবং পুনরায় চেষ্টা করুন।"
 }

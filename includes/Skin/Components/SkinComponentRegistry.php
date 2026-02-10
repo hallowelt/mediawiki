@@ -84,7 +84,7 @@ class SkinComponentRegistry {
 				$skin->getOutput()->getRevisionTimestamp()
 			),
 			'rendered-with' => new SkinComponentRenderedWith(
-				$skin,
+				$skin->getMessageLocalizer(),
 				$skin->getOutput()->getOutputFlag( ParserOutputFlags::USE_PARSOID )
 			),
 			'footer' => new SkinComponentFooter( $skin ),

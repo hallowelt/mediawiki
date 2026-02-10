@@ -2455,7 +2455,7 @@ config-schema:
     ObjectCaches:
         default:
             0: { class: Wikimedia\ObjectCache\EmptyBagOStuff, reportDupes: false }
-            1: { class: SqlBagOStuff, loggroup: SQLBagOStuff }
+            1: { class: MediaWiki\ObjectCache\SqlBagOStuff, loggroup: SQLBagOStuff }
             memcached-php: { class: Wikimedia\ObjectCache\MemcachedPhpBagOStuff, loggroup: memcached }
             memcached-pecl: { class: Wikimedia\ObjectCache\MemcachedPeclBagOStuff, loggroup: memcached }
             hash: { class: Wikimedia\ObjectCache\HashBagOStuff, reportDupes: false }

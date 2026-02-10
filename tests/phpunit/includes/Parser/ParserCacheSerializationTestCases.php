@@ -705,7 +705,7 @@ abstract class ParserCacheSerializationTestCases {
 	}
 
 	/**
-	 * @param string $class the class name
+	 * @param class-string $class the class name
 	 * @return string[][] a list of supported serialization formats info
 	 * in the following format:
 	 *  'ext' => string file extension for stored serializations

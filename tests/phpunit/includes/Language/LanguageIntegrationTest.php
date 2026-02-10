@@ -59,6 +59,10 @@ class LanguageIntegrationTest extends LanguageClassesTestCase {
 		parent::setUp();
 
 		$this->overrideConfigValue( MainConfigNames::UsePigLatinVariant, true );
+
+		// `testGetHumanTimestamp` validates the output of mediawiki/core's 'human-friendly' timestamp generation,
+		// so disable the hook that would enable extensions to override its response.
+		$this->clearHook( 'GetHumanTimestamp' );
 	}
 
 	public function testLanguageConvertDoubleWidthToSingleWidth() {

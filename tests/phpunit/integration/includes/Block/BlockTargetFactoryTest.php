@@ -4,6 +4,7 @@ namespace MediaWiki\Tests\Integration\Block;
 
 use MediaWiki\Block\AnonIpBlockTarget;
 use MediaWiki\Block\AutoBlockTarget;
+use MediaWiki\Block\BlockTarget;
 use MediaWiki\Block\BlockTargetFactory;
 use MediaWiki\Block\RangeBlockTarget;
 use MediaWiki\Block\UserBlockTarget;
@@ -90,11 +91,11 @@ class BlockTargetFactoryTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * @dataProvider provideNewFromString
-	 * @param string $input
-	 * @param string $class
+	 * @param string|null $input
+	 * @param class-string<BlockTarget>|null $class
 	 * @param string|null $serialized
 	 */
-	public function testNewFromString( $input, $class, $serialized = null ) {
+	public function testNewFromString( ?string $input, ?string $class, ?string $serialized = null ) {
 		$target = $this->getBlockTargetFactory()->newFromString( $input );
 		if ( $class === null ) {
 			$this->assertNull( $target );
@@ -157,10 +158,10 @@ class BlockTargetFactoryTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideNewFromUser
 	 * @param int $id
 	 * @param string $name
-	 * @param string|null $expectedName
-	 * @param string $class
+	 * @param string $expectedName
+	 * @param class-string<BlockTarget> $class
 	 */
-	public function testNewFromUser( $id, $name, $expectedName, $class ) {
+	public function testNewFromUser( int $id, string $name, string $expectedName, string $class ) {
 		$user = new UserIdentityValue( $id, $name );
 		$target = $this->getBlockTargetFactory()->newFromUser( $user );
 		$this->assertInstanceOf( $class, $target );

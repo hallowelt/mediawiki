@@ -507,7 +507,7 @@ return [
 					'reportDupes' => false,
 				],
 				1 => [
-					'class' => 'SqlBagOStuff',
+					'class' => 'MediaWiki\\ObjectCache\\SqlBagOStuff',
 					'loggroup' => 'SQLBagOStuff',
 				],
 				'memcached-php' => [

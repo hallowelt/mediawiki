@@ -19,7 +19,6 @@ use MediaWiki\Languages\LanguageNameUtils;
 use MediaWiki\Linker\Linker;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Message\Message;
 use MediaWiki\Revision\RevisionAccessException;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\SiteStats\SiteStats;
@@ -638,7 +637,7 @@ class CoreParserFunctions {
 			$parser->getOutput()->addWarningMsg(
 				'restricted-displaytitle',
 				// Message should be parsed, but this param should only be escaped.
-				Message::plaintextParam( $filteredText )
+				wfEscapeWikiText( $filteredText )
 			);
 			$parser->addTrackingCategory( 'restricted-displaytitle-ignored' );
 		}

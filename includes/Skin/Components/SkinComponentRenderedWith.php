@@ -2,41 +2,32 @@
 
 namespace MediaWiki\Skin\Components;
 
-use MediaWiki\Language\Language;
 use MediaWiki\Language\MessageLocalizer;
 
 class SkinComponentRenderedWith implements SkinComponent {
-	private Language $language;
-	private MessageLocalizer $localizer;
 
 	/**
-	 * @param SkinComponentRegistryContext $skinContext
+	 * @param MessageLocalizer $localizer
 	 * @param bool $useParsoid whether Parsoid was used to render this page
 	 */
 	public function __construct(
-		SkinComponentRegistryContext $skinContext,
+		private MessageLocalizer $localizer,
 		private bool $useParsoid = false,
 	) {
-		$this->localizer = $skinContext->getMessageLocalizer();
-		$this->language = $skinContext->getLanguage();
 	}
 
 	/**
-	 * Get the timestamp of the latest revision, formatted in user language
+	 * Get data for the 'Rendered with' footer message
 	 *
 	 * @inheritDoc
 	 */
 	public function getTemplateData(): array {
-		$localizer = $this->localizer;
-		$language = $this->language;
-		$useParsoid = $this->useParsoid;
-
-		$msg = $useParsoid ?
-			 $localizer->msg( 'renderedwith-parsoid' ) :
-			 $localizer->msg( 'renderedwith-legacy' );
+		$msg = $this->useParsoid ?
+			 $this->localizer->msg( 'renderedwith-parsoid' ) :
+			 $this->localizer->msg( 'renderedwith-legacy' );
 
 		return [
-			'is-parsoid' => $useParsoid,
+			'is-parsoid' => $this->useParsoid,
 			'text' => $msg->isDisabled() ? '' : $msg->parse(),
 		];
 	}

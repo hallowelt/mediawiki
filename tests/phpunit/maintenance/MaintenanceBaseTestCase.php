@@ -53,7 +53,7 @@ abstract class MaintenanceBaseTestCase extends MediaWikiIntegrationTestCase {
 	 * If you need to change the way your maintenance class is constructed,
 	 * override createMaintenance.
 	 *
-	 * @return string Class name
+	 * @return class-string<Maintenance> Class name
 	 */
 	abstract protected function getMaintenanceClass();
 

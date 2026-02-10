@@ -131,13 +131,13 @@ class XmlTest extends MediaWikiIntegrationTestCase {
 		$this->hideDeprecated( Xml::class . '::listDropdownOptions' );
 		$this->assertEquals(
 			'<select name="test-name" id="test-name" class="test-css" tabindex="2">' .
-				'<option value="other">other reasons</option>' . "\n" .
+				'<option value="other">other reasons</option>' .
 				'<optgroup label="Foo">' .
-				'<option value="Foo 1">Foo 1</option>' . "\n" .
-				'<option value="Example" selected="">Example</option>' . "\n" .
+				'<option value="Foo 1">Foo 1</option>' .
+				'<option value="Example" selected="">Example</option>' .
 				'</optgroup>' . "\n" .
 				'<optgroup label="Bar">' .
-				'<option value="Bar 1">Bar 1</option>' . "\n" .
+				'<option value="Bar 1">Bar 1</option>' .
 				'</optgroup>' .
 				'</select>',
 			Xml::listDropdown(

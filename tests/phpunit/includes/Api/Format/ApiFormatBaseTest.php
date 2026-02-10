@@ -363,16 +363,10 @@ class ApiFormatBaseTest extends ApiFormatTestBase {
 		$mm = $printer->getMain()->getModuleManager();
 		$mm->addModule( 'mockfm', 'format', [
 			'class' => ApiFormatBase::class,
-			'factory' => static function () {
-				return $mock;
-			}
 		] );
 		if ( $registerNonHtml ) {
 			$mm->addModule( 'mock', 'format', [
 				'class' => ApiFormatBase::class,
-				'factory' => static function () {
-					return $mock;
-				}
 			] );
 		}
 
@@ -406,9 +400,6 @@ class ApiFormatBaseTest extends ApiFormatTestBase {
 		$mm = $printer->getMain()->getModuleManager();
 		$mm->addModule( 'mockfm', 'format', [
 			'class' => ApiFormatBase::class,
-			'factory' => static function () {
-				return $mock;
-			}
 		] );
 
 		// pretend the output is cacheable

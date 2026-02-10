@@ -1008,6 +1008,9 @@ class Message implements Stringable, MessageSpecifier, Serializable {
 	 * @return self $this
 	 */
 	public function page( ?PageReference $page ) {
+		if ( $page ) {
+			$page->assertWiki( PageReference::LOCAL );
+		}
 		$this->contextPage = $page;
 		return $this;
 	}

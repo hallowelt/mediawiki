@@ -111,7 +111,11 @@ class XmlSelect {
 				// so we should check if each $value is in $default, rather than checking if
 				// $value is equal to $default.
 				$selected = is_array( $default ) ? in_array( $value, $default ) : $value === $default;
-				$data .= Xml::option( $label, $value, $selected ) . "\n";
+				$data .= Html::element(
+					'option',
+					[ 'value' => $value, 'selected' => $selected ],
+					$label
+				);
 			}
 		}
 

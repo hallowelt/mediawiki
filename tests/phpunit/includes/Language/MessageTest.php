@@ -865,7 +865,7 @@ class MessageTest extends MediaWikiLangTestCase {
 
 	/**
 	 * Overrides SerializationTestTrait::getClassToTest
-	 * @return string
+	 * @return class-string
 	 */
 	public static function getClassToTest(): string {
 		return Message::class;

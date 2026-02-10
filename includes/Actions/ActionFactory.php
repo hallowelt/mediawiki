@@ -64,6 +64,7 @@ class ActionFactory {
 				'LinkRenderer',
 				'DBLoadBalancerFactory',
 				'MagicWordFactory',
+				'MessageParser',
 				'NamespaceInfo',
 				'PageProps',
 				'RepoGroup',

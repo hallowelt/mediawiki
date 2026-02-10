@@ -4,6 +4,9 @@
  * @file
  */
 
+namespace MediaWiki\ObjectCache;
+
+use InvalidArgumentException;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Logger\Spi;
@@ -444,3 +447,6 @@ class ObjectCacheFactory {
 		);
 	}
 }
+
+/** @deprecated class alias since 1.46 */
+class_alias( ObjectCacheFactory::class, 'ObjectCacheFactory' );

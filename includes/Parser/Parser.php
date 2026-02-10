@@ -3246,7 +3246,7 @@ class Parser {
 				$this->addTrackingCategory( 'template-loop-category' );
 				$this->mOutput->addWarningMsg(
 					'template-loop-warning',
-					Message::plaintextParam( $titleText )
+					wfEscapeWikiText( $titleText )
 				);
 				$this->logger->debug( __METHOD__ . ": template loop broken at '$titleText'" );
 			}

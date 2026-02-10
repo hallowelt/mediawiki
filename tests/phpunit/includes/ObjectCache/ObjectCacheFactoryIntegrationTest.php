@@ -1,13 +1,15 @@
 <?php
 
 use MediaWiki\MainConfigNames;
+use MediaWiki\ObjectCache\ObjectCacheFactory;
+use MediaWiki\ObjectCache\SqlBagOStuff;
 use Wikimedia\ObjectCache\EmptyBagOStuff;
 use Wikimedia\ObjectCache\HashBagOStuff;
 use Wikimedia\Rdbms\DatabaseDomain;
 use Wikimedia\TestingAccessWrapper;
 
 /**
- * @covers \ObjectCacheFactory
+ * @covers \MediaWiki\ObjectCache\ObjectCacheFactory
  * @group BagOStuff
  * @group Database
  */
@@ -114,7 +116,7 @@ class ObjectCacheFactoryIntegrationTest extends MediaWikiIntegrationTestCase {
 
 	public function testNewFromIdWincacheAccel() {
 		$ocf = $this->getServiceContainer()->getObjectCacheFactory();
-		$className = get_class( $ocf );
+		$className = addslashes( get_class( $ocf ) );
 
 		$this->expectDeprecationAndContinue( "/^Use of $className::newFromId with cache ID \"wincache\"\s/" );
 
@@ -130,7 +132,7 @@ class ObjectCacheFactoryIntegrationTest extends MediaWikiIntegrationTestCase {
 		ObjectCacheFactory::$localServerCacheClass = EmptyBagOStuff::class;
 
 		$ocf = $this->getServiceContainer()->getObjectCacheFactory();
-		$className = get_class( $ocf );
+		$className = addslashes( get_class( $ocf ) );
 
 		$this->expectDeprecationAndContinue( "/^Use of $className::newFromId with cache ID \"wincache\"\s/" );
 

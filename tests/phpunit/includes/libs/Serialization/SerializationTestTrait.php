@@ -294,7 +294,7 @@ trait SerializationTestTrait {
 	}
 
 	/**
-	 * @return string the name of the class to test.
+	 * @return class-string the name of the class to test.
 	 */
 	abstract public static function getClassToTest(): string;
 

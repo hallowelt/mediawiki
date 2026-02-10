@@ -160,7 +160,7 @@ trait FileBackendGroupTestTrait {
 	/**
 	 * @dataProvider provideRegister_exception
 	 * @param array $fileBackends Value of FileBackends to pass to constructor
-	 * @param string $class Expected exception class
+	 * @param class-string<Throwable> $class Expected exception class
 	 * @param string $msg Expected exception message
 	 */
 	public function testRegister_exception( $fileBackends, $class, $msg ) {

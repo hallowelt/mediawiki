@@ -368,13 +368,14 @@ class HtmlInputTransformHelper {
 		} elseif ( !empty( $original['html'] ) || !empty( $original['data-parsoid'] ) ) {
 			// NOTE: We might have an incomplete HtmlPageBundle here, with no HTML but with data-parsoid!
 			// XXX: Do we need to support that, or can that just be a 400?
-			$originalRendering = new HtmlPageBundle(
-				html: $original['html']['body'] ?? '',
-				parsoid: $original['data-parsoid']['body'] ?? null,
-				mw: $original['data-mw']['body'] ?? null,
-				version: null, // will be derived from $original['html']['headers']['content-type']
-				headers: $original['html']['headers'] ?? []
-			);
+			$originalRendering = HtmlPageBundle::newFromJsonArray( [
+				'html' => $original['html']['body'] ?? '',
+				'parsoid' => $original['data-parsoid']['body'] ?? null,
+				'mw' => $original['data-mw']['body'] ?? null,
+				'counters' => $original['counters'] ?? null,
+				'version' => null, // will be derived from $original['html']['headers']['content-type']
+				'headers' => $original['html']['headers'] ?? []
+			] );
 		}
 
 		if ( !$originalRevision && !empty( $original['revid'] ) ) {

@@ -416,7 +416,7 @@ class SkinComponentFooter implements SkinComponent {
 		$useParsoid = $out->getOutputFlag( ParserOutputFlags::USE_PARSOID );
 
 		$renderedWith = new SkinComponentRenderedWith(
-			$skinContext,
+			$this->skinContext->getMessageLocalizer(),
 			$useParsoid
 		);
 

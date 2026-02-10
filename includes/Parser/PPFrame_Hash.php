@@ -116,8 +116,8 @@ class PPFrame_Hash implements Stringable, PPFrame {
 					if ( isset( $namedArgs[$index] ) || isset( $numberedArgs[$index] ) ) {
 						$this->parser->getOutput()->addWarningMsg(
 							'duplicate-args-warning',
-							Message::plaintextParam( (string)$this->title ),
-							Message::plaintextParam( (string)$title ),
+							wfEscapeWikiText( (string)$this->title ),
+							wfEscapeWikiText( (string)$title ),
 							Message::numParam( $index )
 						);
 						$this->parser->addTrackingCategory( 'duplicate-args-category' );
@@ -130,9 +130,10 @@ class PPFrame_Hash implements Stringable, PPFrame {
 					if ( isset( $namedArgs[$name] ) || isset( $numberedArgs[$name] ) ) {
 						$this->parser->getOutput()->addWarningMsg(
 							'duplicate-args-warning',
-							Message::plaintextParam( (string)$this->title ),
-							Message::plaintextParam( (string)$title ),
-							Message::plaintextParam( $name )
+							wfEscapeWikiText( (string)$this->title ),
+							wfEscapeWikiText( (string)$title ),
+							// @phan-suppress-next-line SecurityCheck-DoubleEscaped
+							wfEscapeWikiText( $name )
 						);
 						$this->parser->addTrackingCategory( 'duplicate-args-category' );
 					}

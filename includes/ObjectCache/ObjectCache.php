@@ -7,6 +7,8 @@
  * @ingroup Cache
  */
 
+namespace MediaWiki\ObjectCache;
+
 use MediaWiki\MediaWikiServices;
 use Wikimedia\ObjectCache\BagOStuff;
 
@@ -98,3 +100,6 @@ class ObjectCache {
 		MediaWikiServices::getInstance()->getObjectCacheFactory()->clear();
 	}
 }
+
+/** @deprecated class alias since 1.46 */
+class_alias( ObjectCache::class, 'ObjectCache' );

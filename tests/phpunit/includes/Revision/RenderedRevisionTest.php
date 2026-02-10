@@ -91,7 +91,7 @@ class RenderedRevisionTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @param string $class
+	 * @param class-string<RevisionRecord> $class
 	 * @param PageIdentity $page
 	 * @param null|int $id
 	 * @param int $visibility

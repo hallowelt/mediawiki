@@ -7,7 +7,14 @@
  * @ingroup Cache
  */
 
+namespace MediaWiki\ObjectCache;
+
+use Exception;
+use InvalidArgumentException;
 use MediaWiki\MediaWikiServices;
+use Profiler;
+use stdClass;
+use UnexpectedValueException;
 use Wikimedia\ArrayUtils\ArrayUtils;
 use Wikimedia\ObjectCache\MediumSpecificBagOStuff;
 use Wikimedia\Rdbms\Blob;
@@ -1706,3 +1713,6 @@ class SqlBagOStuff extends MediumSpecificBagOStuff {
 		return Profiler::instance()->getTransactionProfiler()->silenceForScope();
 	}
 }
+
+/** @deprecated class alias since 1.46 */
+class_alias( SqlBagOStuff::class, 'SqlBagOStuff' );
