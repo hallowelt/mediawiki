@@ -1786,7 +1786,7 @@
 	"uploadstash-file-not-found-no-thumb": "Pienoiskuvaa ei voitu saada.",
 	"uploadstash-file-not-found-no-local-path": "Skaalatulla kohteella ei ole paikallista polkua.",
 	"uploadstash-file-not-found-no-remote-thumb": "Pienoiskuvan haku epäonnistui: $1\nURL = $2",
-	"uploadstash-file-not-found-missing-content-type": "Puuttuva sisältötyypin ylätunniste",
+	"uploadstash-file-not-found-missing-content-type": "Puuttuva sisältötyypin ylätunniste.",
 	"uploadstash-file-not-found-not-exists": "Polkua ei löytynyt, tai ei selkotiedosto.",
 	"uploadstash-file-too-large": "Yli $1 tavun kokoista tiedostoa ei voida käsitellä.",
 	"uploadstash-not-logged-in": "Käyttäjää ei ole kirjautunut sisään, tiedostojen on kuuluttava käyttäjille.",
