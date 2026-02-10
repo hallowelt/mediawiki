@@ -455,7 +455,7 @@
 	"viewsource-title": "$1のソースを表示",
 	"actionthrottled": "許容されている時間当たりの操作数の上限に達しました",
 	"actionthrottledtext": "短時間にこの操作を大量に行ったため、スパム対策として設定されている制限を超えました。\n少し時間をおいてからもう一度操作してください。",
-	"protectedpagetext": "このページは編集や他の操作ができないように保護されています。",
+	"protectedpagetext": "このページは編集や他の操作ができないように保護（$3）されています。",
 	"viewsourcetext": "このページのソースの閲覧やコピーができます。",
 	"viewyourtext": "このページへの<strong>あなたの編集</strong>のソースの閲覧やコピーができます。",
 	"protectedinterface": "このページにはこのウィキのソフトウェアのインターフェイスに使用されるテキストが保存されており、いたずらなどの防止のために保護されています。\nすべてのウィキに対して翻訳を追加/変更する場合は、MediaWiki の地域化プロジェクト [https://translatewiki.net/wiki/Main_Page?setlang=ja translatewiki.net] を使用してください。",
