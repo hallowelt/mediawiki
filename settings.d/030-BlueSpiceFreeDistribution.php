@@ -21,18 +21,7 @@ wfLoadExtension( 'EnhancedUpload' );
 $GLOBALS['wgEnhancedUploadOverrideStandardUpload'] = true;
 
 wfLoadExtension( 'FilterSpecialPages' );
-
 wfLoadExtension( 'FlexiSkin' );
-if( !is_array( $GLOBALS['wgWhitelistRead'] ) ) { $GLOBALS['wgWhitelistRead'] = []; }
-$GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-logo.png';
-$GLOBALS['wgWhitelistRead'][] = 'File:Flexiskin-images-logo.png';
-$GLOBALS['wgWhitelistRead'][] = 'Flexiskin-images-favicon.png';
-$GLOBALS['wgWhitelistRead'][] = 'File:Flexiskin-images-favicon.png';
-$GLOBALS['wgWhitelistRead'][] = 'flexiskin-images-favicon.png';
-$GLOBALS['wgWhitelistRead'][] = 'File:flexiskin-images-favicon.png';
-$GLOBALS['wgWhitelistRead'][] = 'flexiskin-images-logo.png';
-$GLOBALS['wgWhitelistRead'][] = 'File:flexiskin-images-logo.png';
-
 wfLoadExtension( 'FontAwesome' );
 wfLoadExtension( 'HitCounters' );
 wfLoadExtension( 'ImageMapEdit' );
