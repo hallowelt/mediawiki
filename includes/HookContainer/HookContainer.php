@@ -228,7 +228,6 @@ class HookContainer implements SalvageableService {
 		}
 
 		if ( !isset( $this->handlerObjects[$name] ) ) {
-			// @phan-suppress-next-line PhanTypeInvalidCallableArraySize
 			$this->handlerObjects[$name] = $this->objectFactory->createObject( $spec );
 		}
 

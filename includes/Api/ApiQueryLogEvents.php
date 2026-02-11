@@ -190,9 +190,9 @@ class ApiQueryLogEvents extends ApiQueryBase {
 				);
 			}
 
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable,PhanPossiblyUndeclaredVariable T240141
+			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable
 			$this->addWhereFld( 'log_type', $type );
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable,PhanPossiblyUndeclaredVariable T240141
+			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable
 			$this->addWhereFld( 'log_action', $action );
 		} elseif ( $params['type'] !== null ) {
 			$this->addWhereFld( 'log_type', $params['type'] );
@@ -342,7 +342,7 @@ class ApiQueryLogEvents extends ApiQueryBase {
 			}
 			if ( LogEventsList::userCan( $row, LogPage::DELETED_ACTION, $authority ) ) {
 				if ( $this->fld_title ) {
-					// @phan-suppress-next-next-line PhanTypeMismatchArgumentNullable,PhanPossiblyUndeclaredVariable
+					// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable
 					// title is set when used
 					ApiQueryBase::addTitleInfo( $vals, $title );
 				}

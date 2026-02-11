@@ -310,6 +310,7 @@ class ApiQueryBacklinksprop extends ApiQueryGeneratorBase {
 				if ( $fld_pageid ) {
 					$vals['pageid'] = (int)$row->page_id;
 				}
+				// @phan-suppress-next-line PhanPossiblyUndeclaredVariable set when used
 				if ( $fld_title ) {
 					ApiQueryBase::addTitleInfo( $vals,
 						Title::makeTitle( $row->page_namespace, $row->page_title )

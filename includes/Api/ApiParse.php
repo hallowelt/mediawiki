@@ -900,7 +900,6 @@ class ApiParse extends ApiBase {
 			$this->dieWithError( [ 'apierror-sectionsnotsupported-what', $what ], 'nosuchsection' );
 		}
 
-		// @phan-suppress-next-line PhanTypeMismatchReturnNullable T240141
 		return $section;
 	}
 

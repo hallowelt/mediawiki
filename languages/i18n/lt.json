@@ -3847,7 +3847,6 @@
 	"specialmute-header": "Pasirinkite savo nutildymo nuostatas dėl naudotojo <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Nepavyko rasti prašomo naudotojo vardo.",
 	"specialmute-error-email-disabled": "Nutildymo funkcijos neprieinamos, nes viki administratorius išjungė el. pašto funkcijas šioje viki.",
-	"specialmute-error-mutelist-disabled": "Nutildymo funkcijos neprieinamos, nes viki administratorius išjungė el. pašto nutildymo sąrašo funkcijas šioje viki.",
 	"specialmute-error-no-email-set": "Nutildymo funkcijos neprieinamos, nes nesate patvirtinę savo el. pašto adreso.",
 	"specialmute-error-no-options": "Nutildymo funkcijos neprieinamos.",
 	"specialmute-email-footer": "Jei norite valdyti naudotojo {{BIDI:$2}} el. pašto nuostatas, apsilankykite:\n$1",

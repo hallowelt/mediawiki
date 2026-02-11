@@ -135,7 +135,6 @@ abstract class ImageHandler extends MediaHandler {
 
 		if ( !isset( $params['physicalWidth'] ) ) {
 			# Passed all validations, so set the physicalWidth
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive, checked above
 			$params['physicalWidth'] = $params['width'];
 		}
 

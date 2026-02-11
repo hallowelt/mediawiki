@@ -331,8 +331,7 @@ class LogPager extends ReverseChronologicalPager {
 		if ( $doUserRightsLogLike ) {
 			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable $name is set when reached here
 			$params = [ $name . $interwikiDelimiter ];
-			// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable $database is set when reached here
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullableInternal $database is set when reached here
+			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable $database is set when reached here
 			$databaseParts = explode( '*', $database );
 			$databasePartCount = count( $databaseParts );
 			foreach ( $databaseParts as $i => $databasepart ) {

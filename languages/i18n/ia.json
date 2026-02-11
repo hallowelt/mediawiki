@@ -3998,7 +3998,6 @@
 	"specialmute-header": "Selige tu preferentias de silentio pro le usator <b>{{BIDI:[[User:$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Le nomine de usator que tu requestava non pote esser trovate.",
 	"specialmute-error-email-disabled": "Le functionalitate de silentiamento es indisponibile perque le administrator del wiki ha disactivate le functionalitate de e-mail pro iste wiki.",
-	"specialmute-error-mutelist-disabled": "Le functionalitate de silentiamento es indisponibile perque le administrator del wiki ha disactivate le functionalitate de listas de silentiamento pro iste wiki.",
 	"specialmute-error-no-email-set": "Le functionalitate de silentiamento es indisponibile perque tu non ha confirmate tu adresse de e-mail.",
 	"specialmute-error-no-options": "Le functionalitate de silentiamento es indisponibile.",
 	"specialmute-email-footer": "Pro gerer le preferentias de e-mail pro le usator {{BIDI:$2}}, visita le adresse web sequente:\n$1",

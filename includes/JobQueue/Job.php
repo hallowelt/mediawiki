@@ -63,7 +63,6 @@ abstract class Job implements RunnableJob {
 		$factory = MediaWikiServices::getInstance()->getJobFactory();
 
 		// FIXME: fix handling for legacy signature!
-		// @phan-suppress-next-line PhanParamTooFewUnpack one argument is known to be present.
 		return $factory->newJob( ...func_get_args() );
 	}
 

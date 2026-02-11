@@ -70,7 +70,6 @@ class ApiQueryQueryPage extends ApiQueryGeneratorBase {
 				'Special page ' . $name . ' is not a QueryPage'
 			);
 		}
-		// @phan-suppress-next-line PhanTypeMismatchReturnNullable T240141
 		return $qp;
 	}
 

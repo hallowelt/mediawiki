@@ -3877,7 +3877,6 @@
 	"specialmute-header": "Palihog pilia ang imo mga gusto sa pag-mute para sa user <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Ang ginpangayo nga ngalan sang user wala makita.",
 	"specialmute-error-email-disabled": "Ang mga bahin sang pag-mute indi magamit, bangod ang administrador sang wiki nag-disable sang mga bahin sang email para sa sini nga wiki.",
-	"specialmute-error-mutelist-disabled": "Ang mga bahin sang pag-mute indi magamit, bangod gin-disable sang administrador sang wiki ang mga bahin sang email mutelist para sa sini nga wiki.",
 	"specialmute-error-no-email-set": "Ang mga bahin sang pag-mute indi magamit, bangod wala mo pa makumpirmar ang imo email address.",
 	"specialmute-error-no-options": "Ang mga mute nga bahin indi magamit.",
 	"specialmute-email-footer": "Para ma-manage ang mga gusto sa email para sa user {{BIDI: $2 }}, palihog bisitaha ang masunod nga URL:\n $1",

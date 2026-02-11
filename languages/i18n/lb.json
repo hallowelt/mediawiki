@@ -3639,7 +3639,6 @@
 	"specialmute-header": "Wielt wgl. Är Stommschaltungs-Astellunge fir de Benotzer <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "De Gefrote Benotzernumm gouf net fonnt.",
 	"specialmute-error-email-disabled": "Stommschaltungs-Funktioune sinn net disponibel, well de Wiki-Administrateur E-Mail-Funktioune fir dës Wiki desaktivéiert huet.",
-	"specialmute-error-mutelist-disabled": "Stommschaltungs-Funktioune sinn net disponibel, well de Wiki-Administrateur d'E-Mail-Stommschaltungslëschte-Funktioune fir dës Wiki desaktivéiert huet.",
 	"specialmute-error-no-email-set": "Stommschaltungs-Funktioune sinn net disponibel, well Dir Är E-Mail-Adress nach net confirméiert hutt.",
 	"specialmute-error-no-options": "Stommschaltungs-Funktioune sinn net disponibel.",
 	"specialmute-email-footer": "Fir d'E-Mail-Astellunge fir de Benotzer {{BIDI:$2}} ze geréieren, gitt wgl. op déi follgend URL:\n$1",

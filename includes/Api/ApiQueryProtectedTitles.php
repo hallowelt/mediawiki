@@ -146,7 +146,6 @@ class ApiQueryProtectedTitles extends ApiQueryGeneratorBase {
 				}
 
 				if ( isset( $prop['parsedcomment'] ) ) {
-					// @phan-suppress-next-line PhanTypeArraySuspiciousNullable
 					$vals['parsedcomment'] = $formattedComments[$rowOffset];
 				}
 

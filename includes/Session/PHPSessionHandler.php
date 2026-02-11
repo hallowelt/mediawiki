@@ -140,6 +140,7 @@ class PHPSessionHandler implements SessionHandlerInterface {
 			return MediaWikiServices::getInstance()->getSessionManager();
 		}
 
+		// @phan-suppress-next-line PhanTypeMismatchReturnNullable
 		return $this->manager;
 	}
 

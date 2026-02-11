@@ -35,13 +35,11 @@
 /* Common for Special:Allpages and Special:PrefixIndex */
 .mw-allpages-body,
 .mw-prefixindex-body {
-	columns: 22em 3;
-	break-inside: avoid-column;
-	page-break-inside: avoid;
-	-webkit-column-break-inside: avoid;
+	.column-width( 22em );
+	.column-count( 3 );
 
 	li {
-		break-inside: avoid;
+		.column-break-inside-avoid;
 	}
 }
 
@@ -139,7 +137,8 @@ th.mw-revdel-checkbox {
 }
 
 .mw-specialpages-list {
-	columns: 16em 2;
+	.column-width( 16em );
+	.column-count( 2 );
 
 	ul {
 		margin-top: 0;

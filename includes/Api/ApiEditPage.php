@@ -354,7 +354,6 @@ class ApiEditPage extends ApiBase {
 		// EditPage wants to parse its stuff from a WebRequest
 		// That interface kind of sucks, but it's workable
 		$requestArray = [
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 			'wpTextbox1' => $params['text'],
 			'format' => $contentFormat,
 			'model' => $contentModel,
@@ -366,7 +365,6 @@ class ApiEditPage extends ApiBase {
 			'wpUnicodeCheck' => EditPage::UNICODE_CHECK,
 		];
 
-		// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 		if ( $params['summary'] !== null ) {
 			$requestArray['wpSummary'] = $params['summary'];
 		}
@@ -645,7 +643,6 @@ class ApiEditPage extends ApiBase {
 						// errors on the status.
 						// @codeCoverageIgnoreStart
 						case EditPage::AS_SPAM_ERROR:
-							// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset
 							$status->fatal( 'apierror-spamdetected', $result['spam'] );
 							break;
 						case EditPage::AS_READ_ONLY_PAGE_LOGGED:

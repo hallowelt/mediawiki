@@ -3985,7 +3985,6 @@
 	"specialmute-header": "Veldu þöggunarstillingar þínar fyrir notandann <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Notandanafnið sem gafst upp fannst ekki.",
 	"specialmute-error-email-disabled": "Þöggunaraðgerðir eru ekki í boði vegna þess að stjórnandi wiki-vefsins hefur slökkt á tölvupóstaðgerðum á vefnum.",
-	"specialmute-error-mutelist-disabled": "Þöggunaraðgerðir eru ekki í boði vegna þess að stjórnandi wiki-vefsins hefur slökkt á þöggunarlista-stillingum á þessum vef.",
 	"specialmute-error-no-email-set": "Þöggunaraðgerður eru ekki boði vegna þess að þú hefur ekki staðfest tölvupóstfangið þitt.",
 	"specialmute-error-no-options": "Þöggunarmöguleikar eru ekki í boði.",
 	"specialmute-email-footer": "Til þess að breyta tölvupóststillingum fyrir notandann {{BIDI:$2}} skaltu fara á þessa slóð:\n$1",

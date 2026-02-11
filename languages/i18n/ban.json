@@ -3940,7 +3940,6 @@
 	"specialmute-header": "Durus pilih préférénsi siep antuk anganggé <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Aran anganggé saané katunas tan katemuin.",
 	"specialmute-error-email-disabled": "Pawigunan mendep nénten kasedia, santukan prajuru wiki sampun ngamatiang pawigunan mendepang rerepél antuk wiki niki.",
-	"specialmute-error-mutelist-disabled": "Pawigunan mendep nénten kasedia santukan prajuru wiki sampun ngamatiang pawigunan mendepang rerepél antuk wiki niki.",
 	"specialmute-error-no-email-set": "Pawigunan mendep nénten wénten, santukan nénten prasida ngapastika alamat rerepél ragané.",
 	"specialmute-error-no-options": "Fitur ngamendepang ten kasedia.",
 	"specialmute-email-footer": "Antuk mingaturin préférénsi rerepél antuk ragané {{BIDI:$2}} durus rauhin URL:\n$1",

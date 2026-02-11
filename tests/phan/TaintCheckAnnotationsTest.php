@@ -989,6 +989,7 @@ class TaintCheckAnnotationsTest {
 
 	/**
 	 * @suppress PhanPluginUseReturnValueKnown
+	 * @suppress PhanNoDiscardReturnValueIgnored
 	 */
 	function testExpression( \Wikimedia\Rdbms\IDatabase $db ) {
 		$db->expr( $_GET['field'], '=', 'a' ); // @phan-suppress-current-line SecurityCheck-SQLInjection

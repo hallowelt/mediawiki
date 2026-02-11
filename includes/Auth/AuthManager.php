@@ -548,7 +548,6 @@ class AuthManager implements LoggerAwareInterface {
 							// @codeCoverageIgnoreEnd
 					}
 				}
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Always set in loop before, if passed
 				if ( $state['primary'] === null ) {
 					$this->logger->debug( 'Login failed in primary authentication because no provider accepted' );
 					$response = AuthenticationResponse::newFail(
@@ -619,7 +618,6 @@ class AuthManager implements LoggerAwareInterface {
 				}
 			}
 
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Always set in loop before, if passed
 			$res = $state['primaryResponse'];
 			if ( $res->username === null ) {
 				$provider = $this->getAuthenticationProvider( $state['primary'] );
@@ -1622,7 +1620,6 @@ class AuthManager implements LoggerAwareInterface {
 							// @codeCoverageIgnoreEnd
 					}
 				}
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Always set in loop before, if passed
 				if ( $state['primary'] === null ) {
 					$this->logger->debug( __METHOD__ . ': Primary creation failed because no provider accepted', [
 						'user' => $user->getName(),
@@ -1693,7 +1690,6 @@ class AuthManager implements LoggerAwareInterface {
 			// then create the User object and add the user locally.
 
 			if ( $state['userid'] === 0 ) {
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Always set if we passed step 1
 				$response = $state['primaryResponse'];
 				if ( !$this->runVerifyHook( self::ACTION_CREATE, $user, $response, $state['primary'] ) ) {
 					$this->callMethodOnProviders( self::CALL_ALL, 'postAccountCreation',
@@ -1731,8 +1727,7 @@ class AuthManager implements LoggerAwareInterface {
 				$this->watchlistManager->addWatchIgnoringRights( $user, $user->getUserPage() );
 
 				// Inform the provider
-				// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Always set in loop before, if passed
+				// @phan-suppress-next-line PhanPossiblyUndeclaredVariable
 				$logSubtype = $provider->finishAccountCreation( $user, $creator, $state['primaryResponse'] );
 
 				// Log the creation

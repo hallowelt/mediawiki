@@ -4094,7 +4094,6 @@
 	"specialmute-header": "Valitse hiljennysasetuksesi käyttäjälle <b>{{BIDI:[[User:$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Pyydettyä käyttäjänimeä ei löydy.",
 	"specialmute-error-email-disabled": "Hiljennysominaisuudet eivät ole käytettävissä, koska wikin ylläpitäjä on ottanut sähköpostitoiminnot pois käytöstä tässä wikissä.",
-	"specialmute-error-mutelist-disabled": "Hiljennysominaisuudet eivät ole käytettävissä, koska wikin ylläpitäjä on ottanut sähköpostien hiljentämisen pois käytöstä tässä wikissä.",
 	"specialmute-error-no-email-set": "Hiljennysominaisuudet eivät ole käytettävissä, koska et ole vahvistanut sähköpostiosoitettasi.",
 	"specialmute-error-no-options": "Hiljennysominaisuudet eivät ole käytettävissä.",
 	"specialmute-email-footer": "Hallitaksesi sähköpostiasetuksia käyttäjälle {{BIDI:$2}}, käy sivulla <$1>.",

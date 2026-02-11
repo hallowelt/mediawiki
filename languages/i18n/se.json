@@ -3696,7 +3696,6 @@
 	"specialmute-header": "Vállje váidunheivehusaid mat gusket geavaheaddjái <b>{{:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Geavaheaddjinamma maid ozat ii gávdnon.",
 	"specialmute-error-email-disabled": "Doaimmat váidudeami ektui eai leat olámuttus dannego wikihálddašeaddji lea deaktiveren daid dán wikis.",
-	"specialmute-error-mutelist-disabled": "Doaimmat váidudeami ektui eai leat olámuttus dannego wikihálddašeaddji lea deaktiveren daid dán wikis.",
 	"specialmute-error-no-email-set": "Jaskkodahttima doaimmat eai leat olámuttos, danne go don it leat duođaštan iežat e-poastačujuhusa.",
 	"specialmute-error-no-options": "Jaskkodahttindoaimmat eai leat olámuttos.",
 	"specialmute-email-footer": "Mana čuovvovaš URL:i vai sáhtát gieđahallat e-poastaheivehusaid mat gusket geavaheaddjái  {{BIDI:$2}}:$1",

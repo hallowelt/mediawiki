@@ -3704,7 +3704,6 @@
 	"specialmute-header": "Bonvolu elekti viajn preferojn pri kaŝado de mesaĝoj el uzanto <b>{{BIDI:[[User:$1]]}}</b>.",
 	"specialmute-error-invalid-user": "La petita uzantnomo ne troviĝis.",
 	"specialmute-error-email-disabled": "Mutigaj funkcioj ne estas haveblaj, ĉar la viki-administranto malŝaltis retpoŝtajn funkciojn por ĉi tiu vikio.",
-	"specialmute-error-mutelist-disabled": "Mutigaj funkcioj estas nehaveblaj, ĉar la viki-administranto malŝaltis la retpoŝtajn \"mutelist\"-funkciojn por ĉi tiu vikio.",
 	"specialmute-error-no-email-set": "Mutigaj funkcioj ne estas haveblaj, ĉar vi ne konfirmis vian retadreson.",
 	"specialmute-error-no-options": "Mutigaj funkcioj ne estas haveblaj.",
 	"specialmute-email-footer": "Por administri preferojn pri retpoŝto por la uzanto {{BIDI:$2}}, bonvolu viziti la paĝon <$1>.",

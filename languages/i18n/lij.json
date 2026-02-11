@@ -3988,7 +3988,6 @@
 	"specialmute-header": "Seleçiónn-a e preferénse de scilénçio pe l'uténte <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Inposcìbile atrovâ o nómme uténte domandòu.",
 	"specialmute-error-email-disabled": "E fonçioìn de scilénçio no són disponìbili perché l'aministratô da wiki o l'à dezativòu e fonçioìn de pòsta eletrònica pe sta wiki chi.",
-	"specialmute-error-mutelist-disabled": "E fonçioìn de scilénçio no són dispònibili perché l'aministratô da wiki o l'à dezativòu e fonçioìn de mutelist de e-mail pe sta wiki chi.",
 	"specialmute-error-no-email-set": "E fonçioìn de scilénçio no són disponìbili perché no l'é stæto confermòu l'indirìsso e-mail.",
 	"specialmute-error-no-options": "E fonçioìn de scilénçio no són disponìbili.",
 	"specialmute-email-footer": "Pe manezâ e preferénse e-mail pe l'uténte {{BIDI:$2}} vìxita l'URL aprêuvo:\n$1",

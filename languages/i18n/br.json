@@ -3655,7 +3655,6 @@
 	"specialmute-header": "Diuzit ho tibaboù didrouzañ evit an implijer <b>{{BIDI:[[User:$1|$1]]}} mar plij</b>.",
 	"specialmute-error-invalid-user": "N'eo ket bet kavet an anv implijer goulennet.",
 	"specialmute-error-email-disabled": "N'eo ket hegerz an arc'hweladurioù didrouzañ, rak diweredekaet eo bet arc'hweladurioù postel ar wiki-mañ gant merour ar wiki.",
-	"specialmute-error-mutelist-disabled": "N'eo ket hegerz an arc'hweladurioù sioulaat, rak diweredekaet eo bet arc'hweladurioù roll didrouzañ posteloù gant merour ar wiki evit ar wiki-mañ.",
 	"specialmute-error-no-email-set": "N'eo ket hegerz an arc'hweladurioù didrouzañ, rak n'hoc'h eus ket kadarnaet ho chomlec'h postel.",
 	"specialmute-error-no-options": "N'eo ket hegerz an arc'hwelioù didrouzañ.",
 	"specialmute-email-footer": "Evit merañ penndibaboù postel an implijer {{BIDI:$2}}, kit da welet an URL da heulː\n$1.",

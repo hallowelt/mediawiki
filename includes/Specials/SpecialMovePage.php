@@ -764,9 +764,7 @@ class SpecialMovePage extends UnlistedSpecialPage {
 			// so the count clearly distinguishes the two cases
 			if ( count( $deleteAndMove ) == 2 ) {
 				$msg = $this->msg( 'delete_and_move_confirm_2',
-					// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 					$deleteAndMove[0]->getPrefixedText(),
-					// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 					$deleteAndMove[1]->getPrefixedText()
 				)->text();
 			} else {

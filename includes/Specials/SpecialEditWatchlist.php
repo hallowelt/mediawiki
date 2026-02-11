@@ -271,7 +271,8 @@ class SpecialEditWatchlist extends UnlistedSpecialPage {
 			);
 			$this->displayFormSubmitSuccessMessage(
 				$this->msg( 'watchlistlabels-assign-labels-done' )
-					->numParams( count( $titlesAndLabels["labels"] ), count( $titlesAndLabels["titles"] ) )->parse()
+					// Halve title count because both subject and talk pages are labelled.
+					->numParams( count( $titlesAndLabels["labels"] ), count( $titlesAndLabels["titles"] ) / 2 )->parse()
 			);
 		}
 	}
@@ -284,7 +285,8 @@ class SpecialEditWatchlist extends UnlistedSpecialPage {
 			);
 			$this->displayFormSubmitSuccessMessage(
 				$this->msg( 'watchlistlabels-unassign-labels-done' )
-				->numParams( count( $titlesAndLabels["labels"] ), count( $titlesAndLabels["titles"] ) )->parse()
+					// Halve title count because both subject and talk pages are labelled.
+					->numParams( count( $titlesAndLabels["labels"] ), count( $titlesAndLabels["titles"] ) / 2 )->parse()
 			);
 		}
 	}
@@ -293,17 +295,7 @@ class SpecialEditWatchlist extends UnlistedSpecialPage {
 		$titleStrings = $this->getRequest()->getArray( self::WL_ITEM_CHECKBOX_NAME );
 		$labels = $this->getRequest()->getArray( 'watchlistlabels' );
 		if ( is_array( $titleStrings ) && count( $titleStrings ) > 0 && is_array( $labels ) && count( $labels ) > 0 ) {
-			$titles = [];
-			foreach ( $titleStrings as $titleString ) {
-				try {
-					$parsedTitle = $this->titleParser->parseTitle( $titleString );
-					$titles[] = PageReferenceValue::localReference(
-						$parsedTitle->getNamespace(), $parsedTitle->getDBkey()
-					);
-				} catch ( MalformedTitleException ) {
-					// do nothing
-				}
-			}
+			$titles = $this->getExpandedTargets( $titleStrings );
 			if ( count( $titles ) > 0 ) {
 				return [ "titles" => $titles, "labels" => $labels ];
 			}

@@ -55,8 +55,6 @@ class SearchEngineFactory {
 			$args['extraArgs'][] = $this->dbProvider;
 		}
 
-		// ObjectFactory::getObjectFromSpec accepts an array, not just a callable (phan bug)
-		// @phan-suppress-next-line PhanTypeInvalidCallableArraySize
 		$engine = ObjectFactory::getObjectFromSpec( $spec, $args );
 		/** @var SearchEngine $engine */
 		$engine->setHookContainer( $this->hookContainer );

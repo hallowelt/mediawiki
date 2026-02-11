@@ -465,8 +465,7 @@ class SpecialWhatLinksHere extends FormSpecialPage {
 		$out->addHTML( $this->listEnd() );
 
 		if ( $level == 0 && !$this->including() ) {
-			// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable $prevnext is defined with $level is 0
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable prevnext is set when used
+			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable $prevnext is defined with $level is 0
 			$out->addHTML( $prevnext );
 		}
 	}

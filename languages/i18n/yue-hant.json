@@ -3879,7 +3879,6 @@
 	"specialmute-header": "請為用戶揀你嘅靜音喜好設定<b>{{BIDI:[[User:$1|$1]]}}</b>。",
 	"specialmute-error-invalid-user": "要求嘅用戶名搵唔到。",
 	"specialmute-error-email-disabled": "由於維基管理員停用咗個維基嘅電郵功能，所以唔可以再用靜音功能。",
-	"specialmute-error-mutelist-disabled": "靜音功能冇得用，因為維基管理員停用咗個維基嘅電郵靜音器功能。",
 	"specialmute-error-no-email-set": "靜音功能冇得用，因為你仲未確認你嘅電郵地址。",
 	"specialmute-error-no-options": "靜音功能冇得用。",
 	"specialmute-email-footer": "要管理嚟自用戶{{BIDI:$2}}嘅電郵喜好設定嘅話，請去以下網址：$1",

@@ -3610,7 +3610,6 @@
 	"specialmute-header": "Valliče iänensammundusazetukset käyttäjäh <b>{{BIDI:[[User:$1|$1]]}}</b> nähte.",
 	"specialmute-error-invalid-user": "Kyzyttyy käyttäjännimie ei voija löydiä.",
 	"specialmute-error-email-disabled": "Ei sua käyttiä iänensammundufunksiedu, sendäh ku wikin haldivoiččii otti iäre käytöspäi sähköpoštan työndämizen täs wikis.",
-	"specialmute-error-mutelist-disabled": "Ei sua käyttiä iänensammundufunksiedu, sendäh ku wikin haldivoiččii otti iäre käytöspäi sähköpoštan työndämizen täs wikis.",
 	"specialmute-error-no-email-set": "Ei sua käyttiä iänensammundufunksiedu, sendäh ku et ole varmistannuh omua sähköpoštuadressii.",
 	"specialmute-error-no-options": "Ei sua käyttiä iänensammundufunksiedu.",
 	"specialmute-email-footer": "Tämän käyttäjän {{BIDI:$2}} sähköpoštan azetuksien ohjuamizekse, ole hyvä, siirry sivule <$1>.",

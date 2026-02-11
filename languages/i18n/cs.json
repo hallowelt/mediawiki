@@ -4057,7 +4057,6 @@
 	"specialmute-header": "Vyberte si prosím požadované ztlumení uživatele <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Požadované uživatelské jméno nebylo nalezeno.",
 	"specialmute-error-email-disabled": "Funkce ztlumení uživatele není dostupná, protože administrátor wiki na této wiki vypnul e-mailové funkce.",
-	"specialmute-error-mutelist-disabled": "Funkce ztlumení uživatele není dostupná, protože administrátor wiki na této wiki vypnul listinu ztlumených e-mailů.",
 	"specialmute-error-no-email-set": "Funkce ztlumení uživatele není dostupná, protože jste neověřili svou e-mailovou adresu.",
 	"specialmute-error-no-options": "Funkce ztlumení uživatele není dostupná.",
 	"specialmute-email-footer": "Spravovat nastavení e-mailů od uživatele {{BIDI:$2}} můžete na následující adrese:\n$1",

@@ -3127,7 +3127,6 @@
 	"restrictionsfields-pages-label": "Faqet e lejuara për redaktim:",
 	"restrictionsfields-pages-help": "Lëre bosh për të lejuar redaktimin e të gjitha faqeve",
 	"specialmute-error-email-disabled": "Cilësitë e heshtjes nuk ofrohen, pasi administratori i wiki-t ka çaktivizuar funksionet e email-it për këtë wiki.",
-	"specialmute-error-mutelist-disabled": "Cilësitë e heshtjes nuk ofrohen, pasi administratori i wiki-t ka çaktivizuar cilësitë e listës së heshtjes së email-eve për këtë wiki.",
 	"specialmute-error-no-email-set": "Cilësitë e heshtjes nuk ofrohen, pasi nuk ke konfirmuar adresën tënde të email-it.",
 	"specialmute-error-no-options": "Cilësitë e heshtjes nuk ofrohen.",
 	"specialmute-login-required-for-temp-user": "Të lutem, krijo një llogari për të përdorur cilësitë e heshtjes.",

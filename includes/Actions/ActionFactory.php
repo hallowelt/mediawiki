@@ -276,8 +276,6 @@ class ActionFactory {
 			return $spec;
 		}
 
-		// ObjectFactory::createObject accepts an array, not just a callable (phan bug)
-		// @phan-suppress-next-line PhanTypeInvalidCallableArrayKey
 		$actionObj = $this->objectFactory->createObject(
 			$spec,
 			[

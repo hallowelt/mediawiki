@@ -289,7 +289,6 @@ class TempUserCreator implements TempUserConfig {
 		}
 
 		/** @noinspection PhpIncompatibleReturnTypeInspection */
-		// @phan-suppress-next-line PhanTypeInvalidCallableArrayKey
 		return $this->objectFactory->createObject(
 			$spec,
 			[
@@ -320,7 +319,6 @@ class TempUserCreator implements TempUserConfig {
 			}
 		}
 		/** @noinspection PhpIncompatibleReturnTypeInspection */
-		// @phan-suppress-next-line PhanTypeInvalidCallableArrayKey
 		return $this->objectFactory->createObject(
 			$spec,
 			[

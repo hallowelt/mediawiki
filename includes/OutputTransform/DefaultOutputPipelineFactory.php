@@ -190,8 +190,6 @@ class DefaultOutputPipelineFactory {
 				];
 			}
 
-			// ObjectFactory::createObject accepts an array, not just a callable (phan bug)
-			// @phan-suppress-next-line PhanTypeInvalidCallableArrayKey
 			$transform = $this->objectFactory->createObject(
 				$spec,
 				[

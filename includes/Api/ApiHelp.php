@@ -642,7 +642,6 @@ class ApiHelp extends ApiBase {
 				'noheader' => false,
 			] + $options;
 
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 			if ( $options['submodules'] && $module->getModuleManager() ) {
 				$manager = $module->getModuleManager();
 				$submodules = [];

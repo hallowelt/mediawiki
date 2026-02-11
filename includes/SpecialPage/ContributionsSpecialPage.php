@@ -551,7 +551,7 @@ class ContributionsSpecialPage extends IncludableSpecialPage {
 				$subHeadingsHtml .= Html::rawElement(
 					'span',
 					[ 'class' => 'mw-contributions-ip-range-navigation' ],
-					$rangesMsg
+					$rangesMsg->parse()
 				);
 			}
 		}

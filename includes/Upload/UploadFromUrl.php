@@ -411,7 +411,7 @@ class UploadFromUrl extends UploadBase {
 			);
 		}
 
-		// @phan-suppress-next-line PhanTypeMismatchReturnNullable,PhanPossiblyUndeclaredVariable Always set after loop
+		// @phan-suppress-next-line PhanPossiblyUndeclaredVariable Always set after loop
 		return $status;
 	}
 }

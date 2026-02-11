@@ -396,8 +396,7 @@ class SvgHandler extends ImageHandler {
 		}
 		$removed = $this->removeBadFile( $dstPath, $retval );
 		if ( $retval != 0 || $removed ) {
-			// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable cmd is set when used
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable cmd is set when used
+			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable cmd is set when used
 			$this->logErrorForExternalProcess( $retval, $err, $cmd );
 			return new MediaTransformError( 'thumbnail_error', $width, $height, $err );
 		}

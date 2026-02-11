@@ -183,6 +183,17 @@ module.exports = defineComponent( {
 	flex: 0 0 128px;
 }
 
+// Do not display the images on mobile, to give the text more room. T416509.
+@media screen and ( max-width: @max-width-breakpoint-mobile ) {
+	.mw-special-watchlistlabels-onboarding-image {
+		display: none;
+	}
+
+	.cdx-popover__footer__actions {
+		flex-direction: row;
+	}
+}
+
 .mw-special-watchlistlabels-onboarding-image-manage {
 	/* @embed */
 	background-image: url( ./images/label-onboarding-manage.svg );

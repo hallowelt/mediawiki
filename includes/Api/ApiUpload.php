@@ -179,7 +179,6 @@ class ApiUpload extends ApiBase {
 
 		// Add 'imageinfo' in a separate addValue() call. File metadata can be unreasonably large,
 		// so otherwise when it exceeded $wgAPIMaxResultSize, no result would be returned (T143993).
-		// @phan-suppress-next-line PhanTypeArraySuspiciousNullable False positive
 		if ( $result['result'] === 'Success' ) {
 			$imageinfo = $this->getUploadImageInfo( $this->mUpload );
 			$this->getResult()->addValue( $this->getModuleName(), 'imageinfo', $imageinfo );

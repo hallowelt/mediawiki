@@ -934,7 +934,6 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 				$this->lenientRevHandling
 			);
 
-			// @phan-suppress-next-line PhanSuspiciousValueComparison
 			if ( $status->isOK() && $this->flavor === 'fragment' ) {
 				// Unwrap sections and return body_only content
 				// NOTE: This introduces an extra html -> dom -> html roundtrip

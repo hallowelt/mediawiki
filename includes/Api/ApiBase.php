@@ -1156,7 +1156,6 @@ abstract class ApiBase extends ContextSource {
 			if ( !$titleObj->canExist() ) {
 				$this->dieWithError( 'apierror-pagecannotexist' );
 			}
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable T240141
 			$pageObj = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $titleObj );
 			if ( $load !== false ) {
 				$pageObj->loadPageData( $load );
@@ -1192,7 +1191,6 @@ abstract class ApiBase extends ContextSource {
 			if ( !$titleObj || $titleObj->isExternal() ) {
 				$this->dieWithError( [ 'apierror-invalidtitle', wfEscapeWikiText( $params['title'] ) ] );
 			}
-			// @phan-suppress-next-line PhanTypeMismatchReturnNullable T240141
 			return $titleObj;
 		}
 
@@ -1301,7 +1299,6 @@ abstract class ApiBase extends ContextSource {
 					[ 'nosuchusershort', wfEscapeWikiText( $params['owner'] ) ], 'bad_wlowner'
 				);
 			}
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable T240141
 			$token = $services->getUserOptionsLookup()->getOption( $user, 'watchlisttoken' );
 			if ( $token == '' || !hash_equals( $token, $params['token'] ) ) {
 				$this->dieWithError( 'apierror-bad-watchlist-token', 'bad_wltoken' );
@@ -1314,7 +1311,6 @@ abstract class ApiBase extends ContextSource {
 			$this->checkUserRightsAny( 'viewmywatchlist' );
 		}
 
-		// @phan-suppress-next-line PhanTypeMismatchReturnNullable T240141
 		return $user;
 	}
 

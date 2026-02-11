@@ -50,7 +50,7 @@ if ( $envVar !== false ) {
 	// PHPUnit has been invoked with arguments. This can be very complex to handle, so the heuristic below is meant
 	// to cover just the most common use cases.
 	// Make PHPUnit not complain about unrecognized options when paratest options are passed in
-	$paratestArgs = [ 'runner', 'processes', 'passthru-php', 'write-to' ];
+	$paratestArgs = [ 'runner', 'processes', 'passthru-php', 'write-to', 'passthru', 'phpunit', 'tmp-dir', 'parallel-suite' ];
 	$phpunitArgs = ( new Builder )->fromParameters( $GLOBALS['argv'], $paratestArgs );
 	if ( $phpunitArgs->hasArgument() ) {
 		// A test or test directory was specified explicitly. Normalize line endings and case, and see if we likely

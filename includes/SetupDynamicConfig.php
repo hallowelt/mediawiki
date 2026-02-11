@@ -59,7 +59,6 @@ if ( isset( $wgRateLimits['changetag'] ) ) {
 }
 
 // Prohibited file extensions shouldn't appear on the "allowed" list
-// @phan-suppress-next-line PhanTypeMismatchArgumentNullableInternal False positive
 $wgFileExtensions = array_values( array_diff( $wgFileExtensions, $wgProhibitedFileExtensions ) );
 
 // Fix path to icon images after they were moved in 1.24

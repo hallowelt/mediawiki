@@ -1522,7 +1522,6 @@ class FileModule extends Module {
 		}
 		if ( $fileInfo['type'] === 'script-vue' ) {
 			try {
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 				$fileInfo[ 'content' ] = $this->parseVueContent( $context, $fileInfo[ 'content' ] );
 			} catch ( InvalidArgumentException $e ) {
 				$msg = "Error parsing file '{$fileInfo['name']}' in module '{$this->getName()}': " .

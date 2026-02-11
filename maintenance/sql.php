@@ -67,7 +67,6 @@ class MwSql extends Maintenance {
 					break;
 				}
 			}
-			// @phan-suppress-next-line PhanSuspiciousValueComparison
 			if ( $index === null || $index === ServerInfo::WRITER_INDEX ) {
 				$this->fatalError( "No replica DB server configured with the name '$replicaDB'." );
 			}

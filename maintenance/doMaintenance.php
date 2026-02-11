@@ -25,7 +25,7 @@ if ( !defined( 'RUN_MAINTENANCE_IF_MAIN' ) ) {
 
 // Wasn't included from the file scope, halt execution (probably wanted the class).
 // This typically happens when a maintenance script is executed using run.php.
-// @phan-suppress-next-line PhanSuspiciousValueComparisonInGlobalScope
+// @phan-suppress-next-line PhanRedundantValueComparisonInGlobalScope
 if ( !MaintenanceRunner::shouldExecute() && $maintClass != CommandLineInc::class ) {
 	return;
 }

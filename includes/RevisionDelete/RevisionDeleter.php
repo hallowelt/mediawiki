@@ -125,8 +125,6 @@ class RevisionDeleter {
 		$spec = self::ALLOWED_TYPES[$typeName];
 		$objectFactory = MediaWikiServices::getInstance()->getObjectFactory();
 
-		// ObjectFactory::createObject accepts an array, not just a callable (phan bug)
-		// @phan-suppress-next-line PhanTypeInvalidCallableArrayKey
 		return $objectFactory->createObject(
 			$spec,
 			[

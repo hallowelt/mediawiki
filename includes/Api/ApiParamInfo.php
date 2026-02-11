@@ -75,7 +75,7 @@ class ApiParamInfo extends ApiBase {
 						}
 						continue;
 					}
-					// @phan-suppress-next-next-line PhanTypeMismatchArgumentNullable,PhanPossiblyUndeclaredVariable
+					// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable
 					// recursive is set when used
 					$submodules = $this->listAllSubmodules( $module, $recursive );
 					if ( $submodules ) {

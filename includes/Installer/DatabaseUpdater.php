@@ -1519,7 +1519,6 @@ abstract class DatabaseUpdater {
 			array_unshift( $params, $this );
 		}
 
-		// @phan-suppress-next-line PhanUndeclaredInvokeInCallable Phan is confused
 		return $func( ...$params );
 	}
 
@@ -1559,7 +1558,6 @@ abstract class DatabaseUpdater {
 			array_unshift( $params, $this );
 		}
 
-		// @phan-suppress-next-line PhanUndeclaredInvokeInCallable Phan is confused
 		return $func( ...$params );
 	}
 

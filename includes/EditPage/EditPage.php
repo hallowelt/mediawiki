@@ -1231,7 +1231,6 @@ class EditPage implements IEditObject {
 			$this->sectiontitle = preg_replace( '/^\s*=+\s*(.*?)\s*=+\s*$/', '$1', $this->sectiontitle );
 		}
 
-		// @phan-suppress-next-line PhanSuspiciousValueComparison
 		if ( $this->section === 'new' ) {
 			$this->setNewSectionSummary();
 		}
@@ -3151,7 +3150,6 @@ class EditPage implements IEditObject {
 		# automatic one and pass that in the hidden field wpAutoSummary.
 		if (
 			$this->missingSummary ||
-			// @phan-suppress-next-line PhanSuspiciousValueComparison
 			( $this->section === 'new' && $this->nosummary ) ||
 			$this->allowBlankSummary
 		) {

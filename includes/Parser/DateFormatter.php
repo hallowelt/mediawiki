@@ -238,7 +238,6 @@ class DateFormatter {
 								$text .= $this->monthNames[$m];
 								break;
 							case 'Y': // ordinary (optional BC) year
-								// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 								$text .= $match['year'];
 								break;
 							default:

@@ -215,6 +215,8 @@
 	"prefs-description-watchlist": "Управляйте и персонализируйте список страниц, которые вы отслеживаете.",
 	"prefs-editwatchlist": "Изменение списка наблюдения",
 	"prefs-editwatchlist-label": "Изменение записей вашего списка наблюдения:",
+	"prefs-editwatchlistlabels-label": "Редактировать метки списка наблюдения:",
+	"prefs-managewatchlistlabels": "Просмотр и управление метками списка наблюдения",
 	"prefs-editwatchlist-edit": "Просмотр и удаление названий из вашего списка наблюдения",
 	"prefs-editwatchlist-raw": "Редактирование списка наблюдения как текста",
 	"prefs-editwatchlist-clear": "Очистить список наблюдения",

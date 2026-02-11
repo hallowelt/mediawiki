@@ -690,13 +690,12 @@ class RecentChange implements Taggable {
 			if ( $name === 'rc_user_text' ) {
 				return $user->getName();
 			}
-			if ( $name === 'rc_actor' ) {
-				// NOTE: rc_actor exists in the database, but application logic should not use it.
-				wfDeprecatedMsg( 'Accessing deprecated field rc_actor', '1.36' );
-				$actorStore = MediaWikiServices::getInstance()->getActorStore();
-				$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-				return $actorStore->findActorId( $user, $db );
-			}
+			// We now know that $name === 'rc_actor'
+			// NOTE: rc_actor exists in the database, but application logic should not use it.
+			wfDeprecatedMsg( 'Accessing deprecated field rc_actor', '1.36' );
+			$actorStore = MediaWikiServices::getInstance()->getActorStore();
+			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+			return $actorStore->findActorId( $user, $db );
 		}
 
 		return $this->mAttribs[$name] ?? null;

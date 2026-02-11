@@ -10,7 +10,6 @@ namespace MediaWiki\Api;
 
 use MediaWiki\Api\Validator\SubmoduleDef;
 use MediaWiki\Cache\GenderCache;
-use MediaWiki\Cache\LinkBatch;
 use MediaWiki\Context\DerivativeContext;
 use MediaWiki\Language\ILanguageConverter;
 use MediaWiki\Language\Language;
@@ -19,6 +18,7 @@ use MediaWiki\Linker\LinkTarget;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
+use MediaWiki\Page\LinkBatch;
 use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\Page\LinkCache;
 use MediaWiki\Page\PageIdentity;
@@ -259,7 +259,7 @@ class ApiPageSet extends ApiBase {
 			}
 			// Create a temporary pageset to store generator's output,
 			// add any additional fields generator may need, and execute pageset to populate titles/pageids
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable T240141
+			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable
 			$tmpPageSet = new ApiPageSet( $dbSource, self::DISABLE_GENERATORS );
 			$generator->setGeneratorMode( $tmpPageSet );
 			$this->mCacheMode = $generator->getCacheMode( $generator->extractRequestParams() );
@@ -273,7 +273,6 @@ class ApiPageSet extends ApiBase {
 			if ( !$isDryRun ) {
 				$generator->executeGenerator( $this );
 
-				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable T240141
 				$this->getHookRunner()->onAPIQueryGeneratorAfterExecute( $generator, $this );
 			} else {
 				// Prevent warnings from being reported on these parameters

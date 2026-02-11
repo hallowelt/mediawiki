@@ -152,7 +152,6 @@ final class PasswordFactory {
 
 		$config = $this->types[$type];
 
-		// @phan-suppress-next-line PhanTypeInvalidCallableArrayKey
 		return ObjectFactory::getObjectFromSpec( $config, [
 			'extraArgs' => [ $this, $config, $hash ],
 			'assertClass' => Password::class,

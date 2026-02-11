@@ -802,7 +802,7 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 				$out .= $r2;
 			}
 		}
-		// @phan-suppress-next-line PhanSuspiciousValueComparison
+		// @phan-suppress-next-line PhanRedundantValueComparison
 		if ( $ord1 < 0x80 ) {
 			$out .= $r1;
 		}

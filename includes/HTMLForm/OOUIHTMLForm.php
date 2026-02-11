@@ -92,7 +92,6 @@ class OOUIHTMLForm extends HTMLForm {
 
 			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Always set in HTMLForm::addButton
 			if ( $button['attribs'] ) {
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Always set in HTMLForm::addButton
 				$attrs += $button['attribs'];
 			}
 
@@ -137,6 +136,7 @@ class OOUIHTMLForm extends HTMLForm {
 	 * @return \OOUI\PanelLayout
 	 */
 	protected function wrapFieldSetSection( $legend, $section, $attributes, $isRoot ) {
+		// @phan-suppress-previous-line PhanParamSignatureMismatch We're different from our parent intentionally
 		// to get a user visible effect, wrap the fieldset into a framed panel layout
 		$layout = new \OOUI\PanelLayout( [
 			'expanded' => false,

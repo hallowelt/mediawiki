@@ -4084,7 +4084,6 @@
 	"specialmute-header": "Selecione as suas preferências de silenciamento para o utilizador <b>{{BIDI:[[User:$1|$1]]}}</b>, por favor.",
 	"specialmute-error-invalid-user": "Não foi possível encontrar o nome de utilizador pedido.",
 	"specialmute-error-email-disabled": "As funcionalidades de silenciamento estão indisponíveis porque o administrador da wiki desativou as funcionalidades de correio eletrónico da wiki.",
-	"specialmute-error-mutelist-disabled": "As funcionalidades de silenciamento estão indisponíveis porque o administrador da wiki desativou as funcionalidades da lista de silenciamento de endereços de correio eletrónico da wiki.",
 	"specialmute-error-no-email-set": "As funcionalidades de silenciamento estão indisponíveis porque não confirmou o seu endereço de correio eletrónico.",
 	"specialmute-error-no-options": "As funcionalidades de silenciamento estão indisponíveis.",
 	"specialmute-email-footer": "Para gerir as preferências de correio eletrónico do utilizador {{BIDI:$2}} visite o seguinte URL, por favor:\n$1",

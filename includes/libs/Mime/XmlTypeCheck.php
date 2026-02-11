@@ -355,7 +355,6 @@ class XmlTypeCheck {
 	private function processingInstructionHandler( $target, $data ) {
 		$callbackReturn = false;
 		if ( $this->parserOptions['processing_instruction_handler'] ) {
-			// @phan-suppress-next-line PhanTypeInvalidCallable false positive
 			$callbackReturn = $this->parserOptions['processing_instruction_handler'](
 				$target,
 				$data

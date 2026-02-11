@@ -185,7 +185,6 @@ class ObjectCacheFactory {
 	 *  - .. Other parameters passed to factory or class.
 	 *
 	 * @return T
-	 * @suppress PhanTypeMismatchDeclaredReturn Phan < 6 does not understand constrained templates
 	 */
 	public function newFromParams( array $params ): BagOStuff {
 		$logger = $this->logger->getLogger( $params['loggroup'] ?? 'objectcache' );

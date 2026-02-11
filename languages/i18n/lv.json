@@ -2854,7 +2854,6 @@
 	"specialmute-label-mute-email": "Apklusināt e-pastus no {{GENDER:$1|šī dalībnieka|šīs dalībnieces}}",
 	"specialmute-header": "Lūdzu, veic savas apklusināšanas izvēles dalībniekam <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-email-disabled": "Apklusināšanas funkcijas nav pieejamas, jo vikivietnes administrators ir atspējojis e-pasta funkcijas.",
-	"specialmute-error-mutelist-disabled": "Apklusināšanas funkcijas nav pieejamas, jo vikivietnes administrators ir atspējojis e-pasta apklusināšanas saraksta funkciju.",
 	"specialmute-error-no-email-set": "Apklusināšanas funkcijas nav pieejamas, jo tu neesi apstiprinājis savu e-pasta adresi.",
 	"specialmute-error-no-options": "Apklusināšanas funkcijas nav pieejamas.",
 	"specialmute-login-required": "Lūdzu, pieslēdzies, lai mainītu savas apklusināšanas izvēles.",

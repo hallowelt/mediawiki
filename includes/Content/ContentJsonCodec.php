@@ -30,7 +30,6 @@ class ContentJsonCodec implements JsonClassCodec {
 		$handler = $this->contentHandlerFactory->getContentHandler(
 			$model
 		);
-		// @phan-suppress-next-line PhanTypeMismatchArgument -- Phan doesn't support generic interfaces
 		return [ 'model' => $model ] + $handler->serializeContentToJsonArray( $obj );
 	}
 
@@ -42,7 +41,6 @@ class ContentJsonCodec implements JsonClassCodec {
 			$model
 		);
 		$content = $handler->deserializeContentFromJsonArray( $json );
-		// @phan-suppress-next-line PhanTypeMismatchReturn -- Phan doesn't support generic interfaces
 		return $content;
 	}
 

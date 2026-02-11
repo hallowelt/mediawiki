@@ -191,7 +191,7 @@ class ApiQueryContributors extends ApiQueryBase {
 					$db->expr( 'ug_expiry', '=', null )->or( 'ug_expiry', '>=', $db->timestamp() )
 				]
 			] ] );
-			// @phan-suppress-next-next-line PhanTypeMismatchArgumentNullable,PhanPossiblyUndeclaredVariable
+			// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable
 			// excludeGroups declared when limitGroups set
 			$this->addWhereIf( [ 'ug_user' => null ], $excludeGroups );
 		}

@@ -2726,7 +2726,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		$this->addModuleStyles( $source->getModuleStyles() );
 		$this->mJsConfigVars = self::mergeMapStrategy( $this->mJsConfigVars, $source->mJsConfigVars );
 		if ( $source->mMaxAdaptiveExpiry !== null ) {
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable
 			$this->updateRuntimeAdaptiveExpiry( $source->mMaxAdaptiveExpiry );
 		}
 		$this->mExtraStyleSrcs = self::mergeList(

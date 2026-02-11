@@ -190,7 +190,7 @@ abstract class PoolCounter implements LoggerAwareInterface {
 	 * @since 1.25
 	 */
 	final protected function onAcquire() {
-		self::$acquiredMightWaitKey |= $this->isMightWaitKey;
+		self::$acquiredMightWaitKey |= (int)$this->isMightWaitKey;
 		$this->heldLockSpan = $this->tracer->createSpan( "PoolCounterLocked::{$this->type}" )->start();
 		$this->heldLockSpan->activate();
 		if ( $this->heldLockSpan->getContext()->isSampled() ) {
@@ -205,6 +205,7 @@ abstract class PoolCounter implements LoggerAwareInterface {
 	 * @since 1.25
 	 */
 	final protected function onRelease() {
+		// @phan-suppress-next-line PhanTypeInvalidRightOperandOfBitwiseOp
 		self::$acquiredMightWaitKey &= !$this->isMightWaitKey;
 		if ( $this->heldLockSpan ) {
 			$this->heldLockSpan->end();

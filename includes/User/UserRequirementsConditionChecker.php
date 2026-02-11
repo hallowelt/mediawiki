@@ -24,6 +24,7 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
 
 /**
  * @since 1.45
+ * @stable to extend Since 1.46
  */
 class UserRequirementsConditionChecker {
 
@@ -72,23 +73,16 @@ class UserRequirementsConditionChecker {
 	 * are those whose first element is one of APCOND_* defined in Defines.php.
 	 * Other types will throw an exception if no extension evaluates them.
 	 *
-	 * @param array $cond A condition, which must not contain other conditions
+	 * @param array $cond A condition, which must not contain other conditions. This array must contain at least
+	 *     one item, which is the condition type.
 	 * @param UserIdentity $user The user to check the condition against
-	 * @param array<string,bool> $skippedConditions Array whose keys tell which conditions to skip while evaluating
 	 * @return ?bool Whether the condition is true for the user. Null if it's a private condition
 	 *     and we're not supposed to evaluate these.
 	 * @throws InvalidArgumentException if autopromote condition was not recognized.
 	 * @throws LogicException if APCOND_BLOCKED is checked again before returning a result.
+	 * @stable to override Since 1.46
 	 */
-	private function checkCondition( array $cond, UserIdentity $user, array $skippedConditions ): ?bool {
-		if ( count( $cond ) < 1 ) {
-			return false;
-		}
-
-		if ( isset( $skippedConditions[$cond[0]] ) ) {
-			return null;
-		}
-
+	protected function checkCondition( array $cond, UserIdentity $user ): ?bool {
 		$isPerformingRequest = !defined( 'MW_NO_SESSION' ) && $user->equals( $this->context->getUser() );
 
 		// Some checks depend on hooks or other dynamically-determined state, so we can fetch them only
@@ -309,7 +303,16 @@ class UserRequirementsConditionChecker {
 			$cond = [ $cond ];
 		}
 
-		return $this->checkCondition( $cond, $user, $skippedConditions );
+		// Ensure the condition makes sense at all
+		if ( count( $cond ) < 1 ) {
+			return false;
+		}
+
+		if ( isset( $skippedConditions[$cond[0]] ) ) {
+			return null;
+		}
+
+		return $this->checkCondition( $cond, $user );
 	}
 
 	/**

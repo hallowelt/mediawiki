@@ -1,9 +1,14 @@
 <?php
 namespace MediaWiki\Tests\Specials;
 
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Exception\UserNotLoggedIn;
+use MediaWiki\MainConfigNames;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Specials\SpecialEditWatchlist;
+use MediaWiki\Title\Title;
+use MediaWiki\Watchlist\WatchlistLabel;
 use TestUser;
 
 /**
@@ -63,4 +68,36 @@ class SpecialEditWatchlistTest extends SpecialPageTestBase {
 		);
 	}
 
+	public function testLabelSubjectAndTalkPageTogether(): void {
+		$this->overrideConfigValue( MainConfigNames::EnableWatchlistLabels, true );
+		$user = $this->getMutableTestUser()->getUser();
+
+		// Watch a page (and its talk page).
+		$titleSubject = Title::makeTitle( NS_MAIN, 'Watchlist labels for talk page' );
+		$titleTalk = Title::makeTitle( NS_TALK, $titleSubject->getText() );
+		$this->getServiceContainer()
+			->getWatchedItemStore()
+			->addWatchBatchForUser( $user, [ $titleSubject, $titleTalk ] );
+
+		// Add a label.
+		$label = new WatchlistLabel( $user, 'Test label' );
+		$this->getServiceContainer()
+			->getWatchlistLabelStore()
+			->save( $label );
+
+		// Label that watched item.
+		$context = RequestContext::getMain();
+		$context->setUser( $user );
+		$context->setTitle( Title::makeTitle( NS_SPECIAL, 'EditWatchlist' ) );
+		$context->setLanguage( 'qqx' );
+		$request = new FauxRequest( [
+			'watchlistlabels' => [ $label->getId() ],
+			'watchlistlabels-action' => 'assign',
+			'wpTitles' => [ $titleSubject->getDBkey() ],
+		], true );
+		$context->setRequest( $request );
+		$request->setVal( 'wpEditToken', $context->getCsrfTokenSet()->getToken() );
+		[ $html, ] = $this->executeSpecialPage( null, $request, null, null, false, $context );
+		$this->assertStringContainsString( '(watchlistlabels-assign-labels-done: 1, 1)', $html );
+	}
 }

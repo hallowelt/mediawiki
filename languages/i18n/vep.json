@@ -3651,7 +3651,6 @@
 	"specialmute-header": "Ole hüvä, valiče sinun än'saubatusen valičused kävutajan täht <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "Ei sa löuta pakitud kävutajan nimed.",
 	"specialmute-error-email-disabled": "Ei sa kacta än'saubatusen funkcijoid, sikš miše wiki-lehtpolen ohjandai kel'di email-počtan radfunkcijoid necen wiki-lehtpolen täht.",
-	"specialmute-error-mutelist-disabled": "Ei sa kacta ližafunkcijoid, sikš miše wiki-lehtpolen ohjandai kel'di email-počtan änetomuz - funkcijad necen wiki-lehtpolen täht.",
 	"specialmute-error-no-email-set": "Ei sa kacta än'saubatusen funkcijoid, sikš miše sinä ed ole vahvištoitanu sinun email-počtan adresad.",
 	"specialmute-error-no-options": "Ei sa kacta än'saubatusen funkcijoid.",
 	"specialmute-email-footer": "Miše vajehtada email-počtan valičusid necil kävutajal {{BIDI:$2}} ole hüvä, kävutoita nece URL:\n$1",

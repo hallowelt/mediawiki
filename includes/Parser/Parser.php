@@ -2517,7 +2517,6 @@ class Parser {
 				continue;
 			}
 
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset preg_match success when reached here
 			$origLink = ltrim( $m[1], ' ' );
 
 			# Don't allow internal links to pages containing

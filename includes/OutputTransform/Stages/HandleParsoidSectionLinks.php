@@ -237,7 +237,6 @@ class HandleParsoidSectionLinks extends ContentDOMTransformStage {
 			// inserted immediately following the <h> tag
 			$ref = $h->nextSibling;
 			while ( $div->firstChild !== null ) {
-				// @phan-suppress-next-line PhanTypeMismatchArgumentNullableInternal firstChild is non-null (PHP81)
 				$maybeWrapper->insertBefore( $div->firstChild, $ref );
 			}
 			$div = $maybeWrapper; // for use below
@@ -263,7 +262,6 @@ class HandleParsoidSectionLinks extends ContentDOMTransformStage {
 		if ( $po->getOutputFlag( ParserOutputFlags::COLLAPSIBLE_SECTIONS ) ) {
 			$contentsDiv = $df->ownerDocument->createElement( 'div' );
 			while ( $div->nextSibling !== null ) {
-				// @phan-suppress-next-line PhanTypeMismatchArgumentNullableInternal
 				$contentsDiv->appendChild( $div->nextSibling );
 			}
 			$div->parentNode->appendChild( $contentsDiv );

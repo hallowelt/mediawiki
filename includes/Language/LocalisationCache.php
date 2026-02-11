@@ -1074,7 +1074,7 @@ class LocalisationCache {
 		}
 
 		# Fill in the fallback if it's not there already
-		// @phan-suppress-next-line PhanSuspiciousValueComparison
+		// @phan-suppress-next-line PhanRedundantValueComparison
 		if ( ( $coreData['fallback'] === null || $coreData['fallback'] === false ) && $code === 'en' ) {
 			$coreData['fallback'] = false;
 			$coreData['originalFallbackSequence'] = $coreData['fallbackSequence'] = [];
@@ -1149,7 +1149,6 @@ class LocalisationCache {
 		$this->coreDataLoaded[$code] = false;
 		$this->loadCoreData( $code );
 		$coreData = $this->data[$code];
-		// @phan-suppress-next-line PhanTypeArraySuspiciousNullable -- guaranteed by loadCoreData()
 		$deps = $coreData['deps'];
 		$coreData += $this->readPluralFilesAndRegisterDeps( $code, $deps );
 

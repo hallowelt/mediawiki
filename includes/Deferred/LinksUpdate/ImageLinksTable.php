@@ -9,6 +9,7 @@ use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Title\Title;
+use Wikimedia\Rdbms\IResultWrapper;
 
 /**
  * imagelinks
@@ -198,5 +199,21 @@ class ImageLinksTable extends TitleLinksTable {
 	/** @inheritDoc */
 	protected function virtualDomain() {
 		return self::VIRTUAL_DOMAIN;
+	}
+
+	protected function fetchExistingRows(): IResultWrapper {
+		$queryBuilder = $this->getReplicaDB()->newSelectQueryBuilder()
+			->select( $this->getExistingFields() )
+			->from( $this->getTableName() )
+			->where( $this->getFromConds() );
+
+		// This read is for updating, it's conceptually better to use the write config
+		if ( !( $this->linksTargetNormalizationStage() & SCHEMA_COMPAT_WRITE_OLD ) ) {
+			$queryBuilder->join( 'linktarget', null, [ 'il_target_id=lt_id' ] );
+		}
+
+		return $queryBuilder
+			->caller( __METHOD__ )
+			->fetchResultSet();
 	}
 }

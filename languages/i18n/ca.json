@@ -3959,7 +3959,6 @@
 	"specialmute-header": "Seleccioneu les vostres preferències de silenciament de l'usuari <b>{{BIDI:[[User:$1|$1]]}}</b>.",
 	"specialmute-error-invalid-user": "No s’ha trobat el nom d’usuari que heu indicat.",
 	"specialmute-error-email-disabled": "Les funcions de silenci no estan disponibles degut a que l'administrador del wiki ha desactivat les funcions de correu electrònic per a aquest wiki",
-	"specialmute-error-mutelist-disabled": "Les funcions de silenci no estan disponibles degut a que l'administrador del wiki ha desactivat les funcions de silenci de correu electrònic per a aquest wiki",
 	"specialmute-error-no-email-set": "Les funcions de silenci no estan disponibles degut a que no ha confirmat la seva adreça de correu electrònic",
 	"specialmute-error-no-options": "Les funcions de silenci no estan disponibles.",
 	"specialmute-email-footer": "Per a gestionar les preferències de correu electrònic de l'usuari {{BIDI:$2}}, si us plau visiteu la següent URL:\n$1.",

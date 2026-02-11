@@ -4034,7 +4034,6 @@
 	"specialmute-header": "Zəhmət olmasa, <b>{{BIDI:[[User:$1|$1]]}}</b> üçün səssizləşdirmə parametrlərini təyin edin.",
 	"specialmute-error-invalid-user": "Bu istifadəçi tapılmadı.",
 	"specialmute-error-email-disabled": "Səssiz funksiyaları əlçatan deyil, çünki viki administratoru bu viki üçün e-poçt funksiyalarını deaktiv edib.",
-	"specialmute-error-mutelist-disabled": "Səssiz funksiyaları əlçatan deyil, çünki viki administratoru bu viki üçün e-poçt səssizliyini qoruyan funksiyaları deaktiv edib.",
 	"specialmute-error-no-email-set": "Səssizləşdirmə funksiyaları əlçatan deyil, çünki siz e-poçt ünvanınızı təsdiq etməmisiniz.",
 	"specialmute-error-no-options": "Səssizləşdirmə funksiyaları əlçatan deyil.",
 	"specialmute-email-footer": "{{BIDI:$2}} istifadəçisi üçün e-poçt parametrlərini idarə etmək üçün aşağıdakı URL-yə daxil olun:\n$1",

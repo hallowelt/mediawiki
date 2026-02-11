@@ -257,21 +257,17 @@ class ApiQueryRevisions extends ApiQueryRevisionsBase {
 						$params['end'] = $row->ts;
 					}
 				}
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 				if ( $params['startid'] !== null && $params['start'] === null ) {
 					$p = $this->encodeParamName( 'startid' );
 					$this->dieWithError( [ 'apierror-revisions-badid', $p ], "badid_$p" );
 				}
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 				if ( $params['endid'] !== null && $params['end'] === null ) {
 					$p = $this->encodeParamName( 'endid' );
 					$this->dieWithError( [ 'apierror-revisions-badid', $p ], "badid_$p" );
 				}
 
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 				if ( $params['start'] !== null ) {
 					$op = ( $params['dir'] === 'newer' ? '>=' : '<=' );
-					// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 					$ts = $db->timestampOrNull( $params['start'] );
 					if ( $params['startid'] !== null ) {
 						$this->addWhere( $db->buildComparison( $op, [
@@ -282,10 +278,8 @@ class ApiQueryRevisions extends ApiQueryRevisionsBase {
 						$this->addWhere( $db->buildComparison( $op, [ $tsField => $ts ] ) );
 					}
 				}
-				// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 				if ( $params['end'] !== null ) {
 					$op = ( $params['dir'] === 'newer' ? '<=' : '>=' ); // Yes, opposite of the above
-					// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 					$ts = $db->timestampOrNull( $params['end'] );
 					if ( $params['endid'] !== null ) {
 						$this->addWhere( $db->buildComparison( $op, [

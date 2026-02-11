@@ -267,7 +267,6 @@ class ParserEditTests extends Maintenance {
 
 		# XXX originally isSubtest was a way to edit the +tidy vs +untidy
 		# portions of the test separately (I believe)
-		// @phan-suppress-next-line PhanUndeclaredProperty
 		if ( !empty( $testInfo->isSubtest ) ) {
 			# FIXME: this is orphan code, will never be true
 			$specs[] = 'Delete [s]ubtest';

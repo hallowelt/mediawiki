@@ -1663,7 +1663,6 @@ class ApiMain extends ApiBase {
 			}
 		}
 
-		// @phan-suppress-next-line PhanTypeMismatchReturnNullable T240141
 		return $module;
 	}
 

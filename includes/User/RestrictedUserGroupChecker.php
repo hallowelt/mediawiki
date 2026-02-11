@@ -102,14 +102,17 @@ class RestrictedUserGroupChecker {
 	 */
 	public function canPerformerIgnoreGroupRestrictions( Authority $performer, string $groupName ): bool {
 		$groupRestrictions = $this->getGroupRestrictions( $groupName );
-		if ( !$groupRestrictions['canBeIgnored'] ) {
+		if ( !$groupRestrictions->canBeIgnored() ) {
 			return false;
 		}
 		return $performer->isAllowed( 'ignore-restricted-groups' );
 	}
 
-	private function doesPerformerMeetConditions( UserIdentity $performer, array $groupRestrictions ): bool {
-		$performerRestrictions = $groupRestrictions['updaterConditions'];
+	private function doesPerformerMeetConditions(
+		UserIdentity $performer,
+		UserGroupRestrictions $groupRestrictions
+	): bool {
+		$performerRestrictions = $groupRestrictions->getUpdaterConditions();
 		if ( !$performerRestrictions ) {
 			// No restrictions, so automatically meets the requirements
 			return true;
@@ -125,10 +128,10 @@ class RestrictedUserGroupChecker {
 
 	private function doesTargetMeetConditions(
 		UserIdentity $target,
-		array $groupRestrictions,
+		UserGroupRestrictions $groupRestrictions,
 		bool $evaluatePrivateConditions
 	): ?bool {
-		$targetRestrictions = $groupRestrictions['memberConditions'];
+		$targetRestrictions = $groupRestrictions->getMemberConditions();
 		if ( !$targetRestrictions ) {
 			// No restrictions, so automatically meets them
 			return true;
@@ -142,20 +145,11 @@ class RestrictedUserGroupChecker {
 	}
 
 	/**
-	 * Get the restrictions for a given group, ensuring all expected keys are present.
-	 *
-	 * The default values are:
-	 * - memberConditions: empty array (meaning no restrictions)
-	 * - updaterConditions: empty array (meaning no restrictions)
-	 * - canBeIgnored: false
-	 * @return array{memberConditions:array,updaterConditions:array,canBeIgnored:bool}
+	 * Get the restrictions defined for a given group.
 	 */
-	private function getGroupRestrictions( string $groupName ): array {
+	public function getGroupRestrictions( string $groupName ): UserGroupRestrictions {
 		$groupRestrictions = $this->restrictedGroups[$groupName] ?? [];
-		$groupRestrictions['memberConditions'] ??= [];
-		$groupRestrictions['updaterConditions'] ??= [];
-		$groupRestrictions['canBeIgnored'] ??= false;
-		return $groupRestrictions;
+		return new UserGroupRestrictions( $groupRestrictions );
 	}
 
 	/**
@@ -170,6 +164,6 @@ class RestrictedUserGroupChecker {
 
 		$groupRestrictions = $this->getGroupRestrictions( $groupName );
 		return $this->userRequirementsConditionChecker->extractPrivateConditions(
-			$groupRestrictions['memberConditions'] );
+			$groupRestrictions->getMemberConditions() );
 	}
 }

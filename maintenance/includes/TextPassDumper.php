@@ -544,7 +544,7 @@ TEXT
 				//         for plausibility failed)
 
 				// Trying to get prefetch, if it has not been tried before
-				// @phan-suppress-next-line PhanSuspiciousValueComparisonInLoop
+				// @phan-suppress-next-line PhanRedundantValueComparisonInLoop
 				if ( $text === false && $this->prefetch && $prefetchNotTried ) {
 					$prefetchNotTried = false;
 					$tryIsPrefetch = true;
@@ -645,6 +645,7 @@ TEXT
 			}
 
 			// A failure in a prefetch hit does not warrant resetting db connection etc.
+			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable Set in the prefetch block above
 			if ( !$tryIsPrefetch ) {
 				// After backing off for some time, we try to reboot the whole process as
 				// much as possible to not carry over failures from one part to the other

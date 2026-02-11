@@ -352,7 +352,7 @@ class ImportImages extends Maintenance {
 					$summary,
 					$commentText,
 					$user,
-					// @phan-suppress-next-line PhanTypeMismatchArgumentNullable,PhanPossiblyUndeclaredVariable
+					// @phan-suppress-next-line PhanPossiblyUndeclaredVariable
 					$props,
 					$timestamp,
 					$tags
