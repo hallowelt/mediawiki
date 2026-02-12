@@ -256,6 +256,7 @@ class XmlTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideFieldset
 	 */
 	public function testFieldset( string $expect, array $args ) {
+		$this->hideDeprecated( Xml::class . '::fieldset' );
 		$this->assertEquals(
 			$expect,
 			Xml::fieldset( ...$args )

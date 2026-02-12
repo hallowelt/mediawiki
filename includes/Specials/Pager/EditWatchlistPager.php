@@ -10,6 +10,7 @@ namespace MediaWiki\Specials\Pager;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Html\Html;
+use MediaWiki\Linker\Linker;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Navigation\CodexPagerNavigationBuilder;
 use MediaWiki\Page\LinkBatchFactory;
@@ -339,7 +340,10 @@ class EditWatchlistPager extends CodexTablePager {
 
 		// Action buttons
 		$buttons = ( new Codex() )->button()
-			->setAttributes( [ 'class' => 'mw-editwatchlist-remove-selected' ] )
+			->setAttributes( array_merge(
+				[ 'class' => 'mw-editwatchlist-remove-selected' ],
+				Linker::tooltipAndAccesskeyAttribs( 'watchlistedit-normal-submit' )
+			) )
 			->setLabel( $this->msg( 'watchlistedit-table-remove-selected' )->text() )
 			->setType( 'submit' )
 			->setAction( 'destructive' )

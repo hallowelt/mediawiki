@@ -231,6 +231,8 @@ because of Phabricator reports.
 * WatchedItem::getLinkTarget(), deprecated in 1.36, has been removed. Instead,
   use ::getTarget() (and cast if needed).
 * The AddNewAccount hook, deprecated in 1.27, has been dropped.
+* wfMatchesDomainsList(), deprecated in 1.39, has been removed. Instead, use
+  UrlUtils::matchesDomainList().
 * …
 
 === Deprecations in 1.46 ===
@@ -855,9 +857,13 @@ because of Phabricator reports.
   this method is no longer needed. In other cases use getInstanceFromPrimary()
   instead.
 * Some static methods in Xml, deprecated in 1.42, now emit deprecation warnings:
+  - Xml::attrib(),
+  - Xml::buildForm(),
+  - Xml::fieldset(),
   - Xml::label() — use Html::label() instead,
-  - Xml::listDropdown(), and
-  - Xml::listDropdownOptions() & Xml::listDropdownOptionsOoui().
+  - Xml::listDropdown(),
+  - Xml::listDropdownOptions() & Xml::listDropdownOptionsOoui(), and
+  - Xml::option().
 * Language::emphasize() is unused, got deprecated, and will be removed in the
   next version.
 * All public properties of ConverterRule have been deprecated and now emit

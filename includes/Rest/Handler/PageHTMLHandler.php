@@ -11,6 +11,7 @@ use MediaWiki\Rest\Handler\Helper\PageRedirectHelper;
 use MediaWiki\Rest\Handler\Helper\PageRestHelperFactory;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
+use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Rest\StringStream;
 use Wikimedia\Assert\Assert;
@@ -97,7 +98,7 @@ class PageHTMLHandler extends SimpleHandler {
 		);
 
 		if ( $redirectResponse !== null ) {
-			$redirectResponse->setHeader( 'Cache-Control', 'max-age=60' );
+			$redirectResponse->setHeader( ResponseHeaders::CACHE_CONTROL, 'max-age=60' );
 			return $redirectResponse;
 		}
 

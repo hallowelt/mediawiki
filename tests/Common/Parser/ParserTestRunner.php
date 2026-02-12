@@ -1696,11 +1696,16 @@ class ParserTestRunner {
 			if ( !is_array( $extList ) ) {
 				$extList = [ $extList ];
 			}
+			$jsonCodec = MediaWikiServices::getInstance()->getJsonCodec();
 			foreach ( $extList as $ext ) {
+				$data = $jsonCodec->toJsonArray(
+					$output->getExtensionData( $ext )
+				);
+				// Use custom json_encode instead of ::toJsonString() so that
+				// we can pass the PRETTY_PRINT flag.
 				$after[] = "extension[$ext]=" .
-					// XXX should use JsonCodec
 					json_encode(
-						$output->getExtensionData( $ext ),
+						$data,
 						JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
 					);
 			}

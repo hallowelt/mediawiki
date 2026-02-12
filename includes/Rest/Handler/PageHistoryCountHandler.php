@@ -11,6 +11,7 @@ use MediaWiki\Rest\Handler\Helper\PageRedirectHelper;
 use MediaWiki\Rest\Handler\Helper\PageRestHelperFactory;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
+use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\RevisionStore;
@@ -182,14 +183,14 @@ class PageHistoryCountHandler extends SimpleHandler {
 				'count' => $count > $countLimit ? $countLimit : $count,
 				'limit' => $count > $countLimit
 		] );
-		$response->setHeader( 'Cache-Control', 'max-age=' . self::MAX_AGE_200 );
+		$response->setHeader( ResponseHeaders::CACHE_CONTROL, 'max-age=' . self::MAX_AGE_200 );
 
 		// Inform clients who use a deprecated "type" value, so they can adjust
 		if ( isset( self::DEPRECATED_COUNT_TYPES[$type] ) ) {
 			$docs = '<https://www.mediawiki.org/wiki/API:REST/History_API' .
 				'#Get_page_history_counts>; rel="deprecation"';
-			$response->setHeader( 'Deprecation', 'version="v1"' );
-			$response->setHeader( 'Link', $docs );
+			$response->setHeader( ResponseHeaders::DEPRECATION, 'version="v1"' );
+			$response->setHeader( ResponseHeaders::LINK, $docs );
 		}
 
 		return $response;
@@ -721,5 +722,17 @@ class PageHistoryCountHandler extends SimpleHandler {
 				Handler::PARAM_DESCRIPTION => new MessageValue( 'rest-param-desc-pagehistory-count-to' ),
 			]
 		];
+	}
+
+	/** @inheritDoc */
+	public function getResponseHeaderSettings(): array {
+		return array_merge(
+			parent::getResponseHeaderSettings(),
+			[
+				ResponseHeaders::LINK => ResponseHeaders::RESPONSE_HEADER_DEFINITIONS[
+					ResponseHeaders::LINK
+				]
+			]
+		);
 	}
 }

@@ -13,6 +13,7 @@ use MediaWiki\Rest\RequestData;
 use MediaWiki\Rest\RequestInterface;
 use MediaWiki\Rest\Response;
 use MediaWiki\Rest\ResponseFactory;
+use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Rest\ResponseInterface;
 use MediaWiki\Rest\Router;
 use MediaWiki\Rest\Validator\BodyValidator;
@@ -1375,6 +1376,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'$bodySettings' => [],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test' ],
 			'$openApiSpec' => [],
 			'$method' => 'GET',
@@ -1417,6 +1419,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'$bodySettings' => [],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test/{a}/{b}/{d}' ],
 			'$openApiSpec' => [],
 			'$method' => 'GET',
@@ -1474,6 +1477,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'$bodySettings' => [],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test' ],
 			'$openApiSpec' => [],
 			'$method' => 'GET',
@@ -1527,6 +1531,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'$bodySettings' => [],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test/{a}/{b}/{d}' ],
 			'$openApiSpec' => [],
 			'$method' => 'GET',
@@ -1585,6 +1590,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			],
 			'$requestTypes' => [ 'application/foo+json', 'application/bar+json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test' ],
 			'$openApiSpec' => [],
 			'$method' => 'PUT',
@@ -1643,6 +1649,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			],
 			'$requestTypes' => [ 'application/x-www-form-urlencoded' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test' ],
 			'$openApiSpec' => [],
 			'$method' => 'POST',
@@ -1679,6 +1686,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test' ],
 			'$openApiSpec' => [],
 			'$method' => 'GET',
@@ -1703,6 +1711,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test' ],
 			'$openApiSpec' => [],
 			'$method' => 'DELETE',
@@ -1731,6 +1740,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'$bodySettings' => [],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => '/test/{p}' ],
 			'$openApiSpec' => [],
 			'$method' => 'GET',
@@ -1789,6 +1799,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 					],
 				]
 			],
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [ 'path' => 'test' ],
 			'$openApiSpec' => [],
 			'$method' => 'GET',
@@ -1821,6 +1832,33 @@ class HandlerTest extends MediaWikiUnitTestCase {
 				},
 		];
 
+		yield 'response headers' => [
+			'$paramSettings' => [],
+			'$headerParamSettings' => [],
+			'$bodySettings' => [],
+			'$requestTypes' => [ 'application/json' ],
+			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [
+				ResponseHeaders::CACHE_CONTROL => [
+					'schema' => [
+						ParamValidator::PARAM_TYPE => 'string'
+					],
+					'messageKey' => 'rest-responseheader-desc-contenttype'
+				]
+			],
+			'$routeConfig' => [ 'path' => 'test' ],
+			'$openApiSpec' => [],
+			'$method' => 'GET',
+			'$assertions' =>
+				static function ( array $spec ) {
+					self::assertWellFormedOAS( $spec, [ 'responses' ] );
+
+					$headers = $spec['responses'][200]['headers'];
+					// First level properties
+					Assert::assertArrayHasKey( ResponseHeaders::CACHE_CONTROL, $headers );
+				},
+		];
+
 		yield 'OAS info' => [
 			'$paramSettings' => [
 				'p' => [
@@ -1831,6 +1869,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'$bodySettings' => [],
 			'$requestTypes' => [ 'application/json' ],
 			'$responseBodySchema' => null,
+			'$responseHeaderSettings' => [],
 			'$routeConfig' => [
 				'path' => 'test/{p}',
 			],
@@ -1860,6 +1899,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$bodySettings,
 		$requestTypes,
 		$responseBodySchema,
+		$responseHeaderSettings,
 		$routeConfig,
 		$openApiSpec,
 		$method,
@@ -1870,13 +1910,15 @@ class HandlerTest extends MediaWikiUnitTestCase {
 				'getHeaderParamSettings',
 				'getBodyParamSettings',
 				'getSupportedRequestTypes',
-				'getResponseBodySchema'
+				'getResponseBodySchema',
+				'getResponseHeaderSettings'
 		] );
 		$handler->method( 'getParamSettings' )->willReturn( $paramSettings );
 		$handler->method( 'getHeaderParamSettings' )->willReturn( $headerParamSettings );
 		$handler->method( 'getBodyParamSettings' )->willReturn( $bodySettings );
 		$handler->method( 'getSupportedRequestTypes' )->willReturn( $requestTypes );
 		$handler->method( 'getResponseBodySchema' )->willReturn( $responseBodySchema );
+		$handler->method( 'getResponseHeaderSettings' )->willReturn( $responseHeaderSettings );
 
 		// The "body" parameter should be processed as "body", not as "parameter".
 		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );

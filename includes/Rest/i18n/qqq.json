@@ -307,5 +307,12 @@
 	"rest-endpoint-summ-get-sitemap-page": "{{Experimental}} Short summary for the sitemap page endpoint",
 	"rest-param-desc-sitemap-index-id": "{{Experimental}} REST API parameter description for the sitemap index ID",
 	"rest-param-desc-sitemap-page-id": "{{Experimental}} REST API parameter description for the sitemap page ID",
-	"rest-param-desc-sitemap-include-namespace": "{{Experimental}} REST API parameter description for the namespace filter in sitemap requests"
+	"rest-param-desc-sitemap-include-namespace": "{{Experimental}} REST API parameter description for the namespace filter in sitemap requests",
+	"rest-responseheader-desc-cachecontrol": "Description for the Cache-Control response header",
+	"rest-responseheader-desc-deprecation": "Description of tha Deprecation response header",
+	"rest-responseheader-desc-contentlanguage": "Description of tha Content-Language response header",
+	"rest-responseheader-desc-contenttype": "Description of tha Content-Type response header",
+	"rest-responseheader-desc-link": "Description of tha Link response header",
+	"rest-responseheader-desc-expires": "Description of tha Expires response header",
+	"rest-responseheader-desc-location": "Description of tha Location response header"
 }

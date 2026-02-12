@@ -461,7 +461,7 @@ abstract class Handler {
 	public function applyDeprecationHeader( ResponseInterface $response ) {
 		$dd = $this->getDeprecatedDate();
 		if ( $dd !== null && !$response->getHeaderLine( 'Deprecation' ) ) {
-			$response->setHeader( 'Deprecation', '@' . $dd );
+			$response->setHeader( ResponseHeaders::DEPRECATION, '@' . $dd );
 		}
 	}
 
@@ -613,14 +613,14 @@ abstract class Handler {
 		// cookies in the response, or the response itself may vary on user-specific variables,
 		// for example on private wikis where the 'read' permission is restricted. (T264631)
 		if ( $response->getHeaderLine( 'Set-Cookie' ) || $this->getSession()->isPersistent() ) {
-			$response->setHeader( 'Cache-Control', 'private,must-revalidate,s-maxage=0' );
+			$response->setHeader( ResponseHeaders::CACHE_CONTROL, 'private,must-revalidate,s-maxage=0' );
 		}
 
-		if ( !$response->getHeaderLine( 'Cache-Control' ) ) {
+		if ( !$response->getHeaderLine( ResponseHeaders::CACHE_CONTROL ) ) {
 			$rqMethod = $this->getRequest()->getMethod();
 			if ( $rqMethod !== 'GET' && $rqMethod !== 'HEAD' ) {
 				// Responses to requests other than GET or HEAD should not be cacheable by default.
-				$response->setHeader( 'Cache-Control', 'private,no-cache,s-maxage=0' );
+				$response->setHeader( ResponseHeaders::CACHE_CONTROL, 'private,no-cache,s-maxage=0' );
 			}
 		}
 	}
@@ -892,6 +892,59 @@ abstract class Handler {
 	}
 
 	/**
+	 * Fetch Response headers specs for response headers returned by a Handler
+	 *
+	 * Subclasses that return other headers in addition to the default ones should
+	 * extend getResponseHeaderSettings()
+	 *
+	 * @return array[] Associative array mapping response header names to
+	 *  their types and localizable descriptions
+	 */
+	private function getResponseHeaderSchemas(): array {
+		$responseHeaderSettings = [];
+		foreach ( $this->getResponseHeaderSettings() as $headerName => $settings ) {
+			// Set description field for localization
+			$settings[ self::OPENAPI_DESCRIPTION_KEY  ] = new MessageValue( $settings[ 'messageKey' ] );
+			// 'messageKey' field no longer required
+			unset( $settings[ 'messageKey' ] );
+			$settings[ self::OPENAPI_DESCRIPTION_KEY ] = $this->getJsonLocalizer()->localizeValue(
+				$settings, self::OPENAPI_DESCRIPTION_KEY,
+			);
+			$responseHeaderSettings[ $headerName ] = [
+				self::OPENAPI_DESCRIPTION_KEY => $settings[ self::OPENAPI_DESCRIPTION_KEY ],
+				'schema' => $settings[ 'schema' ]
+			];
+		}
+		return $responseHeaderSettings;
+	}
+
+	/**
+	 * Fetch the settings array mapping response headers to their descriptions and schemas
+	 *
+	 * Subclasses that return other headers should extend this function.
+	 * Subclasses that use Response headers not defined in the ResponseHeaders class can
+	 * hardcode the headers names as keys in this function as well.
+	 *
+	 * @stable to override
+	 *
+	 * @return array[] List of Response headers as constants from ResponseHeaders class
+	 */
+	public function getResponseHeaderSettings(): array {
+		$responseHeaderSettings = [
+			ResponseHeaders::CACHE_CONTROL => ResponseHeaders::RESPONSE_HEADER_DEFINITIONS[
+				ResponseHeaders::CACHE_CONTROL
+			]
+		];
+
+		if ( $this->isDeprecated() ) {
+			$responseHeaderSettings[ ResponseHeaders::DEPRECATION ] = ResponseHeaders::RESPONSE_HEADER_DEFINITIONS[
+				ResponseHeaders::DEPRECATION
+			];
+		}
+		return $responseHeaderSettings;
+	}
+
+	/**
 	 * Returns the path and name of a JSON file containing an OpenAPI Schema Object
 	 * specification structure.
 	 *
@@ -932,6 +985,13 @@ abstract class Handler {
 		if ( $bodySchema ) {
 			$bodySchema = $this->getJsonLocalizer()->localizeJson( $bodySchema );
 			$ok['content']['application/json']['schema'] = $bodySchema;
+		}
+
+		// TODO: For Sitemap index and base tests the responsefactory is null.
+		// Follow up task to investigate this
+		if ( $this->responseFactory !== null ) {
+			$headersSpec = $this->getResponseHeaderSchemas();
+			$ok['headers'] = $headersSpec;
 		}
 
 		// XXX: we should add info about redirects

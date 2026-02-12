@@ -5,7 +5,13 @@
 	<cdx-button type="button" @click="openUnassignDialog">
 		{{ $i18n( 'watchlistlabels-editwatchlist-dialog-button-unassign' ) }}
 	</cdx-button>
-	<cdx-button type="button" @click="openRemoveDialog">
+	<cdx-button
+		ref="removeButton"
+		type="button"
+		:title="$i18n( 'tooltip-watchlistedit-normal-submit' )"
+		:accesskey="$i18n( 'accesskey-watchlistedit-normal-submit' )"
+		@click="openRemoveDialog"
+	>
 		{{ $i18n( 'watchlistedit-table-remove-selected', selectedPages.length ) }}
 	</cdx-button>
 
@@ -61,7 +67,7 @@
 </template>
 
 <script>
-const { defineComponent, ref, computed } = require( 'vue' );
+const { defineComponent, ref, computed, onMounted } = require( 'vue' );
 const { CdxButton, CdxDialog, CdxCheckbox } = require( '@wikimedia/codex' );
 
 module.exports = defineComponent( {
@@ -72,6 +78,7 @@ module.exports = defineComponent( {
 		CdxCheckbox
 	},
 	setup() {
+		const removeButton = ref( null );
 		const dialogAction = ref( 'assign' );
 		const isOpen = ref( false );
 		const showLabels = ref( false );
@@ -79,6 +86,13 @@ module.exports = defineComponent( {
 		const selectedPagesList = ref( '' );
 		const allLabels = new Map( Object.values( mw.config.get( 'watchlistLabels' ) ).map( ( l ) => [ l.id, l.name ] ) );
 		const labels = ref( new Map( allLabels ) );
+
+		onMounted( () => {
+			// Update tooltip to include access key hint
+			if ( removeButton.value && removeButton.value.$el ) {
+				$( removeButton.value.$el ).updateTooltipAccessKeys();
+			}
+		} );
 
 		const primaryActionEnabled = computed(
 			() => selectedPages.value.length && ( showLabels.value || dialogAction.value === 'remove' )
@@ -93,7 +107,9 @@ module.exports = defineComponent( {
 					mw.msg( 'watchlistlabels-editwatchlist-dialog-button-unassign' ) :
 					mw.msg( 'watchlistlabels-editwatchlist-dialog-unassign-error' );
 			} else {
-				return mw.msg( 'watchlistedit-table-remove-selected', selectedPages.value.length );
+				return selectedPages.value.length === 0 ?
+					mw.msg( 'watchlistedit-table-remove-selected-error' ) :
+					mw.msg( 'watchlistedit-table-remove-selected', selectedPages.value.length );
 			}
 		} );
 		const dialogBody = computed( () => {
@@ -109,7 +125,7 @@ module.exports = defineComponent( {
 			} else if ( dialogAction.value === 'unassign' ) {
 				showLabels.value = false;
 				if ( selectedPages.value.length > 0 && labels.value.size === 0 ) {
-					return mw.msg( 'watchlistlabels-editwatchlist-dialog-intro-unassign-noitemlabels' );
+					return mw.msg( 'watchlistlabels-editwatchlist-dialog-intro-unassign-noitemlabels', selectedPages.value.length );
 				} else if ( selectedPages.value.length === 0 ) {
 					return mw.msg( 'watchlistlabels-editwatchlist-dialog-intro-unassign-noitems' );
 				}
@@ -183,6 +199,7 @@ module.exports = defineComponent( {
 		};
 
 		return {
+			removeButton,
 			isOpen,
 			dialogTitle,
 			dialogBody,

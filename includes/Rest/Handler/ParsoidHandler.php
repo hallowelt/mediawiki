@@ -31,6 +31,7 @@ use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\RequestInterface;
 use MediaWiki\Rest\Response;
+use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Revision\MutableRevisionRecord;
 use MediaWiki\Revision\RevisionAccessException;
 use MediaWiki\Revision\RevisionLookup;
@@ -825,13 +826,13 @@ abstract class ParsoidHandler extends Handler {
 			// Don't cache requests when wt is set in case somebody uses
 			// GET for wikitext parsing
 			// XXX: can we just refuse to do wikitext parsing in a GET request?
-			$response->setHeader( 'Cache-Control', 'private,no-cache,s-maxage=0' );
+			$response->setHeader( ResponseHeaders::CACHE_CONTROL, 'private,no-cache,s-maxage=0' );
 		} elseif ( $oldid !== null ) {
 			// XXX: can this go away? Parsoid's PageContent class doesn't expose supressed revision content.
 			if ( $request->getHeaderLine( 'Cookie' ) ||
 				$request->getHeaderLine( 'Authorization' ) ) {
 				// Don't cache requests with a session.
-				$response->setHeader( 'Cache-Control', 'private,no-cache,s-maxage=0' );
+				$response->setHeader( ResponseHeaders::CACHE_CONTROL, 'private,no-cache,s-maxage=0' );
 			}
 		}
 		return $response;
@@ -1111,5 +1112,4 @@ abstract class ParsoidHandler extends Handler {
 
 		return $page;
 	}
-
 }

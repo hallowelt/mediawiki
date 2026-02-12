@@ -438,18 +438,6 @@ class GlobalTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Same tests as the UrlUtils method to ensure they don't fall out of sync
-	 * @dataProvider \MediaWiki\Tests\Unit\Utils\UrlUtilsProviders::provideMatchesDomainList
-	 * @covers ::wfMatchesDomainList
-	 */
-	public function testWfMatchesDomainList( $url, $domains, $expected ) {
-		$this->hideDeprecated( 'wfMatchesDomainList' );
-
-		$actual = wfMatchesDomainList( $url, $domains );
-		$this->assertEquals( $expected, $actual );
-	}
-
-	/**
 	 * @covers ::wfMkdirParents
 	 */
 	public function testWfMkdirParents() {

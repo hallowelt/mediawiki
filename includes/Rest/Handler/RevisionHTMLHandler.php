@@ -9,6 +9,7 @@ use MediaWiki\Rest\Handler\Helper\PageRestHelperFactory;
 use MediaWiki\Rest\Handler\Helper\RevisionContentHelper;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
+use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Rest\StringStream;
 use Wikimedia\Assert\Assert;
@@ -78,7 +79,7 @@ class RevisionHTMLHandler extends SimpleHandler {
 				$parserOutput = $this->htmlHelper->getHtml();
 				$response = $this->getResponseFactory()->create();
 				// TODO: need to respect content-type returned by Parsoid.
-				$response->setHeader( 'Content-Type', 'text/html' );
+				$response->setHeader( ResponseHeaders::CONTENT_TYPE, 'text/html' );
 				$this->htmlHelper->putHeaders( $response, $setContentLanguageHeader );
 				$this->contentHelper->setCacheControl( $response, $parserOutput->getCacheExpiry() );
 				$response->setBody( new StringStream( $parserOutput->getRawText() ) );
@@ -176,5 +177,17 @@ class RevisionHTMLHandler extends SimpleHandler {
 	 */
 	protected function hasRepresentation() {
 		return $this->contentHelper->hasContent();
+	}
+
+	/** @inheritDoc */
+	public function getResponseHeaderSettings(): array {
+		return array_merge(
+			parent::getResponseHeaderSettings(),
+			[
+				ResponseHeaders::CONTENT_TYPE => ResponseHeaders::RESPONSE_HEADER_DEFINITIONS[
+					ResponseHeaders::CONTENT_TYPE
+				]
+			]
+		);
 	}
 }

@@ -137,9 +137,11 @@ class Xml {
 	 *
 	 * @return array
 	 *
-	 * @deprecated since 1.42; only for use in methods being deprecated
+	 * @deprecated since 1.42; only for use in methods being deprecated; emitting deprecation warnings since 1.46
 	 */
 	public static function attrib( $name, $present = true ) {
+		wfDeprecated( __METHOD__, '1.42' );
+
 		return $present ? [ $name => $name ] : [];
 	}
 
@@ -177,10 +179,12 @@ class Xml {
 	 * @param array $attribs Optional additional HTML attributes
 	 * @return string HTML
 	 *
-	 * @deprecated since 1.42, use {@see Html::element} instead
+	 * @deprecated since 1.42, use {@see Html::element} instead; emitting warnings since 1.46
 	 */
 	public static function option( $text, $value = null, $selected = false,
 			$attribs = [] ) {
+		wfDeprecated( __METHOD__, '1.42' );
+
 		if ( $value !== null ) {
 			$attribs['value'] = $value;
 		}
@@ -323,9 +327,11 @@ class Xml {
 	 * @param array $attribs Any attributes to fieldset-element.
 	 * @return string
 	 *
-	 * @deprecated since 1.42, use {@see Html::element} instead
+	 * @deprecated since 1.42, use {@see Html::element} instead; emitting deprecation warnings since 1.46
 	 */
 	public static function fieldset( $legend = false, $content = false, $attribs = [] ) {
+		wfDeprecated( __METHOD__, '1.42' );
+
 		$s = self::openElement( 'fieldset', $attribs ) . "\n";
 
 		if ( $legend ) {
@@ -406,9 +412,11 @@ class Xml {
 	 * @param array $submitAttribs The attributes to add to the submit button
 	 * @return string HTML form.
 	 *
-	 * @deprecated since 1.42, use OOUI or Codex widgets instead
+	 * @deprecated since 1.42, use OOUI or Codex widgets instead; emitting deprecation warnings since 1.46
 	 */
 	public static function buildForm( $fields, $submitLabel = null, $submitAttribs = [] ) {
+		wfDeprecated( __METHOD__, '1.42' );
+
 		$form = '';
 		$form .= "<table><tbody>";
 

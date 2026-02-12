@@ -10,6 +10,7 @@ use MediaWiki\Page\SitemapGenerator;
 use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\HeaderParser\HttpDate;
+use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Rest\StringStream;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 
@@ -78,6 +79,21 @@ abstract class SitemapHandlerBase extends Handler {
 		$response->setHeader( 'Cache-Control', 'public' );
 		$response->setBody( new StringStream( $xml ) );
 		return $response;
+	}
+
+	/** @inheritDoc */
+	public function getResponseHeaderSettings(): array {
+		return array_merge(
+			parent::getResponseHeaderSettings(),
+			[
+				ResponseHeaders::CONTENT_TYPE => ResponseHeaders::RESPONSE_HEADER_DEFINITIONS[
+					ResponseHeaders::CONTENT_TYPE
+				],
+				ResponseHeaders::EXPIRES => ResponseHeaders::RESPONSE_HEADER_DEFINITIONS[
+					ResponseHeaders::EXPIRES
+				],
+			]
+		);
 	}
 
 	abstract protected function getXml(): string;

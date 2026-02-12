@@ -14,6 +14,7 @@ use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\Handler\Helper\RestStatusTrait;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
+use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Search\Entity\SearchResultThumbnail;
 use MediaWiki\Search\ISearchResultSet;
 use MediaWiki\Search\SearchEngine;
@@ -396,10 +397,11 @@ class SearchHandler extends Handler {
 			// in the CDN, especially for short prefixes.
 			// See also $wgSearchSuggestCacheExpiry and ApiOpenSearch
 			if ( $this->permissionManager->isEveryoneAllowed( 'read' ) ) {
-				$response->setHeader( 'Cache-Control', 'public, max-age=' . $this->completionCacheExpiry );
+				$cacheControl = 'public, max-age=' . $this->completionCacheExpiry;
 			} else {
-				$response->setHeader( 'Cache-Control', 'no-store, max-age=0' );
+				$cacheControl = 'no-store, max-age=0';
 			}
+			$response->setHeader( ResponseHeaders::CACHE_CONTROL, $cacheControl );
 		}
 
 		return $response;

@@ -596,20 +596,6 @@ function wfParseUrl( $url ) {
 }
 
 /**
- * Check whether a given URL has a domain that occurs in a given set of domains
- *
- * @deprecated since 1.39, use UrlUtils::matchesDomainList(); hard-deprecated since 1.44
- * @param string $url
- * @param array $domains Array of domains (strings)
- * @return bool True if the host part of $url ends in one of the strings in $domains
- */
-function wfMatchesDomainList( $url, $domains ) {
-	wfDeprecated( __FUNCTION__, '1.39' );
-
-	return wfGetUrlUtils()->matchesDomainList( (string)$url, (array)$domains );
-}
-
-/**
  * Sends a line to the debug log if enabled or, optionally, to a comment in output.
  * In normal operation this is a NOP.
  *

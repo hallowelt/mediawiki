@@ -2920,6 +2920,7 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\Rest\\Response' => __DIR__ . '/includes/Rest/Response.php',
 	'MediaWiki\\Rest\\ResponseException' => __DIR__ . '/includes/Rest/ResponseException.php',
 	'MediaWiki\\Rest\\ResponseFactory' => __DIR__ . '/includes/Rest/ResponseFactory.php',
+	'MediaWiki\\Rest\\ResponseHeaders' => __DIR__ . '/includes/Rest/ResponseHeaders.php',
 	'MediaWiki\\Rest\\ResponseInterface' => __DIR__ . '/includes/Rest/ResponseInterface.php',
 	'MediaWiki\\Rest\\RouteDefinitionException' => __DIR__ . '/includes/Rest/RouteDefinitionException.php',
 	'MediaWiki\\Rest\\Router' => __DIR__ . '/includes/Rest/Router.php',

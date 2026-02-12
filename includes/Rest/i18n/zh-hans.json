@@ -15,6 +15,7 @@
 			"Lily9814",
 			"LittlePaw365",
 			"Mishidexfc",
+			"Pawsdt",
 			"Peterxy12",
 			"Shizhao",
 			"SomeyaMako",
@@ -308,5 +309,9 @@
 	"rest-endpoint-summ-post-page": "创建页面",
 	"rest-endpoint-summ-post-transform-wikitext-to-lint": "返回wikitext的lint错误",
 	"rest-endpoint-summ-post-transform-wikitext-to-html": "将Wikitext转换为HTML。",
-	"rest-endpoint-summ-post-transform-html-to-wikitext": "将HTML转换为Wikitext。"
+	"rest-endpoint-summ-post-transform-html-to-wikitext": "将HTML转换为Wikitext。",
+	"rest-requestheader-desc-acceptlanguage": "用户偏向的自然语言和地区。",
+	"rest-endpoint-summ-get-sitemap-index": "获取站点的列表",
+	"rest-endpoint-desc-get-sitemap-page": "返回该网站上所有页面的XML列表。每条包含URL和最后编辑日期。每页最多包含10000条。",
+	"rest-param-desc-sitemap-index-id": "网页索引从0开始。其余可用的索引可在robots.txt中指定。"
 }
