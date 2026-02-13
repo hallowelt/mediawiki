@@ -63,9 +63,7 @@ class SkinFactoryTest extends \MediaWikiUnitTestCase {
 
 	public function testMakeSkinWithValidCallback() {
 		$factory = $this->createSkinFactory();
-		$factory->register( 'testfallback', 'TestFallback', static function () {
-			return new SkinFallback();
-		} );
+		$factory->register( 'testfallback', 'TestFallback', static fn () => new SkinFallback() );
 
 		$skin = $factory->makeSkin( 'testfallback' );
 		$this->assertInstanceOf( SkinFallback::class, $skin );

@@ -45,11 +45,7 @@ class SearchIndexFieldTest extends \MediaWikiUnitTestCase {
 		$field1->setFlag( 0xFF );
 		$this->assertFalse( $field1->merge( $field2 ) );
 
-		$field1->setMergeCallback(
-			static function ( $a, $b ) {
-				return "test";
-			}
-		);
+		$field1->setMergeCallback( static fn ( $a, $b ) => 'test' );
 		$this->assertEquals( "test", $field1->merge( $field2 ) );
 	}
 

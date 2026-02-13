@@ -54,9 +54,7 @@ class CentralIdLookupFactoryTest extends MediaWikiUnitTestCase {
 					MainConfigNames::CentralIdLookupProviders => [
 						'local' => $localIdLookupTest,
 						'local2' => $localIdLookupTest,
-						'mock' => [ 'factory' => function () {
-							return $this->centralLookupMock;
-						} ]
+						'mock' => [ 'factory' => fn () => $this->centralLookupMock ]
 					],
 					MainConfigNames::CentralIdLookupProvider => 'mock',
 				]

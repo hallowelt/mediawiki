@@ -334,9 +334,7 @@ class ActorStoreTest extends ActorStoreTestBase {
 
 	public static function provideFindActorId() {
 		yield 'anon, local' => [
-			static function () {
-				return new UserIdentityValue( 0, self::IP );
-			}, // $actorCallback
+			static fn () => new UserIdentityValue( 0, self::IP ), // $actorCallback
 			43, // $expected
 		];
 		yield 'anon, non-canonical, local' => [
@@ -346,33 +344,23 @@ class ActorStoreTest extends ActorStoreTestBase {
 			43, // $expected
 		];
 		yield 'registered, local' => [
-			static function () {
-				return new UserIdentityValue( 24, 'TestUser' );
-			}, // $actorCallback
+			static fn () => new UserIdentityValue( 24, 'TestUser' ), // $actorCallback
 			42, // $expected
 		];
 		yield 'registered, zero user name' => [
-			static function () {
-				return new UserIdentityValue( 26, '0' );
-			}, // $actorCallback
+			static fn () => new UserIdentityValue( 26, '0' ), // $actorCallback
 			46, // $expected
 		];
 		yield 'anon, non-existent, local' => [
-			static function () {
-				return new UserIdentityValue( 0, '127.1.2.3' );
-			}, // $actorCallback
+			static fn () => new UserIdentityValue( 0, '127.1.2.3' ), // $actorCallback
 			null, // $expected
 		];
 		yield 'registered, non-existent, local' => [
-			static function () {
-				return new UserIdentityValue( 51, 'DoNotExist' );
-			}, // $actorCallback
+			static fn () => new UserIdentityValue( 51, 'DoNotExist' ), // $actorCallback
 			null, // $expected
 		];
 		yield 'external, local' => [
-			static function () {
-				return new UserIdentityValue( 0, 'acme>TestUser' );
-			}, // $actorCallback
+			static fn () => new UserIdentityValue( 0, 'acme>TestUser' ), // $actorCallback
 			45, // $expected
 		];
 		yield 'anon User, local' => [
@@ -490,12 +478,8 @@ class ActorStoreTest extends ActorStoreTestBase {
 	}
 
 	public static function provideAcquireActorId() {
-		yield 'anon' => [ static function () {
-			return new UserIdentityValue( 0, '127.3.2.1' );
-		} ];
-		yield 'registered' => [ static function () {
-			return new UserIdentityValue( 15, 'MyUser' );
-		} ];
+		yield 'anon' => [ static fn () => new UserIdentityValue( 0, '127.3.2.1' ) ];
+		yield 'registered' => [ static fn () => new UserIdentityValue( 15, 'MyUser' ) ];
 		yield 'User object' => [ static function ( $serviceContainer ) {
 			return $serviceContainer->getUserFactory()->newAnonymous( '127.4.3.2' );
 		} ];

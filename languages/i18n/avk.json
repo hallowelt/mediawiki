@@ -1397,8 +1397,6 @@
 	"autosumm-new": "Warzafu bu kan '$1'",
 	"lag-warn-normal": "Betaks skuyun weti le $1 {{PLURAL:$1|verast|verast}} batliz me zo kovexalatar.",
 	"watchlistedit-normal-title": "Betara va suzdasiki",
-	"watchlistedit-normal-legend": "Divsuzdasikira va vergumvelt",
-	"watchlistedit-normal-submit": "Tioltera va vergumvelt",
 	"watchlistedit-normal-done": "$1 vergumvelt kou rinafi suzdasiki su zo tiolted :",
 	"watchlistedit-raw-title": "Betara va rilafi suzdasiki",
 	"watchlistedit-raw-legend": "Betara va rilafi suzdasiki",

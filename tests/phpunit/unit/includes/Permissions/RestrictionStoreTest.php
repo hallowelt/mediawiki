@@ -1033,9 +1033,7 @@ class RestrictionStoreTest extends MediaWikiUnitTestCase {
 
 	public function testGetCascadeProtectionSourcesSpecialPage() {
 		$obj = $this->newRestrictionStore( [ 'db' => [ DB_REPLICA => [ 'select' => [
-			static function () {
-				return [];
-			},
+			static fn () => [],
 			0
 		] ] ] ] );
 

@@ -375,9 +375,7 @@ class UserTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( $user->isRegistered() );
 		$this->assertFalse( $user->isAnon() );
 
-		$this->setTemporaryHook( 'UserLogout', static function ( &$user ) {
-			return false;
-		} );
+		$this->setTemporaryHook( 'UserLogout', static fn () => false );
 		$user->logout();
 		$this->assertTrue( $user->isRegistered() );
 

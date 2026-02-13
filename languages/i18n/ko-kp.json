@@ -1020,8 +1020,6 @@
 	"imgmultigo": "가기!",
 	"imgmultigoto": "$1 페지로 가기",
 	"watchlistedit-normal-title": "감시문서목록 편집하기",
-	"watchlistedit-normal-legend": "감시문서목록에서 문서 제거하기",
-	"watchlistedit-normal-explain": "감시문서목록에 있는 문서의 제목이 아래에 나와 있습니다.\n감시문서목록에서 제거하려는 문서가 있으면 각 항목의 확인 상자를 선택한 다음 《{{int:Watchlistedit-normal-submit}}》를 찰칵해주세요.\n또는 [[Special:EditWatchlist/raw|목록을 직접 편집]]할수도 있습니다.",
 	"watchlistedit-normal-done": "{{PLURAL:$1|문서 1개|문서 $1개}}를 감시문서목록에서 제거했습니다:",
 	"watchlistedit-raw-legend": "감시문서목록 직접 편집하기",
 	"watchlistedit-raw-explain": "감시문서목록의 각 항목이 나와 있습니다. 필요한 항목을 직접 추가하거나 제거할 수 있습니다.\n각 줄마다 하나의 제목을 입력하세요.\n수정을 마쳤다면 《{{int:Watchlistedit-raw-submit}}》을 찰칵하면 됩니다.\n또는 [[Special:EditWatchlist|일반적인 편집기]]를 쓸수도 있습니다.",

@@ -26,9 +26,7 @@ class TestDeprecatedClass {
 		$this->deprecatePublicProperty( 'privateDeprecated', '1.24' );
 
 		$this->deprecatePublicPropertyFallback( 'fallbackDeprecated', '1.25',
-			function () {
-				return $this->fallbackDeprecated;
-			},
+			fn () => $this->fallbackDeprecated,
 			function ( $value ) {
 				$this->fallbackDeprecated = $value;
 			}
@@ -38,9 +36,7 @@ class TestDeprecatedClass {
 			'setFoo'
 		);
 		$this->deprecatePublicPropertyFallback( 'fallbackGetterOnly', '1.25',
-			static function () {
-				return 1;
-			}
+			static fn () => 1
 		);
 	}
 

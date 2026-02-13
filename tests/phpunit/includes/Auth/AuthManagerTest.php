@@ -1076,9 +1076,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			array_merge(
 				$this->preauthMocks, $this->primaryauthMocks, $this->secondaryauthMocks
 			),
-			static function ( $p ) {
-				return is_callable( [ $p, 'expects' ] );
-			}
+			static fn ( $p ) => is_callable( [ $p, 'expects' ] )
 		);
 		$shouldInvokePostCalled = array_any(
 			$managerResponses,
@@ -4493,9 +4491,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$primaryAuthProvider->method( 'testUserForCreation' )->willReturn( StatusValue::newGood() );
 		$primaryAuthProvider->method( 'getUniqueId' )->willReturn( __METHOD__ );
 		$this->primaryauthMocks = [ $primaryAuthProvider ];
-		$this->logger = new TestLogger( true, static function ( $message, $level ) {
-			return $message;
-		} );
+		$this->logger = new TestLogger( true, static fn ( $message, $level ) => $message );
 		$this->initializeManager();
 		$this->logger->setCollectContext( true );
 		$this->logger->setCollect( true );

@@ -1665,7 +1665,7 @@
 	"apierror-canthide": "Dir fehlt die Berechtigung, Benutzernamen im Sperrlogbuch zu verstecken.",
 	"apierror-cantimport-upload": "Dir fehlt die Berechtigung, hochgeladene Seiten zu importieren.",
 	"apierror-cantimport": "Dir fehlt die Berechtigung, Seiten zu importieren.",
-	"apierror-cantsend": "Du bist nicht angemeldet, hast keine bestätigte E-Mail-Adresse, oder darfst keine E-Mails an andere Benutzer versenden, weshalb du keine E-Mails versenden kannst.",
+	"apierror-cantsend": "Du bist nicht angemeldet, hast keine bestätigte E-Mail-Adresse oder darfst keine E-Mails an andere Benutzer versenden, weshalb du keine E-Mails versenden kannst.",
 	"apierror-cantview-deleted-comment": "Dir fehlt die Berechtigung, gelöschte Kommentare anzusehen.",
 	"apierror-cantview-deleted-description": "Dir fehlt die Berechtigung, Beschreibungen gelöschter Dateien einzusehen.",
 	"apierror-cantview-deleted-metadata": "Dir fehlt die Berechtigung, Metadaten gelöschter Dateien abzurufen.",

@@ -158,9 +158,7 @@ class SpecialBotPasswords extends FormSpecialPage {
 					$showGrants
 				),
 				'default' => array_map(
-					static function ( $g ) {
-						return "grant-$g";
-					},
+					static fn ( $g ) => "grant-$g",
 					$this->botPassword->getGrants()
 				),
 				'tooltips-html' => array_combine(
@@ -175,9 +173,7 @@ class SpecialBotPasswords extends FormSpecialPage {
 					)
 				),
 				'force-options-on' => array_map(
-					static function ( $g ) {
-						return "grant-$g";
-					},
+					static fn ( $g ) => "grant-$g",
 					$this->grantsInfo->getHiddenGrants()
 				),
 			];

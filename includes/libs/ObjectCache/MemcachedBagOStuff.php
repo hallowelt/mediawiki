@@ -58,9 +58,7 @@ abstract class MemcachedBagOStuff extends MediumSpecificBagOStuff {
 			// Make sure %, #, and non-ASCII chars are escaped
 			$component = preg_replace_callback(
 				'/[^\x21-\x22\x24\x26-\x39\x3b-\x7e]+/',
-				static function ( $m ) {
-					return rawurlencode( $m[0] );
-				},
+				static fn ( $m ) => rawurlencode( $m[0] ),
 				$component
 			);
 

@@ -187,11 +187,7 @@ class ApiDeleteTest extends ApiTestCase {
 
 		$this->editPage( $title, 'Some text' );
 
-		$this->setTemporaryHook( 'ArticleDelete',
-			static function () {
-				return false;
-			}
-		);
+		$this->setTemporaryHook( 'ArticleDelete', static fn () => false );
 
 		try {
 			$this->doApiRequestWithToken( [ 'action' => 'delete', 'title' => $title->getPrefixedText() ] );

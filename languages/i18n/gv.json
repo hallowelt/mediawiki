@@ -1014,8 +1014,6 @@
 	"table_pager_empty": "Troar erbee",
 	"autosumm-new": "Duillag crooit lesh: $1",
 	"watchlistedit-normal-title": "Reagh y rolley arrey",
-	"watchlistedit-normal-legend": "Gow enmyssyn magh ass y rolley arrey",
-	"watchlistedit-normal-submit": "Gow enmyssyn magh",
 	"watchlistedit-normal-done": "Va {{PLURAL:$1|un enmys|$1 enmyssyn}} goit magh ass dty rolley arrey:",
 	"watchlistedit-raw-titles": "Enmyssyn:",
 	"watchlisttools-clear": "Glen y rolley arrey",

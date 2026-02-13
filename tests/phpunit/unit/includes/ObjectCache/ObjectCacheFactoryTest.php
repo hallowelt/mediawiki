@@ -15,8 +15,7 @@ class ObjectCacheFactoryTest extends MediaWikiUnitTestCase {
 			$this->createMock( ServiceOptions::class ),
 			StatsFactory::newNull(),
 			new NullSpi(),
-			static function () {
-			},
+			static fn () => null,
 			'testWikiId',
 			new NoopTracer()
 		);

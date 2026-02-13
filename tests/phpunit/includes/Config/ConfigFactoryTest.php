@@ -61,9 +61,7 @@ class ConfigFactoryTest extends \MediaWikiIntegrationTestCase {
 		// define new config instance
 		$newFactory = new ConfigFactory();
 		$newFactory->register( 'foo', 'MediaWiki\\Config\\GlobalVarConfig::newInstance' );
-		$newFactory->register( 'bar', static function () {
-			return new HashConfig();
-		} );
+		$newFactory->register( 'bar', static fn () => new HashConfig() );
 
 		// "foo" and "quux" are defined in the old and the new factory.
 		// The old factory has instances for "foo" and "bar", but not "quux".

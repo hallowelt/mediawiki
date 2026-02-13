@@ -41,9 +41,7 @@ class ChangesListFilterGroupTest extends \MediaWikiUnitTestCase {
 				-4,
 			],
 			array_map(
-				static function ( $f ) {
-					return $f->getPriority();
-				},
+				static fn ( $f ) => $f->getPriority(),
 				array_values( $filters )
 			)
 		);

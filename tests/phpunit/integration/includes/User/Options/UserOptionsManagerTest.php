@@ -224,9 +224,7 @@ class UserOptionsManagerTest extends UserOptionsLookupTestBase {
 	public function testSaveUserOptionsHookAbort() {
 		$manager = $this->getManager( [
 			'hookContainer' => $this->createHookContainer( [
-				'SaveUserOptions' => static function () {
-					return false;
-				}
+				'SaveUserOptions' => static fn () => false
 			] )
 		] );
 		$user = UserIdentityValue::newRegistered( 42, 'Test' );

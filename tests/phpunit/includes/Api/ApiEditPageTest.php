@@ -1599,11 +1599,7 @@ class ApiEditPageTest extends ApiTestCase {
 
 		$this->expectApiErrorCode( 'hookaborted' );
 
-		$this->setTemporaryHook( 'EditFilterMergedContent',
-			static function () {
-				return false;
-			}
-		);
+		$this->setTemporaryHook( 'EditFilterMergedContent', static fn () => false );
 
 		try {
 			$this->doApiRequestWithToken( [

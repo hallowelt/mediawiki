@@ -1504,45 +1504,33 @@ class PageUpdaterTest extends MediaWikiIntegrationTestCase {
 	public static function provideMagicWords() {
 		yield 'PAGEID' => [
 			'Test {{PAGEID}} Test',
-			static function ( RevisionRecord $rev ) {
-				return $rev->getPageId();
-			}
+			static fn ( RevisionRecord $rev ) => $rev->getPageId(),
 		];
 
 		yield 'REVISIONID' => [
 			'Test {{REVISIONID}} Test',
-			static function ( RevisionRecord $rev ) {
-				return $rev->getId();
-			}
+			static fn ( RevisionRecord $rev ) => $rev->getId(),
 		];
 
 		yield 'REVISIONUSER' => [
 			'Test {{REVISIONUSER}} Test',
-			static function ( RevisionRecord $rev ) {
-				return $rev->getUser()->getName();
-			}
+			static fn ( RevisionRecord $rev ) => $rev->getUser()->getName(),
 		];
 
 		yield 'REVISIONTIMESTAMP' => [
 			'Test {{REVISIONTIMESTAMP}} Test',
-			static function ( RevisionRecord $rev ) {
-				return $rev->getTimestamp();
-			}
+			static fn ( RevisionRecord $rev ) => $rev->getTimestamp(),
 		];
 
 		yield 'subst:REVISIONUSER' => [
 			'Test {{subst:REVISIONUSER}} Test',
-			static function ( RevisionRecord $rev ) {
-				return $rev->getUser()->getName();
-			},
+			static fn ( RevisionRecord $rev ) => $rev->getUser()->getName(),
 			'subst'
 		];
 
 		yield 'subst:PAGENAME' => [
 			'Test {{subst:PAGENAME}} Test',
-			static function ( RevisionRecord $rev ) {
-				return 'PageUpdaterTest::testMagicWords';
-			},
+			static fn ( RevisionRecord $rev ) => 'PageUpdaterTest::testMagicWords',
 			'subst'
 		];
 	}

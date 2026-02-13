@@ -352,9 +352,7 @@ class SearchEnginePrefixTest extends MediaWikiLangTestCase {
 		$search = $this->mockSearchWithResults( $case['provision'] );
 		$results = $search->completionSearch( $case['query'] );
 
-		$results = $results->map( static function ( SearchSuggestion $s ) {
-			return $s->getText();
-		} );
+		$results = $results->map( static fn ( SearchSuggestion $s ) => $s->getText() );
 
 		$this->assertEquals(
 			$case['results'],

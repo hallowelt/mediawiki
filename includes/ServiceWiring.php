@@ -85,6 +85,7 @@ use MediaWiki\Edit\ParsoidOutputStash;
 use MediaWiki\Edit\SimpleParsoidOutputStash;
 use MediaWiki\EditPage\Constraint\EditConstraintFactory;
 use MediaWiki\EditPage\IntroMessageBuilder;
+use MediaWiki\EditPage\PageEditingHelper;
 use MediaWiki\EditPage\PreloadedContentBuilder;
 use MediaWiki\EditPage\SpamChecker;
 use MediaWiki\Export\WikiExporterFactory;
@@ -3106,6 +3107,14 @@ return [
 			$services->getLinkTargetLookup(),
 			$services->getRedirectStore(),
 			$services->getLogFormatterFactory()
+		);
+	},
+
+	'_PageEditingHelper' => static function ( MediaWikiServices $services ): PageEditingHelper {
+		return new PageEditingHelper(
+			$services->getContentHandlerFactory(),
+			$services->getParserFactory(),
+			$services->getRevisionStore(),
 		);
 	},
 

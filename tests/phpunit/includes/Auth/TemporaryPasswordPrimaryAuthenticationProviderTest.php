@@ -104,9 +104,7 @@ class TemporaryPasswordPrimaryAuthenticationProviderTest extends MediaWikiIntegr
 			] )
 			->getMock();
 		$provider->method( 'checkPasswordValidity' )
-			->willReturnCallback( function () {
-				return $this->validity;
-			} );
+			->willReturnCallback( fn () => $this->validity );
 		$this->initProvider(
 			$provider, $mwServices->getMainConfig(), null, $this->manager, null, $userNameUtils
 		);

@@ -122,25 +122,19 @@ class ContentHandlerFactoryTest extends MediaWikiUnitTestCase {
 		return [
 			'Callback exists but returns the wrong type' => [
 				[
-					'ExistCallbackWithWrongType' => static function () {
-						return true;
-					}
+					'ExistCallbackWithWrongType' => static fn () => true
 				],
 				UnexpectedValueException::class
 			],
 			'Callback exists but returns null' => [
 				[
-					'ExistCallbackWithNull' => static function () {
-						return null;
-					}
+					'ExistCallbackWithNull' => static fn () => null
 				],
 				UnexpectedValueException::class
 			],
 			'Callback exists but returns the empty string' => [
 				[
-					'ExistCallbackWithEmptyString' => static function () {
-						return '';
-					}
+					'ExistCallbackWithEmptyString' => static fn () => ''
 				],
 				UnexpectedValueException::class
 			],
@@ -170,9 +164,7 @@ class ContentHandlerFactoryTest extends MediaWikiUnitTestCase {
 			],
 			'Callback with non-existing class name' => [
 				[
-					'ExistCallbackWithNotExistClassName' => static function () {
-						return ClassNameNotExist();
-					},
+					'ExistCallbackWithNotExistClassName' => static fn () => ClassNameNotExist()
 				],
 				Error::class
 			],
@@ -260,11 +252,7 @@ class ContentHandlerFactoryTest extends MediaWikiUnitTestCase {
 			[ $name1, $name2, ],
 			$factory->getContentModels() );
 
-		$factory->defineContentHandler(
-			$name3,
-			static function () {
-			}
-		);
+		$factory->defineContentHandler( $name3, static fn () => null );
 
 		$this->assertArrayEquals(
 			[ $name1, $name2, $name3, ],
@@ -304,11 +292,7 @@ class ContentHandlerFactoryTest extends MediaWikiUnitTestCase {
 		$this->assertFalse( $factory->isDefinedModel( $name4 ) );
 		$this->assertFalse( $factory->isDefinedModel( 'not exist name' ) );
 
-		$factory->defineContentHandler(
-			$name3,
-			static function () {
-			}
-		);
+		$factory->defineContentHandler( $name3, static fn () => null );
 
 		$this->assertTrue( $factory->isDefinedModel( $name1 ) );
 		$this->assertTrue( $factory->isDefinedModel( $name2 ) );

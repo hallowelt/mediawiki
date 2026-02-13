@@ -125,9 +125,7 @@ class ApiPageSetTest extends ApiTestCase {
 				'UTRedirectSourceA', 'UTRedirectSourceB', 'UTRedirectTarget',
 				$redirectOneTitle, $redirectTwoTitle,
 			],
-			array_map( static function ( $x ) {
-				return $x->getDBkey();
-			}, $pageSet->getPages() )
+			array_map( static fn ( $x ) => $x->getDBkey(), $pageSet->getPages() )
 		);
 	}
 

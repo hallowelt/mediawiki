@@ -86,9 +86,7 @@ WIKITEXT;
 	 */
 	public function testIsBadFile( $name, $title, $expected ) {
 		$bfl = new BadFileLookup(
-			static function () {
-				return self::BAD_FILE_LIST;
-			},
+			static fn () => self::BAD_FILE_LIST,
 			new EmptyBagOStuff,
 			$this->getMockRepoGroup(),
 			$this->getDummyTitleParser( [ 'throwMockExceptions' => true ] ),
@@ -106,9 +104,7 @@ WIKITEXT;
 		$nullRepoGroup->expects( $this->once() )->method( 'findFile' )->willReturn( null );
 
 		$bfl = new BadFileLookup(
-			static function () {
-				return self::BAD_FILE_LIST;
-			},
+			static fn () => self::BAD_FILE_LIST,
 			new EmptyBagOStuff,
 			$nullRepoGroup,
 			$this->getDummyTitleParser( [ 'throwMockExceptions' => true ] ),

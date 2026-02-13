@@ -66,7 +66,7 @@ class UploadedFileStream implements Stringable, StreamInterface {
 		$this->close();
 	}
 
-	public function __toString() {
+	public function __toString(): string {
 		try {
 			$this->seek( 0 );
 			return $this->getContents();
@@ -76,7 +76,7 @@ class UploadedFileStream implements Stringable, StreamInterface {
 		}
 	}
 
-	public function close() {
+	public function close(): void {
 		if ( $this->fp ) {
 			// Spec doesn't care about close errors.
 			try {
@@ -95,7 +95,7 @@ class UploadedFileStream implements Stringable, StreamInterface {
 	}
 
 	/** @inheritDoc */
-	public function getSize() {
+	public function getSize(): ?int {
 		if ( $this->size === false ) {
 			$this->size = null;
 
@@ -114,13 +114,13 @@ class UploadedFileStream implements Stringable, StreamInterface {
 	}
 
 	/** @inheritDoc */
-	public function tell() {
+	public function tell(): int {
 		$this->checkOpen();
 		return self::quietCall( 'ftell', [ $this->fp ], -1, 'Cannot determine stream position' );
 	}
 
 	/** @inheritDoc */
-	public function eof() {
+	public function eof(): bool {
 		// Spec doesn't care about errors here.
 		try {
 			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
@@ -131,52 +131,52 @@ class UploadedFileStream implements Stringable, StreamInterface {
 	}
 
 	/** @inheritDoc */
-	public function isSeekable() {
+	public function isSeekable(): bool {
 		return (bool)$this->fp;
 	}
 
 	/** @inheritDoc */
-	public function seek( $offset, $whence = SEEK_SET ) {
+	public function seek( int $offset, int $whence = SEEK_SET ): void {
 		$this->checkOpen();
 		self::quietCall( 'fseek', [ $this->fp, $offset, $whence ], -1, 'Seek failed' );
 	}
 
 	/** @inheritDoc */
-	public function rewind() {
+	public function rewind(): void {
 		$this->seek( 0 );
 	}
 
 	/** @inheritDoc */
-	public function isWritable() {
+	public function isWritable(): bool {
 		return false;
 	}
 
 	/** @inheritDoc */
-	public function write( $string ) {
+	public function write( string $string ): int {
 		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		$this->checkOpen();
 		throw new RuntimeException( 'Stream is read-only' );
 	}
 
 	/** @inheritDoc */
-	public function isReadable() {
+	public function isReadable(): bool {
 		return (bool)$this->fp;
 	}
 
 	/** @inheritDoc */
-	public function read( $length ) {
+	public function read( int $length ): string {
 		$this->checkOpen();
 		return self::quietCall( 'fread', [ $this->fp, $length ], false, 'Read failed' );
 	}
 
 	/** @inheritDoc */
-	public function getContents() {
+	public function getContents(): string {
 		$this->checkOpen();
 		return self::quietCall( 'stream_get_contents', [ $this->fp ], false, 'Read failed' );
 	}
 
 	/** @inheritDoc */
-	public function getMetadata( $key = null ) {
+	public function getMetadata( ?string $key = null ) {
 		$this->checkOpen();
 		$ret = self::quietCall( 'stream_get_meta_data', [ $this->fp ], false, 'Metadata fetch failed' );
 		if ( $key !== null ) {

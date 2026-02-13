@@ -41,9 +41,7 @@ class MultiTitleFilterTest extends MediaWikiUnitTestCase {
 		$titleFormatter->method( 'getPrefixedText' )
 			->willReturnOnConsecutiveCalls(
 				...array_map(
-					static function ( $t ) {
-						return $t->getPrefixedText();
-					},
+					static fn ( $t ) => $t->getPrefixedText(),
 					$newFromIDsReturnValuePages
 				)
 			);

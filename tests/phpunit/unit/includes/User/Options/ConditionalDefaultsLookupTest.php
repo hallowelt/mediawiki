@@ -95,8 +95,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			] ),
 			$this->createNoOpMock( UserRegistrationLookup::class ),
 			$this->createNoOpMock( UserIdentityUtils::class ),
-			static function () {
-			}
+			static fn () => null
 		);
 
 		$this->assertSame(
@@ -119,8 +118,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			$this->getServiceOptions(),
 			$this->createNoOpMock( UserRegistrationLookup::class ),
 			$this->createNoOpMock( UserIdentityUtils::class ),
-			static function () {
-			}
+			static fn () => null
 		);
 
 		$this->assertNull( $lookup->getOptionDefaultForUser(
@@ -157,8 +155,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			] ),
 			$registrationLookup,
 			$this->createNoOpMock( UserIdentityUtils::class ),
-			static function () {
-			}
+			static fn () => null
 		);
 
 		$this->assertSame(
@@ -193,8 +190,8 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 		$userIdentityUtils = $this->createNoOpMock( UserIdentityUtils::class );
 
 		$lookup = new ConditionalDefaultsLookup( $hookRunner, $options, $registrationLookup, $userIdentityUtils,
-			static function () {
-			} );
+			static fn () => null
+		);
 
 		$this->assertSame( $expected, $lookup->getOptionDefaultForUser( 'test-option', $userIdentity ) );
 	}
@@ -228,8 +225,8 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			->willReturn( $isNamed );
 
 		$lookup = new ConditionalDefaultsLookup( $hookRunner, $options, $registrationLookup, $userIdentityUtils,
-			static function () {
-			} );
+			static fn () => null
+		);
 
 		$this->assertSame( $expected, $lookup->getOptionDefaultForUser( 'test-option', $userIdentity ) );
 	}
@@ -306,8 +303,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 		$userIdentityUtils = $this->createMock( UserIdentityUtils::class );
 
 		$lookup = new ConditionalDefaultsLookup( $hookRunner, $options, $registrationLookup, $userIdentityUtils,
-			static function () {
-			}
+			static fn () => null
 		);
 
 		$this->assertSame( $expected, $lookup->getOptionDefaultForUser( 'test-option', $userIdentity ) );
@@ -320,11 +316,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 					[ 'No', [ 'if-condition', false ] ],
 					[ 'Yes', [ 'if-condition', true ] ],
 				],
-				[
-					'if-condition' => static function ( $userIdentity, $args ) {
-						return (bool)$args[0];
-					},
-				],
+				[ 'if-condition' => static fn ( $userIdentity, $args ) => (bool)$args[0] ],
 				'Yes'
 			],
 			[
@@ -332,11 +324,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 					[ 'Yes', [ 'if-condition', true ] ],
 					[ 'No', [ 'if-condition', false ] ],
 				],
-				[
-					'if-condition' => static function ( $userIdentity, $args ) {
-						return !(bool)$args[0];
-					},
-				],
+				[ 'if-condition' => static fn ( $userIdentity, $args ) => !$args[0] ],
 				'No'
 			]
 		];

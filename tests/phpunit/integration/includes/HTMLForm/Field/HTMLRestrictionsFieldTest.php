@@ -69,9 +69,9 @@ class HTMLRestrictionsFieldTest extends MediaWikiIntegrationTestCase {
 		$queryBuilderMock->method( 'caller' )->willReturnSelf();
 		$pageStore->method( 'newSelectQueryBuilder' )->willReturn( $queryBuilderMock );
 
-		$form->setTitle( Title::makeTitle( NS_MAIN, 'Main Page' ) )->setSubmitCallback( static function () {
-			return true;
-		} )->prepareForm();
+		$form->setTitle( Title::makeTitle( NS_MAIN, 'Main Page' ) )
+			->setSubmitCallback( static fn () => true )
+			->prepareForm();
 		$status = $form->trySubmit();
 
 		if ( $status instanceof StatusValue ) {

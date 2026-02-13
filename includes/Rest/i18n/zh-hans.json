@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"0x48fe75df30",
 			"500000000006城",
 			"A Chinese Wikipedian",
 			"Administrator66",
@@ -313,5 +314,6 @@
 	"rest-requestheader-desc-acceptlanguage": "用户偏向的自然语言和地区。",
 	"rest-endpoint-summ-get-sitemap-index": "获取站点的列表",
 	"rest-endpoint-desc-get-sitemap-page": "返回该网站上所有页面的XML列表。每条包含URL和最后编辑日期。每页最多包含10000条。",
-	"rest-param-desc-sitemap-index-id": "网页索引从0开始。其余可用的索引可在robots.txt中指定。"
+	"rest-param-desc-sitemap-index-id": "网页索引从0开始。其余可用的索引可在robots.txt中指定。",
+	"rest-responseheader-desc-deprecation": "指定浏览器的缓存行为，明确其刷新本地存储资源的频率。"
 }

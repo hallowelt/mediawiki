@@ -32,9 +32,9 @@ class HTMLFormFieldTest extends MediaWikiIntegrationTestCase {
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setRequest( $request );
 		$form = HTMLForm::factory( 'ooui', $descriptor, $context );
-		$form->setTitle( Title::makeTitle( NS_MAIN, 'Main Page' ) )->setSubmitCallback( static function () {
-			return true;
-		} )->prepareForm();
+		$form->setTitle( Title::makeTitle( NS_MAIN, 'Main Page' ) )
+			->setSubmitCallback( static fn () => true )
+			->prepareForm();
 		$status = $form->trySubmit();
 		$this->assertTrue( $status );
 		// HTMLFormFieldCloner would create special template fields for JS users,

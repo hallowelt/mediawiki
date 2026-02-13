@@ -465,11 +465,7 @@ class SpecialUpload extends SpecialPage {
 		//$preHtml = "<cdx-progress-bar aria--label='upload progressbar' $progressBarProperty />";
 		$preHtml = "<div id='upload-progress-message'>$message</div>";
 		$form->addPreHtml( $preHtml );
-		$form->setSubmitCallback(
-			static function ( $formData ) {
-				return true;
-			}
-		);
+		$form->setSubmitCallback( static fn ( $formData ) => true );
 		// Needed if we have warnings to show
 		$form->addHiddenFields( array_diff_key(
 			$this->mRequest->getValues(),

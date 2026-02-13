@@ -1009,9 +1009,7 @@ class ContributionsSpecialPage extends IncludableSpecialPage {
 		$htmlForm->prepareForm();
 
 		// Submission is handled elsewhere, but do this to check for and display errors
-		$htmlForm->setSubmitCallback( static function () {
-			return true;
-		} );
+		$htmlForm->setSubmitCallback( static fn () => true );
 		$result = $htmlForm->tryAuthorizedSubmit();
 		if ( !( $result === true || ( $result instanceof Status && $result->isGood() ) ) ) {
 			// Uncollapse if there are errors

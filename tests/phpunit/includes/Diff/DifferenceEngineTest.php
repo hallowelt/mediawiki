@@ -132,9 +132,7 @@ class DifferenceEngineTest extends MediaWikiIntegrationTestCase {
 		} elseif ( is_string( $data ) ) {
 			$data = preg_replace_callback(
 				'/rev\[([0-9]+)]/',
-				static function ( $m ) {
-					return self::$revisions[(int)$m[1]];
-				},
+				static fn ( $m ) => self::$revisions[$m[1]],
 				$data
 			);
 			$data = str_replace(

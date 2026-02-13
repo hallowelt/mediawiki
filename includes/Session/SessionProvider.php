@@ -686,9 +686,7 @@ abstract class SessionProvider implements Stringable, SessionProviderInterface {
 			// Disable file cache, which would be looked up before the BeforeInitialize hook call.
 			$this->hookContainer->register(
 				'HTMLFileCache__useFileCache',
-				static function () {
-					return false;
-				}
+				static fn () => false
 			);
 		}
 

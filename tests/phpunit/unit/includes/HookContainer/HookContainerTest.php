@@ -9,7 +9,6 @@ namespace MediaWiki\Tests\HookContainer {
 	use MediaWiki\HookContainer\StaticHookRegistry;
 	use MediaWiki\Tests\Unit\DummyServicesTrait;
 	use MediaWikiUnitTestCase;
-	use stdClass;
 	use UnexpectedValueException;
 	use Wikimedia\ScopedCallback;
 	use Wikimedia\TestingAccessWrapper;
@@ -56,9 +55,7 @@ namespace MediaWiki\Tests\HookContainer {
 			// fake object factory
 			$objectFactory = $this->getDummyObjectFactory(
 				[
-					'SomeService' => static function () {
-						return new stdClass();
-					}
+					'SomeService' => static fn () => (object)[]
 				]
 			);
 
@@ -713,15 +710,11 @@ namespace MediaWiki\Tests\HookContainer {
 			// XXX: should also fail: non-function string, empty array
 			return [
 				'return a string' => [
-					static function () {
-						return 'string';
-					},
+					static fn () => 'string',
 					[]
 				],
 				'abort even though not abortable' => [
-					static function () {
-						return false;
-					},
+					static fn () => false,
 					[ 'abortable' => false ]
 				],
 				'callable referencing a class that extends an unknown class' => [

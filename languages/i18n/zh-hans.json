@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"0x48fe75df30",
 			"1F616EMO",
 			"500000000006城",
 			"94rain",
@@ -2430,7 +2431,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "分配标签",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "无法分配标签",
 	"watchlistlabels-editwatchlist-dialog-intro": "选择要{{PLURAL:$3|分配}}给$1的{{PLURAL:$2|标签}}：",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "无法为监视列表项目分配标签，因为您尚未定义任何标签。请前往[[Special:WatchlistLabels]]创建标签。",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "无法为监视列表项目分配标签，因为您尚未定义任何标签。请前往[[{{#Special:WatchlistLabels}}]]创建标签。",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "请选择你想分配标签的页面。",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "移除标签",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "无法移除标签",
@@ -3475,11 +3476,8 @@
 	"lag-warn-normal": "过去$1秒内的更改未必会在这个列表中显示。",
 	"lag-warn-high": "由于数据库的过度延迟，$1秒内的更改未必会在这个列表中显示。",
 	"watchlistedit-normal-title": "编辑监视列表",
-	"watchlistedit-normal-legend": "从监视列表移除标题",
-	"watchlistedit-normal-explain": "您监视列表中的标题显示在下方。要移除标题，请勾选它旁边的复选框，然后点击“{{int:Watchlistedit-normal-submit}}”。您也可以[[Special:EditWatchlist/raw|编辑原始列表]]。",
-	"watchlistedit-normal-submit": "移除标题",
 	"watchlistedit-normal-check-all": "选择所有",
-	"watchlistedit-normal-done": "已从您的监视列表移除{{PLURAL:$1|$1个}}标题：",
+	"watchlistedit-normal-done": "已从您的监视列表移除{{PLURAL:$1|$1个}}页面：",
 	"watchlistedit-raw-title": "编辑原始监视列表",
 	"watchlistedit-raw-legend": "编辑原始监视列表",
 	"watchlistedit-raw-explain": "您的监视列表中的标题在下面显示，并可通过编辑此表以添加或移除标题；每行一个标题。当完成以后，点击“{{int:Watchlistedit-raw-submit}}”。您也可以[[Special:EditWatchlist|使用标准编辑器]]。",
@@ -3501,7 +3499,7 @@
 	"watchlistedit-table-title-expiry": "期限",
 	"watchlistedit-table-remove-selected": "移除{{PLURAL:$1|页面}}",
 	"watchlistedit-unwatch-confirmation": "从您的监视列表{{PLURAL:$2|移除}}$1吗？",
-	"watchlistedit-unwatch-confirmation-empty": "请选择要从监视列表中移除的页面。",
+	"watchlistedit-unwatch-confirmation-empty": "请选择您想要从监视列表中移除的页面。",
 	"watchlistedit-unwatch-confirmation-accept": "移除",
 	"watchlisttools-clear": "清空监视列表",
 	"watchlisttools-view": "查看监视列表",

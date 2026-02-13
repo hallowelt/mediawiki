@@ -70,9 +70,7 @@ class HTTPFileStreamerTest extends TestCase {
 			'obResetFunc' => static function () use ( &$actual ) {
 				$actual['reset']++;
 			},
-			'streamMimeFunc' => static function () {
-				return 'test/test';
-			},
+			'streamMimeFunc' => static fn () => 'test/test',
 			'headerFunc' => static function ( $header ) use ( &$actual ) {
 				if ( preg_match( '/^HTTP.*? (\d+)/', $header, $m ) ) {
 					$actual['status'] = (int)$m[1];

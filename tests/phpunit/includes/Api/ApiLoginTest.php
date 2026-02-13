@@ -390,11 +390,7 @@ class ApiLoginTest extends ApiTestCase {
 	}
 
 	public function testNoSameOriginSecurity() {
-		$this->setTemporaryHook( 'RequestHasSameOriginSecurity',
-			static function () {
-				return false;
-			}
-		);
+		$this->setTemporaryHook( 'RequestHasSameOriginSecurity', static fn () => false );
 
 		$ret = $this->doApiRequest( [
 			'action' => 'login',

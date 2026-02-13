@@ -962,8 +962,6 @@
 	"autosumm-replace": "Wuxuu qoraalka ku badalay \"$1\"",
 	"autoredircomment": "Bog loo bedeley [[$1]]",
 	"autosumm-new": "Bog cusub: $1",
-	"watchlistedit-normal-legend": "Ka saar ciwaanada liiska waardiyaha",
-	"watchlistedit-normal-explain": "Ciwaanada ee liiskaada waardiyaha hoos ayaa lagu soo ban dhigay.\nSi aad u tirtito Ciwaanka, Godka udhow calaameey, ee guji \"{{int:Watchlistedit-normal-submit}}\".\nwaxaad awoodaa [[Special:EditWatchlist/raw|Liiska wax ka bedel]].",
 	"watchlistedit-raw-legend": "Badal liiska waardiyeenta ceeriinka ah",
 	"watchlisttools-view": "Fiiri isbedelada jiro",
 	"watchlisttools-edit": "Fiiri waxna ka badal liiska waardiyaha",

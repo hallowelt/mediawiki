@@ -247,9 +247,7 @@ class BlockRestrictionStore {
 			return true;
 		}
 
-		$hasher = static function ( Restriction $r ) {
-			return $r->getHash();
-		};
+		$hasher = static fn ( Restriction $r ) => $r->getHash();
 
 		$aHashes = array_map( $hasher, $a );
 		$bHashes = array_map( $hasher, $b );

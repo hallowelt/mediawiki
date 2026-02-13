@@ -23,9 +23,7 @@ class DeprecatablePropertyArrayTest extends MediaWikiUnitTestCase {
 		$array = new DeprecatablePropertyArray(
 			[
 				self::PROP_NAME => 'test_value',
-				'callback' => static function () {
-					return 'callback_test_value';
-				},
+				'callback' => static fn () => 'callback_test_value',
 			],
 			[
 				self::PROP_NAME => 'DEPRECATED_VERSION',

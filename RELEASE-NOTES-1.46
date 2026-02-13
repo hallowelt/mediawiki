@@ -98,6 +98,7 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 ==== New external libraries ====
 
+* Added okvpn/clock-lts at 1.0.0 to over-ride lcobucci/clock.
 * …
 
 ===== New development-only external libraries =====
@@ -109,6 +110,7 @@ For notes on 1.45.x and older releases, see HISTORY.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.3.2 to v2.3.4.
 * Updated jsonrainbow/json-schema from 5.3.0 to 5.3.1.
+* Updated lcobucci/jwt from 4.1.5 to 5.6.0.
 * Updated monolog/monolog from 2.9.3 to 2.11.0.
 * Updated oojs/oojs-ui (OOUI) from v0.53.0 to v0.53.1.
 * Updated pear/net_smtp from 1.12.1 to 1.12.2.
@@ -233,6 +235,10 @@ because of Phabricator reports.
 * The AddNewAccount hook, deprecated in 1.27, has been dropped.
 * wfMatchesDomainsList(), deprecated in 1.39, has been removed. Instead, use
   UrlUtils::matchesDomainList().
+* The global function wfAssembleUrl(), deprecated in 1.39, has been removed.
+  Instead, use UrlUtils::assemble().
+* Drop Parser::Options(), deprecated in 1.35, has been dropped. Instead, use
+  ::getOptions() and ::setOptions().
 * …
 
 === Deprecations in 1.46 ===

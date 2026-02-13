@@ -2400,8 +2400,6 @@
 	"lag-warn-normal": "Parobahan nu leuwih anyar ti $1 {{PLURAL:$1|detik|detik}} moal ditémbongkeun dina ieu béréndélan.",
 	"lag-warn-high": "Kusabab kasibukan lag server pangkalan data, parobahan nu leuwih anyar $1 {{PLURAL:$1|detik|detik}} moal ditémbongkeun dina ieu béréndélan.",
 	"watchlistedit-normal-title": "Édit daptar awaseun",
-	"watchlistedit-normal-legend": "Piceun judul ti daptar awaseun",
-	"watchlistedit-normal-submit": "Hapus judul",
 	"watchlistedit-normal-done": "{{PLURAL:$1|1 judul geus|$1 judul geus}} dikaluarkeun tina daptar:",
 	"watchlistedit-raw-title": "Édit daptar atah awaseun",
 	"watchlistedit-raw-legend": "Édit daptar atah awaseun",

@@ -1740,8 +1740,6 @@
 	"lag-warn-normal": "Guhartinên ji $1 {{PLURAL:$1|saniye|saniyan}} nûtir belkî neyên nîşandan.",
 	"lag-warn-high": "Ji ber derengmayîna servera danegeha bilind, guhartinên piştî $1 {{PLURAL:$1|saniye hatiye|saniyeyan hatine}} çêkirin di vê lîsteyê de nayên nîşandan.",
 	"watchlistedit-normal-title": "Lîsteya şopandinê biguhêre",
-	"watchlistedit-normal-legend": "Gotaran ji lîsteya min ya şopandinê rake",
-	"watchlistedit-normal-submit": "Gotaran jê bibe",
 	"watchlistedit-normal-done": "{{PLURAL:$1|1 gotar hate|$1 gotar hatin}} jêbirin ji lîsteya te yê şopandinê:",
 	"watchlistedit-raw-title": "Lîsteya şopandinê ya xav biguhere",
 	"watchlistedit-raw-legend": "Lîsteya şopandinê ya xav biguhere",

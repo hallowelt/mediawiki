@@ -135,9 +135,7 @@ class WatchActionTest extends MediaWikiIntegrationTestCase {
 			$testContext
 		);
 
-		$this->setTemporaryHook( 'WatchArticle', static function () {
-			return false;
-		} );
+		$this->setTemporaryHook( 'WatchArticle', static fn () => false );
 
 		/** @var Status $actual */
 		$actual = $this->watchAction->onSubmit( [] );

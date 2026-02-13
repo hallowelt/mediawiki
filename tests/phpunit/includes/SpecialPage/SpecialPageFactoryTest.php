@@ -53,9 +53,7 @@ class SpecialPageFactoryTest extends MediaWikiIntegrationTestCase {
 
 		return [
 			'class name' => [ 'SpecialAllPages', false ],
-			'closure' => [ static function () {
-				return new SpecialAllPages();
-			}, false ],
+			'closure' => [ static fn () => new SpecialAllPages(), false ],
 			'function' => [ [ self::class, 'newSpecialAllPages' ], false ],
 			'callback string' => [ SpecialPageTestHelper::class . '::newSpecialAllPages', false ],
 			'callback with object' => [

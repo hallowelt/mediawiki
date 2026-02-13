@@ -1778,8 +1778,6 @@
 	"autosumm-newblank": "Boʻsh sahifa yaratildi",
 	"size-bytes": "$1 bayt",
 	"size-pixel": "$1 {{PLURAL:$1|piksel}}",
-	"watchlistedit-normal-legend": "Kuzatuv roʻyxatimdan sahifalarni olib tashlash",
-	"watchlistedit-normal-explain": "Kuzatuv roʻyxatingizdagi sahifalar quyida keltirilgan.\nRoʻyxatdan biror sahifani olib tashlash uchun shu sahifa yonidagi darchani belgilab, „{{int:Watchlistedit-normal-submit}}“ tugmasini bosing. Bundan tashqari, kuzatuv roʻyxatingizni [[Special:EditWatchlist/raw|matn oʻlaroq tahrirlashingiz]] ham mumkin.",
 	"watchlistedit-normal-check-all": "Barchasini belgilash",
 	"watchlisttools-clear": "Kuzatuv roʻyxatingizni tozalash",
 	"watchlisttools-view": "Mos oʻzgarishlar",

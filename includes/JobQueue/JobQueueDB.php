@@ -761,9 +761,8 @@ class JobQueueDB extends JobQueue {
 			// the IDs first means that the UPDATE can be done by primary key (less deadlocks).
 			$res = $qb->caller( __METHOD__ )->fetchResultSet();
 			$ids = array_map(
-				static function ( $o ) {
-					return $o->job_id;
-				}, iterator_to_array( $res )
+				static fn ( $o ) => $o->job_id,
+				iterator_to_array( $res )
 			);
 			if ( count( $ids ) ) {
 				$dbw->newDeleteQueryBuilder()

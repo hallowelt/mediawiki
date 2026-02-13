@@ -73,9 +73,7 @@ abstract class Benchmarker extends Maintenance {
 				$argsText = implode(
 					', ',
 					array_map(
-						static function ( $a ) {
-							return var_export( $a, true );
-						},
+						static fn ( $a ) => var_export( $a, true ),
 						// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset False positive
 						$bench['args']
 					)

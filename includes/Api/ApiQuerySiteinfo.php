@@ -835,9 +835,7 @@ class ApiQuerySiteinfo extends ApiQueryBase {
 
 	public function appendExtensionTags( string $property ): bool {
 		$tags = array_map(
-			static function ( $item ) {
-				return "<$item>";
-			},
+			static fn ( $item ) => "<$item>",
 			$this->parserFactory->getMainInstance()->getTags()
 		);
 		ApiResult::setArrayType( $tags, 'BCarray' );

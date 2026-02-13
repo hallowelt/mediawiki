@@ -605,9 +605,7 @@ class MultiHttpClient implements LoggerAwareInterface {
 			$sv = $httpRequest->execute()->getStatusValue();
 
 			$respHeaders = array_map(
-				static function ( $v ) {
-					return implode( ', ', $v );
-				},
+				static fn ( $v ) => implode( ', ', $v ),
 				$httpRequest->getResponseHeaders() );
 
 			$req['response'] = [

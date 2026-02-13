@@ -1445,9 +1445,7 @@ class WANObjectCacheTest extends MediaWikiUnitTestCase {
 
 		return [
 			[
-				static function () {
-					return "Saint Oliver Plunckett";
-				},
+				static fn () => 'Saint Oliver Plunckett',
 				'Saint Oliver Plunckett'
 			],
 			[ 'strlen', 'strlen' ],
@@ -1965,9 +1963,7 @@ class WANObjectCacheTest extends MediaWikiUnitTestCase {
 			'cache' => $localBag,
 			'broadcastRoutingPrefix' => '/*/mw-wan/',
 		] );
-		$valFunc = static function () {
-			return 1;
-		};
+		$valFunc = static fn () => 1;
 
 		// None of these should use broadcasting commands (e.g. SET, DELETE)
 		$wanCache->get( 'x' );
@@ -2296,9 +2292,7 @@ class WANObjectCacheTest extends MediaWikiUnitTestCase {
 	public function testCoalesceKeys( array $params, $keyNeedle ) {
 		[ $cache, $bag ] = $this->newWanCache( $params );
 		$key = wfRandomString();
-		$callback = static function () {
-			return 2020;
-		};
+		$callback = static fn () => 2020;
 
 		$cache->getWithSetCallback( $key, 60, $callback );
 		$wrapper = TestingAccessWrapper::newFromObject( $bag );

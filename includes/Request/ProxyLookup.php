@@ -63,9 +63,7 @@ class ProxyLookup {
 		$this->proxyIPSet = $this->cache->getWithSetCallback(
 			$this->cache->makeGlobalKey( 'ProxyLookup', 'ipset', crc32( json_encode( $this->proxyServersComplex ) ) ),
 			BagOStuff::TTL_INDEFINITE,
-			function () {
-				return new IPSet( $this->proxyServersComplex );
-			}
+			fn () => new IPSet( $this->proxyServersComplex )
 		);
 
 		return $this->proxyIPSet;

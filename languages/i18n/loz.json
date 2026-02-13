@@ -596,8 +596,6 @@
 	"autoredircomment": "Abezi di [[$1]]",
 	"autosumm-new": "Nca petulo: $1",
 	"watchlistedit-normal-title": "Hloli ye ng'i mukoloko di kentezi",
-	"watchlistedit-normal-legend": "Afi kulobala petulo di mukoloko di kentezi",
-	"watchlistedit-normal-submit": "Afi kulobala petulo",
 	"watchlistedit-normal-done": "{{PLURAL:$1|1 petulo|$1 petulo}} sa afi kulobala di zwa mukoloko di kentezi:",
 	"watchlistedit-raw-title": "Hloli ye ng'i ro mukoloko di kentezi",
 	"watchlistedit-raw-legend": "Hloli ye ng'i ro mukoloko di kentezi",

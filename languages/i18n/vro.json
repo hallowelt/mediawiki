@@ -1354,8 +1354,6 @@
 	"lag-warn-normal": "Muutmiisi, miä ommaq vahtsõmbaq ku $1 sekundit, pruugi-i taan nimekirän nätäq ollaq.",
 	"lag-warn-high": "Teedüskogoserveri aiglusõ peräst pruugi-i $1 sekundist värskimbit muutmiisi nimekirän nätäq ollaq.",
 	"watchlistedit-normal-title": "Toimõndaq perräkaemisnimekirjä",
-	"watchlistedit-normal-legend": "Kistudaq päälkiräq perräkaemisnimekiräst ärq",
-	"watchlistedit-normal-submit": "Kistudaq päälkiräq ärq",
 	"watchlistedit-raw-titles": "Päälkiräq:",
 	"watchlistedit-raw-submit": "Vahtsõndaq perräkaemisnimekirjä",
 	"watchlistedit-raw-done": "Perräkaemisniekiri om ärq vahtsõndõt.",

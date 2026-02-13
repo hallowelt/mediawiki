@@ -482,50 +482,44 @@ class FileModuleTest extends ResourceLoaderTestCase {
 		yield 'identical Less variables' => [ $x, $x, true ];
 
 		$a = [
-			'packageFiles' => [ [ 'name' => 'data.json', 'callback' => static function () {
-				return [ 'aaa' ];
-			} ] ]
+			'packageFiles' => [ [ 'name' => 'data.json', 'callback' => static fn () => [ 'aaa' ] ] ]
 		];
 		$b = [
-			'packageFiles' => [ [ 'name' => 'data.json', 'callback' => static function () {
-				return [ 'bbb' ];
-			} ] ]
+			'packageFiles' => [ [ 'name' => 'data.json', 'callback' => static fn () => [ 'bbb' ] ] ]
 		];
 		yield 'packageFiles with different callback' => [ $a, $b, false ];
 
 		$a = [
-			'packageFiles' => [ [ 'name' => 'aaa.json', 'callback' => static function () {
-				return [ 'x' ];
-			} ] ]
+			'packageFiles' => [ [ 'name' => 'aaa.json', 'callback' => static fn () => [ 'x' ] ] ]
 		];
 		$b = [
-			'packageFiles' => [ [ 'name' => 'bbb.json', 'callback' => static function () {
-				return [ 'x' ];
-			} ] ]
+			'packageFiles' => [ [ 'name' => 'bbb.json', 'callback' => static fn () => [ 'x' ] ] ]
 		];
 		yield 'packageFiles with different file name and a callback' => [ $a, $b, false ];
 
 		$a = [
-			'packageFiles' => [ [ 'name' => 'data.json', 'versionCallback' => static function () {
-				return [ 'A-version' ];
-			}, 'callback' => static function () {
-				throw new LogicException( 'Unexpected computation' );
-			} ] ]
+			'packageFiles' => [ [
+				'name' => 'data.json',
+				'versionCallback' => static fn () => [ 'A-version' ],
+				'callback' => static function () {
+					throw new LogicException( 'Unexpected computation' );
+				}
+			] ]
 		];
 		$b = [
-			'packageFiles' => [ [ 'name' => 'data.json', 'versionCallback' => static function () {
-				return [ 'B-version' ];
-			}, 'callback' => static function () {
-				throw new LogicException( 'Unexpected computation' );
-			} ] ]
+			'packageFiles' => [ [
+				'name' => 'data.json',
+				'versionCallback' => static fn () => [ 'B-version' ],
+				'callback' => static function () {
+					throw new LogicException( 'Unexpected computation' );
+				}
+			] ]
 		];
 		yield 'packageFiles with different versionCallback' => [ $a, $b, false ];
 
 		$a = [
 			'packageFiles' => [ [ 'name' => 'aaa.json',
-				'versionCallback' => static function () {
-					return [ 'X-version' ];
-				},
+				'versionCallback' => static fn () => [ 'X-version' ],
 				'callback' => static function () {
 					throw new LogicException( 'Unexpected computation' );
 				}
@@ -533,9 +527,7 @@ class FileModuleTest extends ResourceLoaderTestCase {
 		];
 		$b = [
 			'packageFiles' => [ [ 'name' => 'bbb.json',
-				'versionCallback' => static function () {
-					return [ 'X-version' ];
-				},
+				'versionCallback' => static fn () => [ 'X-version' ],
 				'callback' => static function () {
 					throw new LogicException( 'Unexpected computation' );
 				}
@@ -683,9 +675,7 @@ class FileModuleTest extends ResourceLoaderTestCase {
 						[ 'name' => 'bar.js', 'content' => "console.log('Hello');" ],
 						[
 							'name' => 'data.json',
-							'versionCallback' => static function ( $context ) {
-								return 'x';
-							},
+							'versionCallback' => static fn ( $context ) => 'x',
 							'callback' => static function ( $context, $config, $extra ) {
 								return [ 'langCode' => $context->getLanguage(), 'extra' => $extra ];
 							},

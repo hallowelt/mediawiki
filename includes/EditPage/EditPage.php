@@ -244,13 +244,6 @@ class EditPage implements IEditObject {
 	/** @var ParserOutput|null */
 	private $mParserOutput;
 
-	/**
-	 * @var RevisionRecord|false|null
-	 *
-	 * A RevisionRecord corresponding to $this->editRevId or $this->edittime
-	 */
-	private $mExpectedParentRevision = false;
-
 	/** @var bool */
 	public $mShowSummaryField = true;
 
@@ -437,6 +430,7 @@ class EditPage implements IEditObject {
 	private UserRegistrationLookup $userRegistrationLookup;
 	private SessionManager $sessionManager;
 	private EditConstraintFactory $constraintFactory;
+	private PageEditingHelper $pageEditingHelper;
 
 	/** @var User|null */
 	private $placeholderTempUser;
@@ -503,6 +497,7 @@ class EditPage implements IEditObject {
 		$this->userRegistrationLookup = $services->getUserRegistrationLookup();
 		$this->sessionManager = $services->getSessionManager();
 		$this->constraintFactory = $services->getService( '_EditConstraintFactory' );
+		$this->pageEditingHelper = $services->getService( '_PageEditingHelper' );
 
 		$this->deprecatePublicProperty( 'textbox2', '1.44', __CLASS__ );
 		$this->deprecatePublicProperty( 'action', '1.38', __CLASS__ );
@@ -548,18 +543,6 @@ class EditPage implements IEditObject {
 		} else {
 			return $this->mContextTitle;
 		}
-	}
-
-	/**
-	 * Returns if the given content model is editable.
-	 *
-	 * @param string $modelId The ID of the content model to test. Use CONTENT_MODEL_XXX constants.
-	 * @return bool
-	 * @throws MWUnknownContentModelException If $modelId has no known handler
-	 */
-	private function isSupportedContentModel( string $modelId ): bool {
-		return $this->enableApiEditOverride === true ||
-			$this->contentHandlerFactory->getContentHandler( $modelId )->supportsDirectEditing();
 	}
 
 	/**
@@ -727,11 +710,12 @@ class EditPage implements IEditObject {
 			&& ( WikiPage::hasDifferencesOutsideMainSlot(
 					$revRecord,
 					$curRevisionRecord
-				) || !$this->isSupportedContentModel(
+				) || !$this->pageEditingHelper->isSupportedContentModel(
 					$revRecord->getSlot(
 						SlotRecord::MAIN,
 						RevisionRecord::RAW
-					)->getModel()
+					)->getModel(),
+					$this->enableApiEditOverride
 				) )
 		) {
 			$restoreLink = $this->getTitle()->getFullURL(
@@ -1008,7 +992,9 @@ class EditPage implements IEditObject {
 			$out->addWikiMsg( 'viewyourtext' );
 		} else {
 			try {
-				$text = $this->toEditText( $content );
+				$text = $this->pageEditingHelper->toEditText(
+					$content, $this->contentFormat, $this->enableApiEditOverride
+				);
 			} catch ( MWException ) {
 				# Serialize using the default format if the content model is not supported
 				# (e.g. for an old revision with a different model)
@@ -1398,7 +1384,9 @@ class EditPage implements IEditObject {
 					Message::plaintextParam( $this->getTitle()->getPrefixedText() )
 				)->parse() )
 			);
-		} elseif ( !$this->isSupportedContentModel( $content->getModel() ) ) {
+		} elseif ( !$this->pageEditingHelper->isSupportedContentModel(
+			$content->getModel(), $this->enableApiEditOverride,
+		) ) {
 			$modelMsg = $this->getContext()->msg( 'content-model-' . $content->getModel() );
 			$modelName = $modelMsg->exists() ? $modelMsg->text() : $content->getModel();
 
@@ -1411,7 +1399,9 @@ class EditPage implements IEditObject {
 			return false;
 		}
 
-		$this->textbox1 = $this->toEditText( $content );
+		$this->textbox1 = $this->pageEditingHelper->toEditText(
+			$content, $this->contentFormat, $this->enableApiEditOverride
+		);
 
 		$user = $this->context->getUser();
 		// activate checkboxes if user wants them to be always active
@@ -1432,9 +1422,6 @@ class EditPage implements IEditObject {
 		}
 		if ( !$this->isNew && $this->userOptionsLookup->getOption( $user, 'minordefault' ) ) {
 			$this->minoredit = true;
-		}
-		if ( $this->textbox1 === false ) {
-			return false;
 		}
 		return true;
 	}
@@ -1462,7 +1449,12 @@ class EditPage implements IEditObject {
 		// For existing pages, get text based on "undo" or section parameters.
 		} elseif ( $this->section !== '' ) {
 			// Get section edit text (returns $def_text for invalid sections)
-			$orig = $this->getOriginalContent( $this->getAuthority() );
+			$orig = $this->pageEditingHelper->getOriginalContent(
+				$this->getAuthority(),
+				$this->mArticle,
+				$this->contentModel,
+				$this->section,
+			);
 			$content = $orig ? $orig->getSection( $this->section ) : null;
 
 			if ( !$content ) {
@@ -1487,8 +1479,8 @@ class EditPage implements IEditObject {
 					!$oldrev->isDeleted( RevisionRecord::DELETED_TEXT )
 				) {
 					if ( WikiPage::hasDifferencesOutsideMainSlot( $undorev, $oldrev )
-						|| !$this->isSupportedContentModel(
-							$oldrev->getMainContentModel()
+						|| !$this->pageEditingHelper->isSupportedContentModel(
+							$oldrev->getMainContentModel(), $this->enableApiEditOverride
 						)
 					) {
 						// Hack for undo while EditPage can't handle multi-slot editing
@@ -1499,7 +1491,7 @@ class EditPage implements IEditObject {
 						] ) );
 						return false;
 					} else {
-						$content = $this->getUndoContent( $undorev, $oldrev, $undoMsg );
+						$content = $this->pageEditingHelper->getUndoContent( $this->page, $undorev, $oldrev, $undoMsg );
 					}
 
 					if ( $undoMsg === null ) {
@@ -1568,7 +1560,12 @@ class EditPage implements IEditObject {
 			}
 
 			if ( $content === false ) {
-				$content = $this->getOriginalContent( $this->getAuthority() );
+				$content = $this->pageEditingHelper->getOriginalContent(
+					$this->getAuthority(),
+					$this->mArticle,
+					$this->contentModel,
+					$this->section,
+				);
 			}
 		}
 
@@ -1664,77 +1661,6 @@ class EditPage implements IEditObject {
 	}
 
 	/**
-	 * Returns the result of a three-way merge when undoing changes.
-	 *
-	 * @param RevisionRecord $undoRev Newest revision being undone. Corresponds to `undo`
-	 *        URL parameter.
-	 * @param RevisionRecord $oldRev Revision that is being restored. Corresponds to
-	 *        `undoafter` URL parameter.
-	 * @param ?string &$error If false is returned, this will be set to "norev"
-	 *   if the revision failed to load, or "failure" if the content handler
-	 *   failed to merge the required changes.
-	 *
-	 * @return Content|false
-	 */
-	private function getUndoContent( RevisionRecord $undoRev, RevisionRecord $oldRev, &$error ) {
-		$handler = $this->contentHandlerFactory
-			->getContentHandler( $undoRev->getSlot(
-				SlotRecord::MAIN,
-				RevisionRecord::RAW
-			)->getModel() );
-		$currentContent = $this->page->getRevisionRecord()
-			->getContent( SlotRecord::MAIN );
-		$undoContent = $undoRev->getContent( SlotRecord::MAIN );
-		$undoAfterContent = $oldRev->getContent( SlotRecord::MAIN );
-		$undoIsLatest = $this->page->getRevisionRecord()->getId() === $undoRev->getId();
-		if ( $currentContent === null
-			|| $undoContent === null
-			|| $undoAfterContent === null
-		) {
-			$error = 'norev';
-			return false;
-		}
-
-		$content = $handler->getUndoContent(
-			$currentContent,
-			$undoContent,
-			$undoAfterContent,
-			$undoIsLatest
-		);
-		if ( $content === false ) {
-			$error = 'failure';
-		}
-		return $content;
-	}
-
-	/**
-	 * Get the content of the wanted revision, without section extraction.
-	 *
-	 * The result of this function can be used to compare user's input with
-	 * section replaced in its context (using WikiPage::replaceSectionAtRev())
-	 * to the original text of the edit.
-	 *
-	 * This differs from Article::getContent() that when a missing revision is
-	 * encountered the result will be null and not the
-	 * 'missing-revision' message.
-	 *
-	 * @param Authority $performer to get the revision for
-	 * @return Content|null
-	 */
-	private function getOriginalContent( Authority $performer ): ?Content {
-		if ( $this->section === 'new' ) {
-			return $this->getCurrentContent();
-		}
-		$revRecord = $this->mArticle->fetchRevisionRecord();
-		if ( $revRecord === null ) {
-			return $this->contentHandlerFactory
-				->getContentHandler( $this->contentModel )
-				->makeEmptyContent();
-		}
-		return $revRecord->getContent( SlotRecord::MAIN, RevisionRecord::FOR_THIS_USER, $performer );
-	}
-
-	/**
 	 * Get the edit's parent revision ID
 	 *
 	 * The "parent" revision is the ancestor that should be recorded in this
@@ -1762,19 +1688,7 @@ class EditPage implements IEditObject {
 	 * @return Content
 	 */
 	protected function getCurrentContent() {
-		$revRecord = $this->page->getRevisionRecord();
-		$content = $revRecord ? $revRecord->getContent(
-			SlotRecord::MAIN,
-			RevisionRecord::RAW
-		) : null;
-
-		if ( $content === null ) {
-			return $this->contentHandlerFactory
-				->getContentHandler( $this->contentModel )
-				->makeEmptyContent();
-		}
-
-		return $content;
+		return $this->pageEditingHelper->getCurrentContent( $this->contentModel, $this->page );
 	}
 
 	/**
@@ -2065,7 +1979,7 @@ class EditPage implements IEditObject {
 		);
 
 		if ( $this->sectiontitle !== '' ) {
-			$this->newSectionAnchor = $this->guessSectionName( $this->sectiontitle );
+			$this->newSectionAnchor = $this->pageEditingHelper->guessSectionName( $this->sectiontitle );
 			// If no edit summary was specified, create one automatically from the section
 			// title and have it link to the new section. Otherwise, respect the summary as
 			// passed.
@@ -2371,7 +2285,7 @@ class EditPage implements IEditObject {
 				# We can't deal with anchors, includes, html etc in the header for now,
 				# headline would need to be parsed to improve this.
 				if ( $hasmatch && $matches[2] !== '' ) {
-					$sectionAnchor = $this->guessSectionName( $matches[2] );
+					$sectionAnchor = $this->pageEditingHelper->guessSectionName( $matches[2] );
 				}
 			}
 			$result['sectionanchor'] = $sectionAnchor;
@@ -2380,12 +2294,16 @@ class EditPage implements IEditObject {
 			// merged the section into full text. Clear the section field
 			// so that later submission of conflict forms won't try to
 			// replace that into a duplicated mess.
-			$this->textbox1 = $this->toEditText( $content );
+			$this->textbox1 = $this->pageEditingHelper->toEditText(
+				$content, $this->contentFormat, $this->enableApiEditOverride
+			);
 			$this->section = '';
 		}
 
 		// Check for length errors again now that the section is merged in
-		$this->contentLength = strlen( $this->toEditText( $content ) );
+		$this->contentLength = strlen( $this->pageEditingHelper->toEditText(
+			$content, $this->contentFormat, $this->enableApiEditOverride
+		) );
 
 		$postMergeChecksRunner = $this->getPostMergeChecksRunner(
 			$content,
@@ -2595,7 +2513,12 @@ class EditPage implements IEditObject {
 				$this->autoSumm,
 				$this->allowBlankSummary,
 				$content,
-				$this->getOriginalContent( $authority ),
+				$this->pageEditingHelper->getOriginalContent(
+					$authority,
+					$this->mArticle,
+					$this->contentModel,
+					$this->section,
+				),
 				$submitButtonLabel
 			),
 			new RevisionDeletedConstraint(
@@ -2714,7 +2637,7 @@ class EditPage implements IEditObject {
 			return false;
 		}
 
-		$undoContent = $this->getUndoContent( $undoRev, $oldRev, $undoError );
+		$undoContent = $this->pageEditingHelper->getUndoContent( $this->page, $undoRev, $oldRev, $undoError );
 		if ( !$undoContent ) {
 			return false;
 		}
@@ -2836,23 +2759,11 @@ class EditPage implements IEditObject {
 	 * @return RevisionRecord|null Current revision when editing was initiated on the client
 	 */
 	public function getExpectedParentRevision() {
-		if ( $this->mExpectedParentRevision === false ) {
-			$revRecord = null;
-			if ( $this->editRevId ) {
-				$revRecord = $this->revisionStore->getRevisionById(
-					$this->editRevId,
-					IDBAccessObject::READ_LATEST
-				);
-			} elseif ( $this->edittime ) {
-				$revRecord = $this->revisionStore->getRevisionByTimestamp(
-					$this->getTitle(),
-					$this->edittime,
-					IDBAccessObject::READ_LATEST
-				);
-			}
-			$this->mExpectedParentRevision = $revRecord;
-		}
-		return $this->mExpectedParentRevision;
+		return $this->pageEditingHelper->getExpectedParentRevision(
+			$this->editRevId,
+			$this->edittime,
+			$this->page,
+		);
 	}
 
 	public function setHeaders() {
@@ -2985,44 +2896,11 @@ class EditPage implements IEditObject {
 	}
 
 	/**
-	 * Gets an editable textual representation of $content.
-	 * The textual representation can be turned by into a Content object by the
-	 * toEditContent() method.
-	 *
-	 * If $content is null or false or a string, $content is returned unchanged.
-	 *
-	 * If the given Content object is not of a type that can be edited using
-	 * the text base EditPage, an exception will be raised. Set
-	 * $this->allowNonTextContent to true to allow editing of non-textual
-	 * content.
-	 *
-	 * @param Content|null|false|string $content
-	 * @return string The editable text form of the content.
-	 *
-	 * @throws MWException If $content is not an instance of TextContent and
-	 *   $this->allowNonTextContent is not true.
-	 */
-	private function toEditText( $content ) {
-		if ( $content === null || $content === false ) {
-			return '';
-		}
-		if ( is_string( $content ) ) {
-			return $content;
-		}
-
-		if ( !$this->isSupportedContentModel( $content->getModel() ) ) {
-			throw new MWException( 'This content model is not supported: ' . $content->getModel() );
-		}
-
-		return $content->serialize( $this->contentFormat );
-	}
-
-	/**
 	 * Turns the given text into a Content object by unserializing it.
 	 *
 	 * If the resulting Content object is not of a type that can be edited using
 	 * the text base EditPage, an exception will be raised. Set
-	 * $this->allowNonTextContent to true to allow editing of non-textual
+	 * $this->enableApiEditOverride to true to allow editing of non-textual
 	 * content.
 	 *
 	 * @param string|null|false $text Text to unserialize
@@ -3031,7 +2909,7 @@ class EditPage implements IEditObject {
 	 *
 	 * @throws MWException If unserializing the text results in a Content
 	 *   object that is not an instance of TextContent and
-	 *   $this->allowNonTextContent is not true.
+	 *   $this->enableApiEditOverride is not true.
 	 */
 	protected function toEditContent( $text ) {
 		if ( $text === false || $text === null ) {
@@ -3041,7 +2919,9 @@ class EditPage implements IEditObject {
 		$content = ContentHandler::makeContent( $text, $this->getTitle(),
 			$this->contentModel, $this->contentFormat );
 
-		if ( !$this->isSupportedContentModel( $content->getModel() ) ) {
+		if ( !$this->pageEditingHelper->isSupportedContentModel(
+			$content->getModel(), $this->enableApiEditOverride
+		) ) {
 			throw new MWException( 'This content model is not supported: ' . $content->getModel() );
 		}
 
@@ -3199,7 +3079,9 @@ class EditPage implements IEditObject {
 
 		$out->addHTML( $this->editFormTextBeforeContent );
 		if ( $this->isConflict ) {
-			$currentText = $this->toEditText( $this->getCurrentContent() );
+			$currentText = $this->pageEditingHelper->toEditText(
+				$this->getCurrentContent(), $this->contentFormat, $this->enableApiEditOverride
+			);
 
 			$editConflictHelper = $this->getEditConflictHelper();
 			$editConflictHelper->setTextboxes( $this->textbox1, $currentText );
@@ -4592,20 +4474,6 @@ class EditPage implements IEditObject {
 		$this->context->getOutput()->addHTML(
 			$this->getEditConflictHelper()->getExplainHeader()
 		);
-	}
-
-	/**
-	 * Turns section name wikitext into anchors for use in HTTP redirects.
-	 *
-	 * @param string $text
-	 * @return string
-	 */
-	private function guessSectionName( $text ): string {
-		$parser = MediaWikiServices::getInstance()->getParser();
-		$name = $parser->guessSectionNameFromWikiText( $text );
-		// Per T216029, fragments in HTTP redirects need to be urlencoded,
-		// otherwise Chrome double-escapes the rest of the URL.
-		return '#' . urlencode( mb_substr( $name, 1 ) );
 	}
 
 	/**

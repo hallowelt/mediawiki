@@ -1695,8 +1695,6 @@
 	"size-megabytes": "$1 ميڭابايت",
 	"lag-warn-normal": "tghiyrat jdad y3ni aqal mn  $1 {{PLURAL:$1|taniya|tawani}} iqdr matbanch lik flista",
 	"watchlistedit-normal-title": "ĝddel qa'imaṫ l-moṛaqaḅa",
-	"watchlistedit-normal-legend": "Mmḫiya men l-lista dyal s-suivi",
-	"watchlistedit-normal-submit": "حيًد لعناوين",
 	"watchlistedit-normal-done": "{{PLURAL:$1|1 l-ĝonwan ṫḫyyed|$1 dl-ĝanawin ṫḫyyedaṫ}} mn qa'imaṫ l-ṃoṛaqaba:",
 	"watchlistedit-raw-title": "Ṣayeb l-lista dyal lkham",
 	"watchlistedit-raw-legend": "Ṣayeb l-lista dyal lkham",

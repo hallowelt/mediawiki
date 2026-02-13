@@ -648,9 +648,7 @@ class SessionManager implements SessionManagerInterface {
 				return $loaded;
 			};
 		} else {
-			$failHandler = static function () {
-				return false;
-			};
+			$failHandler = static fn () => false;
 		}
 
 		$newParams = [];

@@ -330,7 +330,6 @@
 	"deletedwhileediting": "'''Let op''': deze pagina is verwijderd terwijl je bezig was met je bewerking!",
 	"confirm-watch-top": "Deze pagina toevoegen aan je volglijst?",
 	"confirm-unwatch-top": "Deze pagina verwijderen uit je volglijst?",
-	"watchlistedit-normal-explain": "Hieronder worden de pagina’s op je volglijst weergegeven.\nKlik op het vierkantje ernaast en daarna op \"{{int:Watchlistedit-normal-submit}}\" om een pagina te verwijderen.\nJe kunt ook de [[Special:EditWatchlist/raw|ruwe lijst bewerken]].",
 	"watchlistedit-normal-done": "Er {{PLURAL:$1|is één pagina|zijn $1 pagina’s}} verwijderd van je volglijst:",
 	"watchlistedit-raw-explain": "Hieronder staan pagina’s op je volglijst.\nJe kunt de lijst bewerken door pagina’s te verwijderen en toe te voegen.\nEén pagina per regel.\nAls je klaar bent, klik dan op \"{{int:Watchlistedit-raw-submit}}\".\nJe kunt ook [[Special:EditWatchlist|het standaard bewerkingsscherm gebruiken]].",
 	"watchlistedit-raw-done": "Je volglijst is bijgewerkt.",

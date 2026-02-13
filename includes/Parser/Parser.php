@@ -1063,18 +1063,6 @@ class Parser {
 	}
 
 	/**
-	 * Accessor/mutator for the ParserOptions object
-	 *
-	 * @param ParserOptions|null $x New value or null to just get the current one
-	 * @return ParserOptions Current ParserOptions object
-	 * @deprecated since 1.35, use getOptions() / setOptions()
-	 */
-	public function Options( $x = null ) {
-		wfDeprecated( __METHOD__, '1.35' );
-		return wfSetVar( $this->mOptions, $x );
-	}
-
-	/**
 	 * @return int
 	 * @since 1.14
 	 */

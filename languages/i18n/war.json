@@ -1733,8 +1733,6 @@
 	"size-gigabytes": "$1 nga GB",
 	"lag-warn-normal": "An mga pagbabag-o nga burubag-o han $1 ka {{PLURAL:$1|segundo|mga segundo}} in diri maipapakita dinhi nga lista.",
 	"watchlistedit-normal-title": "Igliwat an talaan han binabantayan",
-	"watchlistedit-normal-legend": "Igtanggal an mga titulo tikang ha talaan hit binabantayan",
-	"watchlistedit-normal-submit": "Igtanggal an mga titulo",
 	"watchlistedit-raw-title": "Igliwat an hilaw nga talaan han binabantayan",
 	"watchlistedit-raw-legend": "Igliwat an hilaw nga talaan han binabantayan",
 	"watchlistedit-raw-titles": "Mga titulo:",

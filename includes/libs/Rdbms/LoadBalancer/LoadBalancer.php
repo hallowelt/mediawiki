@@ -1606,9 +1606,7 @@ class LoadBalancer implements ILoadBalancerForOwner {
 		if ( !in_array( $this->trxRoundStage, $stages, true ) ) {
 			$stageList = implode(
 				'/',
-				array_map( static function ( $v ) {
-					return "'$v'";
-				}, $stages )
+				array_map( static fn ( $v ) => "'$v'", $stages )
 			);
 			$transactionName = $this->trxRoundFname ?? '<unknown>';
 			throw new DBTransactionError(

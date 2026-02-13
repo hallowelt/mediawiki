@@ -858,9 +858,7 @@ class ApiMainTest extends ApiTestCase {
 
 		// Hook
 		$this->mergeMwGlobalArrayValue( 'wgHooks', [
-			'RequestHasSameOriginSecurity' => [ static function () {
-				return false;
-			} ]
+			'RequestHasSameOriginSecurity' => [ static fn () => false ]
 		] );
 		$main = new ApiMain( new FauxRequest( [ 'action' => 'query', 'meta' => 'siteinfo' ] ) );
 		$this->assertTrue( $main->lacksSameOriginSecurity(), 'Hook, should lack security' );
@@ -1049,9 +1047,7 @@ class ApiMainTest extends ApiTestCase {
 
 		return [
 			[
-				static function () {
-					return new InvalidArgumentException( 'Random exception' );
-				},
+				static fn () => new InvalidArgumentException( 'Random exception' ),
 				[ 'existing-error', 'internal_api_error_InvalidArgumentException' ],
 				[
 					'warnings' => [

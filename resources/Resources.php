@@ -1269,9 +1269,7 @@ return [
 			[ 'name' => 'portletLinkOptions.json', 'callback' => Skin::getPortletLinkOptions( ... ) ],
 			[
 				'name' => 'infinityValues.json',
-				'callback' => static function () {
-					return ExpiryDef::INFINITY_VALS;
-				}
+				'callback' => static fn () => ExpiryDef::INFINITY_VALS
 			]
 		],
 		'dependencies' => [
@@ -2950,6 +2948,7 @@ return [
 		],
 		'dependencies' => [
 			'mediawiki.jqueryMsg',
+			'mediawiki.storage',
 		],
 		'messages' => [
 			'temp-user-banner-tooltip-title',

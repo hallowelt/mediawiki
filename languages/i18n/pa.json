@@ -2822,8 +2822,6 @@
 	"autosumm-newblank": "ਖ਼ਾਲੀ ਸਫ਼ਾ ਬਣਾਇਆ",
 	"size-bytes": "$1 {{PLURAL:$1|ਬਾਈਟ|ਬਾਈਟਾਂ}}",
 	"watchlistedit-normal-title": "ਨਿਗਰਾਨ-ਸੂਚੀ ਸੋਧੋ",
-	"watchlistedit-normal-legend": "ਸਿਰਲੇਖਾਂ ਨੂੰ ਨਿਗਰਾਨੀ-ਲਿਸਟ ਵਿੱਚੋਂ ਹਟਾਓ",
-	"watchlistedit-normal-submit": "ਸਿਰਲੇਖ ਹਟਾਓ",
 	"watchlistedit-normal-check-all": "ਸਭ ਦੀ ਜਾਂਚ ਕਰੋ",
 	"watchlistedit-normal-done": "ਤੁਹਾਡੀ ਨਿਗਰਾਨੀ-ਲਿਸਟ ਵਿੱਚੋਂ {{PLURAL:$1|1 ਸਿਰਲੇਖ ਹਟਾਇਆ ਗਿਆ|$1 ਸਿਰਲੇਖ ਹਟਾਏ ਗਏ}}:",
 	"watchlistedit-raw-title": "ਕੱਚੀ ਨਿਗਰਾਨ-ਸੂਚੀ ਸੋਧੋ",

@@ -518,24 +518,6 @@ function wfExpandUrl( $url, $defaultProto = PROTO_CURRENT ) {
 }
 
 /**
- * This function will reassemble a URL parsed with wfParseURL.  This is useful
- * if you need to edit part of a URL and put it back together.
- *
- * This is the basic structure used (brackets contain keys for $urlParts):
- * [scheme][delimiter][user]:[pass]@[host]:[port][path]?[query]#[fragment]
- *
- * @deprecated since 1.39, use UrlUtils::assemble(); hard-deprecated since 1.45
- * @since 1.19
- * @param array $urlParts URL parts, as output from wfParseUrl
- * @return string URL assembled from its component parts
- */
-function wfAssembleUrl( $urlParts ) {
-	wfDeprecated( __FUNCTION__, '1.39' );
-
-	return UrlUtils::assemble( (array)$urlParts );
-}
-
-/**
  * Returns a partial regular expression of recognized URL protocols, e.g. "http:\/\/|https:\/\/"
  *
  * @deprecated since 1.39, use UrlUtils::validProtocols(); hard-deprecated since 1.43

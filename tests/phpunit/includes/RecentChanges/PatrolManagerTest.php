@@ -59,9 +59,7 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testMarkPatrolledPermissions_Hook() {
 		$rc = $this->getDummyEditRecentChange();
-		$this->setTemporaryHook( 'MarkPatrolled', static function () {
-			return false;
-		} );
+		$this->setTemporaryHook( 'MarkPatrolled', static fn () => false );
 		$status = $this->getServiceContainer()->getPatrolManager()->markPatrolled(
 			$rc,
 			$this->mockRegisteredUltimateAuthority()

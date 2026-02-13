@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.2.0 / 2026-02-12
+This release cleanup the default configuration code, add a helper method for dirname.
+The last change moves out settings for video and headless to make it easier to users
+to actually change those.
+
+* Add Util.dirname() helper for ESM compatibility (T407636)
+* Move Chrome setting/options out of configuration to new file (T414672)
+* Move process handlers out of configuration to new file (T414672)
+* Move video and headless configuration out of capabilities (T415057)
+
 ## 6.1.0 / 2026-01-08
 
 The changes in 6.1.0 has a couple of focus areas.

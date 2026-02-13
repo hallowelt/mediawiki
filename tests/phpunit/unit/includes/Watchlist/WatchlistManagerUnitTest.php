@@ -740,9 +740,7 @@ class WatchlistManagerUnitTest extends MediaWikiUnitTestCase {
 		$title = PageIdentityValue::localIdentity( 100, NS_MAIN, 'Page_db_Key_goesHere' );
 
 		$hookContainer = $this->createHookContainer( [
-			'UnwatchArticle' => static function () {
-				return false;
-			},
+			'UnwatchArticle' => static fn () => false,
 		] );
 		$watchedItemStore = $this->getDummyWatchedItemStore();
 		$watchlistManager = $this->getManager( [

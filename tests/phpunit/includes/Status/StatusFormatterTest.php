@@ -73,9 +73,7 @@ class StatusFormatterTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideCleanParams() {
-		$cleanCallback = static function ( $value ) {
-			return 'xxx';
-		};
+		$cleanCallback = static fn ( $value ) => 'xxx';
 
 		return [
 			[ false, [ 'secret' ], 'secret', 'xxx' ],

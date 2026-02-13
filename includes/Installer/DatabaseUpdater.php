@@ -1043,9 +1043,7 @@ abstract class DatabaseUpdater {
 	protected function modifyField( $table, $field, $patch, $fullpath = false ) {
 		return $this->modifyFieldWithCondition(
 			$table, $field,
-			static function () {
-				return true;
-			},
+			static fn () => true,
 			$patch, $fullpath
 		);
 	}

@@ -158,9 +158,7 @@ class SpecialSearchTest extends MediaWikiIntegrationTestCase {
 				$EMPTY_REQUEST, [
 					'searchNs2' => 1,
 					'searchNs14' => 1,
-				] + array_fill_keys( array_map( static function ( $ns ) {
-					return "searchNs$ns";
-				}, $defaultNS ), 0 ),
+				] + array_fill_keys( array_map( static fn ( $ns ) => "searchNs$ns", $defaultNS ), 0 ),
 				'advanced', [ 2, 14 ],
 				'T35583: search with no option should honor User search preferences'
 					. ' and have all other namespace disabled'

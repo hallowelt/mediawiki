@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Dhondup",
 			"Freeyak",
 			"Jason (on bo.wikipedia.org)",
 			"Pecha-Tsewang",
@@ -680,6 +681,9 @@
 	"monthsall": "ཡོངས་རྫོགས།",
 	"imgmultigo": "སོང་།!",
 	"table_pager_limit_submit": "སོང་།",
+	"watchlistedit-normal-done": "{{PLURAL:$1|ཤོག་ངོས་གཅིག|ཤོག་ངོས་ $1}} རྣམས་ཁྱེད་ཀྱི་ཉར་ཚགས་ཐོ་ལས་བསུབས་ཟིན།",
+	"watchlistedit-table-remove-selected-error": "ཤོག་ངོས་རྣམས་བསུབ་མི་ཐུབ།",
+	"watchlistedit-unwatch-confirmation-empty": "ཁྱེད་ཀྱི་ཉར་ཚགས་ཐོའི་ནང་ནས་བསུབ་འདོད་པའི་ཤོག་ངོས་རྣམས་འདེམས་རོགས།",
 	"watchlisttools-view": "འབྲེལ་ཡོད་འགྱུར་བཅོས་ལ་གཟིགས་རོགས།",
 	"watchlisttools-edit": "མཉམ་འཇོག་ཐོར་ལྟ་བ་དང་བསྒྱུར་བཅོས་བྱེད་པ།",
 	"watchlisttools-raw": "ལྟ་ཐོའི་གོ་རིམ་བཅོས་སྒྲིག",

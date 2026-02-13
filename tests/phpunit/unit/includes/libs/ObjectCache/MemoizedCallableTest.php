@@ -147,8 +147,7 @@ class MemoizedCallableTest extends TestCase {
 		yield 'obj2' => [ $objectMsg, [ new self(), 'makeRand' ] ];
 		yield 'arrow' => [ $closureMsg, static fn ( $a ) => $a * 2 ];
 		yield 'fcc' => [ $closureMsg, strlen( ... ) ];
-		yield 'closure' => [ $closureMsg, static function () { return 'a';
-		}
+		yield 'closure' => [ $closureMsg, static fn () => 'a'
 		];
 	}
 

@@ -36,9 +36,7 @@ class ArrayUtilsTest extends TestCase {
 				return $val;
 			};
 		};
-		$comparisonCallback = static function ( $a, $b ) {
-			return $a - $b;
-		};
+		$comparisonCallback = static fn ( $a, $b ) => $a - $b;
 
 		return [
 			[

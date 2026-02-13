@@ -191,9 +191,7 @@ class ParserOptionsTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideIsSafeToCache() {
-		$seven = static function () {
-			return 7;
-		};
+		$seven = static fn () => 7;
 
 		return [
 			'No overrides' => [ true, [] ],

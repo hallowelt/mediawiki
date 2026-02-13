@@ -47,13 +47,9 @@ class FilteredRadixSerialMapping implements SerialMapping {
 	 */
 	private function adjustID( int $id ): int {
 		$pos = ArrayUtils::findLowerBound(
-			function ( $i ) {
-				return $this->badIndexes[$i];
-			},
+			fn ( $i ) => $this->badIndexes[$i],
 			count( $this->badIndexes ),
-			static function ( $a, $b ) {
-				return $a <=> $b;
-			},
+			static fn ( $a, $b ) => $a <=> $b,
 			$id
 		);
 		return $pos === false ? $id : $id + $pos + 1;

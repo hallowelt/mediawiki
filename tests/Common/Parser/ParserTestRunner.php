@@ -3107,12 +3107,7 @@ class ParserTestRunner {
 			$services->getMessageCache();
 			$services->disableService( 'Parser' );
 			$services->disableService( 'ParserFactory' );
-			$services->redefineService(
-				'Parser',
-				static function () {
-					return new ParserTestMockParser;
-				}
-			);
+			$services->redefineService( 'Parser', static fn () => new ParserTestMockParser() );
 			$restore = static function () {
 				MediaWikiServices::getInstance()->resetServiceForTesting( 'Parser' );
 				MediaWikiServices::getInstance()->resetServiceForTesting( 'ParserFactory' );

@@ -104,9 +104,7 @@ abstract class FormSpecialPage extends SpecialPage {
 
 			// But don't treat it as a "real" submission just in case of some
 			// crazy kind of CSRF.
-			$onSubmit = static function () {
-				return false;
-			};
+			$onSubmit = static fn () => false;
 		}
 
 		$form = HTMLForm::factory(

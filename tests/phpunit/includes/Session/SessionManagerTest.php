@@ -1585,9 +1585,8 @@ class SessionManagerTest extends MediaWikiIntegrationTestCase {
 		$this->overrideConfigValue( MainConfigNames::SuspiciousIpExpiry, 600 );
 
 		$proxyLookup = $this->createMock( ProxyLookup::class );
-		$proxyLookup->method( 'isConfiguredProxy' )->willReturnCallback( static function ( $ip ) {
-			return $ip === '11.22.33.44';
-		} );
+		$proxyLookup->method( 'isConfiguredProxy' )
+			->willReturnCallback( static fn ( $ip ) => $ip === '11.22.33.44' );
 		$this->setService( 'ProxyLookup', $proxyLookup );
 
 		$manager = $this->getServiceContainer()->getSessionManager();

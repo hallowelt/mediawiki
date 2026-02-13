@@ -680,9 +680,7 @@ class ApiQuerySiteinfoTest extends ApiTestCase {
 
 	public function testExtensionTags() {
 		$expected = array_map(
-			static function ( $tag ) {
-				return "<$tag>";
-			},
+			static fn ( $tag ) => "<$tag>",
 			$this->getServiceContainer()->getParser()->getTags()
 		);
 

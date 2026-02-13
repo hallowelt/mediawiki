@@ -675,11 +675,7 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 		self::resetNonServiceCaches();
 
 		// T46192 Do not attempt to send a real e-mail
-		$this->setTemporaryHook( 'AlternateUserMailer',
-			static function () {
-				return false;
-			}
-		);
+		$this->setTemporaryHook( 'AlternateUserMailer', static fn () => false );
 		ob_start( 'MediaWikiIntegrationTestCase::wfResetOutputBuffersBarrier' );
 	}
 

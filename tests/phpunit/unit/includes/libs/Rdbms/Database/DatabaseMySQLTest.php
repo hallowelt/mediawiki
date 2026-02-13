@@ -472,9 +472,7 @@ class DatabaseMySQLTest extends TestCase {
 			->onlyMethods( [ 'strencode', 'dbSchema', 'tablePrefix' ] )
 			->getMock();
 		$db->method( 'strencode' )->willReturnCallback(
-			static function ( $s ) {
-				return str_replace( "'", "\\'", $s );
-			}
+			static fn ( $s ) => str_replace( "'", "\\'", $s )
 		);
 		$wdb = TestingAccessWrapper::newFromObject( $db );
 		$wdb->platform = new MySQLPlatform( new AddQuoterMock() );

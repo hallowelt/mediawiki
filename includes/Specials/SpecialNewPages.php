@@ -352,11 +352,7 @@ class SpecialNewPages extends IncludableSpecialPage {
 			->setFormIdentifier( 'newpagesform' )
 			// The form should be visible on each request (inclusive requests with submitted forms), so
 			// return always false here.
-			->setSubmitCallback(
-				static function () {
-					return false;
-				}
-			)
+			->setSubmitCallback( static fn () => false )
 			->setSubmitTextMsg( 'newpages-submit' )
 			->setWrapperLegendMsg( 'newpages' )
 			->addFooterHtml( Html::rawElement(

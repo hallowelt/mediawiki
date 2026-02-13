@@ -330,9 +330,10 @@ class SiteConfig extends ISiteConfig {
 				$result[] = $alias;
 			}
 		}
-		$category = implode( '|', array_map( function ( $v ) {
-			return $this->quoteTitleRe( $v, '@' );
-		}, $result ) );
+		$category = implode( '|', array_map(
+			fn ( $v ) => $this->quoteTitleRe( $v, '@' ),
+			$result
+		) );
 		return "@(?i:$category)@";
 	}
 

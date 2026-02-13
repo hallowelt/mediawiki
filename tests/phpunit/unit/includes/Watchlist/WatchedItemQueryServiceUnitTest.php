@@ -379,10 +379,7 @@ class WatchedItemQueryServiceUnitTest extends MediaWikiUnitTestCase {
 			)
 			->willReturnCallback( static function ( $a, $conj ) {
 				$sqlConj = $conj === LIST_AND ? ' AND ' : ' OR ';
-				return implode( $sqlConj, array_map( static function ( $s ) {
-					return '(' . $s . ')';
-				}, $a
-				) );
+				return implode( $sqlConj, array_map( static fn ( $s ) => "($s)", $a ) );
 			} );
 		$mockDb->expects( $this->once() )
 			->method( 'select' )

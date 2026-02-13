@@ -240,9 +240,7 @@ class BlockUserTest extends MediaWikiIntegrationTestCase {
 		$this->assertNull( $hookPriorBlock );
 
 		$blockIds = array_map(
-			static function ( DatabaseBlock $block ) {
-				return $block->getId();
-			},
+			static fn ( DatabaseBlock $block ) => $block->getId(),
 			$blockStore->newListFromTarget( $target, null, /*fromPrimary=*/true )
 		);
 		$this->assertContains( $autoBlockId, $blockIds );
