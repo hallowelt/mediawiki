@@ -18,7 +18,7 @@
 		}
 
 		$summaryPreview.append(
-			mw.message( 'summary-preview' ).parse(),
+			mw.message( 'summary-preview' ).parseDom(),
 			' ',
 			$( '<span>' ).addClass( 'comment' ).html( parenthesesWrap( parse.parsedsummary ) )
 		);

@@ -146,16 +146,13 @@ class InfoAction extends FormlessAction {
 			}
 		}
 
-		// Page header
-		$msg = $this->msg( 'pageinfo-header' );
-		$content = $msg->isDisabled() ? '' : $msg->parse();
-
 		// Get page information
 		$pageInfo = $this->pageInfo();
 
 		// Allow extensions to add additional information
 		$this->getHookRunner()->onInfoAction( $this->getContext(), $pageInfo );
 
+		$content = '';
 		// Render page information
 		foreach ( $pageInfo as $header => $infoTable ) {
 			// Messages:
@@ -204,6 +201,12 @@ class InfoAction extends FormlessAction {
 					$this->addTocSection( $s->anchor, 'rawmessage', $s->line );
 				}
 			}
+		}
+
+		// Insert page header above the TOC (on skins using the old TOC style)
+		$msg = $this->msg( 'pageinfo-header' );
+		if ( !$msg->isDisabled() ) {
+			$this->getOutput()->addHTML( $msg->parseAsBlock() );
 		}
 
 		// Add TOC (this must be done after the addTocSection() calls for compatibility

@@ -71,5 +71,6 @@
 	"rest-endpoint-summ-get-page-title-media": "Ottieni i file sulla pagina",
 	"rest-endpoint-summ-get-file-title": "Ottieni file",
 	"rest-endpoint-summ-post-page": "Crea pagina",
-	"rest-endpoint-summ-post-transform-html-to-wikitext": "Converti HTML in wikitesto"
+	"rest-endpoint-summ-post-transform-html-to-wikitext": "Converti HTML in wikitesto",
+	"rest-responseheader-desc-deprecation": "Determina il comportamento di memorizzazione nella cache per un browser, consentendogli di sapere con quale frequenza aggiornare le risorse memorizzate localmente."
 }

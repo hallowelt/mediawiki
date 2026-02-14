@@ -1483,7 +1483,7 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 			];
 		}
 
-		if ( $this->options->get( 'WatchlistExpiry' ) ) {
+		if ( $this->options->get( MainConfigNames::WatchlistExpiry ) ) {
 			$defaultPreferences["watchstar-expiry"] = [
 				'type' => 'select',
 				'options' => WatchAction::getExpiryOptionsFromMessage( $context ),
@@ -1521,7 +1521,7 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 				];
 
 				if ( in_array( $action, [ 'edit', 'read', 'rollback' ] ) &&
-					$this->options->get( 'WatchlistExpiry' )
+					$this->options->get( MainConfigNames::WatchlistExpiry )
 				) {
 					$defaultPreferences["$pref-expiry"] = [
 						'type' => 'select',

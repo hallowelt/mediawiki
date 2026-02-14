@@ -92,6 +92,9 @@ For notes on 1.45.x and older releases, see HISTORY.
   cause PHP 8.5 (and Phan) to emit warnings when their return values are not
   used, as that is usually a mistake. This has no effect when running on PHP
   8.4 or earlier.
+* mw.message( ... ).parseDom() is now part of mediawiki.base and will return a
+  jQuery object wrapping a text node with the unparsed message contents if
+  mediawiki.jqueryMsg is not loaded.
 * …
 
 === External library changes in 1.46 ===
@@ -235,6 +238,9 @@ because of Phabricator reports.
 * The AddNewAccount hook, deprecated in 1.27, has been dropped.
 * wfMatchesDomainsList(), deprecated in 1.39, has been removed. Instead, use
   UrlUtils::matchesDomainList().
+* The PSR-7 (HTTP request/response) interfaces have been updated from the
+  1.1 version of the spec to 2.0, adding return type hints. The copycat
+  interface MediaWiki\Rest\ResponseInterface has been likewise updated.
 * The global function wfAssembleUrl(), deprecated in 1.39, has been removed.
   Instead, use UrlUtils::assemble().
 * Drop Parser::Options(), deprecated in 1.35, has been dropped. Instead, use

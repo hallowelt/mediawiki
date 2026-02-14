@@ -136,7 +136,7 @@
 		if ( typeof message === 'object' ) {
 			// Handle mw.Message objects separately from DOM nodes and jQuery objects
 			if ( message instanceof mw.Message ) {
-				$notificationContent.html( message.parse() );
+				$notificationContent.append( message.parseDom() );
 			} else {
 				$notificationContent.append( message );
 				// Mark DOM/jQuery objects as complex to skip aria-live announcements

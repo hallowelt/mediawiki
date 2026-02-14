@@ -302,5 +302,12 @@
 	"rest-endpoint-summ-get-sitemap-page": "Obter unha lista de localizacións de artigos por páxina",
 	"rest-param-desc-sitemap-index-id": "O índice do mapa do sitio, comezando en 0. Os índices adicionais dispoñibles especifícanse en «robots.txt».",
 	"rest-param-desc-sitemap-page-id": "A páxina de artigos desexada.",
-	"rest-param-desc-sitemap-include-namespace": "Identificadores de espazo de nomes para incluír no mapa do sitio. Se non se especifica, úsase o valor predeterminado do sitio."
+	"rest-param-desc-sitemap-include-namespace": "Identificadores de espazo de nomes para incluír no mapa do sitio. Se non se especifica, úsase o valor predeterminado do sitio.",
+	"rest-responseheader-desc-cachecontrol": "Establece o comportamento de almacenamento na caché para un navegador, informando da frecuencia coa que actualizar os recursos almacenados localmente.",
+	"rest-responseheader-desc-deprecation": "Establece o comportamento de almacenamento na caché para un navegador, informando da frecuencia coa que actualizar os recursos almacenados localmente.",
+	"rest-responseheader-desc-contentlanguage": "Informa o cliente sobre a(s) lingua(s) natural(is) do público obxectivo para o contido devolto.",
+	"rest-responseheader-desc-contenttype": "Indica o tipo multimedia orixinal dun recurso antes de aplicar calquera codificación de contido.",
+	"rest-responseheader-desc-link": "Ofrece un medio para serializar unha ou máis ligazóns nas cabeceiras HTTP. Isto permite que o servidor apunte un cliente a outro recurso que conteña metadatos sobre o recurso solicitado.",
+	"rest-responseheader-desc-expires": "Contén a data e a hora despois das cales a resposta se considera que caducou no contexto do almacenamento en caché HTTP.",
+	"rest-responseheader-desc-location": "Indica un enderezo URL de destino para dous propósitos principais: redirección e identificación da localización dun recurso creado recentemente."
 }

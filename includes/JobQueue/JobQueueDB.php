@@ -759,12 +759,8 @@ class JobQueueDB extends JobQueue {
 			}
 			// Get the IDs of jobs that are considered stale and should be removed. Selecting
 			// the IDs first means that the UPDATE can be done by primary key (less deadlocks).
-			$res = $qb->caller( __METHOD__ )->fetchResultSet();
-			$ids = array_map(
-				static fn ( $o ) => $o->job_id,
-				iterator_to_array( $res )
-			);
-			if ( count( $ids ) ) {
+			$ids = $qb->caller( __METHOD__ )->fetchFieldValues();
+			if ( $ids ) {
 				$dbw->newDeleteQueryBuilder()
 					->deleteFrom( 'job' )
 					->where( [ 'job_id' => $ids ] )

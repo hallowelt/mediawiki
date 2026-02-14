@@ -1533,26 +1533,7 @@ mw.Message.prototype.parser = function ( format ) {
 	}
 	return this.map[ format ]( this.key, this.parameters );
 };
-
-/**
- * Parse the message to DOM nodes, rather than HTML string like {@link mw.Message#parse}.
- *
- * This method is only available when jqueryMsg is loaded.
- *
- * @example
- * const msg = mw.message( 'key' );
- * mw.loader.using(`mediawiki.jqueryMsg`).then(() => {
- *   if ( msg.isParseable() ) {
- *     const $node = msg.parseDom();
- *     $node.appendTo('body');
- *   }
- * })
- *
- * @since 1.27
- * @method parseDom
- * @memberof mw.Message.prototype
- * @return {jQuery}
- */
+// Replace parseDom with the "real" version
 mw.Message.prototype.parseDom = ( function () {
 	let failableParserFn;
 

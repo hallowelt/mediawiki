@@ -300,5 +300,12 @@
 	"rest-endpoint-summ-get-sitemap-page": "Obtener un lista de locos de articulo per pagina.",
 	"rest-param-desc-sitemap-index-id": "Le indice del mappa del sito, comenciante a 0. Indices additional disponibile es specificate in robots.txt.",
 	"rest-param-desc-sitemap-page-id": "Le desirate pagina de articulos.",
-	"rest-param-desc-sitemap-include-namespace": "Identificatores de spatio de nomines a includer in le mappa del sito. Si non es specificate, on usa le valor predefinite del sito."
+	"rest-param-desc-sitemap-include-namespace": "Identificatores de spatio de nomines a includer in le mappa del sito. Si non es specificate, on usa le valor predefinite del sito.",
+	"rest-responseheader-desc-cachecontrol": "Dicta le comportamento de immagazinage in memoria cache pro un navigator web, lassante lo saper con qual frequentia refrescar le ressources immagazinate localmente.",
+	"rest-responseheader-desc-deprecation": "Dicta le comportamento de immagazinage in memoria cache pro un navigator web, lassante lo saper con qual frequentia refrescar le ressources immagazinate localmente.",
+	"rest-responseheader-desc-contentlanguage": "Informa le cliente sur le lingua(s) natural del publico intendite pro le contento retornate.",
+	"rest-responseheader-desc-contenttype": "Indica le typo de contento original de un ressource ante que alcun codification de contento es applicate.",
+	"rest-responseheader-desc-link": "Forni un maniera de serialisar un o plus ligamines in capites HTTP. Isto permitte al servitor indicar a un cliente un altere ressource que contine metadatos sur le ressource requestate.",
+	"rest-responseheader-desc-expires": "Contine le data e hora post le qual le responsa se considera expirate in le contexto del immagazinage in memoria cache de requestas HTTP.",
+	"rest-responseheader-desc-location": "Indica un URL de destination pro duo scopos principal: redirection e identificar le loco de un ressource recentemente create."
 }
