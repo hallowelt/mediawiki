@@ -84,7 +84,8 @@ class MovePageTest extends MediaWikiIntegrationTestCase {
 			$this->getServiceContainer()->getPageUpdaterFactory(),
 			$this->getServiceContainer()->getRestrictionStore(),
 			$this->getServiceContainer()->getDeletePageFactory(),
-			$this->getServiceContainer()->getLogFormatterFactory()
+			$this->getServiceContainer()->getLogFormatterFactory(),
+			$this->getServiceContainer()->getLinkWriteDuplicator()
 		);
 	}
 

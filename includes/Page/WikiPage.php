@@ -1218,25 +1218,35 @@ class WikiPage implements Stringable, Page, PageRecord {
 	 */
 	public function insertOn( $dbw, $pageId = null ) {
 		$pageIdForInsert = $pageId ? [ 'page_id' => $pageId ] : [];
+		$row = [
+			'page_namespace'    => $this->mTitle->getNamespace(),
+			'page_title'        => $this->mTitle->getDBkey(),
+			'page_is_redirect'  => 0, // Will set this shortly...
+			'page_is_new'       => 1,
+			'page_random'       => wfRandom(),
+			'page_touched'      => $dbw->timestamp(),
+			'page_latest'       => 0, // Fill this in shortly...
+			'page_len'          => 0, // Fill this in shortly...
+		] + $pageIdForInsert;
 		$dbw->newInsertQueryBuilder()
 			->insertInto( 'page' )
 			->ignore()
-			->row( [
-				'page_namespace'    => $this->mTitle->getNamespace(),
-				'page_title'        => $this->mTitle->getDBkey(),
-				'page_is_redirect'  => 0, // Will set this shortly...
-				'page_is_new'       => 1,
-				'page_random'       => wfRandom(),
-				'page_touched'      => $dbw->timestamp(),
-				'page_latest'       => 0, // Fill this in shortly...
-				'page_len'          => 0, // Fill this in shortly...
-			] + $pageIdForInsert )
+			->row( $row )
 			->caller( __METHOD__ )->execute();
 
 		if ( $dbw->affectedRows() > 0 ) {
 			$newid = $pageId ? (int)$pageId : $dbw->insertId();
 			$this->mId = $newid;
 			$this->mTitle->resetArticleID( $newid );
+
+			// Duplicate the row on secondary links storage if needed but set the page_id
+			$row['page_id'] = $newid;
+			$insert = $dbw->newInsertQueryBuilder()
+				->insertInto( 'page' )
+				->ignore()
+				->row( $row )
+				->caller( __METHOD__ );
+			MediaWikiServices::getInstance()->getLinkWriteDuplicator()->duplicate( $insert );
 
 			return $newid;
 		} else {
@@ -1298,11 +1308,13 @@ class WikiPage implements Stringable, Page, PageRecord {
 			'page_content_model' => $model,
 		];
 
-		$dbw->newUpdateQueryBuilder()
+		$update = $dbw->newUpdateQueryBuilder()
 			->update( 'page' )
 			->set( $row )
 			->where( $conditions )
-			->caller( __METHOD__ )->execute();
+			->caller( __METHOD__ );
+		$update->execute();
+		MediaWikiServices::getInstance()->getLinkWriteDuplicator()->duplicate( $update );
 
 		$result = $dbw->affectedRows() > 0;
 		if ( $result ) {

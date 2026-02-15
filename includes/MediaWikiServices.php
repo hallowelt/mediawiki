@@ -47,6 +47,7 @@ use MediaWiki\Content\IContentHandlerFactory;
 use MediaWiki\Content\Renderer\ContentRenderer;
 use MediaWiki\Content\Transform\ContentTransformer;
 use MediaWiki\DB\MWLBFactory;
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\DomainEvent\DomainEventDispatcher;
 use MediaWiki\DomainEvent\DomainEventSource;
 use MediaWiki\Edit\ParsoidOutputStash;
@@ -1448,6 +1449,13 @@ class MediaWikiServices extends ServiceContainer {
 	 */
 	public function getLinkTargetLookup(): LinkTargetLookup {
 		return $this->getService( 'LinkTargetLookup' );
+	}
+
+	/**
+	 * @since 1.46
+	 */
+	public function getLinkWriteDuplicator(): WriteDuplicator {
+		return $this->getService( 'LinkWriteDuplicator' );
 	}
 
 	/**

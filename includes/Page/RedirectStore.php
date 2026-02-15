@@ -7,6 +7,7 @@
 
 namespace MediaWiki\Page;
 
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\FileRepo\RepoGroup;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Title\Title;
@@ -29,19 +30,22 @@ class RedirectStore implements RedirectLookup {
 	private RepoGroup $repoGroup;
 	private LoggerInterface $logger;
 	private MapCacheLRU $procCache;
+	private WriteDuplicator $linkWriteDuplicator;
 
 	public function __construct(
 		IConnectionProvider $dbProvider,
 		PageLookup $pageLookup,
 		TitleParser $titleParser,
 		RepoGroup $repoGroup,
-		LoggerInterface $logger
+		LoggerInterface $logger,
+		WriteDuplicator $linkWriteDuplicator
 	) {
 		$this->dbProvider = $dbProvider;
 		$this->pageLookup = $pageLookup;
 		$this->titleParser = $titleParser;
 		$this->repoGroup = $repoGroup;
 		$this->logger = $logger;
+		$this->linkWriteDuplicator = $linkWriteDuplicator;
 		// Must be 500+ for QueryPage and Pager uses to be effective
 		$this->procCache = new MapCacheLRU( 1_000 );
 	}
@@ -141,7 +145,7 @@ class RedirectStore implements RedirectLookup {
 			$dbw->startAtomic( __METHOD__ );
 
 			$truncatedFragment = self::truncateFragment( $rt->getFragment() );
-			$dbw->newInsertQueryBuilder()
+			$queryBuilder = $dbw->newInsertQueryBuilder()
 				->insertInto( 'redirect' )
 				->row( [
 					'rd_from' => $page->getId(),
@@ -158,10 +162,11 @@ class RedirectStore implements RedirectLookup {
 					'rd_fragment' => $truncatedFragment,
 					'rd_interwiki' => $rt->getInterwiki(),
 				] )
-				->caller( __METHOD__ )
-				->execute();
-
+				->caller( __METHOD__ );
+			$queryBuilder->execute();
 			$dbw->endAtomic( __METHOD__ );
+
+			$this->linkWriteDuplicator->duplicate( $queryBuilder );
 
 			$this->procCache->set(
 				$cacheKey,
@@ -175,11 +180,13 @@ class RedirectStore implements RedirectLookup {
 		} else {
 			$dbw = $this->dbProvider->getPrimaryDatabase();
 			// This is not a redirect, remove row from redirect table
-			$dbw->newDeleteQueryBuilder()
+			$queryBuilder = $dbw->newDeleteQueryBuilder()
 				->deleteFrom( 'redirect' )
 				->where( [ 'rd_from' => $page->getId() ] )
-				->caller( __METHOD__ )
-				->execute();
+				->caller( __METHOD__ );
+			$queryBuilder->execute();
+
+			$this->linkWriteDuplicator->duplicate( $queryBuilder );
 
 			$this->procCache->set( $cacheKey, false );
 		}

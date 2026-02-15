@@ -77,7 +77,9 @@ use MediaWiki\Content\Transform\ContentTransformer;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\DB\MWLBFactory;
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\Deferred\DeferredUpdates;
+use MediaWiki\Deferred\LinksUpdate\ExternalLinksTable;
 use MediaWiki\DomainEvent\DomainEventDispatcher;
 use MediaWiki\DomainEvent\DomainEventSource;
 use MediaWiki\DomainEvent\EventDispatchEngine;
@@ -1291,6 +1293,17 @@ return [
 		);
 	},
 
+	'LinkWriteDuplicator' => static function ( MediaWikiServices $services ): WriteDuplicator {
+		return new WriteDuplicator(
+			$services->getConnectionProvider(),
+			ExternalLinksTable::VIRTUAL_DOMAIN,
+			array_key_exists(
+				ExternalLinksTable::VIRTUAL_DOMAIN,
+				$services->getMainConfig()->get( MainConfigNames::VirtualDomainsMapping )
+			)
+		);
+	},
+
 	'LintErrorChecker' => static function ( MediaWikiServices $services ): LintErrorChecker {
 		return new LintErrorChecker(
 			$services->get( '_Parsoid' ),
@@ -2072,7 +2085,8 @@ return [
 			$services->getPageStore(),
 			$services->getTitleParser(),
 			$services->getRepoGroup(),
-			LoggerFactory::getInstance( 'RedirectStore' )
+			LoggerFactory::getInstance( 'RedirectStore' ),
+			$services->getLinkWriteDuplicator()
 		);
 	},
 
@@ -3106,7 +3120,8 @@ return [
 			$services->getRestrictionStore(),
 			$services->getLinkTargetLookup(),
 			$services->getRedirectStore(),
-			$services->getLogFormatterFactory()
+			$services->getLogFormatterFactory(),
+			$services->getLinkWriteDuplicator()
 		);
 	},
 

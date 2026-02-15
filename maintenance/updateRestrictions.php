@@ -104,12 +104,13 @@ class UpdateRestrictions extends LoggedUpdateMaintenance {
 				->caller( __METHOD__ )->execute();
 
 			// Clear out the legacy page.page_restrictions blob for this batch
-			$dbw->newUpdateQueryBuilder()
+			$update = $dbw->newUpdateQueryBuilder()
 				->update( 'page' )
 				->set( [ 'page_restrictions' => '' ] )
 				->where( [ 'page_id' => $pageIds ] )
-				->caller( __METHOD__ )
-				->execute();
+				->caller( __METHOD__ );
+			$update->execute();
+			$this->getServiceContainer()->getLinkWriteDuplicator()->duplicate( $update );
 
 			$this->commitTransactionRound( __METHOD__ );
 

@@ -10,6 +10,7 @@ use MediaWiki\ChangeTags\ChangeTags;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\Content;
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\Deferred\DeferrableUpdate;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Deferred\LinksUpdate\LinksDeletionUpdate;
@@ -112,6 +113,7 @@ class DeletePage {
 	private RedirectStore $redirectStore;
 	private WikiPage $page;
 	private Authority $deleter;
+	private WriteDuplicator $linkWriteDuplicator;
 
 	/**
 	 * @internal Create via the PageDeleteFactory service.
@@ -134,7 +136,8 @@ class DeletePage {
 		ITextFormatter $contLangMsgTextFormatter,
 		RedirectStore $redirectStore,
 		ProperPageIdentity $page,
-		Authority $deleter
+		Authority $deleter,
+		WriteDuplicator $linkWriteDuplicator
 	) {
 		$this->hookRunner = new HookRunner( $hookContainer );
 		$this->eventDispatcher = $eventDispatcher;
@@ -152,6 +155,7 @@ class DeletePage {
 		$this->backlinkCacheFactory = $backlinkCacheFactory;
 		$this->namespaceInfo = $namespaceInfo;
 		$this->contLangMsgTextFormatter = $contLangMsgTextFormatter;
+		$this->linkWriteDuplicator = $linkWriteDuplicator;
 
 		$this->page = $wikiPageFactory->newFromTitle( $page );
 		$this->deleter = $deleter;
@@ -600,10 +604,12 @@ class DeletePage {
 		$pageBeforeDelete = $page->toPageRecord();
 
 		// Now that it's safely backed up, delete it
-		$dbw->newDeleteQueryBuilder()
+		$delete = $dbw->newDeleteQueryBuilder()
 			->deleteFrom( 'page' )
 			->where( [ 'page_id' => $id ] )
-			->caller( __METHOD__ )->execute();
+			->caller( __METHOD__ );
+		$delete->execute();
+		$this->linkWriteDuplicator->duplicate( $delete );
 
 		// Log the deletion, if the page was suppressed, put it in the suppression log instead
 		$logtype = $this->suppress ? 'suppress' : 'delete';

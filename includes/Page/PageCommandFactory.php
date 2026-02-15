@@ -14,6 +14,7 @@ use MediaWiki\Config\Config;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\ContentModelChange;
 use MediaWiki\Content\IContentHandlerFactory;
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\DomainEvent\DomainEventDispatcher;
 use MediaWiki\EditPage\SpamChecker;
 use MediaWiki\FileRepo\RepoGroup;
@@ -88,6 +89,7 @@ class PageCommandFactory implements
 	private LinkTargetLookup $linkTargetLookup;
 	private RedirectStore $redirectStore;
 	private LogFormatterFactory $logFormatterFactory;
+	private WriteDuplicator $linkWriteDuplicator;
 
 	public function __construct(
 		Config $config,
@@ -122,7 +124,8 @@ class PageCommandFactory implements
 		RestrictionStore $restrictionStore,
 		LinkTargetLookup $linkTargetLookup,
 		RedirectStore $redirectStore,
-		LogFormatterFactory $logFormatterFactory
+		LogFormatterFactory $logFormatterFactory,
+		WriteDuplicator $linkWriteDuplicator
 	) {
 		$this->config = $config;
 		$this->lbFactory = $lbFactory;
@@ -157,6 +160,7 @@ class PageCommandFactory implements
 		$this->linkTargetLookup = $linkTargetLookup;
 		$this->redirectStore = $redirectStore;
 		$this->logFormatterFactory = $logFormatterFactory;
+		$this->linkWriteDuplicator = $linkWriteDuplicator;
 	}
 
 	public function newContentModelChange(
@@ -199,7 +203,8 @@ class PageCommandFactory implements
 			$this->contLangMsgTextFormatter,
 			$this->redirectStore,
 			$page,
-			$deleter
+			$deleter,
+			$this->linkWriteDuplicator
 		);
 	}
 
@@ -249,7 +254,8 @@ class PageCommandFactory implements
 			$this->pageUpdaterFactory,
 			$this->restrictionStore,
 			$this,
-			$this->logFormatterFactory
+			$this->logFormatterFactory,
+			$this->linkWriteDuplicator
 		);
 	}
 

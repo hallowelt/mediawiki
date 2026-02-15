@@ -246,12 +246,13 @@ class CleanupImages extends TableCleanup {
 					->caller( __METHOD__ )
 					->execute();
 			}
-			$db->newUpdateQueryBuilder()
+			$update = $db->newUpdateQueryBuilder()
 				->update( 'page' )
 				->set( [ 'page_title' => $final ] )
 				->where( [ 'page_title' => $orig, 'page_namespace' => NS_FILE ] )
-				->caller( __METHOD__ )
-				->execute();
+				->caller( __METHOD__ );
+			$update->execute();
+			$this->getServiceContainer()->getLinkWriteDuplicator()->duplicate( $update );
 			$dir = dirname( $finalPath );
 			if ( !file_exists( $dir ) ) {
 				if ( !wfMkdirParents( $dir, null, __METHOD__ ) ) {

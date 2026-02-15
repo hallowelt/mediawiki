@@ -13,6 +13,7 @@ use MediaWiki\Content\ContentHandler;
 use MediaWiki\Content\IContentHandlerFactory;
 use MediaWiki\Content\WikitextContent;
 use MediaWiki\Context\RequestContext;
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\Deferred\AtomicSectionUpdate;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\DomainEvent\DomainEventDispatcher;
@@ -77,6 +78,7 @@ class MovePage {
 	private RestrictionStore $restrictionStore;
 	private DeletePageFactory $deletePageFactory;
 	private LogFormatterFactory $logFormatterFactory;
+	private WriteDuplicator $linkWriteDuplicator;
 
 	/** @var int */
 	private $maximumMovedPages;
@@ -114,7 +116,8 @@ class MovePage {
 		PageUpdaterFactory $pageUpdaterFactory,
 		RestrictionStore $restrictionStore,
 		DeletePageFactory $deletePageFactory,
-		LogFormatterFactory $logFormatterFactory
+		LogFormatterFactory $logFormatterFactory,
+		WriteDuplicator $linkWriteDuplicator
 	) {
 		$this->oldTitle = Title::newFromPageIdentity( $oldTitle );
 		$this->newTitle = Title::newFromPageIdentity( $newTitle );
@@ -139,6 +142,7 @@ class MovePage {
 		$this->restrictionStore = $restrictionStore;
 		$this->deletePageFactory = $deletePageFactory;
 		$this->logFormatterFactory = $logFormatterFactory;
+		$this->linkWriteDuplicator = $linkWriteDuplicator;
 
 		$this->maximumMovedPages = $this->options->get( MainConfigNames::MaximumMovedPages );
 	}
@@ -920,14 +924,16 @@ class MovePage {
 		$newpage = $this->wikiPageFactory->newFromTitle( $nt );
 
 		# Change the name of the target page:
-		$dbw->newUpdateQueryBuilder()
+		$update = $dbw->newUpdateQueryBuilder()
 			->update( 'page' )
 			->set( [
 				'page_namespace' => $nt->getNamespace(),
 				'page_title' => $nt->getDBkey(),
 			] )
 			->where( [ 'page_id' => $oldid ] )
-			->caller( __METHOD__ )->execute();
+			->caller( __METHOD__ );
+		$update->execute();
+		$this->linkWriteDuplicator->duplicate( $update );
 
 		// Reset $nt before using it to create the dummy revision (T248789).
 		// But not $this->oldTitle yet, see below (T47348).

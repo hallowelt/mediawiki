@@ -90,13 +90,14 @@ class ResetPageRandom extends Maintenance {
 			$row = null;
 			foreach ( $res as $row ) {
 				if ( !$dry ) {
-					# Update the row...
-					$dbw->newUpdateQueryBuilder()
+					// Update the row...
+					$update = $dbw->newUpdateQueryBuilder()
 						->update( 'page' )
 						->set( [ 'page_random' => wfRandom() ] )
 						->where( [ 'page_id' => $row->page_id ] )
-						->caller( __METHOD__ )
-						->execute();
+						->caller( __METHOD__ );
+					$update->execute();
+					$this->getServiceContainer()->getLinkWriteDuplicator()->duplicate( $update );
 					$changed += $dbw->affectedRows();
 				} else {
 					$changed++;

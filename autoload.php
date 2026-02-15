@@ -1265,6 +1265,7 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\DB\\AbstractSchemaValidator' => __DIR__ . '/includes/DB/AbstractSchemaValidator.php',
 	'MediaWiki\\DB\\CloneDatabase' => __DIR__ . '/includes/DB/CloneDatabase.php',
 	'MediaWiki\\DB\\MWLBFactory' => __DIR__ . '/includes/DB/MWLBFactory.php',
+	'MediaWiki\\DB\\WriteDuplicator' => __DIR__ . '/includes/DB/WriteDuplicator.php',
 	'MediaWiki\\Debug\\DeprecatablePropertyArray' => __DIR__ . '/includes/Debug/DeprecatablePropertyArray.php',
 	'MediaWiki\\Debug\\DeprecationHelper' => __DIR__ . '/includes/Debug/DeprecationHelper.php',
 	'MediaWiki\\Debug\\MW' => __DIR__ . '/includes/Debug/MW.php',

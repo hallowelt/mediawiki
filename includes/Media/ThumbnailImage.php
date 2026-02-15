@@ -73,33 +73,33 @@ class ThumbnailImage extends MediaTransformOutput {
 	}
 
 	/**
-	 * Return HTML <img ... /> tag for the thumbnail, will include
+	 * Return HTML `<img ... />` tag for the thumbnail, will include
 	 * width and height attributes and a blank alt text (as required).
 	 *
 	 * @param array $options Associative array of options. Boolean options
-	 *     should be indicated with a value of true for true, and false or
-	 *     absent for false.
+	 *   should be indicated with a value of true for true, and false or
+	 *   absent for false.
 	 *
-	 *     alt          HTML alt attribute
-	 *     title        HTML title attribute
-	 *     desc-link    Boolean, show a description link
-	 *     file-link    Boolean, show a file download link
-	 *     valign       vertical-align property, if the output is an inline element
-	 *     img-class    Class applied to the \<img\> tag, if there is such a tag
-	 *     loading      Specify an explicit browser loading strategy for images and iframes.
-	 *     desc-query   String, description link query params
-	 *     override-width     Override width attribute. Should generally not set
-	 *     override-height    Override height attribute. Should generally not set
-	 *     no-dimensions      Boolean, skip width and height attributes (useful if
-	 *                        set in CSS)
-	 *     custom-url-link    Custom URL to link to
-	 *     custom-title-link  Custom Title object to link to
-	 *     custom-title-link-query Querystring parameters array, for custom-title-link
-	 *     custom-target-link Value of the target attribute, for custom-url-link
-	 *     parser-extlink-*   Attributes added by parser for external links:
-	 *          parser-extlink-rel: add rel="nofollow"
-	 *          parser-extlink-target: link target, but overridden by custom-target-link
-	 *     magnify-resource   To set the HTML resource attribute, when necessary
+	 *   - alt        : HTML alt attribute
+	 *   - title      : HTML title attribute
+	 *   - desc-link  : Boolean, show a description link
+	 *   - file-link  : Boolean, show a file download link
+	 *   - valign     : vertical-align property, if the output is an inline element
+	 *   - img-class  : Class applied to the `<img>` tag, if there is such a tag
+	 *   - loading    : Specify an explicit browser loading strategy for images and iframes.
+	 *   - desc-query : String, description link query params
+	 *   - override-width   : Override width attribute. Should generally not set
+	 *   - override-height  : Override height attribute. Should generally not set
+	 *   - no-dimensions    : Boolean, skip width and height attributes (useful if
+	 *                      : set in CSS)
+	 *   - custom-url-link  : Custom URL to link to
+	 *   - custom-title-link : Custom Title object to link to
+	 *   - custom-title-link-query : Querystring parameters array, for custom-title-link
+	 *   - custom-target-link : Value of the target attribute, for custom-url-link
+	 *   - parser-extlink-* : Attributes added by parser for external links:
+	 *       -  parser-extlink-rel: add rel="nofollow"
+	 *       -  parser-extlink-target: link target, but overridden by custom-target-link
+	 *   - magnify-resource : To set the HTML resource attribute, when necessary
 	 *
 	 * For images, desc-link and file-link are implemented as a click-through. For
 	 * sounds and videos, they may be displayed in other ways.

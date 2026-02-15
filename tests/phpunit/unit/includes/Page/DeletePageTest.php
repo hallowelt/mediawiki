@@ -7,6 +7,7 @@ use Generator;
 use MediaWiki\Cache\BacklinkCacheFactory;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Config\ServiceOptions;
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\JobQueue\JobQueueGroup;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\MainConfigNames;
@@ -130,7 +131,8 @@ class DeletePageTest extends MediaWikiUnitTestCase {
 			$this->createMock( ITextFormatter::class ),
 			$this->createMock( RedirectStore::class ),
 			$page,
-			$deleter ?? $this->createMock( Authority::class )
+			$deleter ?? $this->createMock( Authority::class ),
+			$this->createMock( WriteDuplicator::class )
 		);
 		$ret->setIsDeletePageUnitTest( true );
 		return $ret;

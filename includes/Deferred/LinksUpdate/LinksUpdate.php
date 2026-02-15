@@ -10,6 +10,7 @@ namespace MediaWiki\Deferred\LinksUpdate;
 
 use InvalidArgumentException;
 use MediaWiki\Cache\BacklinkCache;
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\Deferred\AutoCommitUpdate;
 use MediaWiki\Deferred\DataUpdate;
 use MediaWiki\Deferred\DeferredUpdates;
@@ -72,6 +73,7 @@ class LinksUpdate extends DataUpdate {
 	private $tableFactory;
 
 	private IConnectionProvider $dbProvider;
+	private WriteDuplicator $linkWriteDuplicator;
 
 	/**
 	 * @param PageIdentity $page The page we're updating
@@ -107,6 +109,7 @@ class LinksUpdate extends DataUpdate {
 		// TODO: this does not have to be called in LinksDeletionUpdate
 		$this->tableFactory->setParserOutput( $parserOutput );
 		$this->dbProvider = $services->getDBLoadBalancerFactory();
+		$this->linkWriteDuplicator = $services->getLinkWriteDuplicator();
 	}
 
 	/** @inheritDoc */
@@ -509,11 +512,14 @@ class LinksUpdate extends DataUpdate {
 		if ( $this->mId ) {
 			// The link updates made here only reflect the freshness of the parser output
 			$timestamp = $this->mParserOutput->getCacheTime();
-			$this->getDB()->newUpdateQueryBuilder()
+			$update = $this->getDB()->newUpdateQueryBuilder()
 				->update( 'page' )
 				->set( [ 'page_links_updated' => $this->getDB()->timestamp( $timestamp ) ] )
 				->where( [ 'page_id' => $this->mId ] )
-				->caller( __METHOD__ )->execute();
+				->caller( __METHOD__ );
+			$update->execute();
+
+			$this->linkWriteDuplicator->duplicate( $update );
 		}
 	}
 

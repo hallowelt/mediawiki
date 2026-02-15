@@ -60,10 +60,12 @@ class NukePage extends Maintenance {
 			# Delete the page record and associated recent changes entries
 			if ( $delete ) {
 				$this->output( "Deleting page record..." );
-				$dbw->newDeleteQueryBuilder()
+				$deleteQueryBuilder = $dbw->newDeleteQueryBuilder()
 					->deleteFrom( 'page' )
 					->where( [ 'page_id' => $id ] )
-					->caller( __METHOD__ )->execute();
+					->caller( __METHOD__ );
+				$deleteQueryBuilder->execute();
+				$this->getServiceContainer()->getLinkWriteDuplicator()->duplicate( $deleteQueryBuilder );
 				$this->output( "done.\n" );
 				$this->output( "Cleaning up recent changes..." );
 				$dbw->newDeleteQueryBuilder()

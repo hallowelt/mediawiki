@@ -700,7 +700,7 @@ class NamespaceDupes extends Maintenance {
 	private function movePage( $id, LinkTarget $newLinkTarget ) {
 		$dbw = $this->getPrimaryDB();
 
-		$dbw->newUpdateQueryBuilder()
+		$update = $dbw->newUpdateQueryBuilder()
 			->update( 'page' )
 			->set( [
 				"page_namespace" => $newLinkTarget->getNamespace(),
@@ -709,8 +709,9 @@ class NamespaceDupes extends Maintenance {
 			->where( [
 				"page_id" => $id,
 			] )
-			->caller( __METHOD__ )
-			->execute();
+			->caller( __METHOD__ );
+		$update->execute();
+		$this->getServiceContainer()->getLinkWriteDuplicator()->duplicate( $update );
 
 		// Update *_from_namespace in links tables
 		$fromNamespaceTables = [
@@ -840,11 +841,13 @@ class NamespaceDupes extends Maintenance {
 				$this->beginTransactionRound( __METHOD__ );
 			}
 		}
-		$dbw->newDeleteQueryBuilder()
+
+		$delete = $dbw->newDeleteQueryBuilder()
 			->deleteFrom( 'page' )
 			->where( [ 'page_id' => $id ] )
-			->caller( __METHOD__ )
-			->execute();
+			->caller( __METHOD__ );
+		$delete->execute();
+		$this->getServiceContainer()->getLinkWriteDuplicator()->duplicate( $delete );
 		$this->commitTransactionRound( __METHOD__ );
 
 		/* Call LinksDeletionUpdate to delete outgoing links from the old title,

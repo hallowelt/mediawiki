@@ -61,12 +61,14 @@ class PurgeJobUtils {
 				$ticket = $dbProvider->getEmptyTransactionTicket( $fname );
 				$idBatches = array_chunk( $ids, $batchSize );
 				foreach ( $idBatches as $idBatch ) {
-					$dbw->newUpdateQueryBuilder()
+					$update = $dbw->newUpdateQueryBuilder()
 						->update( 'page' )
 						->set( [ 'page_touched' => $now ] )
 						->where( [ 'page_id' => $idBatch ] )
 						->andWhere( $dbw->expr( 'page_touched', '<', $now ) ) // handle races
-						->caller( $fname )->execute();
+						->caller( $fname );
+					$update->execute();
+					$services->getLinkWriteDuplicator()->duplicate( $update );
 					if ( count( $idBatches ) > 1 ) {
 						$dbProvider->commitAndWaitForReplication( $fname, $ticket );
 					}

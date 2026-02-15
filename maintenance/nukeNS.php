@@ -77,10 +77,12 @@ class NukeNS extends Maintenance {
 				// as much as I hate to cut & paste this, it's a little different, and
 				// I already have the id & revs
 				if ( $delete ) {
-					$dbw->newDeleteQueryBuilder()
+					$deleteQueryBuilder = $dbw->newDeleteQueryBuilder()
 						->deleteFrom( 'page' )
 						->where( [ 'page_id' => $id ] )
-						->caller( __METHOD__ )->execute();
+						->caller( __METHOD__ );
+					$deleteQueryBuilder->execute();
+					$this->getServiceContainer()->getLinkWriteDuplicator()->duplicate( $deleteQueryBuilder );
 					$this->commitTransactionRound( __METHOD__ );
 					// Delete revisions as appropriate
 					/** @var NukePage $child */

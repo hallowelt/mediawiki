@@ -250,14 +250,16 @@ class SpecialPageLanguage extends FormSpecialPage {
 		$logNew = $newLanguage ?: $defLang . '[def]';
 
 		// Writing new page language to database
-		$dbw->newUpdateQueryBuilder()
+		$pageUpdate = $dbw->newUpdateQueryBuilder()
 			->update( 'page' )
 			->set( [ 'page_lang' => $newLanguage ] )
 			->where( [
 				'page_id' => $pageId,
 				'page_lang' => $oldLanguage,
 			] )
-			->caller( __METHOD__ )->execute();
+			->caller( __METHOD__ );
+		$pageUpdate->execute();
+		MediaWikiServices::getInstance()->getLinkWriteDuplicator()->duplicate( $pageUpdate );
 
 		if ( !$dbw->affectedRows() ) {
 			return Status::newFatal( 'pagelang-db-failed' );

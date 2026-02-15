@@ -3329,6 +3329,7 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 					}
 
 					$update->caller( $fname )->execute();
+					MediaWikiServices::getInstance()->getLinkWriteDuplicator()->duplicate( $update );
 
 					MediaWikiServices::getInstance()->getLinkCache()->invalidateTitle( $this );
 				}

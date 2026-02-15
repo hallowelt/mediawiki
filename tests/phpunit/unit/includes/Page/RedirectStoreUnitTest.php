@@ -1,6 +1,7 @@
 <?php
 namespace MediaWiki\Tests\Unit\Page;
 
+use MediaWiki\DB\WriteDuplicator;
 use MediaWiki\FileRepo\File\File;
 use MediaWiki\FileRepo\RepoGroup;
 use MediaWiki\Page\PageIdentityValue;
@@ -38,7 +39,8 @@ class RedirectStoreUnitTest extends MediaWikiUnitTestCase {
 			$this->pageLookup,
 			$this->createMock( TitleParser::class ),
 			$this->repoGroup,
-			new NullLogger()
+			new NullLogger(),
+			$this->createMock( WriteDuplicator::class )
 		);
 	}
 
