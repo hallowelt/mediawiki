@@ -913,7 +913,7 @@ class FileModuleTest extends ResourceLoaderTestCase {
 	}
 
 	/**
-	 * @covers \Wikimedia\DependencyStore\DependencyStore
+	 * @covers \MediaWiki\ResourceLoader\DependencyStore
 	 */
 	public function testIndirectDependencies() {
 		$context = $this->getResourceLoaderContext();
@@ -937,7 +937,7 @@ class FileModuleTest extends ResourceLoaderTestCase {
 	}
 
 	/**
-	 * @covers \Wikimedia\DependencyStore\DependencyStore
+	 * @covers \MediaWiki\ResourceLoader\DependencyStore
 	 */
 	public function testIndirectDependenciesUpdate() {
 		$context = $this->getResourceLoaderContext();

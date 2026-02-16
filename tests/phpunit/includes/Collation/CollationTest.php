@@ -129,6 +129,14 @@ class CollationTest extends MediaWikiLangTestCase {
 			[ 'uca-zh@collation=stroke', '安全', '⠆' ],
 			[ 'uca-zh@collation=stroke', '馗龙', '⠋' ],
 			[ 'uca-zh@collation=stroke', 'Test', 'T' ],
+
+			[ 'uca-default-u-kn', '1 metter', '0–9' ],
+			[ 'uca-default-u-kn', '10 metters', '0–9' ],
+
+			[ 'uca-zh@collation=unihan;colNumeric=yes', '1月', '0–9' ],
+			[ 'uca-zh@collation=unihan;colNumeric=yes', '10月', '0–9' ],
+			[ 'uca-zh@colNumeric=yes;collation=unihan', '1月', '0–9' ],
+			[ 'uca-zh@colNumeric=yes;collation=unihan', '10月', '0–9' ],
 		];
 	}
 }

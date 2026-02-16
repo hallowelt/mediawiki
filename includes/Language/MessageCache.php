@@ -973,7 +973,7 @@ class MessageCache implements LoggerAwareInterface {
 	 * @param string $key The message key
 	 * @param bool $useDB If true, look for the message in the DB, false
 	 *   to use only the LocalisationCache.
-	 * @param bool|string|Language|null $language Code of the language to get the message for.
+	 * @param string|Language|null $language Code of the language to get the message for.
 	 *   This should be a string or null in new code. If null is given, the content language
 	 *   will be used.
 	 * @param MessageInfo|null $info If a default-constructed MessageInfo is passed, it will be
@@ -1078,13 +1078,10 @@ class MessageCache implements LoggerAwareInterface {
 	/**
 	 * Return a Language code from legacy input
 	 *
-	 * @param Language|string|bool $lang Either:
+	 * @param Language|string $lang Either:
 	 *   - a Language object
 	 *   - code of the language to get the message for, with a fall back to the
 	 *     content language if it is invalid.
-	 *   - a boolean: if it's false then use the global object for the current
-	 *     user's language (as a fallback for the old parameter functionality),
-	 *     or if it is true then use global object for the wiki's content language.
 	 * @return string
 	 */
 	private function getLanguageCode( $lang ): string {
@@ -1106,15 +1103,6 @@ class MessageCache implements LoggerAwareInterface {
 			$this->logger->debug( 'Invalid language code passed to' . __METHOD__ .
 				', falling back to content language.' );
 			return $this->contLangCode;
-		} elseif ( is_bool( $lang ) ) {
-			wfDeprecatedMsg( 'Calling MessageCache::get with a boolean language parameter ' .
-				'was deprecated in MediaWiki 1.43', '1.43' );
-			if ( $lang ) {
-				return $this->contLangCode;
-			} else {
-				global $wgLang;
-				return $wgLang->getCode();
-			}
 		} else {
 			throw new InvalidArgumentException( 'Invalid language' );
 		}

@@ -3,6 +3,7 @@ const config = require( './config.json' );
 const teleportTarget = require( './teleportTarget.js' );
 const enableSearchDialog = require( './enableSearchDialog.js' );
 const clearAddressBar = require( './clearAddressBar.js' );
+const { updateThumbnailsToPreferredSize } = require( './updateThumbnailsToPreferredSize.js' );
 
 // Break out of framesets
 if ( mw.config.get( 'wgBreakFrames' ) ) {
@@ -332,6 +333,9 @@ try {
 		mw.loader.load( 'mediawiki.action.view.postEdit' );
 	}
 } catch ( err ) {}
+
+updateThumbnailsToPreferredSize( $( '#mw-content-text .mw-parser-output' ) );
+mw.hook( 'wikipage.content' ).add( updateThumbnailsToPreferredSize );
 
 /**
  * @exports mediawiki.page.ready

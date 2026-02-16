@@ -37,7 +37,6 @@ use RuntimeException;
 use stdClass;
 use Throwable;
 use UnexpectedValueException;
-use Wikimedia\DependencyStore\DependencyStore;
 use Wikimedia\Http\HttpStatus;
 use Wikimedia\Minify\CSSMin;
 use Wikimedia\Minify\IdentityMinifierState;

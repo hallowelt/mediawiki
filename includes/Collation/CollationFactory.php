@@ -136,7 +136,7 @@ class CollationFactory {
 			return $this->instantiateCollation( self::CORE_COLLATIONS[$collationName] );
 		}
 
-		if ( preg_match( '/^uca-([A-Za-z@=-]+)$/', $collationName, $match ) ) {
+		if ( preg_match( '/^uca-([A-Za-z@;=-]+)$/', $collationName, $match ) ) {
 			return $this->instantiateCollation( [
 				'class' => \IcuCollation::class,
 				'services' => [
@@ -146,7 +146,7 @@ class CollationFactory {
 					$match[1],
 				]
 			] );
-		} elseif ( preg_match( '/^remote-uca-([A-Za-z@=-]+)$/', $collationName, $match ) ) {
+		} elseif ( preg_match( '/^remote-uca-([A-Za-z@;=-]+)$/', $collationName, $match ) ) {
 			return $this->instantiateCollation( [
 				'class' => \RemoteIcuCollation::class,
 				'services' => [

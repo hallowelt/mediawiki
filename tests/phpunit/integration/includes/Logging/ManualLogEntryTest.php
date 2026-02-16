@@ -6,7 +6,14 @@ use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Logging\LogEntryBase;
 use MediaWiki\Logging\LogPage;
 use MediaWiki\Logging\ManualLogEntry;
+use MediaWiki\Page\PageIdentityValue;
+use MediaWiki\User\ActorStore;
+use MediaWiki\User\ActorStoreFactory;
+use MediaWiki\User\UserIdentityValue;
 use MediaWikiIntegrationTestCase;
+use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\InsertQueryBuilder;
+use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\ScopedCallback;
 
 /**
@@ -99,5 +106,43 @@ class ManualLogEntryTest extends MediaWikiIntegrationTestCase {
 			'User does not have bot right' => [ false ],
 			'User temporarily has the bot right' => [ true ],
 		];
+	}
+
+	/**
+	 * @covers \MediaWiki\Logging\ManualLogEntry::insert
+	 */
+	public function testInsertAnotherWiki() {
+		$realDb = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase();
+		$realActorStore = $this->getServiceContainer()->getActorStore();
+
+		$mockDb = $this->createMock( IDatabase::class );
+		$mockDb->method( 'insertId' )->willReturn( 9999 );
+		$mockDb->method( 'getDomainID' )->willReturn( 'anotherwiki' );
+		$mockDb->method( 'newInsertQueryBuilder' )->willReturn( new InsertQueryBuilder( $mockDb ) );
+		$mockDb->method( 'newSelectQueryBuilder' )->willReturn( new SelectQueryBuilder( $mockDb ) );
+
+		$this->overrideMwServices( null, [
+			'ActorStoreFactory' => function () {
+				$mockAS = $this->createMock( ActorStore::class );
+				$mockAS->expects( $this->once() )->method( 'acquireActorId' );
+				$mockASF = $this->createMock( ActorStoreFactory::class );
+				$mockASF->expects( $this->once() )->method( 'getActorStore' )->with( 'anotherwiki' )->willReturn( $mockAS );
+				return $mockASF;
+			},
+		] );
+
+		$logEntry = new ManualLogEntry( 'phpunit', 'test' );
+		$logEntry->setPerformer( new UserIdentityValue( 676767, 'AnotherWikiTest', 'anotherwiki' ) );
+		$logEntry->setTarget( new PageIdentityValue( 767676, NS_MAIN, 'AnotherWikiTest', 'anotherwiki' ) );
+		$logId = $logEntry->insert( $mockDb );
+		$this->assertEquals( 9999, $logId );
+
+		// Check that we didn't create a local actor (T398177)
+		$found = $realActorStore->findActorIdByName( 'AnotherWikiTest', $realDb );
+		$this->assertNull( $found );
+		// Check that we didn't create a local log entry
+		$found = $realDb->newSelectQueryBuilder()
+			->from( 'logging' )->select( 'log_id' )->where( [ 'log_page' => 767676 ] )->fetchField();
+		$this->assertFalse( $found );
 	}
 }

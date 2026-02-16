@@ -1,9 +1,13 @@
 <?php
 
+use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\Logging\DatabaseLogEntry;
 use MediaWiki\User\ActorStore;
+use MediaWiki\User\ActorStoreFactory;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityValue;
+use MediaWiki\WikiMap\WikiMap;
+use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IReadableDatabase;
 
 /**
@@ -38,7 +42,10 @@ class DatabaseLogEntryTest extends MediaWikiIntegrationTestCase {
 				$selectFields['options'],
 				$selectFields['join_conds']
 			)
-			->will( self::returnValue( $row ) );
+			->willReturn( $row );
+		$db->expects( self::once() )
+			->method( 'getDomainID' )
+			->willReturn( WikiMap::getCurrentWikiDbDomain() );
 
 		/** @var IReadableDatabase $db */
 		$logEntry = DatabaseLogEntry::newFromId( $id, $db );
@@ -49,6 +56,14 @@ class DatabaseLogEntryTest extends MediaWikiIntegrationTestCase {
 			self::assertEquals( $id, $logEntry->getId() );
 			self::assertEquals( $expectedFields['type'], $logEntry->getType() );
 			self::assertEquals( $expectedFields['comment'], $logEntry->getComment() );
+			self::assertEquals(
+				WikiAwareEntity::LOCAL,
+				$logEntry->getTargetPage()->getWikiId()
+			);
+			self::assertEquals(
+				WikiAwareEntity::LOCAL,
+				$logEntry->getPerformerIdentity()->getWikiId()
+			);
 		}
 	}
 
@@ -85,6 +100,12 @@ class DatabaseLogEntryTest extends MediaWikiIntegrationTestCase {
 				'logging_actor' => [ 'JOIN', 'actor_id=log_actor' ],
 			],
 		];
+
+		$defaults = [
+			'log_namespace' => NS_MAIN,
+			'log_title' => 'TestPage',
+		];
+
 		return [
 			[
 				0,
@@ -100,7 +121,7 @@ class DatabaseLogEntryTest extends MediaWikiIntegrationTestCase {
 					'log_type' => 'foobarize',
 					'log_comment_text' => 'test!',
 					'log_comment_data' => null,
-				],
+				] + $defaults,
 				[ 'type' => 'foobarize', 'comment' => 'test!' ]
 			],
 			[
@@ -111,7 +132,7 @@ class DatabaseLogEntryTest extends MediaWikiIntegrationTestCase {
 					'log_type' => 'foobarize',
 					'log_comment_text' => 'test!',
 					'log_comment_data' => null,
-				],
+				] + $defaults,
 				[ 'type' => 'foobarize', 'comment' => 'test!' ]
 			],
 		];
@@ -149,5 +170,82 @@ class DatabaseLogEntryTest extends MediaWikiIntegrationTestCase {
 		] + $actorRowFields );
 		$performer = $logEntry->getPerformerIdentity();
 		$this->assertTrue( $expected->equals( $performer ) );
+	}
+
+	/**
+	 * @covers \MediaWiki\Logging\DatabaseLogEntry::newFromRow
+	 */
+	public function testNewFromRowAnotherWiki() {
+		$realDb = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase();
+		$realActorStore = $this->getServiceContainer()->getActorStore();
+
+		$this->overrideMwServices( null, [
+			'ActorStoreFactory' => function () {
+				$mockAS = $this->createMock( ActorStore::class );
+				$mockAS->expects( $this->once() )->method( 'newActorFromRowFields' )->willReturn(
+					UserIdentityValue::newRegistered( 42, 'Testing', 'anotherwiki' ) );
+				$mockASF = $this->createMock( ActorStoreFactory::class );
+				$mockASF->expects( $this->once() )->method( 'getActorStore' )->with( 'anotherwiki' )->willReturn( $mockAS );
+				return $mockASF;
+			},
+		] );
+
+		$row = (object)[
+			'log_id' => 9999,
+			'log_type' => 'phpunit',
+			'log_action' => 'test',
+			'log_timestamp' => time(),
+			'log_page' => 767676,
+			'log_namespace' => 0,
+			'log_title' => 'AnotherWikiTest',
+			'log_params' => null,
+			'log_deleted' => 0,
+		];
+		$logEntry = DatabaseLogEntry::newFromRow( $row, 'anotherwiki' );
+		$user = $logEntry->getPerformerIdentity();
+		$this->assertEquals( 'anotherwiki', $user->getWikiId() );
+		// Check that we didn't create a local actor (T398177)
+		$found = $realActorStore->findActorIdByName( 'AnotherWikiTest', $realDb );
+		$this->assertNull( $found );
+	}
+
+	/**
+	 * @covers \MediaWiki\Logging\DatabaseLogEntry::newFromId
+	 */
+	public function testNewFromIdAnotherWiki() {
+		$realDb = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase();
+		$realActorStore = $this->getServiceContainer()->getActorStore();
+
+		$row = (object)[
+			'log_id' => 9999,
+			'log_type' => 'phpunit',
+			'log_action' => 'test',
+			'log_timestamp' => time(),
+			'log_page' => 767676,
+			'log_namespace' => 0,
+			'log_title' => 'AnotherWikiTest',
+			'log_params' => null,
+			'log_deleted' => 0,
+		];
+
+		$mockDb = $this->createMock( IDatabase::class );
+		$mockDb->method( 'insertId' )->willReturn( 9999 );
+		$mockDb->method( 'getDomainID' )->willReturn( 'anotherwiki' );
+		$mockDb->method( 'selectRow' )->willReturn( $row );
+
+		$this->overrideMwServices( null, [
+			'ActorStoreFactory' => function () {
+				$mockAS = $this->createMock( ActorStore::class );
+				$mockAS->expects( $this->once() )->method( 'newActorFromRowFields' )->willReturn(
+					UserIdentityValue::newRegistered( 42, 'Testing', 'anotherwiki' ) );
+				$mockASF = $this->createMock( ActorStoreFactory::class );
+				$mockASF->expects( $this->once() )->method( 'getActorStore' )->with( 'anotherwiki' )->willReturn( $mockAS );
+				return $mockASF;
+			},
+		] );
+
+		$logEntry = DatabaseLogEntry::newFromId( 9999, $mockDb );
+		$this->assertEquals( 'anotherwiki', $logEntry->getPerformerIdentity()->getWikiId() );
+		$this->assertEquals( 'anotherwiki', $logEntry->getTargetPage()->getWikiId() );
 	}
 }

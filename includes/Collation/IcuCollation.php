@@ -319,11 +319,6 @@ class IcuCollation extends Collation {
 		LanguageFactory $languageFactory,
 		$locale
 	) {
-		$this->locale = $locale;
-		// Drop everything after the '@' in locale's name
-		$localeParts = explode( '@', $locale );
-		$this->digitTransformLanguage = $languageFactory->getLanguage( $locale === 'root' ? 'en' : $localeParts[0] );
-
 		$mainCollator = Collator::create( $locale );
 		if ( !$mainCollator ) {
 			throw new InvalidArgumentException( "Invalid ICU locale specified for collation: $locale" );
@@ -334,11 +329,28 @@ class IcuCollation extends Collation {
 		$this->primaryCollator = Collator::create( $locale );
 		$this->primaryCollator->setStrength( Collator::PRIMARY );
 
-		// Strip the numeric collation suffix so that it doesn't trip up fetchFirstLetterData()
-		if ( str_ends_with( $locale, '-u-kn' ) ) {
-			$this->isNumericCollation = true;
-			$this->locale = substr( $this->locale, 0, -5 );
+		// Make the internal collation key without an extra suffix or parameters for fetchFirstLetterData()
+		$localeParts = explode( '@', $locale, 2 );
+		if ( count( $localeParts ) === 1 ) {
+			if ( str_ends_with( $locale, '-u-kn' ) ) {
+				$this->isNumericCollation = true;
+				$locale = substr( $locale, 0, -5 );
+			}
+		} else {
+			$parameters = explode( ';', $localeParts[1] );
+			$this->isNumericCollation = in_array( 'colNumeric=yes', $parameters );
+
+			$locale = $localeParts[0];
+			foreach ( $parameters as $param ) {
+				if ( str_starts_with( $param, 'collation=' ) ) {
+					$locale = $localeParts[0] . '@' . $param;
+					break;
+				}
+			}
 		}
+
+		$this->locale = $locale;
+		$this->digitTransformLanguage = $languageFactory->getLanguage( $locale === 'root' ? 'en' : $localeParts[0] );
 	}
 
 	/** @inheritDoc */

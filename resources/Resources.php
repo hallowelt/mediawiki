@@ -1729,6 +1729,7 @@ return [
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.page.ready",
 		'packageFiles' => [
 			'ready.js',
+			'updateThumbnailsToPreferredSize.js',
 			'enableSearchDialog.js',
 			'checkboxShift.js',
 			'checkboxHack.js',

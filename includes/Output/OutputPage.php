@@ -3862,12 +3862,23 @@ class OutputPage extends ContextSource {
 
 		$rlHtmlAtribs = $this->getRlClient()->getDocumentAttributes();
 		$skinHtmlAttribs = $sk->getHtmlElementAttributes();
+
+		$lookupService = $services->getUserOptionsLookup();
+		$user = $this->getUser();
+		$thumbnailIndex = $lookupService->getOption( $user, 'thumbsize' );
+		$thumbnailSize = $config->get( 'ThumbLimits' )[ $thumbnailIndex ] ?? 250;
+		$thumbValue = $thumbnailSize === 250 ? 'standard' : (
+			$thumbnailSize < 250 ? 'small' : 'large'
+		);
 		// Combine the classes from different sources, and convert to a string, which is needed below
 		$htmlClass = Html::expandClassList( [
 			Html::expandClassList( $rlHtmlAtribs['class'] ?? [] ),
 			Html::expandClassList( $skinHtmlAttribs['class'] ?? [] ),
-			Html::expandClassList( $this->mAdditionalHtmlClasses )
+			Html::expandClassList( $this->mAdditionalHtmlClasses ),
+			// This uses `-clientpref-` for now to support future customization for anonymous users.
+			'skin-theme-clientpref-thumb-' . $thumbValue,
 		] );
+
 		if ( $htmlClass === '' ) {
 			$htmlClass = null;
 		}
@@ -3911,7 +3922,7 @@ class OutputPage extends ContextSource {
 
 		// See Article:showDiffPage for class to support article diff styling
 
-		$underline = $services->getUserOptionsLookup()->getOption( $this->getUser(), 'underline' );
+		$underline = $lookupService->getOption( $user, 'underline' );
 		if ( $underline < 2 ) {
 			// The following classes can be used here:
 			// * mw-underline-always

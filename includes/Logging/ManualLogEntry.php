@@ -14,15 +14,18 @@ namespace MediaWiki\Logging;
 use InvalidArgumentException;
 use MediaWiki\ChangeTags\Taggable;
 use MediaWiki\Context\RequestContext;
+use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageReference;
 use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
+use MediaWiki\WikiMap\WikiMap;
 use RuntimeException;
 use UnexpectedValueException;
 use Wikimedia\Assert\Assert;
@@ -55,8 +58,8 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 	/** @var UserIdentity Performer of the action for the log entry */
 	protected $performer;
 
-	/** @var Title Target title for the log entry */
-	protected $target;
+	/** Target page for the log entry */
+	protected PageReference $targetPage;
 
 	/** @var string Timestamp of creation of the log entry */
 	protected $timestamp;
@@ -173,8 +176,11 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 	/**
 	 * Set the user that performed the action being logged.
 	 *
-	 * @since 1.19
+	 * Since 1.46, the user can belong to another wiki, not just the current one.
+	 * The database passed to ::insert() must belong to the same wiki.
+	 *
 	 * @param UserIdentity $performer
+	 * @since 1.19
 	 */
 	public function setPerformer( UserIdentity $performer ) {
 		$this->performer = $performer;
@@ -183,15 +189,18 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 	/**
 	 * Set the title of the object changed.
 	 *
+	 * Since 1.46, the page can belong to another wiki, not just the current one.
+	 * The database passed to ::insert() must belong to the same wiki.
+	 *
 	 * @param LinkTarget|PageReference $target calling with LinkTarget
 	 *   is deprecated since 1.37
 	 * @since 1.19
 	 */
 	public function setTarget( $target ) {
 		if ( $target instanceof PageReference ) {
-			$this->target = Title::newFromPageReference( $target );
+			$this->targetPage = $target;
 		} elseif ( $target instanceof LinkTarget ) {
-			$this->target = Title::newFromLinkTarget( $target );
+			$this->targetPage = Title::newFromLinkTarget( $target );
 		} else {
 			throw new InvalidArgumentException( "Invalid target provided" );
 		}
@@ -294,15 +303,24 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 	/**
 	 * Insert the entry into the `logging` table.
 	 *
-	 * @param IDatabase|null $dbw
+	 * Since 1.46, the provided IDatabase may belong to a different wiki than the current one.
+	 * In that case it's your responsibility to ensure that the log performer, target, and any
+	 * parameters are all referring to users, titles, etc. that are valid on that wiki.
+	 * Publishing such log entries to recent changes (see ::publish()) is not supported.
+	 *
 	 * @return int ID of the log entry
 	 */
 	public function insert( ?IDatabase $dbw = null ) {
 		$services = MediaWikiServices::getInstance();
 		$dbw = $dbw ?: $services->getConnectionProvider()->getPrimaryDatabase();
 
+		$wikiId = WikiMap::getWikiIdFromDbDomain( $dbw->getDomainID() );
+		$wikiIdOrLocal = $wikiId === WikiMap::getCurrentWikiId() ? WikiAwareEntity::LOCAL : $wikiId;
+
+		$actorStore = $services->getActorStoreFactory()->getActorStore( $wikiIdOrLocal );
+
 		$this->timestamp ??= wfTimestampNow();
-		$actorId = $services->getActorStore()->acquireActorId( $this->getPerformerIdentity(), $dbw );
+		$actorId = $actorStore->acquireActorId( $this->getPerformerIdentity(), $dbw );
 
 		// Trim spaces on user supplied text
 		$comment = trim( $this->getComment() ?? '' );
@@ -317,14 +335,16 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 			$relations['associated_rev_id'] = $revId;
 		}
 
+		$targetPage = $this->getTargetPage();
 		$row = [
 			'log_type' => $this->getType(),
 			'log_action' => $this->getSubtype(),
 			'log_timestamp' => $dbw->timestamp( $this->getTimestamp() ),
 			'log_actor' => $actorId,
-			'log_namespace' => $this->getTarget()->getNamespace(),
-			'log_title' => $this->getTarget()->getDBkey(),
-			'log_page' => $this->getTarget()->getArticleID(),
+			'log_namespace' => $targetPage->getNamespace(),
+			'log_title' => $targetPage->getDBkey(),
+			'log_page' => ( $targetPage instanceof PageIdentity && $targetPage->canExist() )
+				? $targetPage->getId( $wikiIdOrLocal ) : 0,
 			'log_params' => LogEntryBase::makeParamBlob( $params ),
 		];
 		if ( $this->deleted !== null ) {
@@ -393,7 +413,7 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 			'',
 			$this->getType(),
 			$this->getSubtype(),
-			$this->getTarget(),
+			$this->getTargetPage(),
 			$this->getComment(),
 			LogEntryBase::makeParamBlob( $this->getParameters() ),
 			$newId,
@@ -492,10 +512,16 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 	}
 
 	/**
+	 * This method will throw if the target page belongs to another wiki.
+	 * To avoid problems, use ::getTargetPage() in new code.
 	 * @return Title
 	 */
 	public function getTarget() {
-		return $this->target;
+		return Title::newFromPageReference( $this->targetPage );
+	}
+
+	public function getTargetPage(): PageReference {
+		return $this->targetPage;
 	}
 
 	/**

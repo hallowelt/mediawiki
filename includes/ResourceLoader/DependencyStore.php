@@ -4,7 +4,7 @@
  * @file
  */
 
-namespace Wikimedia\DependencyStore;
+namespace MediaWiki\ResourceLoader;
 
 use InvalidArgumentException;
 use MediaWiki\Deferred\DeferredUpdates;

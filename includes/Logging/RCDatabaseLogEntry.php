@@ -15,6 +15,8 @@ use InvalidArgumentException;
 use LogicException;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Page\PageReference;
+use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\Rdbms\IReadableDatabase;
@@ -70,7 +72,7 @@ class RCDatabaseLogEntry extends DatabaseLogEntry {
 	/** @inheritDoc */
 	public function getPerformerIdentity(): UserIdentity {
 		if ( !$this->performer ) {
-			$actorStore = MediaWikiServices::getInstance()->getActorStore();
+			$actorStore = MediaWikiServices::getInstance()->getActorStoreFactory()->getActorStore( $this->wikiId );
 			$userFactory = MediaWikiServices::getInstance()->getUserFactory();
 			if ( isset( $this->row->rc_actor ) ) {
 				try {
@@ -113,6 +115,12 @@ class RCDatabaseLogEntry extends DatabaseLogEntry {
 		$namespace = $this->row->rc_namespace;
 		$page = $this->row->rc_title;
 		return Title::makeTitle( $namespace, $page );
+	}
+
+	public function getTargetPage(): PageReference {
+		$namespace = $this->row->rc_namespace;
+		$page = $this->row->rc_title;
+		return new PageReferenceValue( $namespace, $page, $this->wikiId );
 	}
 
 	/** @inheritDoc */

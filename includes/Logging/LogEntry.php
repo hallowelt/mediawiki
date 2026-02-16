@@ -6,6 +6,7 @@
 
 namespace MediaWiki\Logging;
 
+use MediaWiki\Page\PageReference;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 
@@ -65,6 +66,12 @@ interface LogEntry {
 	 * @return Title
 	 */
 	public function getTarget();
+
+	/**
+	 * Get the target page of this action.
+	 * @since 1.46
+	 */
+	public function getTargetPage(): PageReference;
 
 	/**
 	 * Get the timestamp when the action was executed.

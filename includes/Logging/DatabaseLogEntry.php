@@ -12,9 +12,13 @@
 namespace MediaWiki\Logging;
 
 use InvalidArgumentException;
+use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Page\PageReference;
+use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\User\UserIdentity;
+use MediaWiki\WikiMap\WikiMap;
 use stdClass;
 use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Timestamp\TimestampFormat as TS;
@@ -86,15 +90,16 @@ class DatabaseLogEntry extends LogEntryBase {
 	 * Supports rows from both logging and recentchanges table.
 	 *
 	 * @param stdClass|array $row
+	 * @param string|false $wikiId Wiki from which this row was loaded (since 1.46)
 	 * @return DatabaseLogEntry
 	 */
-	public static function newFromRow( $row ) {
+	public static function newFromRow( $row, string|false $wikiId = WikiAwareEntity::LOCAL ) {
 		$row = (object)$row;
 		if ( isset( $row->rc_logid ) ) {
-			return new RCDatabaseLogEntry( $row );
+			return new RCDatabaseLogEntry( $row, $wikiId );
 		}
 
-		return new self( $row );
+		return new self( $row, $wikiId );
 	}
 
 	/**
@@ -105,13 +110,15 @@ class DatabaseLogEntry extends LogEntryBase {
 	 * @return DatabaseLogEntry|null
 	 */
 	public static function newFromId( $id, IReadableDatabase $db ) {
+		$wikiId = WikiMap::getWikiIdFromDbDomain( $db->getDomainID() );
+		$wikiId = $wikiId === WikiMap::getCurrentWikiId() ? WikiAwareEntity::LOCAL : $wikiId;
 		$row = self::newSelectQueryBuilder( $db )
 			->where( [ 'log_id' => $id ] )
 			->caller( __METHOD__ )->fetchRow();
 		if ( !$row ) {
 			return null;
 		}
-		return self::newFromRow( $row );
+		return self::newFromRow( $row, $wikiId );
 	}
 
 	/** @var stdClass Database result row. */
@@ -131,8 +138,9 @@ class DatabaseLogEntry extends LogEntryBase {
 
 	/**
 	 * @param stdClass $row
+	 * @param string|false $wikiId Wiki from which this row was loaded
 	 */
-	protected function __construct( $row ) {
+	protected function __construct( $row, protected string|false $wikiId = false ) {
 		$this->row = $row;
 	}
 
@@ -205,7 +213,7 @@ class DatabaseLogEntry extends LogEntryBase {
 	/** @inheritDoc */
 	public function getPerformerIdentity(): UserIdentity {
 		if ( !$this->performer ) {
-			$actorStore = MediaWikiServices::getInstance()->getActorStore();
+			$actorStore = MediaWikiServices::getInstance()->getActorStoreFactory()->getActorStore( $this->wikiId );
 			try {
 				$this->performer = $actorStore->newActorFromRowFields(
 					$this->row->user_id ?? 0,
@@ -230,6 +238,12 @@ class DatabaseLogEntry extends LogEntryBase {
 		$namespace = $this->row->log_namespace;
 		$page = $this->row->log_title;
 		return MediaWikiServices::getInstance()->getTitleFactory()->makeTitle( $namespace, $page );
+	}
+
+	public function getTargetPage(): PageReference {
+		$namespace = $this->row->log_namespace;
+		$page = $this->row->log_title;
+		return new PageReferenceValue( $namespace, $page, $this->wikiId );
 	}
 
 	/** @inheritDoc */
