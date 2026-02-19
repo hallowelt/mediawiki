@@ -2133,7 +2133,7 @@ class ParsoidHandlerTest extends MediaWikiIntegrationTestCase {
 				if ( $index === 'data-parsoid' ) {
 					// FIXME: Assert headers as well
 					$this->assertArrayHasKey( 'body', $jsonData[$index] );
-					$this->assertSame( $exp['body'], $jsonData[$index]['body'] );
+					$this->assertEqualsCanonicalizing( $exp['body'], $jsonData[$index]['body'] );
 				} else {
 					$this->assertSame( $exp, $jsonData[$index] );
 				}

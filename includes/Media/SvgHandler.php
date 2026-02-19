@@ -435,22 +435,12 @@ class SvgHandler extends ImageHandler {
 	 *
 	 * @stable to override
 	 * @param File $image File associated with this thumbnail
-	 * @param array $params Array with scaler params
+	 * @param array $params Media handler parameters
 	 * @return ThumbnailImage
 	 */
 	protected function getClientScalingThumbnailImage( $image, $params ) {
-		$url = $image->getUrl();
-		if ( isset( $params['isFilePageThumb'] ) && $params['isFilePageThumb'] ) {
-			// Use a versioned URL on file description pages
-			$url = $image->getFilePageThumbUrl( $url );
-		}
-
-		$actualParams = $params;
-
-		$actualParams['width']  ??= $params['clientWidth'];
-		$actualParams['height'] ??= $params['clientHeight'];
-
-		return new ThumbnailImage( $image, $url, null, $actualParams );
+		$url = $image->modifyClientThumbUrl( $image->getUrl(), $params );
+		return new ThumbnailImage( $image, $url, null, $params );
 	}
 
 	/** @inheritDoc */

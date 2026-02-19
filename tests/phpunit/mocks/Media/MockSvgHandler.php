@@ -14,7 +14,7 @@ class MockSvgHandler extends SvgHandler {
 	}
 
 	/** @inheritDoc */
-	public function doClientImage( $image, $scalerParams ) {
-		return $this->getClientScalingThumbnailImage( $image, $scalerParams );
+	public function doClientImage( $image, $params ) {
+		return $this->getClientScalingThumbnailImage( $image, $params );
 	}
 }

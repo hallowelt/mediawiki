@@ -31,14 +31,10 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 	private string $table;
 	private string $tablePrefix;
 	private string $indexTag;
-	/** @var string */
-	private $fieldTitle = 'title';
 	/** @var int */
 	private $dfltNamespace = NS_MAIN;
 	/** @var bool */
 	private $hasNamespace = true;
-	/** @var string|null */
-	private $useIndex = null;
 	/** @var array */
 	private $props = [];
 	/** @var string|bool */
@@ -60,7 +56,6 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				$prefix = 'al';
 				$this->table = 'pagelinks';
 				$this->tablePrefix = 'pl_';
-				$this->useIndex = 'pl_namespace';
 				$this->indexTag = 'l';
 				$this->virtualDomain = PageLinksTable::VIRTUAL_DOMAIN;
 				break;
@@ -76,7 +71,6 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				$prefix = 'af';
 				$this->table = 'imagelinks';
 				$this->tablePrefix = 'il_';
-				$this->fieldTitle = 'to';
 				$this->dfltNamespace = NS_FILE;
 				$this->hasNamespace = false;
 				$this->indexTag = 'f';
@@ -127,24 +121,18 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 
 		$pfx = $this->tablePrefix;
 
-		$nsField = $pfx . 'namespace';
-		$titleField = $pfx . $this->fieldTitle;
-		$linktargetReadNew = false;
+		$usesLinktarget = isset( $this->linksMigration::$mapping[$this->table] );
 		$targetIdColumn = '';
-		if ( isset( $this->linksMigration::$mapping[$this->table] ) ) {
+		if ( $usesLinktarget ) {
 			[ $nsField, $titleField ] = $this->linksMigration->getTitleFields( $this->table );
 			$queryInfo = $this->linksMigration->getQueryInfo( $this->table, 'linktarget', 'STRAIGHT_JOIN' );
 			$this->addTables( $queryInfo['tables'] );
 			$this->addJoinConds( $queryInfo['joins'] );
-			if ( in_array( 'linktarget', $queryInfo['tables'] ) ) {
-				$linktargetReadNew = true;
-				$targetIdColumn = "{$pfx}target_id";
-				$this->addFields( [ $targetIdColumn ] );
-			}
+			$targetIdColumn = "{$pfx}target_id";
+			$this->addFields( [ $targetIdColumn ] );
 		} else {
-			if ( $this->useIndex ) {
-				$this->addOption( 'USE INDEX', $this->useIndex );
-			}
+			$nsField = "{$pfx}namespace";
+			$titleField = "{$pfx}title";
 			$this->addTables( $this->table );
 		}
 
@@ -183,7 +171,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 			if ( $params['unique'] ) {
 				$cont = $this->parseContinueParamOrDie( $params['continue'], [ 'string' ] );
 				$this->addWhere( $db->expr( $titleField, $op, $cont[0] ) );
-			} elseif ( !$linktargetReadNew ) {
+			} elseif ( !$usesLinktarget ) {
 				$cont = $this->parseContinueParamOrDie( $params['continue'], [ 'string', 'int' ] );
 				$this->addWhere( $db->buildComparison( $op, [
 					$titleField => $cont[0],
@@ -226,7 +214,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 
 		$sort = ( $params['dir'] == 'descending' ? ' DESC' : '' );
 		$orderBy = [];
-		if ( $linktargetReadNew ) {
+		if ( $usesLinktarget ) {
 			$orderBy[] = $targetIdColumn;
 		} else {
 			$orderBy[] = $titleField . $sort;
@@ -260,7 +248,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				// additional pages to be had. Stop here...
 				if ( $params['unique'] ) {
 					$this->setContinueEnumParameter( 'continue', $row->pl_title );
-				} elseif ( $linktargetReadNew ) {
+				} elseif ( $usesLinktarget ) {
 					$this->setContinueEnumParameter( 'continue', $row->{$targetIdColumn} . '|' . $row->pl_from );
 				} else {
 					$this->setContinueEnumParameter( 'continue', $row->pl_title . '|' . $row->pl_from );
@@ -288,7 +276,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				if ( !$fit ) {
 					if ( $params['unique'] ) {
 						$this->setContinueEnumParameter( 'continue', $row->pl_title );
-					} elseif ( $linktargetReadNew ) {
+					} elseif ( $usesLinktarget ) {
 						$this->setContinueEnumParameter( 'continue', $row->{$targetIdColumn} . '|' . $row->pl_from );
 					} else {
 						$this->setContinueEnumParameter( 'continue', $row->pl_title . '|' . $row->pl_from );

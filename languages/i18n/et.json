@@ -2232,7 +2232,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Määra sildid",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Silte ei õnnestu määrata",
 	"watchlistlabels-editwatchlist-dialog-intro": "Vali {{PLURAL:$2|silt|sildid}}, mille määrad {{PLURAL:$3|järgmisele leheküljele|järgmistele lehekülgedele}}: $1.",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Sa ei saa enda jälgimisloendi üksustele silte määrata, sest sa ei ole koostanud ühtegi silti. Mine leheküljele [[{{#Special:WatchlistLabels}}]], et koostada mõni.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Sa ei saa enda jälgimisloendi üksustele silte määrata, sest sa ei ole koostanud ühtegi silti. Mine leheküljele [[$1]], et koostada mõni.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Palun vali leheküljed, millele soovid sildid määrata.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Eemalda sildid",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Silte ei õnnestu eemaldada",

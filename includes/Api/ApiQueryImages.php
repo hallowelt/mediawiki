@@ -10,7 +10,6 @@ namespace MediaWiki\Api;
 
 use MediaWiki\Deferred\LinksUpdate\ImageLinksTable;
 use MediaWiki\Linker\LinksMigration;
-use MediaWiki\MainConfigNames;
 use MediaWiki\Title\Title;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\IntegerDef;
@@ -49,41 +48,32 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 		}
 
 		$params = $this->extractRequestParams();
-
-		$migrationStage = $this->getConfig()->get( MainConfigNames::ImageLinksSchemaMigrationStage );
 		$queryInfo = $this->linksMigration->getQueryInfo( 'imagelinks' );
 
 		$this->addTables( $queryInfo['tables'] );
-
-		if ( $migrationStage & SCHEMA_COMPAT_READ_NEW ) {
-			$this->addFields( [ 'il_from', 'il_to' => 'lt_title' ] );
-			$this->addJoinConds( $queryInfo['joins'] );
-		} else {
-			$this->addFields( [ 'il_from', 'il_to' ] );
-		}
+		$this->addFields( [ 'il_from', 'lt_title' ] );
+		$this->addJoinConds( $queryInfo['joins'] );
 
 		$this->addWhereFld( 'il_from', array_keys( $pages ) );
 		if ( $params['continue'] !== null ) {
 			$cont = $this->parseContinueParamOrDie( $params['continue'], [ 'int', 'string' ] );
 			$op = $params['dir'] == 'descending' ? '<=' : '>=';
-			$comparison = [ 'il_from' => $cont[0] ];
-			if ( $migrationStage & SCHEMA_COMPAT_READ_NEW ) {
-				$comparison['lt_namespace'] = NS_FILE;
-				$comparison['lt_title'] = $cont[1];
-			} else {
-				$comparison['il_to'] = $cont[1];
-			}
+			$comparison = [
+				'il_from' => $cont[0],
+				'lt_namespace' => NS_FILE,
+				'lt_title' => $cont[1],
+			];
 			$this->addWhere( $this->getDB()->buildComparison( $op, $comparison ) );
 		}
 
 		$sort = ( $params['dir'] == 'descending' ? ' DESC' : '' );
 		// Don't order by il_from if it's constant in the WHERE clause
 		if ( count( $pages ) === 1 ) {
-			$this->addOption( 'ORDER BY', 'il_to' . $sort );
+			$this->addOption( 'ORDER BY', 'lt_title' . $sort );
 		} else {
 			$this->addOption( 'ORDER BY', [
 				'il_from' . $sort,
-				'il_to' . $sort
+				'lt_title' . $sort
 			] );
 		}
 		$this->addOption( 'LIMIT', $params['limit'] + 1 );
@@ -102,12 +92,8 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 				// No titles so no results
 				return;
 			}
-			if ( $migrationStage & SCHEMA_COMPAT_READ_NEW ) {
-				$this->addWhereFld( 'lt_title', $images );
-				$this->addWhereFld( 'lt_namespace', NS_FILE );
-			} else {
-				$this->addWhereFld( 'il_to', $images );
-			}
+			$this->addWhereFld( 'lt_title', $images );
+			$this->addWhereFld( 'lt_namespace', NS_FILE );
 		}
 
 		$this->setVirtualDomain( ImageLinksTable::VIRTUAL_DOMAIN );
@@ -120,14 +106,14 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 				if ( ++$count > $params['limit'] ) {
 					// We've reached the one extra which shows that
 					// there are additional pages to be had. Stop here...
-					$this->setContinueEnumParameter( 'continue', $row->il_from . '|' . $row->il_to );
+					$this->setContinueEnumParameter( 'continue', $row->il_from . '|' . $row->lt_title );
 					break;
 				}
 				$vals = [];
-				ApiQueryBase::addTitleInfo( $vals, Title::makeTitle( NS_FILE, $row->il_to ) );
+				ApiQueryBase::addTitleInfo( $vals, Title::makeTitle( NS_FILE, $row->lt_title ) );
 				$fit = $this->addPageSubItem( $row->il_from, $vals );
 				if ( !$fit ) {
-					$this->setContinueEnumParameter( 'continue', $row->il_from . '|' . $row->il_to );
+					$this->setContinueEnumParameter( 'continue', $row->il_from . '|' . $row->lt_title );
 					break;
 				}
 			}
@@ -138,10 +124,10 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 				if ( ++$count > $params['limit'] ) {
 					// We've reached the one extra which shows that
 					// there are additional pages to be had. Stop here...
-					$this->setContinueEnumParameter( 'continue', $row->il_from . '|' . $row->il_to );
+					$this->setContinueEnumParameter( 'continue', $row->il_from . '|' . $row->lt_title );
 					break;
 				}
-				$titles[] = Title::makeTitle( NS_FILE, $row->il_to );
+				$titles[] = Title::makeTitle( NS_FILE, $row->lt_title );
 			}
 			$resultPageSet->populateFromTitles( $titles );
 		}

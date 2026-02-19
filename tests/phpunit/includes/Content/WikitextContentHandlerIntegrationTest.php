@@ -67,6 +67,7 @@ class WikitextContentHandlerIntegrationTest extends TextContentHandlerIntegratio
 		];
 		$commonParsoidOptions = array_merge( $commonOptions, [
 			'currentRevisionRecordCallback',
+			'parsoidnewlc',
 		] );
 		$commonLegacyOptions = array_merge( $commonOptions, [
 			'disableTitleConversion',

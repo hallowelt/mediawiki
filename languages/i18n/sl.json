@@ -2222,7 +2222,7 @@
 	"watchlistlabels-onboarding-filter-body": "Za filtriranje urejanj pojdite na »Oznake«.",
 	"watchlistlabels-editwatchlist-dialog-button": "Dodeli oznake",
 	"watchlistlabels-editwatchlist-dialog-intro": "Izberite {{PLURAL:$2|oznako, ki jo želite dodeliti $1|oznake, ki jih želite dodeliti $1}}:",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Tem elementom nadzornega seznama ne morete dodeliti oznak, ker nimate nobene definirane oznake. Če želite ustvariti oznake, pojdite na [[{{#Special:WatchlistLabels}}]].",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Tem elementom nadzornega seznama ne morete dodeliti oznak, ker nimate nobene definirane oznake. Če želite ustvariti oznake, pojdite na [[$1]].",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Izberite strani, ki jim želite dodeliti oznake.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Odstrani oznake",
 	"watchlistlabels-editwatchlist-dialog-intro-unassign": "Izberite {{PLURAL:$2|oznako, ki jo želite odstraniti od $1|oznake, ki jih želite odstraniti od $1}}:",

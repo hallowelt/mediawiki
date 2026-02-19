@@ -1231,13 +1231,9 @@ abstract class File implements MediaHandlerState {
 			$handler->normaliseParams( $this, $normalisedParams );
 
 			$thumbName = $this->thumbName( $normalisedParams );
-			$thumbUrl = $this->getThumbUrl( $thumbName );
 			// final thumb path, if the media handler decides to use a thumbnail for the given params
 			$thumbPath = $this->getThumbPath( $thumbName );
-			if ( isset( $normalisedParams['isFilePageThumb'] ) && $normalisedParams['isFilePageThumb'] ) {
-				// Use a versioned URL on file description pages
-				$thumbUrl = $this->getFilePageThumbUrl( $thumbUrl );
-			}
+			$thumbUrl = $this->modifyClientThumbUrl( $this->getThumbUrl( $thumbName ), $normalisedParams );
 
 			if ( $this->repo ) {
 				// Defer rendering if a 404 handler is set up...
@@ -1331,14 +1327,9 @@ abstract class File implements MediaHandlerState {
 		$handler->normaliseParams( $this, $normalisedParams );
 
 		$thumbName = $this->thumbName( $normalisedParams );
-		$thumbUrl = $this->getThumbUrl( $thumbName );
 		// final thumb path, if the media handler decides to use a thumbnail for the given params
 		$thumbPath = $this->getThumbPath( $thumbName );
-		if ( isset( $normalisedParams['isFilePageThumb'] ) && $normalisedParams['isFilePageThumb'] ) {
-			// Use a versioned URL on file description pages
-			$thumbUrl = $this->getFilePageThumbUrl( $thumbUrl );
-		}
-
+		$thumbUrl = $this->modifyClientThumbUrl( $this->getThumbUrl( $thumbName ), $normalisedParams );
 		$tmpThumbPath = $tmpFile->getPath();
 
 		if ( $handler->supportsBucketing() ) {
@@ -1910,15 +1901,20 @@ abstract class File implements MediaHandlerState {
 	}
 
 	/**
-	 * Append a version parameter to the end of a file URL
-	 * Only to be used on File pages.
+	 * Append URL query parameters to a thumbnail URL that are intended to be processed by the browser
+	 * viewing the final page, or by some proxy, but not by the media handler or the thumbnail server.
+	 *
+	 * Currently used to add a cache-busting parameter to the thumbnails on file description pages.
+	 *
 	 * @internal
 	 *
-	 * @param string $url Unversioned URL
+	 * @param string $url Thumbnail URL (may point to an original file too)
+	 * @param array $handlerParams Media handler parameters
 	 * @return string
 	 */
-	public function getFilePageThumbUrl( $url ) {
-		if ( $this->repo->isLocal() ) {
+	public function modifyClientThumbUrl( $url, $handlerParams ) {
+		if ( $this->repo->isLocal() && ( $handlerParams['isFilePageThumb'] ?? null ) ) {
+			// Use a versioned URL on file description pages
 			return wfAppendQuery( $url, urlencode( $this->getTimestamp() ) );
 		} else {
 			return $url;

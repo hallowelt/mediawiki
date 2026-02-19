@@ -18,6 +18,7 @@ use Wikimedia\TestingAccessWrapper;
 
 /**
  * @group ResourceLoader
+ * @covers \MediaWiki\ResourceLoader\DependencyStore
  * @covers \MediaWiki\ResourceLoader\FileModule
  */
 class FileModuleTest extends ResourceLoaderTestCase {
@@ -912,9 +913,6 @@ class FileModuleTest extends ResourceLoaderTestCase {
 		$this->assertTrue( $module->requiresES6(), 'requiresES6 is true when set to true' );
 	}
 
-	/**
-	 * @covers \MediaWiki\ResourceLoader\DependencyStore
-	 */
 	public function testIndirectDependencies() {
 		$context = $this->getResourceLoaderContext();
 		$moduleInfo = [
@@ -936,9 +934,6 @@ class FileModuleTest extends ResourceLoaderTestCase {
 		);
 	}
 
-	/**
-	 * @covers \MediaWiki\ResourceLoader\DependencyStore
-	 */
 	public function testIndirectDependenciesUpdate() {
 		$context = $this->getResourceLoaderContext();
 		$tempDir = $this->getNewTempDirectory();

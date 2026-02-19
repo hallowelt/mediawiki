@@ -2529,6 +2529,7 @@ class OutputPage extends ContextSource {
 		// used to mark individual language links.
 		$linkFlags = [];
 		$languageLinks = $this->getLanguageLinks();
+		sort( $languageLinks );
 		// This hook can be used to remove/replace language links
 		$this->getHookRunner()->onLanguageLinks( $this->getTitle(), $languageLinks, $linkFlags );
 		$this->metadata->clearLanguageLinks();
@@ -3772,8 +3773,26 @@ class OutputPage extends ContextSource {
 				'noscript',
 				'user.styles',
 			] );
+			$generalModules = $this->getModules( /*filter*/ true );
+			$moduleStyles = $this->getModuleStyles( /*filter*/ true );
 
-			// Prepare exempt modules for buildExemptModules()
+			// Preload getTitleInfo for:
+			// * $moduleStyles:
+			//   For isKnownEmpty() calls below when computing $exemptGroups,
+			//   and for isKnownEmpty() calls in RL\ClientHtml when creating stylesheet links.
+			// * any WikiModule in $generalModules:
+			//   For isKnownEmpty() calls in RL\ClientHtml skipping empty user/embedded JS modules.
+			$preloadBatch = $moduleStyles;
+			foreach ( $generalModules as $name ) {
+				$module = $rl->getModule( $name );
+				if ( $module && $module instanceof RL\WikiModule ) {
+					$preloadBatch[] = $name;
+				}
+			}
+			RL\WikiModule::preloadTitleInfo( $context, $preloadBatch );
+
+			// Filter out style modules that buildExemptModules() should handle
+			// instead of RL\ClientHtml
 			$exemptGroups = [
 				RL\Module::GROUP_SITE => [],
 				RL\Module::GROUP_NOSCRIPT => [],
@@ -3781,16 +3800,6 @@ class OutputPage extends ContextSource {
 				RL\Module::GROUP_USER => []
 			];
 			$exemptStates = [];
-			$moduleStyles = $this->getModuleStyles( /*filter*/ true );
-
-			// Preload getTitleInfo for isKnownEmpty calls below and in RL\ClientHtml
-			// Separate user-specific batch for an improved cache-hit ratio.
-			$userBatch = [ 'user.styles', 'user' ];
-			$siteBatch = array_diff( $moduleStyles, $userBatch );
-			RL\WikiModule::preloadTitleInfo( $context, $siteBatch );
-			RL\WikiModule::preloadTitleInfo( $context, $userBatch );
-
-			// Filter out modules handled by buildExemptModules()
 			$moduleStyles = array_filter( $moduleStyles,
 				static function ( $name ) use ( $rl, $context, &$exemptGroups, &$exemptStates ) {
 					$module = $rl->getModule( $name );
@@ -3841,7 +3850,7 @@ class OutputPage extends ContextSource {
 				'clientPrefCookiePrefix' => $clientPrefCookiePrefix,
 			] );
 			$rlClient->setConfig( $this->getJSVars( self::JS_VAR_EARLY ) );
-			$rlClient->setModules( $this->getModules( /*filter*/ true ) );
+			$rlClient->setModules( $generalModules );
 			$rlClient->setModuleStyles( $moduleStyles );
 			$rlClient->setExemptStates( $exemptStates );
 			$this->rlClient = $rlClient;

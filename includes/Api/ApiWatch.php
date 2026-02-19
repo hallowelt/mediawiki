@@ -10,9 +10,14 @@ namespace MediaWiki\Api;
 
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageIdentity;
+use MediaWiki\Page\PageReferenceValue;
+use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFormatter;
 use MediaWiki\User\User;
+use MediaWiki\Watchlist\WatchedItemStoreInterface;
+use MediaWiki\Watchlist\WatchlistLabel;
+use MediaWiki\Watchlist\WatchlistLabelStore;
 use MediaWiki\Watchlist\WatchlistManager;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\ExpiryDef;
@@ -32,21 +37,34 @@ class ApiWatch extends ApiBase {
 	/** @var string Relative maximum expiry. */
 	private $maxDuration;
 
+	/** @var bool Whether watchlist labels are enabled. */
+	private $labelsEnabled;
+
 	protected WatchlistManager $watchlistManager;
 	private TitleFormatter $titleFormatter;
+	private WatchlistLabelStore $watchlistLabelStore;
+	private WatchedItemStoreInterface $watchedItemStore;
+	private NamespaceInfo $namespaceInfo;
 
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
 		WatchlistManager $watchlistManager,
-		TitleFormatter $titleFormatter
+		TitleFormatter $titleFormatter,
+		WatchlistLabelStore $watchlistLabelStore,
+		WatchedItemStoreInterface $watchedItemStore,
+		NamespaceInfo $namespaceInfo
 	) {
 		parent::__construct( $mainModule, $moduleName );
 
 		$this->watchlistManager = $watchlistManager;
 		$this->titleFormatter = $titleFormatter;
+		$this->watchlistLabelStore = $watchlistLabelStore;
+		$this->watchedItemStore = $watchedItemStore;
+		$this->namespaceInfo = $namespaceInfo;
 		$this->expiryEnabled = $this->getConfig()->get( MainConfigNames::WatchlistExpiry );
 		$this->maxDuration = $this->getConfig()->get( MainConfigNames::WatchlistExpiryMaxDuration );
+		$this->labelsEnabled = $this->getConfig()->get( MainConfigNames::EnableWatchlistLabels );
 	}
 
 	public function execute() {
@@ -64,6 +82,15 @@ class ApiWatch extends ApiBase {
 		$continuationManager = new ApiContinuationManager( $this, [], [] );
 		$this->setContinuationManager( $continuationManager );
 
+		// Validate labels
+		$validLabels = [];
+		$labelError = null;
+		if ( isset( $params['labels'] ) && $params['labels'] ) {
+			$validationResult = $this->validateLabels( $user, $params['labels'] );
+			$validLabels = $validationResult['labels'];
+			$labelError = $validationResult['error'];
+		}
+
 		$pageSet = $this->getPageSet();
 		// by default we use pageset to extract the page to work on.
 		// title is still supported for backward compatibility
@@ -78,13 +105,13 @@ class ApiWatch extends ApiBase {
 			] );
 
 			foreach ( $pageSet->getMissingPages() as $page ) {
-				$r = $this->watchTitle( $page, $user, $params );
+				$r = $this->watchTitle( $page, $user, $params, false, $validLabels, $labelError );
 				$r['missing'] = true;
 				$res[] = $r;
 			}
 
 			foreach ( $pageSet->getGoodPages() as $page ) {
-				$r = $this->watchTitle( $page, $user, $params );
+				$r = $this->watchTitle( $page, $user, $params, false, $validLabels, $labelError );
 				$res[] = $r;
 			}
 			ApiResult::setIndexedTagName( $res, 'w' );
@@ -109,7 +136,7 @@ class ApiWatch extends ApiBase {
 			if ( !$title || !$this->watchlistManager->isWatchable( $title ) ) {
 				$this->dieWithError( [ 'invalidtitle', $params['title'] ] );
 			}
-			$res = $this->watchTitle( $title, $user, $params, true );
+			$res = $this->watchTitle( $title, $user, $params, true, $validLabels, $labelError );
 		}
 		$this->getResult()->addValue( null, $this->getModuleName(), $res );
 
@@ -118,7 +145,9 @@ class ApiWatch extends ApiBase {
 	}
 
 	private function watchTitle( PageIdentity $page, User $user, array $params,
-		bool $compatibilityMode = false
+		bool $compatibilityMode = false,
+		array $validLabels = [],
+		?array $labelError = null
 	): array {
 		$res = [ 'title' => $this->titleFormatter->getPrefixedText( $page ), 'ns' => $page->getNamespace() ];
 
@@ -141,6 +170,21 @@ class ApiWatch extends ApiBase {
 
 			$status = $this->watchlistManager->addWatch( $user, $page, $expiry );
 			$res['watched'] = $status->isOK();
+
+			// Apply labels if provided and watching was successful
+			if ( $status->isOK() && $validLabels ) {
+				$this->applyLabelsToWatchedPage( $user, $page, $validLabels, $compatibilityMode, $res );
+				// Add error to response if there were invalid labels but we applied the valid ones
+				if ( $labelError ) {
+					if ( !isset( $res['errors'] ) ) {
+						$res['errors'] = [];
+					}
+					$res['errors'][] = $labelError;
+				}
+			} elseif ( $status->isOK() && $labelError ) {
+				// Add label error to response if labels were requested but had an error
+				$res['errors'] = [ $labelError ];
+			}
 		}
 
 		if ( !$status->isOK() ) {
@@ -155,6 +199,112 @@ class ApiWatch extends ApiBase {
 		}
 
 		return $res;
+	}
+
+	/**
+	 * Apply watchlist labels to a newly watched page.
+	 *
+	 * Applies labels to both the page and its talk page, replacing any existing labels.
+	 *
+	 * @param User $user The user applying the labels
+	 * @param PageIdentity $page The page being watched
+	 * @param array $validLabels The pre-validated label objects to apply
+	 * @param bool $compatibilityMode Whether to use legacy error reporting via dieWithError
+	 * @param array &$res The response array to populate with label data or errors
+	 */
+	private function applyLabelsToWatchedPage(
+		User $user,
+		PageIdentity $page,
+		array $validLabels,
+		bool $compatibilityMode,
+		array &$res
+	): void {
+		if ( !$this->labelsEnabled ) {
+			$res['errors'] = [ $this->getErrorFormatter()->formatMessage(
+				[ 'apierror-labels-disabled', 'labels-disabled' ]
+			) ];
+			if ( $compatibilityMode ) {
+				$this->dieWithError( 'apierror-labels-disabled', 'labels-disabled' );
+			}
+			return;
+		}
+
+		$title = Title::newFromPageIdentity( $page );
+		$pagesToWatch = [ $page ];
+
+		// Also watch the talk page if this page can have one
+		if ( $this->namespaceInfo->canHaveTalkPage( $title ) ) {
+			$talkPageTarget = $this->namespaceInfo->getTalkPage( $title );
+			// Convert LinkTarget to PageReferenceValue for consistency
+			$talkPage = PageReferenceValue::localReference(
+				$talkPageTarget->getNamespace(),
+				$talkPageTarget->getDBkey()
+			);
+			$pagesToWatch[] = $talkPage;
+		}
+
+		// Get existing labels to remove
+		foreach ( $pagesToWatch as $pageToWatch ) {
+			$watchedItem = $this->watchedItemStore->loadWatchedItem( $user, $pageToWatch );
+			if ( $watchedItem ) {
+				$existingLabels = $watchedItem->getLabels();
+				// Remove all existing labels before adding new ones
+				if ( $existingLabels ) {
+					$this->watchedItemStore->removeLabels( $user, [ $pageToWatch ], $existingLabels );
+				}
+			}
+		}
+
+		// Add the new labels
+		if ( $validLabels ) {
+			$this->watchedItemStore->addLabels( $user, $pagesToWatch, $validLabels );
+			// Return the labels that we just saved
+			$res['labels'] = array_map( static function ( WatchlistLabel $label ) {
+				return [
+					'id' => $label->getId(),
+					'name' => $label->getName(),
+				];
+			}, $validLabels );
+		}
+	}
+
+	/**
+	 * Validate and retrieve label objects for the given label IDs.
+	 *
+	 * @param User $user The user whose labels to validate
+	 * @param array $labelIds The label IDs to validate
+	 * @return array An associative array with 'labels' (array of validated labels) and 'error' (null or error message)
+	 */
+	private function validateLabels( User $user, array $labelIds ): array {
+		// Check if labels are enabled
+		if ( !$this->labelsEnabled ) {
+			return [
+				'labels' => [],
+				'error' => $this->getErrorFormatter()->formatMessage(
+					[ 'apierror-labels-disabled', 'labels-disabled' ]
+				)
+			];
+		}
+
+		// Validate each label ID, collecting valid ones and tracking if any are invalid
+		$validLabels = [];
+		$hasError = false;
+		foreach ( $labelIds as $labelId ) {
+			$label = $this->watchlistLabelStore->loadById( $user, (int)$labelId );
+			if ( !$label ) {
+				// Mark that we found an invalid label
+				$hasError = true;
+			} else {
+				$validLabels[] = $label;
+			}
+		}
+
+		return [
+			'labels' => $validLabels,
+			'error' => $hasError ? $this->getErrorFormatter()->formatMessage(
+				[ 'apierror-invalid-label-id', 'invalid-label-id' ]
+			) : null
+		];
 	}
 
 	/**
@@ -194,6 +344,11 @@ class ApiWatch extends ApiBase {
 				ExpiryDef::PARAM_MAX => $this->maxDuration,
 				ExpiryDef::PARAM_USE_MAX => true,
 			],
+			'labels' => [
+				ParamValidator::PARAM_TYPE => 'integer',
+				ParamValidator::PARAM_ISMULTI => true,
+				ApiBase::PARAM_HELP_MSG => 'apihelp-watch-param-labels',
+			],
 			'unwatch' => false,
 			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
@@ -226,6 +381,10 @@ class ApiWatch extends ApiBase {
 			$examples["action=watch&titles={$mp}|Foo|Bar&expiry=1%20month&token=123ABC"]
 				= 'apihelp-watch-example-watch-expiry';
 		}
+
+		// Add example with labels
+		$examples["action=watch&titles={$mp}&labels=1%7C2&token=123ABC"]
+			= 'apihelp-watch-example-watch-labels';
 
 		return array_merge( $examples, [
 			"action=watch&titles={$mp}&unwatch=&token=123ABC"

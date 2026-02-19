@@ -7,7 +7,7 @@ use Doctrine\SqlFormatter\SqlFormatter;
 use JsonException;
 use MediaWiki\DB\AbstractSchemaValidationError;
 use MediaWiki\DB\AbstractSchemaValidator;
-use Wikimedia\Rdbms\DoctrineSchemaBuilderFactory;
+use Wikimedia\Rdbms\DBAL\DoctrineSchemaBuilderFactory;
 
 /**
  * Helper to generate abstract schema and schema changes in maintenance scripts.

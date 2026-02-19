@@ -578,7 +578,13 @@ abstract class ParserCacheSerializationTestCases {
 					$testCase->assertTrue( $object->getHideNewSection() );
 					$testCase->assertTrue( $object->getNewSection() );
 					$testCase->assertTrue( $object->getOutputFlag( 'test' ) );
-					$testCase->assertArrayEquals( [ 'test' ], $object->getAllFlags() );
+					$testCase->assertEqualsCanonicalizing( [
+						'test',
+						ParserOutputFlags::ENABLE_OOUI->value,
+						ParserOutputFlags::HIDE_NEW_SECTION->value,
+						ParserOutputFlags::NEW_SECTION->value,
+						ParserOutputFlags::NO_INDEX_POLICY->value,
+					], $object->getAllFlags() );
 				}
 			],
 			'withMetadataPost1_45' => [
@@ -655,7 +661,13 @@ abstract class ParserCacheSerializationTestCases {
 					$testCase->assertTrue( $object->getHideNewSection() );
 					$testCase->assertTrue( $object->getNewSection() );
 					$testCase->assertTrue( $object->getOutputFlag( ParserOutputFlags::VARY_REVISION_ID ) );
-					$testCase->assertArrayEquals( [ 'vary-revision-id' ], $object->getAllFlags() );
+					$testCase->assertEqualsCanonicalizing( [
+						ParserOutputFlags::VARY_REVISION_ID->value,
+						ParserOutputFlags::ENABLE_OOUI->value,
+						ParserOutputFlags::HIDE_NEW_SECTION->value,
+						ParserOutputFlags::NEW_SECTION->value,
+						ParserOutputFlags::NO_INDEX_POLICY->value,
+					], $object->getAllFlags() );
 				}
 			],
 			'withFalsyProperties1_45' => [

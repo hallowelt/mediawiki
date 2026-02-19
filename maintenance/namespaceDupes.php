@@ -717,12 +717,8 @@ class NamespaceDupes extends Maintenance {
 		$fromNamespaceTables = [
 			[ 'templatelinks', 'tl', [ 'tl_target_id' ] ],
 			[ 'pagelinks', 'pl', [ 'pl_target_id' ] ],
+			[ 'imagelinks', 'il', [ 'il_target_id' ] ],
 		];
-		if ( $this->getConfig()->get( MainConfigNames::ImageLinksSchemaMigrationStage ) & SCHEMA_COMPAT_READ_OLD ) {
-			$fromNamespaceTables[] = [ 'imagelinks', 'il', [ 'il_to' ] ];
-		} else {
-			$fromNamespaceTables[] = [ 'imagelinks', 'il', [ 'il_target_id' ] ];
-		}
 
 		$updateRowsPerQuery = $this->getConfig()->get( MainConfigNames::UpdateRowsPerQuery );
 

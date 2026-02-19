@@ -2036,8 +2036,6 @@ config-schema:
         description: |-
             Migration stage for imagelinks tables
             Use the SCHEMA_COMPAT_XXX flags. Supported values:
-              - SCHEMA_COMPAT_WRITE_OLD | SCHEMA_COMPAT_READ_OLD (SCHEMA_COMPAT_OLD)
-              - SCHEMA_COMPAT_WRITE_BOTH | SCHEMA_COMPAT_READ_OLD
               - SCHEMA_COMPAT_WRITE_BOTH | SCHEMA_COMPAT_READ_NEW
               - SCHEMA_COMPAT_WRITE_NEW | SCHEMA_COMPAT_READ_NEW (SCHEMA_COMPAT_NEW)
             History:
@@ -7967,8 +7965,7 @@ config-schema:
         type: object
         additionalProperties:
             type: object
-            properties: { url: { type: string, format: url }, name: { type: string }, msg: { type: string, description: 'a message key' } }
-            required: [url]
+            properties: { url: { type: string, format: url }, name: { type: string }, file: { type: string }, msg: { type: string, description: 'a message key' } }
         description: |-
             A list of OpenAPI specs to be made available for exploration on
             Special:RestSandbox. If none are given, Special:RestSandbox is disabled.

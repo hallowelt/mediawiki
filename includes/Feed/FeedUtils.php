@@ -34,7 +34,7 @@ class FeedUtils {
 	 * Check whether feeds can be used and that $type is a valid feed type
 	 *
 	 * @param string $type Feed type, as requested by the user
-	 * @param OutputPage|null $output Null falls back to $wgOut
+	 * @param OutputPage|null $output Null (deprecated since 1.46) falls back to $wgOut
 	 * @return bool
 	 * @since 1.36 $output parameter added
 	 */
@@ -42,7 +42,7 @@ class FeedUtils {
 		$feed = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::Feed );
 		$feedClasses = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::FeedClasses );
 		if ( $output === null ) {
-			// Todo update GoogleNewsSitemap and deprecate
+			wfDeprecated( __METHOD__ . ' with null $output', '1.46' );
 			global $wgOut;
 			$output = $wgOut;
 		}

@@ -115,6 +115,7 @@ class ApiQuery extends ApiBase {
 				'TitleFactory',
 				'TitleFormatter',
 				'WatchedItemStore',
+				'WatchlistLabelStore',
 				'LanguageConverterFactory',
 				'RestrictionStore',
 				'LinksMigration',

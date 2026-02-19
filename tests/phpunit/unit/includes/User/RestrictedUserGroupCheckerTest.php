@@ -6,8 +6,6 @@
 
 namespace MediaWiki\Tests\User;
 
-use MediaWiki\Config\ServiceOptions;
-use MediaWiki\MainConfigNames;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWiki\User\RestrictedUserGroupChecker;
 use MediaWiki\User\UserIdentityValue;
@@ -24,21 +22,11 @@ class RestrictedUserGroupCheckerTest extends MediaWikiUnitTestCase {
 	// A dummy condition for testing purposes. Its actual value is irrelevant.
 	private const CONDITION = 999;
 
-	private function createOptions( array $restrictedGroups ): ServiceOptions {
-		return new ServiceOptions(
-			RestrictedUserGroupChecker::CONSTRUCTOR_OPTIONS,
-			[
-				MainConfigNames::RestrictedGroups => $restrictedGroups,
-			]
-		);
-	}
-
 	/** @dataProvider provideIsGroupRestricted */
 	public function testIsGroupRestricted( array $restrictedGroups, string $groupName, bool $expected ) {
-		$options = $this->createOptions( $restrictedGroups );
 		$conditionCheckerMock = $this->createMock( UserRequirementsConditionChecker::class );
 
-		$groupChecker = new RestrictedUserGroupChecker( $options, $conditionCheckerMock );
+		$groupChecker = new RestrictedUserGroupChecker( $restrictedGroups, $conditionCheckerMock );
 		$this->assertSame( $expected, $groupChecker->isGroupRestricted( $groupName ) );
 	}
 
@@ -80,7 +68,6 @@ class RestrictedUserGroupCheckerTest extends MediaWikiUnitTestCase {
 				'canBeIgnored' => false,
 			],
 		];
-		$options = $this->createOptions( $restrictions );
 
 		$performer = $this->mockAnonNullAuthority();
 		$target = UserIdentityValue::newAnonymous( '127.0.0.2' );
@@ -98,7 +85,7 @@ class RestrictedUserGroupCheckerTest extends MediaWikiUnitTestCase {
 				return true;
 			} );
 
-		$groupChecker = new RestrictedUserGroupChecker( $options, $conditionCheckerMock );
+		$groupChecker = new RestrictedUserGroupChecker( $restrictions, $conditionCheckerMock );
 		$result = $groupChecker->canPerformerAddTargetToGroup( $performer, $target, 'sysop' );
 		$this->assertTrue( $result );
 	}
@@ -148,7 +135,6 @@ class RestrictedUserGroupCheckerTest extends MediaWikiUnitTestCase {
 				],
 			];
 		}
-		$options = $this->createOptions( $restrictions );
 
 		$performer = $this->mockAnonAuthorityWithPermissions( $performerRights );
 		$target = UserIdentityValue::newAnonymous( '127.0.0.2' );
@@ -159,7 +145,7 @@ class RestrictedUserGroupCheckerTest extends MediaWikiUnitTestCase {
 				static fn ( $cond, $user ) => $target->equals( $user ) ? $targetMeets : $performerMeets
 			);
 
-		$groupChecker = new RestrictedUserGroupChecker( $options, $conditionCheckerMock );
+		$groupChecker = new RestrictedUserGroupChecker( $restrictions, $conditionCheckerMock );
 
 		$result = $groupChecker->canPerformerAddTargetToGroup( $performer, $target, 'sysop' );
 		$this->assertSame( $expected, $result );
@@ -240,14 +226,13 @@ class RestrictedUserGroupCheckerTest extends MediaWikiUnitTestCase {
 				'updaterConditions' => [ 'cond2' ],
 			]
 		];
-		$options = $this->createOptions( $restrictions );
 
 		// This mock assumes all conditions are private and returns them as provided in the input
 		$conditionCheckerMock = $this->createMock( UserRequirementsConditionChecker::class );
 		$conditionCheckerMock->method( 'extractPrivateConditions' )
 			->willReturnCallback( static fn ( $cond ) => $cond );
 
-		$groupChecker = new RestrictedUserGroupChecker( $options, $conditionCheckerMock );
+		$groupChecker = new RestrictedUserGroupChecker( $restrictions, $conditionCheckerMock );
 
 		$result = $groupChecker->getPrivateConditionsForGroup( $group );
 		$this->assertSame( $expected, $result );

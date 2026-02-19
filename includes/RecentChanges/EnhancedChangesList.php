@@ -242,7 +242,7 @@ class EnhancedChangesList extends ChangesList {
 		$lines = [];
 		$filterClasses = [];
 		foreach ( $block as $i => $rcObj ) {
-			$line = $this->getLineData( $block, $rcObj );
+			$line = $this->getLineData( $block, $rcObj, [], false );
 			if ( !$line ) {
 				// completely ignore this RC entry if we don't want to render it
 				unset( $block[$i] );
@@ -287,6 +287,8 @@ class EnhancedChangesList extends ChangesList {
 			return '';
 		}
 
+		$labels = $this->getLabels( $block[0], $tableClasses );
+
 		$logText = $this->getLogText( $block, [], $allLogs,
 			$collectedRcFlags['newpage'], $namehidden
 		);
@@ -323,6 +325,7 @@ class EnhancedChangesList extends ChangesList {
 			'charDifference' => $charDifference,
 			'collectedRcFlags' => $this->recentChangesFlags( $collectedRcFlags ),
 			'filterClasses' => $filterClasses,
+			'labels' => $labels,
 			'lines' => $lines,
 			'logText' => $logText,
 			'numberofWatchingusers' => $numberofWatchingusers,
@@ -346,9 +349,15 @@ class EnhancedChangesList extends ChangesList {
 	 * @param RCCacheEntry[] $block
 	 * @param RCCacheEntry $rcObj
 	 * @param array $queryParams
+	 * @param bool $includeLabels
 	 * @return array
 	 */
-	protected function getLineData( array $block, RCCacheEntry $rcObj, array $queryParams = [] ) {
+	protected function getLineData(
+		array $block,
+		RCCacheEntry $rcObj,
+		array $queryParams = [],
+		bool $includeLabels = true
+	) {
 		$RCShowChangedSize = $this->getConfig()->get( MainConfigNames::RCShowChangedSize );
 
 		$source = $rcObj->mAttribs['rc_source'];
@@ -437,7 +446,10 @@ class EnhancedChangesList extends ChangesList {
 		$data['tags'] = $this->getTags( $rcObj, $classes );
 
 		# Watchlist labels
-		$data['labels'] = $this->getLabels( $rcObj, $classes );
+		$labels = $this->getLabels( $rcObj, $classes );
+		if ( $includeLabels ) {
+			$data['labels'] = $labels;
+		}
 
 		$attribs = $this->getDataAttributes( $rcObj );
 

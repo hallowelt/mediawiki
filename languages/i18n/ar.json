@@ -2321,7 +2321,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "قم بتعيين التصنيفات",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "تعذر تعيين التسميات",
 	"watchlistlabels-editwatchlist-dialog-intro": "حدد {{PLURAL:$2|التسمية|التسميات}} التي تريد {{PLURAL:$3|تحديدها}} إلى $1:",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "لا يمكنك إضافة تسميات لعناصر قائمة المراقبة هذه، لأنه لم يتم تعريف أي تسميات لديك. انتقل إلى [[{{#Special:WatchlistLabels}}]] لإنشاء بعضها.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "لا يمكنك إضافة تسميات لعناصر قائمة المراقبة هذه، لأنه لم يتم تعريف أي تسميات لديك. انتقل إلى [[$1]] لإنشاء بعضها.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "يرجى تحديد الصفحات التي ترغب في تسميتها.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "إزالة التسميات",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "تعذر إزالة التسميات",

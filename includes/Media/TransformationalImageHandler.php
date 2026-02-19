@@ -131,7 +131,6 @@ abstract class TransformationalImageHandler extends ImageHandler {
 			'dstPath' => $dstPath,
 			'dstUrl' => $dstUrl,
 			'interlace' => $params['interlace'] ?? false,
-			'isFilePageThumb' => $params['isFilePageThumb'] ?? false,
 		];
 
 		if ( isset( $params['quality'] ) && $params['quality'] === 'low' ) {
@@ -163,13 +162,13 @@ abstract class TransformationalImageHandler extends ImageHandler {
 			# normaliseParams (or the user) wants us to return the unscaled image
 			wfDebug( __METHOD__ . ": returning unscaled image" );
 
-			return $this->getClientScalingThumbnailImage( $image, $scalerParams );
+			return $this->getClientScalingThumbnailImage( $image, $params );
 		}
 
 		if ( $scaler === 'client' ) {
 			# Client-side image scaling, use the source URL
 			# Using the destination URL in a TRANSFORM_LATER request would be incorrect
-			return $this->getClientScalingThumbnailImage( $image, $scalerParams );
+			return $this->getClientScalingThumbnailImage( $image, $params );
 		}
 
 		if ( $image->isTransformedLocally() && !$this->isImageAreaOkForThumbnaling( $image, $params ) ) {
@@ -197,7 +196,7 @@ abstract class TransformationalImageHandler extends ImageHandler {
 			wfDebug( __METHOD__ . ": Unable to create thumbnail destination " .
 				"directory, falling back to client scaling" );
 
-			return $this->getClientScalingThumbnailImage( $image, $scalerParams );
+			return $this->getClientScalingThumbnailImage( $image, $params );
 		}
 
 		# Transform functions and binaries need a FS source file
@@ -336,23 +335,13 @@ abstract class TransformationalImageHandler extends ImageHandler {
 	 *
 	 * @stable to override
 	 * @param File $image File associated with this thumbnail
-	 * @param array $scalerParams Array with scaler params
+	 * @param array $params Media handler parameters
 	 * @return ThumbnailImage
 	 *
 	 * @todo FIXME: No rotation support
 	 */
-	protected function getClientScalingThumbnailImage( $image, $scalerParams ) {
-		$params = [
-			'width' => $scalerParams['clientWidth'],
-			'height' => $scalerParams['clientHeight']
-		];
-
-		$url = $image->getUrl();
-		if ( isset( $scalerParams['isFilePageThumb'] ) && $scalerParams['isFilePageThumb'] ) {
-			// Use a versioned URL on file description pages
-			$url = $image->getFilePageThumbUrl( $url );
-		}
-
+	protected function getClientScalingThumbnailImage( $image, $params ) {
+		$url = $image->modifyClientThumbUrl( $image->getUrl(), $params );
 		return new ThumbnailImage( $image, $url, null, $params );
 	}
 

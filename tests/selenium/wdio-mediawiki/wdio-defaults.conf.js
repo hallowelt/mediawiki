@@ -14,7 +14,10 @@ import { getChromeOptions } from './chromeOptions.js';
 import { setupProcessHandlers } from './processHandlers.js';
 import { PrometheusFileReporter, writeAllProjectMetrics } from './PrometheusFileReporter.js';
 const logPath = process.env.LOG_DIR || path.join( process.cwd(), 'tests/selenium/log' );
-import { makeFilenameDate, saveScreenshot, startVideo, stopVideo, logSystemInformation, logBrowserInformation } from 'wdio-mediawiki';
+
+import { logBrowserInformation, logSystemInformation, makeFilenameDate, saveScreenshot, setDisplay, startVideo, stopVideo, startXvfb, stopXvfb } from 'wdio-mediawiki';
+
+let xvfbProcesses = [];
 
 if ( !process.env.MW_SERVER || !process.env.MW_SCRIPT_PATH ) {
 	throw new Error( 'MW_SERVER or MW_SCRIPT_PATH not defined.\nSee https://www.mediawiki.org/wiki/Selenium/How-to/Set_environment_variables\n' );
@@ -47,7 +50,7 @@ export const config = {
 	// Define the different browser configurations to use ("capabilities") here.
 	// ============
 
-	maxInstances: 1,
+	maxInstances: process.env.CI ? 6 : 1,
 	capabilities: [ {
 		// ======
 		// Custom conf keys for MediaWiki
@@ -104,13 +107,15 @@ export const config = {
 		ui: 'bdd',
 		timeout: process.env.DEBUG ? ( 60 * 60 * 1000 ) : ( 60 * 1000 )
 	},
-	// Setting that enables video recording of the test.
-	// Recording videos is currently supported only on Linux,
-	// and is triggered by the DISPLAY value starting with a colon.
-	// https://www.mediawiki.org/wiki/Selenium/How-to/Record_videos_of_test_runs
-	recordVideo: true,
-	// If DISPLAY is setup, default usage is to not use browser headless
-	useBrowserHeadless: !process.env.DISPLAY,
+	// By default we do not record videos and you can turn it on in CI
+	// Make sure to add it to true and change mw:useBrowserHeadless to true
+	recordVideo: false,
+	// If you do not want to use browser headless, you need to export DISPLAY
+	// and have a display for the tests to work
+	useBrowserHeadless: Boolean( process.env.CI ),
+	// Only take screenshots on test failures. Setting this to false will take screenshots
+	// independently if a test works or fail
+	screenshotsOnFailureOnly: true,
 	// See also: https://webdriver.io/docs/dot-reporter
 	reporters: [
 		// See also: https://webdriver.io/docs/spec-reporter
@@ -145,11 +150,23 @@ export const config = {
 	 * Gets executed once before all workers get launched.
 	 *
 	 * @param {Object} wdioConfig wdio configuration object
+	 * @param capabilities
 	 */
-	onPrepare: function ( wdioConfig ) {
+	onPrepare: function ( wdioConfig, capabilities ) {
 		console.log( `Run test targeting ${ wdioConfig.baseUrl }` );
 		logSystemInformation();
+
+		const { maxInstances, useBrowserHeadless, recordVideo } = wdioConfig;
+
+		// When we pass on as CLI the parameters will be strings
+		const isHeadless = useBrowserHeadless === true || useBrowserHeadless === 'true';
+		const isRecording = recordVideo === true || recordVideo === 'true';
+
+		if ( !isHeadless && isRecording ) {
+			xvfbProcesses = startXvfb( maxInstances, capabilities[ 0 ][ 'mw:width' ], capabilities[ 0 ][ 'mw:height' ] );
+		}
 	},
+
 	/**
 	 * Gets executed just before initializing the webdriver session and test framework.
 	 * It allows you to manipulate configurations depending on the capability or spec.
@@ -158,9 +175,14 @@ export const config = {
 	 * @param {Array.<Object>} capabilities list of capabilities details
 	 */
 	beforeSession: function ( configuration, capabilities ) {
-		const useBrowserHeadless = configuration.useBrowserHeadless;
-		if ( useBrowserHeadless === true ) {
+		const { useBrowserHeadless, recordVideo } = configuration;
+		// When we pass on as CLI the parameters will be strings
+		const isHeadless = useBrowserHeadless === true || useBrowserHeadless === 'true';
+		const isRecording = recordVideo === true || recordVideo === 'true';
+		if ( isHeadless === true ) {
 			capabilities[ 'goog:chromeOptions' ].args.push( '--headless' );
+		} else if ( isRecording === true ) {
+			setDisplay( configuration.maxInstances );
 		}
 	},
 
@@ -197,7 +219,10 @@ export const config = {
 	 */
 	afterTest: async function ( test, context, result ) {
 		try {
-			await saveScreenshot( `${ test.parent }-${ test.title }${ result.passed ? '' : '-failed' }` );
+			const hasFailed = result?.passed === false || Boolean( result?.error );
+			if ( browser.options.screenshotsOnFailureOnly !== true || hasFailed ) {
+				await saveScreenshot( `${ test.parent }-${ test.title }${ hasFailed ? '-failed' : '' }` );
+			}
 		} finally {
 			if ( browser.options.recordVideo === true ) {
 				stopVideo( ffmpeg );
@@ -209,6 +234,7 @@ export const config = {
 	 * Executed after all runners are done.
 	 */
 	onComplete() {
+		stopXvfb( xvfbProcesses );
 		const random = Math.random().toString( 16 ).slice( 2, 10 );
 		const fileName = `project-metrics-${ makeFilenameDate() }-${ random }`;
 		writeAllProjectMetrics( logPath, fileName );

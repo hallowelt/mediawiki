@@ -1,7 +1,10 @@
 <?php
 namespace MediaWiki\Tests\Specials\Redirects;
 
+use Generator;
+use MediaWiki\Block\BlockManager;
 use MediaWiki\Block\DatabaseBlock;
+use MediaWiki\Block\Restriction\NamespaceRestriction;
 use MediaWiki\ChangeTags\ChangeTags;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Exception\UserNotLoggedIn;
@@ -25,6 +28,13 @@ use MediaWiki\User\UserIdentityValue;
 class SpecialMytalkTest extends SpecialPageTestBase {
 	use TempUserTestTrait;
 	use MockAuthorityTrait;
+
+	protected function tearDown(): void {
+		// Avoid leaking session over tests
+		RequestContext::getMain()->getRequest()->getSession()->clear();
+
+		parent::tearDown();
+	}
 
 	/**
 	 * @inheritDoc
@@ -70,10 +80,11 @@ class SpecialMytalkTest extends SpecialPageTestBase {
 		$this->executeSpecialPage();
 	}
 
-	/** @dataProvider provideBlockTarget */
+	/** @dataProvider provideBlockOptions */
 	public function testLoggedOutAndBlockedWithTempAccountsEnabled(
 		string $username,
-		string $blockTargetName
+		string $blockTargetName,
+		array $blockOptions
 	) {
 		$this->enableAutoCreateTempUser();
 		$blockTarget = $this->getServiceContainer()
@@ -84,26 +95,33 @@ class SpecialMytalkTest extends SpecialPageTestBase {
 		$block = new DatabaseBlock( [
 			'target' => $blockTarget,
 			'by' => $this->getTestSysop()->getUser(),
-			'allowUsertalk' => true,
-		] );
-		$this->getServiceContainer()
-			->getDatabaseBlockStoreFactory()
-			->getDatabaseBlockStore( $block->getWikiId() )
-			->insertBlock( $block );
+		] + $blockOptions );
+		$blockManager = $this->createMock( BlockManager::class );
+		$blockManager->method( 'getBlock' )->willReturn( $block );
+		$this->setService( 'BlockManager', $blockManager );
 
+		$accessible = $block->isUsertalkEditAllowed();
+		if ( !$accessible ) {
+			$this->expectException( UserNotLoggedIn::class );
+		}
 		[ $html, ] = $this->executeSpecialPage(
 			'',
 			null,
 			null,
 			$this->mockUserAuthorityWithBlock( $user, $block )
 		);
-		$this->assertStringContainsString( 'mytalk-appeal-submit', $html );
+		if ( $accessible ) {
+			$this->assertStringContainsString( 'mytalk-appeal-submit', $html );
+		} else {
+			$this->assertStringNotContainsString( 'mytalk-appeal-submit', $html );
+		}
 	}
 
-	/** @dataProvider provideBlockTarget */
+	/** @dataProvider provideBlockOptions */
 	public function testLoggedOutAndBlockedWithTempAccountsEnabledSubmit(
 		string $username,
-		string $blockTargetName
+		string $blockTargetName,
+		array $blockOptions
 	) {
 		$this->enableAutoCreateTempUser();
 		$services = $this->getServiceContainer();
@@ -115,13 +133,10 @@ class SpecialMytalkTest extends SpecialPageTestBase {
 		$block = new DatabaseBlock( [
 			'target' => $blockTarget,
 			'by' => $this->getTestSysop()->getUser(),
-			'createAccount' => true,
-			'allowUsertalk' => true,
-		] );
-		$services
-			->getDatabaseBlockStoreFactory()
-			->getDatabaseBlockStore( $block->getWikiId() )
-			->insertBlock( $block );
+		] + $blockOptions );
+		$blockManager = $this->createMock( BlockManager::class );
+		$blockManager->method( 'getBlock' )->willReturn( $block );
+		$this->setService( 'BlockManager', $blockManager );
 
 		// After TempUserCreator auto-creates a new temp user, AuthManager adds the newly
 		// created temp user to the main context's request's session, because AuthManager
@@ -136,7 +151,11 @@ class SpecialMytalkTest extends SpecialPageTestBase {
 		$context->setUser( User::newFromIdentity( $user ) );
 		$context->setAuthority( $this->mockUserAuthorityWithBlock( $user, $block ) );
 
-		[ , $response ] = $this->executeSpecialPage(
+		$accessible = $block->isUsertalkEditAllowed();
+		if ( !$accessible ) {
+			$this->expectException( UserNotLoggedIn::class );
+		}
+		[ $html, $response ] = $this->executeSpecialPage(
 			'',
 			null,
 			null,
@@ -144,6 +163,10 @@ class SpecialMytalkTest extends SpecialPageTestBase {
 			false,
 			$context
 		);
+		if ( !$accessible ) {
+			$this->assertStringContainsString( 'exception-nologin-text', $html );
+			return;
+		}
 
 		$tempUser = $request->getSession()->getUser();
 		$this->assertStringContainsString(
@@ -170,10 +193,26 @@ class SpecialMytalkTest extends SpecialPageTestBase {
 
 		$tags = $services->getChangeTagsStore()->getTags( $db, null, null, (int)$logid );
 		$ipblockAppeal = ChangeTags::TAG_IPBLOCK_APPEAL;
-		$this->assertSame( [ $ipblockAppeal ], $tags, "$ipblockAppeal tag missing in the auto-creation log" );
+		if ( $block->isCreateAccountBlocked() && $block->appliesToNamespace( NS_USER_TALK ) ) {
+			$this->assertSame( [ $ipblockAppeal ], $tags, "$ipblockAppeal tag missing" );
+		} else {
+			$this->assertSame( [], $tags, "$ipblockAppeal tag applied unexpectedly" );
+		}
 	}
 
-	public static function provideBlockTarget() {
+	public static function provideBlockOptions(): Generator {
+		foreach ( self::provideIpTargets() as $ipLabel => $ip ) {
+			foreach ( self::provideBlockScenarios() as $scenarioLabel => $scenario ) {
+				yield "$ipLabel / $scenarioLabel" => [
+					'username' => $ip['username'],
+					'blockTargetName' => $ip['blockTarget'],
+					'blockOptions' => $scenario['blockOptions'],
+				];
+			}
+		}
+	}
+
+	private static function provideIpTargets(): array {
 		return [
 			'IP address block target' => [
 				'username' => '127.0.0.1',
@@ -181,7 +220,42 @@ class SpecialMytalkTest extends SpecialPageTestBase {
 			],
 			'IP range block target' => [
 				'username' => '127.0.0.1',
-				'blockTarget' => '127.0.0.1/28',
+				'blockTarget' => '127.0.0.0/31',
+			],
+		];
+	}
+
+	private static function provideBlockScenarios(): array {
+		// ACB: Account Creation Blocked
+		// TPD: Talk Page Disabled
+		return [
+			// The `mytalk-appeal-submit` button should be shown
+			// The `mw-ipblock-appeal` tag should be applied
+			'Sitewide block (ACB)' => [
+				'blockOptions' => [
+					'sitewide' => true,
+					'createAccount' => true,
+					'allowUsertalk' => true,
+				],
+			],
+			// The `mytalk-appeal-submit` button should NOT be shown
+			// The `mw-ipblock-appeal` tag should NOT be applied (*)
+			'Sitewide block (TPD)' => [
+				'blockOptions' => [
+					'sitewide' => true,
+					'createAccount' => false,
+					'allowUsertalk' => false,
+				],
+			],
+			// The `mytalk-appeal-submit` button should be shown
+			// The `mw-ipblock-appeal` tag should NOT be applied
+			'Partial block (NS_MAIN)' => [
+				'blockOptions' => [
+					'sitewide' => false,
+					'restrictions' => [ new NamespaceRestriction( 1, NS_MAIN ) ],
+					'createAccount' => false,
+					'allowUsertalk' => true,
+				],
 			],
 		];
 	}

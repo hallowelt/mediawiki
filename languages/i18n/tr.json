@@ -2332,7 +2332,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Etiket ata",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Etiket atanamadı",
 	"watchlistlabels-editwatchlist-dialog-intro": "$1 için atamak istediğiniz {{PLURAL:$2|etiketi|etiketleri}} {{PLURAL:$3|seçin}}:",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Tanımlanmış etiketiniz olmadığı için bu izleme listesi ögelerine etiket atayamazsınız. Etiket oluşturmak için [[{{#Special:WatchlistLabels}}]] bölümüne gidin.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Tanımlanmış etiketiniz olmadığı için bu izleme listesi ögelerine etiket atayamazsınız. Etiket oluşturmak için [[$1]] bölümüne gidin.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Lütfen etiket atamak istediğiniz sayfaları seçin.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Etiketleri kaldır",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Etiketler kaldırılamadı",

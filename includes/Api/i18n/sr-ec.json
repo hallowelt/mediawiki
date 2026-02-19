@@ -45,6 +45,7 @@
 	"apihelp-feedcontributions-param-year": "Од године (и раније).",
 	"apihelp-feedcontributions-param-deletedonly": "Прикажи само обрисане доприносе.",
 	"apihelp-feedcontributions-param-hideminor": "Сакриј мање измене.",
+	"apihelp-feedrecentchanges-param-invert": "Сви именски простори осим изабраног.",
 	"apihelp-feedrecentchanges-param-hideminor": "Сакрији мање измене.",
 	"apihelp-feedrecentchanges-param-hidebots": "Сакрији ботовске измене.",
 	"apihelp-feedrecentchanges-param-hidepatrolled": "Сакривање патролираних измена.",

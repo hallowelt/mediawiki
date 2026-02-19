@@ -3306,8 +3306,6 @@ class MainConfigSchema {
 	 *
 	 * Use the SCHEMA_COMPAT_XXX flags. Supported values:
 	 *
-	 *   - SCHEMA_COMPAT_WRITE_OLD | SCHEMA_COMPAT_READ_OLD (SCHEMA_COMPAT_OLD)
-	 *   - SCHEMA_COMPAT_WRITE_BOTH | SCHEMA_COMPAT_READ_OLD
 	 *   - SCHEMA_COMPAT_WRITE_BOTH | SCHEMA_COMPAT_READ_NEW
 	 *   - SCHEMA_COMPAT_WRITE_NEW | SCHEMA_COMPAT_READ_NEW (SCHEMA_COMPAT_NEW)
 	 *
@@ -12834,9 +12832,9 @@ class MainConfigSchema {
 			'properties' => [
 				'url' => [ 'type' => 'string', 'format' => 'url' ],
 				'name' => [ 'type' => 'string' ],
+				'file' => [ 'type' => 'string' ],
 				'msg' => [ 'type' => 'string', 'description' => 'a message key' ]
 			],
-			'required' => [ 'url' ]
 		]
 	];
 

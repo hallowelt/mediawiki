@@ -2432,7 +2432,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Attribuer des étiquettes",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Impossible d'attribuer des étiquettes",
 	"watchlistlabels-editwatchlist-dialog-intro": "Sélectionnez {{PLURAL:$2|l’étiquette|les étiquettes}} que vous souhaitez attribuer {{PLURAL:$3|à la page|aux pages}} $1 :",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Vous ne pouvez pas attribuer d'étiquettes à ces éléments de la liste de suivi, car vous n'en avez défini aucune. Rendez-vous sur [[{{#Special:WatchlistLabels}}]] pour en créer.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Vous ne pouvez pas attribuer d'étiquettes à ces éléments de la liste de suivi, car vous n'en avez défini aucune. Rendez-vous sur [[$1]] pour en créer.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Veuillez sélectionner les pages auxquelles vous souhaitez attribuer des étiquettes.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Supprimer les étiquettes",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Impossible de retirer les étiquettes",

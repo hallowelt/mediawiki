@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\Rdbms;
+namespace Wikimedia\Rdbms\DBAL;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;

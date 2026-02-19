@@ -6,8 +6,9 @@
 namespace MediaWiki\Page;
 
 use InvalidArgumentException;
+use MediaWiki\Config\Config;
 use MediaWiki\MainConfigNames;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\OutputTransform\OutputTransformPipeline;
 use MediaWiki\Parser\ParserCache;
 use MediaWiki\Parser\ParserCacheFactory;
 use MediaWiki\Parser\ParserOptions;
@@ -171,6 +172,8 @@ class ParserOutputAccess implements LoggerAwareInterface {
 	private LoggerInterface $logger;
 
 	public function __construct(
+		private readonly Config $config,
+		private readonly OutputTransformPipeline $outputTransformPipeline,
 		ParserCacheFactory $parserCacheFactory,
 		RevisionLookup $revisionLookup,
 		RevisionRenderer $revisionRenderer,
@@ -557,7 +560,7 @@ class ParserOutputAccess implements LoggerAwareInterface {
 
 		// T371713: Temporary statistics collection code to determine
 		// feasibility of Parsoid selective update
-		$sampleRate = MediaWikiServices::getInstance()->getMainConfig()->get(
+		$sampleRate = $this->config->get(
 			MainConfigNames::ParsoidSelectiveUpdateSampleRate
 		);
 		$doSample = ( $sampleRate && mt_rand( 1, $sampleRate ) === 1 );
@@ -832,8 +835,7 @@ class ParserOutputAccess implements LoggerAwareInterface {
 			'allowClone' => true,
 		] + $textOptions;
 
-		$pipeline = MediaWikiServices::getInstance()->getDefaultOutputPipeline();
-		$output = $pipeline->run( $output, $parserOptions, $textOptions );
+		$output = $this->outputTransformPipeline->run( $output, $parserOptions, $textOptions );
 		// Ensure this ParserOptions is watching the resulting ParserOutput,
 		// now that it exists.
 		$parserOptions->registerWatcher( $output->recordOption( ... ) );

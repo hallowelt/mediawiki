@@ -24,7 +24,6 @@ use Wikimedia\Rdbms\IConnectionProvider;
  */
 class SpecialWantedFiles extends WantedQueryPage {
 	private int $fileMigrationStage;
-	private int $imageLinksMigrationStage;
 
 	public function __construct(
 		private readonly RepoGroup $repoGroup,
@@ -35,7 +34,6 @@ class SpecialWantedFiles extends WantedQueryPage {
 		$this->setDatabaseProvider( $dbProvider );
 		$this->setLinkBatchFactory( $linkBatchFactory );
 		$this->fileMigrationStage = $this->getConfig()->get( MainConfigNames::FileSchemaMigrationStage );
-		$this->imageLinksMigrationStage = $this->getConfig()->get( MainConfigNames::ImageLinksSchemaMigrationStage );
 	}
 
 	/** @inheritDoc */
@@ -124,34 +122,10 @@ class SpecialWantedFiles extends WantedQueryPage {
 			$extraConds2 = [ 'img2.file_deleted' => 0 ];
 		}
 
-		if ( $this->imageLinksMigrationStage & SCHEMA_COMPAT_READ_OLD ) {
-			$linksTables = [ 'imagelinks' ];
-			$joinConds = [
-				'img1' => [ 'LEFT JOIN',
-					array_merge( [ 'il_to = img1.' . $nameField ], $extraConds1 ),
-				],
-				'page' => [ 'LEFT JOIN', [
-					'il_to = page_title',
-					'page_namespace' => NS_FILE,
-				] ],
-			];
-		} else {
-			$linksTables = [ 'imagelinks', 'linktarget' ];
-			$joinConds = [
-				'linktarget' => [ 'JOIN', [ 'il_target_id = lt_id' ] ],
-				'img1' => [ 'LEFT JOIN',
-					array_merge( [ 'lt_title = img1.' . $nameField, 'lt_namespace' => NS_FILE ], $extraConds1 ),
-				],
-				'page' => [ 'LEFT JOIN', [
-					'lt_title = page_title',
-					'page_namespace' => NS_FILE,
-				] ],
-			];
-		}
-
 		return [
 			'tables' => [
-				...$linksTables,
+				'imagelinks',
+				'linktarget',
 				'page',
 				'redirect',
 				'img1' => $fileTable,
@@ -169,7 +143,14 @@ class SpecialWantedFiles extends WantedQueryPage {
 			],
 			'options' => [ 'GROUP BY' => 'il_to' ],
 			'join_conds' => [
-				...$joinConds,
+				'linktarget' => [ 'JOIN', [ 'il_target_id = lt_id' ] ],
+				'img1' => [ 'LEFT JOIN',
+					array_merge( [ 'lt_title = img1.' . $nameField, 'lt_namespace' => NS_FILE ], $extraConds1 ),
+				],
+				'page' => [ 'LEFT JOIN', [
+					'lt_title = page_title',
+					'page_namespace' => NS_FILE,
+				] ],
 				'redirect' => [ 'LEFT JOIN', [
 					'page_id = rd_from',
 					'rd_namespace' => NS_FILE,

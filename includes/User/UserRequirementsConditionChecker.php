@@ -319,33 +319,48 @@ class UserRequirementsConditionChecker {
 	 * Goes through a condition passed as the input and extracts all private conditions that are used within it.
 	 * @param mixed $cond A condition, possibly containing other conditions.
 	 * @return list<mixed> A list of unique private conditions present in $cond
+	 * @since 1.46
 	 */
 	public function extractPrivateConditions( $cond ): array {
-		$privateConditions = $this->options->get( MainConfigNames::UserRequirementsPrivateConditions );
-		$result = $this->extractPrivateConditionsInternal( $cond, $privateConditions );
+		$allPrivateConditions = $this->options->get( MainConfigNames::UserRequirementsPrivateConditions );
+		$allConditionsUsed = $this->extractConditions( $cond );
+		$privateConditionsUsed = array_intersect( $allPrivateConditions, $allConditionsUsed );
+		return array_values( $privateConditionsUsed );
+	}
+
+	/**
+	 * Goes through a condition passed as the input and extracts all simple conditions that are used within it.
+	 *
+	 * Simple condition is any condition that is not a logical operator, for example APCOND_EDITCOUNT is
+	 * a simple condition.
+	 * @param mixed $cond A condition, possibly containing other conditions.
+	 * @return list<mixed> A list of unique private conditions present in $cond
+	 * @since 1.46
+	 */
+	public function extractConditions( $cond ): array {
+		$result = $this->extractConditionsInternal( $cond );
 		return array_values( array_unique( $result ) );
 	}
 
 	/**
-	 * Internal backend for {@see extractPrivateConditions}. It returns a list of all private conditions found
+	 * Internal backend for {@see extractConditions}. It returns a list of all simple conditions found
 	 * in the input conditions. The result may contain duplicates.
 	 * @param mixed $cond
-	 * @param list<string> $privateConditions
 	 * @return list<mixed>
 	 */
-	private function extractPrivateConditionsInternal( $cond, array $privateConditions ): array {
+	private function extractConditionsInternal( $cond ): array {
 		$result = [];
 		if ( is_array( $cond ) ) {
 			$op = $cond[0];
 			if ( in_array( $op, self::VALID_OPS ) ) {
 				foreach ( array_slice( $cond, 1 ) as $subcond ) {
 					$result = array_merge(
-						$result, $this->extractPrivateConditionsInternal( $subcond, $privateConditions ) );
+						$result, $this->extractConditionsInternal( $subcond ) );
 				}
-			} elseif ( in_array( $op, $privateConditions ) ) {
+			} else {
 				$result[] = $op;
 			}
-		} elseif ( in_array( $cond, $privateConditions ) ) {
+		} else {
 			$result[] = $cond;
 		}
 		return $result;

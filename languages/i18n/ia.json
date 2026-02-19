@@ -2213,7 +2213,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Assignar etiquettas",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Impossibile assignar etiquettas",
 	"watchlistlabels-editwatchlist-dialog-intro": "Selige le etiquetta{{PLURAL:$2||s}} que tu vole assignar a $1:{{PLURAL:$3|}}",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Non es possibile assignar etiquettas a iste entratas del observatorio perque necun etiquetta ha essite definite. Visita [[{{#Special:WatchlistLabels}}]] pro crear alcunes.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Non es possibile assignar etiquettas a iste entratas del observatorio perque necun etiquetta ha essite definite. Visita [[$1]] pro crear alcunes.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Selige le paginas al quales assignar etiquettas.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Remover etiquettas",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Impossibile remover etiquettas",

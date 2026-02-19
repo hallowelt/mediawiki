@@ -47,12 +47,11 @@ class ParserOutputAccessTest extends MediaWikiIntegrationTestCase {
 
 		$this->statsHelper = new UnitTestingHelper();
 
-		// always hit the sample code
-		$this->overrideConfigValue(
-			MainConfigNames::ParsoidSelectiveUpdateSampleRate,
-			1
-		);
-		$this->overrideConfigValue( MainConfigNames::UsePostprocCache, true );
+		$this->overrideConfigValues( [
+			// always hit the sample code
+			MainConfigNames::ParsoidSelectiveUpdateSampleRate => 1,
+			MainConfigNames::UsePostprocCache => true,
+		] );
 	}
 
 	private function getHtml( $value, $postproc = true ) {
@@ -295,6 +294,8 @@ class ParserOutputAccessTest extends MediaWikiIntegrationTestCase {
 		$poolCounterFactory ??= $this->getServiceContainer()->getPoolCounterFactory();
 
 		$mock = new ParserOutputAccess(
+			$this->getServiceContainer()->getMainConfig(),
+			$this->getServiceContainer()->getDefaultOutputPipeline(),
 			$parserCacheFactory,
 			$this->getServiceContainer()->getRevisionLookup(),
 			$revRenderer,

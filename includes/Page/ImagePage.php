@@ -881,28 +881,16 @@ class ImagePage extends Article {
 	protected function queryImageLinks( $target, $limit ) {
 		$dbr = $this->dbProvider->getReplicaDatabase( ImageLinksTable::VIRTUAL_DOMAIN );
 
-		$migrationStage = MediaWikiServices::getInstance()->getMainConfig()->get(
-			MainConfigNames::ImageLinksSchemaMigrationStage
-		);
-
-		$qb = $dbr->newSelectQueryBuilder()
-			->select( [ 'page_namespace', 'page_title' ] )
+		return $dbr->newSelectQueryBuilder()
+			->select( [ 'lt_title', 'page_namespace', 'page_title' ] )
 			->from( 'imagelinks' )
+			->join( 'linktarget', null, 'il_target_id = lt_id' )
 			->join( 'page', null, 'il_from = page_id' )
+			->where( [ 'lt_title' => $target, 'lt_namespace' => NS_FILE ] )
 			->orderBy( 'il_from' )
 			->limit( $limit + 1 )
-			->caller( __METHOD__ );
-
-		if ( $migrationStage & SCHEMA_COMPAT_READ_OLD ) {
-			$qb->select( 'il_to' );
-			$qb->where( [ 'il_to' => $target ] );
-		} else {
-			$qb->select( [ 'il_to' => 'lt_title' ] );
-			$qb->join( 'linktarget', null, 'il_target_id = lt_id' );
-			$qb->where( [ 'lt_title' => $target, 'lt_namespace' => NS_FILE ] );
-		}
-
-		return $qb->fetchResultSet();
+			->caller( __METHOD__ )
+			->fetchResultSet();
 	}
 
 	protected function imageLinks() {
@@ -931,7 +919,7 @@ class ImagePage extends Article {
 			$res = $this->queryImageLinks( array_keys( $redirects ),
 				$limit - count( $rows ) + 1 );
 			foreach ( $res as $row ) {
-				$redirects[$row->il_to][] = $row;
+				$redirects[$row->lt_title][] = $row;
 				$count++;
 			}
 			$hasMore = ( $res->numRows() + count( $rows ) ) > $limit;

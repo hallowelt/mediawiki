@@ -9,7 +9,6 @@
 namespace MediaWiki\Specials;
 
 use MediaWiki\Deferred\LinksUpdate\ImageLinksTable;
-use MediaWiki\MainConfigNames;
 use MediaWiki\SpecialPage\ImageQueryPage;
 use Wikimedia\Rdbms\IConnectionProvider;
 
@@ -21,12 +20,9 @@ use Wikimedia\Rdbms\IConnectionProvider;
  */
 class SpecialMostImages extends ImageQueryPage {
 
-	private int $imageLinksMigrationStage;
-
 	public function __construct( IConnectionProvider $dbProvider ) {
 		parent::__construct( 'Mostimages' );
 		$this->setDatabaseProvider( $dbProvider );
-		$this->imageLinksMigrationStage = $this->getConfig()->get( MainConfigNames::ImageLinksSchemaMigrationStage );
 	}
 
 	/** @inheritDoc */
@@ -41,26 +37,16 @@ class SpecialMostImages extends ImageQueryPage {
 
 	/** @inheritDoc */
 	public function getQueryInfo() {
-		if ( $this->imageLinksMigrationStage & SCHEMA_COMPAT_READ_OLD ) {
-			$linksTables = [ 'imagelinks' ];
-			$titleField = 'il_to';
-			$joinConds = [];
-		} else {
-			$linksTables = [ 'imagelinks', 'linktarget' ];
-			$titleField = 'lt_title';
-			$joinConds = [ 'linktarget' => [ 'JOIN', 'il_target_id = lt_id' ] ];
-		}
-
 		return [
-			'tables' => $linksTables,
+			'tables' => [ 'imagelinks', 'linktarget' ],
 			'fields' => [
 				'namespace' => NS_FILE,
-				'title' => $titleField,
+				'title' => 'lt_title',
 				'value' => 'COUNT(*)'
 			],
-			'join_conds' => $joinConds,
+			'join_conds' => [ 'linktarget' => [ 'JOIN', 'il_target_id = lt_id' ] ],
 			'options' => [
-				'GROUP BY' => $titleField,
+				'GROUP BY' => 'lt_title',
 				'HAVING' => 'COUNT(*) > 1'
 			]
 		];

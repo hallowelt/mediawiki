@@ -7,7 +7,8 @@ use MediaWiki\Config\ServiceOptions;
 use MediaWiki\OutputTransform\ContentDOMTransformStage;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
-use MediaWiki\Parser\Parsoid\ParsoidParser;
+use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleFormatter;
 use MediaWiki\Utils\UrlUtils;
 use Psr\Log\LoggerInterface;
 use Wikimedia\Parsoid\Config\SiteConfig;
@@ -30,6 +31,7 @@ class ExpandRelativeAttrs extends ContentDOMTransformStage {
 		LoggerInterface $logger,
 		private UrlUtils $urlUtils,
 		private SiteConfig $siteConfig,
+		private TitleFormatter $titleFormatter,
 		// @phan-suppress-next-line PhanUndeclaredTypeParameter, PhanUndeclaredTypeProperty
 		private ?\MobileContext $mobileContext
 	) {
@@ -82,11 +84,13 @@ class ExpandRelativeAttrs extends ContentDOMTransformStage {
 	public function transformDOM(
 		DocumentFragment $df, ParserOutput $po, ParserOptions $popts, array &$options
 	): DocumentFragment {
-		$title = $po->getExtensionData( ParsoidParser::PARSOID_TITLE_KEY );
-		if ( !$title ) {
+		$title = $po->getTitle();
+		if ( $title === null ) {
 			// We don't think this should ever trigger, but being conservative
 			$this->logger->error( __METHOD__ . ": Missing title information in ParserOutput" );
+			$title = Title::newMainPage();
 		}
+		$title = $this->titleFormatter->getPrefixedDBkey( $title );
 		$pageFragmentPrefix = "./" . $title . "#";
 
 		// Once the ParserCache content has turned over, we can rely exclusively

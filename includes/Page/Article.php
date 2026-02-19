@@ -502,6 +502,16 @@ class Article implements Page {
 		# Allow extensions to vary parser options used for article rendering
 		( new HookRunner( MediaWikiServices::getInstance()->getHookContainer() ) )
 			->onArticleParserOptions( $this, $parserOptions );
+		// Temporary support for using new Parsoid LanguageConverter impl.
+		// T415435: remove once testing is complete.
+		if ( $parserOptions->getUseParsoid() && $context->getRequest()->getFuzzyBool( 'parsoidnewlc', false ) ) {
+			$lang = $this->getTitle()->getPageLanguage();
+			$langConv = MediaWikiServices::getInstance()->getLanguageConverterFactory()->getLanguageConverter( $lang );
+			$htmlVariantLanguage = $langConv->getPreferredVariant();
+			$parserOptions->setOption( 'parsoidnewlc', $htmlVariantLanguage );
+			// Ensure parsoidnewlc is in the used options
+			$parserOptions->getOption( 'parsoidnewlc' );
+		}
 		# Render printable version, use printable version cache
 		if ( $outputPage->isPrintable() ) {
 			$parserOptions->setIsPrintable( true );

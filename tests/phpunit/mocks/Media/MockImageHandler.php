@@ -60,7 +60,7 @@ class MockImageHandler {
 		];
 
 		if ( $image->isVectorized() && !$image->mustRender() ) {
-			return $that->doClientImage( $image, $scalerParams );
+			return $that->doClientImage( $image, $params );
 		}
 
 		# In some cases, we do not bother generating a thumbnail.
@@ -70,7 +70,7 @@ class MockImageHandler {
 		) {
 			wfDebug( __METHOD__ . ": returning unscaled image" );
 			// getClientScalingThumbnailImage is protected
-			return $that->doClientImage( $image, $scalerParams );
+			return $that->doClientImage( $image, $params );
 		}
 
 		return new ThumbnailImage( $image, $dstUrl, false, $params );

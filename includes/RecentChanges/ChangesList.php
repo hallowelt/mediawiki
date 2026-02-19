@@ -1010,6 +1010,9 @@ class ChangesList extends ContextSource {
 	 * @since 1.45
 	 */
 	public function getLabels( RecentChange $rc, &$classes ): string {
+		if ( !$this->getConfig()->get( MainConfigNames::EnableWatchlistLabels ) ) {
+			return '';
+		}
 		if ( empty( $rc->mAttribs[ WatchlistLabelCondition::LABEL_IDS ] ) ) {
 			return '';
 		}

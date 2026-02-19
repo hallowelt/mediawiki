@@ -79,6 +79,6 @@ class TransformWikitextToLintRevisionHandler extends TransformHandler {
 	}
 
 	public function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/ContentLintErrors.json';
+		return __DIR__ . '/Schema/ContentLintErrors.json';
 	}
 }

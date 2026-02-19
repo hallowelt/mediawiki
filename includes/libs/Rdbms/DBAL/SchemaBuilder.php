@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\Rdbms;
+namespace Wikimedia\Rdbms\DBAL;
 
 /**
  * Interface SchemaBuilder that gets a definition and produces SQL based on RDBMS

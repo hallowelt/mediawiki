@@ -878,8 +878,8 @@ abstract class Handler {
 	 *
 	 * @see https://swagger.io/specification/#schema-object
 	 *
-	 * Returns null by default. Subclasses that return a JSON response should
-	 * implement this method to return a schema of the response body.
+	 * Loads and decodes the JSON schema file returned by getResponseBodySchemaFileName().
+	 * Returns null if getResponseBodySchemaFileName() returns null.
 	 *
 	 * @param string $method The HTTP method to produce a spec for ("get", "post", etc).
 	 *
@@ -945,12 +945,17 @@ abstract class Handler {
 	}
 
 	/**
-	 * Returns the path and name of a JSON file containing an OpenAPI Schema Object
-	 * specification structure.
+	 * Returns the absolute path of a JSON file containing an OpenAPI Schema
+	 * Object specification structure describing the response body.
 	 *
 	 * @see https://swagger.io/specification/#schema-object
 	 *
-	 * Returns null by default. Subclasses with a suitable JSON file should implement this method.
+	 * Returns null by default. Subclasses that return a JSON response
+	 * should override this method to return a schema file path.
+	 *
+	 * The returned path must be absolute. Use `__DIR__` to construct the
+	 * path relative to the handler file, e.g.
+	 * `__DIR__ . '/Schema/Foo.json'`.
 	 *
 	 * @param string $method The HTTP method to produce a spec for ("get", "post", etc).
 	 *

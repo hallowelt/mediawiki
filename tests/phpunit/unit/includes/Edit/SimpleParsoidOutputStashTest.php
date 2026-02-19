@@ -27,7 +27,7 @@ class SimpleParsoidOutputStashTest extends \MediaWikiUnitTestCase {
 		$stash = new SimpleParsoidOutputStash( $codec, new HashBagOStuff(), 12 );
 
 		$key = new ParsoidRenderID( 7, 'acme' );
-		$pageBundle = new HtmlPageBundle( '<p>Hello World</p>' );
+		$pageBundle = HtmlPageBundle::newEmpty( '<p>Hello World</p>' );
 		$selserContext = new SelserContext( $pageBundle, 7 );
 
 		$stash->set( $key, $selserContext );
@@ -58,7 +58,7 @@ class SimpleParsoidOutputStashTest extends \MediaWikiUnitTestCase {
 		$stash = new SimpleParsoidOutputStash( $codec, new HashBagOStuff(), 12 );
 
 		$key = new ParsoidRenderID( 7, 'acme' );
-		$pageBundle = new HtmlPageBundle( '<p>Hello World</p>' );
+		$pageBundle = HtmlPageBundle::newEmpty( '<p>Hello World</p>' );
 
 		// Create a WikitextContent that uses the above ContentHandlerFactory
 		$content = new class( 'Hello World', $chFactory ) extends WikitextContent {

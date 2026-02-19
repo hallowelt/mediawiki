@@ -1020,18 +1020,6 @@ class Parser {
 	}
 
 	/**
-	 * Accessor/mutator for the output type
-	 *
-	 * @param int|null $x New value or null to just get the current one
-	 * @return int
-	 * @deprecated since 1.35, use getOutputType()/setOutputType()
-	 */
-	public function OutputType( $x = null ) {
-		wfDeprecated( __METHOD__, '1.35' );
-		return wfSetVar( $this->mOutputType, $x );
-	}
-
-	/**
 	 * @return ParserOutput
 	 * @since 1.14
 	 */
@@ -1076,17 +1064,6 @@ class Parser {
 	 */
 	public function setLinkID( $id ) {
 		$this->mLinkID = $id;
-	}
-
-	/**
-	 * Get a language object for use in parser functions such as {{FORMATNUM:}}
-	 * @return Language
-	 * @since 1.7
-	 * @deprecated since 1.40; use ::getTargetLanguage() instead.
-	 */
-	public function getFunctionLang() {
-		wfDeprecated( __METHOD__, '1.40' );
-		return $this->getTargetLanguage();
 	}
 
 	/**
@@ -2741,20 +2718,6 @@ class Parser {
 	}
 
 	/**
-	 * Make lists from lines starting with ':', '*', '#', etc. (DBL)
-	 *
-	 * @param string $text
-	 * @param bool $linestart Whether or not this is at the start of a line.
-	 * @internal
-	 * @return string The lists rendered as HTML
-	 * @deprecated since 1.35, will not be supported in future parsers
-	 */
-	public function doBlockLevels( $text, $linestart ) {
-		wfDeprecated( __METHOD__, '1.35' );
-		return BlockLevelPass::doBlockLevels( $text, $linestart );
-	}
-
-	/**
 	 * Return value of a magic variable (like PAGENAME)
 	 *
 	 * @param string $index Magic variable identifier as mapped in MagicWordFactory::$mVariableIDs
@@ -3051,10 +3014,11 @@ class Parser {
 
 		# Parser functions
 		if ( !$found ) {
-			$colonPos = strpos( $part1, ':' );
-			if ( $colonPos !== false ) {
+			// Allow colon or Japanese double-width colon as arg delimiter
+			if ( preg_match( '/[:：]/u', $part1, $colonMatches, PREG_OFFSET_CAPTURE ) ) {
+				[ $colonStr, $colonPos ] = $colonMatches[0];
 				$func = substr( $part1, 0, $colonPos );
-				$funcArgs = [ trim( substr( $part1, $colonPos + 1 ) ) ];
+				$funcArgs = [ trim( substr( $part1, $colonPos + strlen( $colonStr ) ) ) ];
 				$argsLength = $args->getLength();
 				for ( $i = 0; $i < $argsLength; $i++ ) {
 					$funcArgs[] = $args->item( $i );
@@ -4561,7 +4525,7 @@ class Parser {
 	 *   null if language conversion is to be suppressed.
 	 * @internal
 	 */
-	private static function localizeTOC(
+	public static function localizeTOC(
 		?TOCData $tocData, Language $lang, ?ILanguageConverter $converter
 	) {
 		if ( $tocData === null ) {
@@ -5067,9 +5031,9 @@ class Parser {
 			if ( !( $flags & self::SFH_NO_HASH ) ) {
 				$syn = '#' . $syn;
 			}
-			# Remove trailing colon
-			if ( substr( $syn, -1, 1 ) === ':' ) {
-				$syn = substr( $syn, 0, -1 );
+			# Remove trailing colon (or Japanese double-width colon)
+			if ( str_ends_with( $syn, ':' ) || str_ends_with( $syn, '：' ) ) {
+				$syn = mb_substr( $syn, 0, -1 );
 			}
 			$this->mFunctionSynonyms[$sensitive][$syn] = $id;
 		}

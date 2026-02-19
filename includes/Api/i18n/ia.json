@@ -916,6 +916,7 @@
 	"apihelp-query+info-paramvalue-prop-protection": "Listar le nivello de protection de cata pagina.",
 	"apihelp-query+info-paramvalue-prop-talkid": "Le identificator del pagina de discussion associate a cata pagina non de discussion.",
 	"apihelp-query+info-paramvalue-prop-watched": "Listar le stato de observation de cata pagina.",
+	"apihelp-query+info-paramvalue-prop-watchlistlabels": "Listar le etiquettas de observatorio de cata pagina.",
 	"apihelp-query+info-paramvalue-prop-watchers": "Le numero de observatores, si permittite.",
 	"apihelp-query+info-paramvalue-prop-visitingwatchers": "Le numero de observatores de cata pagina qui ha visitate le modificationes recente de ille pagina, si permittite.",
 	"apihelp-query+info-paramvalue-prop-notificationtimestamp": "Le data e hora de notification de observatorio de cata pagina.",

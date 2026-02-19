@@ -14,6 +14,7 @@
 namespace MediaWiki\Tests\Common\Parser;
 
 use BadMethodCallException;
+use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\WikitextContent;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Context\RequestContext;
@@ -22,12 +23,14 @@ use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Html\Html;
 use MediaWiki\Interwiki\ClassicInterwikiLookup;
 use MediaWiki\Json\FormatJson;
+use MediaWiki\Language\LanguageCode;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Media\MediaHandlerFactory;
 use MediaWiki\Media\SvgHandler;
 use MediaWiki\Media\SVGReader;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\OutputTransform\Stages\ParsoidLanguageConverter;
 use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOptions;
@@ -35,7 +38,6 @@ use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\ParserOutputFlags;
 use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
-use MediaWiki\Parser\Parsoid\ParsoidParser;
 use MediaWiki\Permissions\UltimateAuthority;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Revision\MutableRevisionRecord;
@@ -1115,6 +1117,7 @@ class ParserTestRunner {
 				isset( $test->sections['html/parsoid'] ) ||
 				isset( $test->sections['html/parsoid+integrated'] ) ||
 				isset( $test->sections['html/parsoid+standalone'] ) ||
+				isset( $test->sections['html/parsoid+langconv'] ) ||
 				isset( $test->sections['wikitext/edited'] ) ||
 				self::getParsoidMetadataSection( $test ) !== null
 			) {
@@ -1904,20 +1907,58 @@ class ParserTestRunner {
 			'wrapSections' => $test->options['parsoid']['wrapSections'] ?? false,
 			'traceFlags' => $this->options['traceFlags'],
 			'dumpFlags' => $this->options['dumpFlags'],
+			'skipLanguageConversionPass' => true,
 		], $headers, $metadata );
 		$pageBundle = new HtmlPageBundle( $origOut );
 		// See ParsoidParser::genParserOutput
 		$metadata = PageBundleParserOutputConverter::parserOutputFromPageBundle(
 			$pageBundle, $metadata
 		);
-		$metadata->setExtensionData(
-			ParsoidParser::PARSOID_TITLE_KEY,
-			Title::newFromLinkTarget( $pageConfig->getLinkTarget() )->getPrefixedDBkey()
-		);
+		$metadata->setTitle( Title::newFromLinkTarget( $pageConfig->getLinkTarget() ) );
 		/** @var \MediaWiki\Parser\Parsoid\Config\PageConfig $pageConfig */
 		'@phan-var \MediaWiki\Parser\Parsoid\Config\PageConfig $pageConfig';
 		$metadata->setFromParserOptions( $pageConfig->getParserOptions() );
+		if ( isset( $test->options['langconv'] ) ) {
+			// Run (just) the LanguageConverter post-processing pass
+			$services = MediaWikiServices::getInstance();
+			$pass = new ParsoidLanguageConverter(
+				new ServiceOptions(
+					[],
+					$services->getMainConfig(),
+				),
+				new NullLogger(),
+				$services->getParsoidSiteConfig(),
+				$services->getLanguageFactory(),
+				$services->getLanguageConverterFactory(),
+				$services->getTitleFactory(),
+				$services->getUrlUtils(),
+				$services->getLinkBatchFactory(),
+			);
+			$textOptions = [];
+			$pageConfig->getParserOptions()->setOption(
+				'parsoidnewlc', LanguageCode::bcp47ToInternal(
+					$test->options['htmlvariantlanguage'] ??
+					$test->options['language'] ??
+					'en'
+				)
+			);
+			$metadata->setExtensionData(
+				'core:parsoid-languageconverter', 'postprocess'
+			);
+			# as a side-effect of being a DOM pass, this will leave `id`
+			# attributes in the output, which will get stripped below.
+			$metadata = $pass->transform(
+				$metadata,
+				$pageConfig->getParserOptions(),
+				$textOptions,
+			);
+		}
 		$origOut = $metadata->getContentHolderText();
+		// This should be TestUtils::stripParsoidIds() but that is a bit
+		// too aggressive: it strips IDs added by Extension:Cite
+		$origOut = preg_replace(
+			'/ id=\\\\*"mw(?!-reference)([-\w]{2,})\\\\*"/u', '', $origOut
+		);
 
 		if ( isset( $test->options['nohtml'] ) ) {
 			// Suppress HTML (presumably because we want to test the metadata)

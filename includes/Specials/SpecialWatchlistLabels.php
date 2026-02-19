@@ -153,17 +153,17 @@ class SpecialWatchlistLabels extends SpecialPage {
 	public function validateName( $value, ?array $alldata, ?HTMLForm $form ) {
 		$length = strlen( trim( $value ) );
 		if ( $length === 0 ) {
-			return Status::newFatal( $this->msg( 'watchlistlabels-form-name-too-short', $length ) );
+			return StatusValue::newFatal( 'watchlistlabels-form-name-too-short', $length );
 		}
 		if ( $length > 255 ) {
-			return Status::newFatal( $this->msg( 'watchlistlabels-form-name-too-long', $length ) );
+			return StatusValue::newFatal( 'watchlistlabels-form-name-too-long', $length );
 		}
 		$existingLabel = $this->labelStore->loadByName( $this->getUser(), $value );
 		$thisId = $alldata[self::PARAM_ID] ?? null;
-		if ( $existingLabel && $thisId && $existingLabel->getId() !== (int)$thisId ) {
-			return Status::newFatal( $this->msg( 'watchlistlabels-form-name-exists', $existingLabel->getName() ) );
+		if ( $existingLabel && $existingLabel->getId() !== (int)$thisId ) {
+			return StatusValue::newFatal( 'watchlistlabels-form-name-exists', $existingLabel->getName() );
 		}
-		return Status::newGood();
+		return StatusValue::newGood();
 	}
 
 	/**

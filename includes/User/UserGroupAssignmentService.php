@@ -34,17 +34,19 @@ class UserGroupAssignmentService {
 	];
 
 	private array $changeableGroupsCache = [];
+	private readonly RestrictedUserGroupChecker $restrictedGroupChecker;
 
 	public function __construct(
 		private readonly UserGroupManagerFactory $userGroupManagerFactory,
 		private readonly UserNameUtils $userNameUtils,
 		private readonly UserFactory $userFactory,
-		private readonly RestrictedUserGroupChecker $restrictedGroupChecker,
+		RestrictedUserGroupCheckerFactory $restrictedGroupCheckerFactory,
 		private readonly HookRunner $hookRunner,
 		private readonly ServiceOptions $options,
 		private readonly TempUserConfig $tempUserConfig,
 	) {
 		$this->options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
+		$this->restrictedGroupChecker = $restrictedGroupCheckerFactory->getRestrictedUserGroupChecker();
 	}
 
 	/**

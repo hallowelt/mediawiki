@@ -48,7 +48,7 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
  *      in the $initialCacheVaryingOptionsHash or $callbacks arrays.
  *    Setting options that are not from (2a) or (2b) will make the parse uncacheable if they are actually used
  *    during the parse in the (current default article parse) setup where option usage is recorded to determine
- *    cacheability (see ::safeToCache() below for details.)
+ *    cacheability (see ::isSafeToCache() below for details.)
  *  3. Add a getter and setter in the section for that.
  *     These should be typically be wrappers around getOption/setOption in order
  *     to ensure that $this->optionUsed() gets invoked.
@@ -1315,6 +1315,7 @@ class ParserOptions {
 				'speculativePageIdCallback' => null,
 				'speculativePageId' => null,
 				'useParsoid' => false,
+				'parsoidnewlc' => null, # T415435: temporary for testing
 				'postproc' => false,
 				// postproc options - if 'postproc' above is false, these are ignored
 				'skin' => null,

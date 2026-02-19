@@ -947,7 +947,7 @@ abstract class ParsoidHandler extends Handler {
 				'html' => $revision['html']['body'],
 				'parsoid' => $revision['data-parsoid']['body'] ?? null,
 				'mw' => $revision['data-mw']['body'] ?? null,
-				'counters' => $revision['counters'] ?? null,
+				'counters' => $revision['counters']['body'] ?? null,
 			] );
 			$this->validatePb( $pb, $attribs['envOptions']['inputContentVersion'] );
 			Parsoid::downgrade( $downgrade, $pb, $this->siteConfig );
@@ -990,7 +990,7 @@ abstract class ParsoidHandler extends Handler {
 			'html' => $revision['html']['body'],
 			'parsoid' => $revision['data-parsoid']['body'] ?? null,
 			'mw' => $revision['data-mw']['body'] ?? null,
-			'counters' => $revision['counters'] ?? null,
+			'counters' => $revision['counters']['body'] ?? null,
 			'version' => $attribs['envOptions']['inputContentVersion'],
 			'headers' => $revision['html']['headers'] ?? null,
 			'contentmodel' => $revision['contentmodel'] ?? null,
@@ -1036,7 +1036,7 @@ abstract class ParsoidHandler extends Handler {
 			'html' => $revision['html']['body'],
 			'parsoid' => $revision['data-parsoid']['body'] ?? null,
 			'mw' => $revision['data-mw']['body'] ?? null,
-			'counters' => $revision['counters'] ?? null,
+			'counters' => $revision['counters']['body'] ?? null,
 			'version' => $attribs['envOptions']['inputContentVersion'],
 			'headers' => $revision['html']['headers'] ?? null,
 			'contentmodel' => $revision['contentmodel'] ?? null,

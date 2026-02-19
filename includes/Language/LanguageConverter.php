@@ -701,8 +701,9 @@ abstract class LanguageConverter implements ILanguageConverter {
 
 	/**
 	 * Apply manual conversion rules.
+	 * @internal
 	 */
-	protected function applyManualConv( ConverterRule $convRule ) {
+	public function applyManualConv( ConverterRule $convRule ) {
 		// Use syntax -{T|zh-cn:TitleCN; zh-tw:TitleTw}- to custom
 		// title conversion.
 		// T26072: $mConvRuleTitle was overwritten by other manual

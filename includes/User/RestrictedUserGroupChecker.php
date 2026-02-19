@@ -6,8 +6,6 @@
 
 namespace MediaWiki\User;
 
-use MediaWiki\Config\ServiceOptions;
-use MediaWiki\MainConfigNames;
 use MediaWiki\Permissions\Authority;
 
 /**
@@ -18,20 +16,14 @@ use MediaWiki\Permissions\Authority;
  */
 class RestrictedUserGroupChecker {
 
-	/** @internal */
-	public const CONSTRUCTOR_OPTIONS = [
-		MainConfigNames::RestrictedGroups,
-	];
-
-	/** @var array<string,array> */
-	private array $restrictedGroups;
-
+	/**
+	 * @param array<string,array> $restrictedGroups Value of $wgRestrictedGroups
+	 * @param UserRequirementsConditionChecker $userRequirementsConditionChecker
+	 */
 	public function __construct(
-		ServiceOptions $options,
+		private readonly array $restrictedGroups,
 		private readonly UserRequirementsConditionChecker $userRequirementsConditionChecker,
 	) {
-		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
-		$this->restrictedGroups = $options->get( MainConfigNames::RestrictedGroups );
 	}
 
 	/**

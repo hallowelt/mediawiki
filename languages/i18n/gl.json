@@ -2237,7 +2237,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Asignar etiquetas",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Non se puideron asignar as etiquetas",
 	"watchlistlabels-editwatchlist-dialog-intro": "Selecciona {{PLURAL:$2|a etiqueta|as etiquetas}} que queres {{PLURAL:$3|asignarlle|asignarlles}} a $1:",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Non podes asignar etiquetas a estes elementos da lista de vixilancia porque non tes etiquetas definidas. Vai a «[[{{#Special:WatchlistLabels}}]]» para creares algunha etiqueta.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Non podes asignar etiquetas a estes elementos da lista de vixilancia porque non tes etiquetas definidas. Vai a «[[$1]]» para creares algunha etiqueta.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Selecciona as páxinas ás que queres asignar etiquetas.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Eliminar etiquetas",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Non se puideron eliminar as etiquetas",

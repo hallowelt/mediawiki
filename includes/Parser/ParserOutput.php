@@ -186,21 +186,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	private array $existenceLinks = [];
 
 	/**
-	 * @var bool Show a new section link?
-	 */
-	private bool $mNewSection = false;
-
-	/**
-	 * @var bool Hide the new section link?
-	 */
-	private bool $mHideNewSection = false;
-
-	/**
-	 * @var bool No gallery on category page? (__NOGALLERY__).
-	 */
-	private bool $mNoGallery = false;
-
-	/**
 	 * @var array<string|int,string> Items to put in the <head> section
 	 */
 	private array $mHeadItems = [];
@@ -249,21 +234,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	private ?string $mTimestamp = null;
 
 	/**
-	 * @var bool Whether OOUI should be enabled.
-	 */
-	private bool $mEnableOOUI = false;
-
-	/**
-	 * @var bool Whether the index policy has been set to 'index'.
-	 */
-	private bool $mIndexSet = false;
-
-	/**
-	 * @var bool Whether the index policy has been set to 'noindex'.
-	 */
-	private bool $mNoIndexSet = false;
-
-	/**
 	 * @var array<string,mixed> extra data used by extensions.
 	 */
 	private array $mExtensionData = [];
@@ -288,13 +258,6 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @var array Durations for getTimeProfile().
 	 */
 	private array $mTimeProfile = [];
-
-	/**
-	 * @var bool Whether to emit X-Frame-Options: DENY.
-	 * This controls if anti-clickjacking / frame-breaking headers will
-	 * be sent. This should be done for pages where edit actions are possible.
-	 */
-	private bool $mPreventClickjacking = false;
 
 	/**
 	 * @var list<string> Extra script-src for CSP
@@ -967,16 +930,18 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/**
 	 * @param bool $value
+	 * @deprecated since 1.46; use ::setOutputFlag( ParserOutputFlags::NO_GALLERY )
 	 */
 	public function setNoGallery( $value ): void {
-		$this->mNoGallery = (bool)$value;
+		$this->setOutputFlag( ParserOutputFlags::NO_GALLERY, (bool)$value );
 	}
 
 	/**
 	 * @return bool
+	 * @deprecated since 1.46; use ::getOutputFlag( ParserOutputFlags::NO_GALLERY )
 	 */
 	public function getNoGallery() {
-		return $this->mNoGallery;
+		return $this->getOutputFlag( ParserOutputFlags::NO_GALLERY );
 	}
 
 	/**
@@ -1036,9 +1001,9 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	public function getIndexPolicy(): string {
 		// 'noindex' wins if both are set. (T16899)
-		if ( $this->mNoIndexSet ) {
+		if ( $this->getOutputFlag( ParserOutputFlags::NO_INDEX_POLICY ) ) {
 			return 'noindex';
-		} elseif ( $this->mIndexSet ) {
+		} elseif ( $this->getOutputFlag( ParserOutputFlags::INDEX_POLICY ) ) {
 			return 'index';
 		}
 		return '';
@@ -1076,9 +1041,10 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/**
 	 * @return bool
+	 * @deprecated since 1.46; use ::getOutputFlag( ParserOutputFlags::ENABLE_OOUI )
 	 */
 	public function getEnableOOUI() {
-		return $this->mEnableOOUI;
+		return $this->getOutputFlag( ParserOutputFlags::ENABLE_OOUI );
 	}
 
 	/**
@@ -1203,9 +1169,9 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	public function setIndexPolicy( $policy ): string {
 		$old = $this->getIndexPolicy();
 		if ( $policy === 'noindex' ) {
-			$this->mNoIndexSet = true;
+			$this->setOutputFlag( ParserOutputFlags::NO_INDEX_POLICY );
 		} elseif ( $policy === 'index' ) {
-			$this->mIndexSet = true;
+			$this->setOutputFlag( ParserOutputFlags::INDEX_POLICY );
 		}
 		return $old;
 	}
@@ -1247,6 +1213,11 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		if ( $c instanceof ParsoidLinkTarget ) {
 			$c = $c->getDBkey();
 		}
+		if ( ( $this->mCategories[$c] ?? $sort ) !== $sort ) {
+			// Overwriting a category sort key prevents selective update
+			// [[mw:Parsoid/Internals/Handling_resource_limits]]
+			$this->setOutputFlag( ParserOutputFlags::PREVENT_SELECTIVE_UPDATE );
+		}
 		$this->mCategories[$c] = $sort;
 	}
 
@@ -1256,6 +1227,11 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @since 1.38
 	 */
 	public function setCategories( array $c ): void {
+		if ( ( $this->mCategories ?: $c ) !== $c ) {
+			// Overwriting categories prevents selective update
+			// [[mw:Parsoid/Internals/Handling_resource_limits]]
+			$this->setOutputFlag( ParserOutputFlags::PREVENT_SELECTIVE_UPDATE );
+		}
 		$this->mCategories = $c;
 	}
 
@@ -1266,6 +1242,11 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @since 1.25
 	 */
 	public function setIndicator( $id, $content ): void {
+		if ( ( $this->mIndicators[$id] ?? $content ) !== $content ) {
+			// Overwriting an indicator prevents selective update
+			// [[mw:Parsoid/Internals/Handling_resource_limits]]
+			$this->setOutputFlag( ParserOutputFlags::PREVENT_SELECTIVE_UPDATE );
+		}
 		$this->mIndicators[$id] = $content;
 	}
 
@@ -1275,9 +1256,10 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 *
 	 * @since 1.26
 	 * @param bool $enable If OOUI should be enabled or not
+	 * @deprecated since 1.46; use ::setOutputFlag( ParserOutputFlags::ENABLE_OOUI )
 	 */
 	public function setEnableOOUI( bool $enable = false ): void {
-		$this->mEnableOOUI = $enable;
+		$this->setOutputFlag( ParserOutputFlags::ENABLE_OOUI, $enable );
 	}
 
 	/**
@@ -1300,6 +1282,11 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		if ( $lang === '' ) {
 			throw new InvalidArgumentException( __METHOD__ . ' without prefix' );
 		}
+		if ( ( $this->mLanguageLinkMap[$lang] ?? $title ) !== $title ) {
+			// Overwriting a language link prevents selective update
+			// [[mw:Parsoid/Internals/Handling_resource_limits]]
+			$this->setOutputFlag( ParserOutputFlags::PREVENT_SELECTIVE_UPDATE );
+		}
 		$this->mLanguageLinkMap[$lang] ??= $title;
 	}
 
@@ -1314,6 +1301,11 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	public function addWarningMsgVal( MessageSpecifier $mv, ?string $key = null ) {
 		$mv = MessageValue::newFromSpecifier( $mv );
 		$key ??= $mv->getKey();
+		if ( array_key_exists( $key, $this->mWarningMsgs ) ) {
+			// Overwriting a warning message prevents selective update
+			// [[mw:Parsoid/Internals/Handling_resource_limits]]
+			$this->setOutputFlag( ParserOutputFlags::PREVENT_SELECTIVE_UPDATE );
+		}
 		$this->mWarningMsgs[$key] = $mv;
 		// Ensure callers aren't passing nonserializable arguments: T343048.
 		$jsonCodec = MediaWikiServices::getInstance()->getJsonCodec();
@@ -1348,24 +1340,32 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/**
 	 * @param bool $value
+	 * @deprecated since 1.46; use ::setOutputFlag( ParserOutputFlags::HIDE_NEW_SECTION )
 	 */
 	public function setNewSection( $value ): void {
-		$this->mNewSection = (bool)$value;
+		$this->setOutputFlag( ParserOutputFlags::NEW_SECTION, (bool)$value );
 	}
 
 	/**
 	 * @param bool $value Hide the new section link?
+	 * @deprecated since 1.46; use ::setOutputFlag( ParserOutputFlags::HIDE_NEW_SECTION )
 	 */
 	public function setHideNewSection( bool $value ): void {
-		$this->mHideNewSection = $value;
+		$this->setOutputFlag( ParserOutputFlags::HIDE_NEW_SECTION, $value );
 	}
 
+	/**
+	 * @deprecated since 1.46; use ::getOutputFlag( ParserOutputFlags::HIDE_NEW_SECTION )
+	 */
 	public function getHideNewSection(): bool {
-		return $this->mHideNewSection;
+		return $this->getOutputFlag( ParserOutputFlags::HIDE_NEW_SECTION );
 	}
 
+	/**
+	 * @deprecated since 1.46; use ::getOutputFlag( ParserOutputFlags::NEW_SECTION )
+	 */
 	public function getNewSection(): bool {
-		return $this->mNewSection;
+		return $this->getOutputFlag( ParserOutputFlags::NEW_SECTION );
 	}
 
 	/**
@@ -1654,7 +1654,11 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		// disallowing embedding in cross-origin iframes. Articles are generally allowed to be
 		// embedded. Pages that transclude special pages are expected to be user pages or
 		// other non-content pages that content re-users won't discover or care about.
-		$this->mPreventClickjacking = $this->mPreventClickjacking || $out->getPreventClickjacking();
+		$this->setOutputFlag(
+			ParserOutputFlags::PREVENT_CLICKJACKING,
+			$this->getOutputFlag( ParserOutputFlags::PREVENT_CLICKJACKING ) ||
+			$out->getOutputFlag( ParserOutputFlags::PREVENT_CLICKJACKING )
+		);
 
 		$this->addModuleStyles( $out->getModuleStyles() );
 
@@ -1852,9 +1856,17 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 	/**
 	 * @return string[] List of flags signifying special cases
-	 * @internal
+	 * @internal Used in WikitextContentHandler::preSaveTransform() and
+	 * OutputPage::addParserOutputMetadata().
 	 */
 	public function getAllFlags(): array {
+		// Before MW 1.46 this did not include NO_GALLERY, ENABLE_OOUI,
+		// INDEX_POLICY, NO_INDEX_POLICY, NEW_SECTION, HIDE_NEW_SECTION,
+		// and PREVENT_CLICKJACKING, but this method is only used internally.
+		// See WikitextContentHandler::preSaveTransform() where this method
+		// is used to transfer PST flags to the WikitextContent object, and
+		// OutputPage::addParserOutputMetadata() where this method is used
+		// to transfer ParserOutput flags to OutputPage::$mOutputFlags
 		return array_keys( $this->mFlags );
 	}
 
@@ -2066,42 +2078,10 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			$flag = $name;
 			$name = $flag->value;
 		}
-		switch ( $flag ) {
-			case ParserOutputFlags::NO_GALLERY:
-				$this->setNoGallery( $val );
-				break;
-
-			case ParserOutputFlags::ENABLE_OOUI:
-				$this->setEnableOOUI( $val );
-				break;
-
-			case ParserOutputFlags::NO_INDEX_POLICY:
-				$this->mNoIndexSet = $val;
-				break;
-
-			case ParserOutputFlags::INDEX_POLICY:
-				$this->mIndexSet = $val;
-				break;
-
-			case ParserOutputFlags::NEW_SECTION:
-				$this->setNewSection( $val );
-				break;
-
-			case ParserOutputFlags::HIDE_NEW_SECTION:
-				$this->setHideNewSection( $val );
-				break;
-
-			case ParserOutputFlags::PREVENT_CLICKJACKING:
-				$this->setPreventClickjacking( $val );
-				break;
-
-			default:
-				if ( $val ) {
-					$this->mFlags[$name] = true;
-				} else {
-					unset( $this->mFlags[$name] );
-				}
-				break;
+		if ( $val ) {
+			$this->mFlags[$name] = true;
+		} else {
+			unset( $this->mFlags[$name] );
 		}
 	}
 
@@ -2113,43 +2093,17 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * ParserOutputFlags in core; they should use ::getExtensionData()
 	 * to define their own flags.
 	 *
-	 * @param ParserOutputFlags|string $name A flag name
+	 * @param ParserOutputFlags|string $flag A flag.
+	 *   The use of flag name strings which are not present in
+	 *   ParserOutputFlags was deprecated in 1.45.
 	 * @return bool The flag value
 	 * @since 1.38
 	 */
-	public function getOutputFlag( ParserOutputFlags|string $name ): bool {
-		if ( is_string( $name ) ) {
-			$flag = ParserOutputFlags::tryFrom( $name );
-		} else {
-			$flag = $name;
-			$name = $flag->value;
-		}
-		switch ( $flag ) {
-			case ParserOutputFlags::NO_GALLERY:
-				return $this->getNoGallery();
-
-			case ParserOutputFlags::ENABLE_OOUI:
-				return $this->getEnableOOUI();
-
-			case ParserOutputFlags::INDEX_POLICY:
-				return $this->mIndexSet;
-
-			case ParserOutputFlags::NO_INDEX_POLICY:
-				return $this->mNoIndexSet;
-
-			case ParserOutputFlags::NEW_SECTION:
-				return $this->getNewSection();
-
-			case ParserOutputFlags::HIDE_NEW_SECTION:
-				return $this->getHideNewSection();
-
-			case ParserOutputFlags::PREVENT_CLICKJACKING:
-				return $this->getPreventClickjacking();
-
-			default:
-				return $this->mFlags[$name] ?? false;
-
-		}
+	public function getOutputFlag( ParserOutputFlags|string $flag ): bool {
+		// In the future we will return false if $flag doesn't correspond to a
+		// valid ParserOutputFlag; see deprecation notice in ::setOutputFlag().
+		$name = $flag instanceof ParserOutputFlags ? $flag->value : $flag;
+		return $this->mFlags[$name] ?? false;
 	}
 
 	/**
@@ -2271,8 +2225,9 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			array_key_exists( $key, $this->mExtensionData ) &&
 			$this->mExtensionData[$key] !== $value
 		) {
-			// This behavior was deprecated in 1.38.  We will eventually
-			// emit a warning here, then throw an exception.
+			// This is discouraged, as it prevents selective update,
+			// and was deprecated in 1.38.
+			$this->setOutputFlag( ParserOutputFlags::PREVENT_SELECTIVE_UPDATE );
 		}
 		if ( $value === null ) {
 			unset( $this->mExtensionData[$key] );
@@ -2521,9 +2476,10 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 *
 	 * @param bool $flag New flag value
 	 * @since 1.38
+	 * @deprecated since 1.46; use ::setOutputFlag( ParserOutputFlags::PREVENT_CLICKJACKING )
 	 */
 	public function setPreventClickjacking( bool $flag ): void {
-		$this->mPreventClickjacking = $flag;
+		$this->setOutputFlag( ParserOutputFlags::PREVENT_CLICKJACKING, $flag );
 	}
 
 	/**
@@ -2532,9 +2488,10 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 * @return bool Flag value
 	 * @since 1.38
 	 * @see ::setPreventClickjacking
+	 * @deprecated since 1.46; use ::getOutputFlag( ParserOutputFlags::PREVENT_CLICKJACKING )
 	 */
 	public function getPreventClickjacking(): bool {
-		return $this->mPreventClickjacking;
+		return $this->getOutputFlag( ParserOutputFlags::PREVENT_CLICKJACKING );
 	}
 
 	/**
@@ -2741,16 +2698,24 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			$source->getExtraCSPDefaultSrcs()
 		);
 
-		// "noindex" always wins!
-		$this->mIndexSet = $this->mIndexSet || $source->mIndexSet;
-		$this->mNoIndexSet = $this->mNoIndexSet || $source->mNoIndexSet;
-
-		// Skin control
-		$this->mNewSection = $this->mNewSection || $source->getNewSection();
-		$this->mHideNewSection = $this->mHideNewSection || $source->getHideNewSection();
-		$this->mNoGallery = $this->mNoGallery || $source->getNoGallery();
-		$this->mEnableOOUI = $this->mEnableOOUI || $source->getEnableOOUI();
-		$this->mPreventClickjacking = $this->mPreventClickjacking || $source->getPreventClickjacking();
+		foreach ( [
+			// "noindex" always wins!
+			ParserOutputFlags::INDEX_POLICY,
+			ParserOutputFlags::NO_INDEX_POLICY,
+			// Skin control
+			ParserOutputFlags::NEW_SECTION,
+			ParserOutputFlags::HIDE_NEW_SECTION,
+			ParserOutputFlags::NO_GALLERY,
+			ParserOutputFlags::ENABLE_OOUI,
+			ParserOutputFlags::PREVENT_CLICKJACKING,
+			// Selective update
+			ParserOutputFlags::PREVENT_SELECTIVE_UPDATE,
+		] as $flag ) {
+			// logical OR of $this and $source
+			if ( $source->getOutputFlag( $flag ) ) {
+				$this->setOutputFlag( $flag );
+			}
+		}
 
 		$tocData = $this->getTOCData();
 		$sourceTocData = $source->getTOCData();
@@ -2912,6 +2877,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 				// caused by limitations in Parsoid and/or use of
 				// the ParserAfterParse hook: T303015#7770480
 				$metadata->mJsConfigVars[$key] = $value;
+				$metadata->setOutputFlag( ParserOutputFlags::PREVENT_SELECTIVE_UPDATE );
 			} else {
 				$metadata->setJsConfigVar( $key, $value );
 			}
@@ -3199,15 +3165,8 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 			'RevisionTimestampUsed' => $this->revisionTimestampUsed,
 			'RevisionUsedSha1Base36' => $this->revisionUsedSha1Base36,
 			'WrapperDivClasses' => $this->mWrapperDivClasses,
+			'OutputFlags' => array_keys( $this->mFlags ),
 		];
-		// Handle generic flags
-		$outputFlags = $this->mFlags;
-		foreach ( ParserOutputFlags::cases() as $flag ) {
-			if ( $this->getOutputFlag( $flag ) ) {
-				$outputFlags[$flag->value] = true;
-			}
-		}
-		$data['OutputFlags'] = array_keys( $outputFlags );
 
 		// TODO ultimately we'll change the serialization to directly
 		// encode the ContentHolder, but let's maintain compatibility for now.
@@ -3292,12 +3251,22 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 
 		// Set flags stored as properties (backward compatibility with MW<1.45)
 		$this->mFlags = $jsonData['Flags'] ?? [];
-		$this->mNoGallery = $jsonData['NoGallery'] ?? false;
-		$this->mEnableOOUI = $jsonData['EnableOOUI'] ?? false;
+		if ( $jsonData['NoGallery'] ?? false ) {
+			$this->setOutputFlag( ParserOutputFlags::NO_GALLERY );
+		}
+		if ( $jsonData['EnableOOUI'] ?? false ) {
+			$this->setOutputFlag( ParserOutputFlags::ENABLE_OOUI );
+		}
 		$this->setIndexPolicy( $jsonData['IndexPolicy'] ?? '' );
-		$this->mNewSection = $jsonData['NewSection'] ?? false;
-		$this->mHideNewSection = $jsonData['HideNewSection'] ?? false;
-		$this->mPreventClickjacking = $jsonData['PreventClickjacking'] ?? false;
+		if ( $jsonData['NewSection'] ?? false ) {
+			$this->setOutputFlag( ParserOutputFlags::NEW_SECTION );
+		}
+		if ( $jsonData['HideNewSection'] ?? false ) {
+			$this->setOutputFlag( ParserOutputFlags::HIDE_NEW_SECTION );
+		}
+		if ( $jsonData['PreventClickjacking'] ?? false ) {
+			$this->setOutputFlag( ParserOutputFlags::PREVENT_CLICKJACKING );
+		}
 		// Set all generic output flags (whether stored as properties or not)
 		// (This is effectively a logical-OR if these are also serialized
 		// above.)
@@ -3458,6 +3427,16 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 */
 	public function setContentHolderText( ?string $text ): void {
 		$this->contentHolder->setAsHtmlString( ContentHolder::BODY_FRAGMENT, $text );
+	}
+
+	/** Helper for serialization compatibility testing. */
+	private static function normalizeForObjectEquality(): array {
+		return [
+			'mFlags' => static function ( $v ) {
+				ksort( $v );
+				return $v;
+			},
+		];
 	}
 }
 

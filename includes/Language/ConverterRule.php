@@ -9,9 +9,13 @@ namespace MediaWiki\Language;
 
 use MediaWiki\Debug\DeprecationHelper;
 use MediaWiki\Logger\LoggerFactory;
+use Wikimedia\Assert\Assert;
 use Wikimedia\Parsoid\DOM\Document;
 use Wikimedia\Parsoid\DOM\DocumentFragment;
+use Wikimedia\Parsoid\DOM\Element;
 use Wikimedia\Parsoid\Utils\DOMCompat;
+use Wikimedia\Parsoid\Utils\DOMDataUtils;
+use Wikimedia\Parsoid\Utils\DOMUtils;
 use Wikimedia\Parsoid\Utils\WTUtils;
 use Wikimedia\StringUtils\StringUtils;
 
@@ -278,7 +282,7 @@ class ConverterRule {
 				$df,
 				$this->mConverter->getVariantNames()[$k],
 				$codesep,
-				$v,
+				DOMDataUtils::cloneDocumentFragment( $v ),
 				$varsep
 			);
 		}
@@ -290,7 +294,7 @@ class ConverterRule {
 					'⇒',
 					$this->mConverter->getVariantNames()[$k],
 					$codesep,
-					$to,
+					DOMDataUtils::cloneDocumentFragment( $to ),
 					$varsep
 				);
 			}
@@ -379,6 +383,28 @@ class ConverterRule {
 		$bidtable = $this->mBidtable;
 		$unidtable = $this->mUnidtable;
 		$manLevel = $this->mConverter->getManualLevel();
+
+		// Flatten rules which are DocumentFragments
+		foreach ( $bidtable as $k => $val ) {
+			if ( $val instanceof DocumentFragment ) {
+				$val = trim( $val->textContent );
+				if ( $val ) {
+					$bidtable[$k] = $val;
+				} else {
+					# if $from is empty, the strtr() hidden inside
+					# ReplacementArray::replace() could return a wrong result
+					unset( $bidtable[$k] );
+				}
+			}
+		}
+		foreach ( $unidtable as $k => &$pairs ) {
+			foreach ( $pairs as $from => &$to ) {
+				if ( $to instanceof DocumentFragment ) {
+					// Note that $to and $pairs are references
+					$to = trim( $to->textContent );
+				}
+			}
+		}
 
 		$vmarked = [];
 		foreach ( $this->mConverter->getVariants() as $v ) {
@@ -531,6 +557,125 @@ class ConverterRule {
 		}
 
 		$this->generateConvTable();
+	}
+
+	/**
+	 * Parse rules and flags from MediaWiki DOM Spec.
+	 * @param Element $el Language converter rule (an Element with a valid
+	 *   `data-mw-variant` attribute).
+	 * @param ?string $variant Variant language code
+	 * @return ?string If non-null, the rule display should be converted to
+	 *   the returned variant.
+	 */
+	public function parseElement( Element $el, ?string $variant = null ): ?string {
+		$hidden = ( DOMUtils::nodeName( $el ) === 'meta' );
+		if ( !$variant ) {
+			$variant = $this->mConverter->getPreferredVariant();
+		}
+		$dmv = DOMDataUtils::getDataMwVariant( $el );
+		Assert::invariant( $dmv !== null, "Element must have data-mw-variant" );
+		if ( $dmv->filter ) {
+			// Check if the current variant is in the filter
+			if ( in_array( $variant, $dmv->filter->langs, true ) ) {
+				$this->mRuleDisplay = DOMDataUtils::cloneDocumentFragment(
+					$dmv->filter->text
+				);
+				$this->mFlags['R'] = true;
+				return $variant;
+			}
+			// If the current variant is not in the filter, then
+			// check the fallback variants.
+			$variantFallbacks =
+				$this->mConverter->getVariantFallbacks( $variant );
+			if ( is_array( $variantFallbacks ) ) {
+				foreach ( $variantFallbacks as $variantFallback ) {
+					if ( in_array( $variantFallback, $dmv->filter->langs, true ) ) {
+						// convert to fallback language
+						$this->mRuleDisplay = DOMDataUtils::cloneDocumentFragment(
+							$dmv->filter->text
+						);
+						$this->mFlags['R'] = true;
+						return $variantFallback;
+					}
+				}
+			}
+			// No matching variant; fallback to displaying the empty string.
+			$this->mRuleDisplay = '';
+			$this->mFlags['R'] = true;
+		}
+		if ( $dmv->disabled ) {
+			$this->mFlags['R'] = true;
+			$df = $dmv->disabled;
+			'@phan-var DocumentFragment $df';
+			$this->mRuleDisplay = DOMDataUtils::cloneDocumentFragment(
+				$df
+			);
+		}
+		if ( $dmv->twoway ) {
+			$bidtable = [];
+			foreach ( $dmv->twoway as $case ) {
+				$vv = trim( $case->lang );
+				if ( $vv === '*' ) {
+					$vs = $this->mConverter->getVariants();
+				} else {
+					$vv = $this->mConverter->validateVariant( $vv );
+					$vs = $vv ? [ $vv ] : [];
+				}
+				foreach ( $vs as $v ) {
+					$bidtable[$v] = DOMDataUtils::cloneDocumentFragment(
+						$case->text
+					);
+				}
+			}
+			$this->mBidtable = $bidtable;
+		}
+		if ( $dmv->oneway ) {
+			$unidtable = [];
+			foreach ( $dmv->oneway as $case ) {
+				$vv = $this->mConverter->validateVariant( trim( $case->lang ) );
+				if ( !$vv ) {
+					continue;
+				}
+				$from = trim( $case->from->textContent );
+				if ( !$from ) {
+					continue;
+				}
+				$unidtable[$vv] ??= [];
+				$unidtable[$vv][$from] = $case->to;
+			}
+			$this->mUnidtable = $unidtable;
+		}
+		if ( $dmv->add ) {
+			$this->mRulesAction = 'add';
+		}
+		if ( $dmv->remove ) {
+			$this->mRulesAction = 'remove';
+		}
+		if ( $dmv->title ) {
+			// Special case: T with no variants is used verbatim *unless*
+			// we're in the main code (that is, no automatic conversion)
+			if ( $dmv->disabled && $variant !== $this->mConverter->getMainCode() ) {
+				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable
+				$this->mRuleTitle = DOMDataUtils::cloneDocumentFragment( $dmv->disabled );
+			} else {
+				$this->mRuleTitle = $this->getRuleConvertedValueForTitle( $variant ) ?? false;
+			}
+		}
+		if ( !$hidden ) {
+			if ( $dmv->error ) {
+				$this->mRuleDisplay = false;
+			} elseif ( $dmv->name ) {
+				$vv = LanguageCode::bcp47ToInternal( trim( $dmv->name->textContent ) );
+				$this->mRuleDisplay = $this->mConverter->getVariantNames()[$vv] ?? '';
+			} elseif ( $dmv->oneway || $dmv->twoway ) {
+				$this->mRuleDisplay = $dmv->describe
+					// @phan-suppress-next-line PhanTypeMismatchArgumentNullable
+					? $this->getRulesDescFragment( $el->ownerDocument )
+					: $this->getRuleConvertedValue( $variant );
+			}
+		}
+		$this->generateConvTable();
+		return null;
 	}
 
 	/**

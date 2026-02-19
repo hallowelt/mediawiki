@@ -2399,7 +2399,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Присвоить метки",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Не удалось назначить метки",
 	"watchlistlabels-editwatchlist-dialog-intro": "Выберите {{PLURAL:$2|метку, которую|метки, которые}} вы хотите {{PLURAL:$3|назначить}} $1:",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Вы не можете присвоить метки этим элементам списка наблюдения, поскольку у вас нет заданных меток. Перейдите в [[{{#Special:WatchlistLabels}}]], чтобы создать их.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Вы не можете присвоить метки этим элементам списка наблюдения, поскольку у вас нет заданных меток. Перейдите в [[$1]], чтобы создать их.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Выберите страницы, которым вы хотите назначить метки.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Удалить метки",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Не удалось удалить метки",

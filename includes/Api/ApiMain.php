@@ -399,6 +399,9 @@ class ApiMain extends ApiBase {
 			'services' => [
 				'WatchlistManager',
 				'TitleFormatter',
+				'WatchlistLabelStore',
+				'WatchedItemStore',
+				'NamespaceInfo',
 			]
 		],
 		'patrol' => [

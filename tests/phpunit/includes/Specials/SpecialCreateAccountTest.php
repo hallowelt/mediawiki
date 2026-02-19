@@ -1,4 +1,7 @@
 <?php
+
+declare( strict_types = 1 );
+
 namespace MediaWiki\Tests\Specials;
 
 use MediaWiki\Auth\AbstractPreAuthenticationProvider;
@@ -23,7 +26,7 @@ class SpecialCreateAccountTest extends SpecialPageTestBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function newSpecialPage( ?IContextSource $context = null ) {
+	protected function newSpecialPage( ?IContextSource $context = null ): SpecialCreateAccount {
 		$services = $this->getServiceContainer();
 		$context ??= RequestContext::getMain();
 		$page = new SpecialCreateAccount(
@@ -36,7 +39,7 @@ class SpecialCreateAccountTest extends SpecialPageTestBase {
 		return $page;
 	}
 
-	public function testCheckPermissions() {
+	public function testCheckPermissions(): void {
 		$readOnlyMode = $this->getServiceContainer()->getReadOnlyMode();
 		$readOnlyMode->setReason( 'Test' );
 		$testLogger = new TestLogger( true, null, true );
@@ -58,7 +61,7 @@ class SpecialCreateAccountTest extends SpecialPageTestBase {
 	/**
 	 * Regression test for T360717 -- missing hidden fields from Special:CreateAccount
 	 */
-	public function testHiddenField() {
+	public function testHiddenField(): void {
 		$config = $this->getServiceContainer()->getMainConfig()->get( MainConfigNames::AuthManagerConfig );
 		$config['preauth']['MockAuthProviderWithHiddenField'] = [
 			'class' => MockAuthProviderWithHiddenField::class
@@ -122,7 +125,7 @@ class SpecialCreateAccountTest extends SpecialPageTestBase {
 }
 
 class MockAuthRequestWithHiddenField extends AuthenticationRequest {
-	public function getFieldInfo() {
+	public function getFieldInfo(): array {
 		return [
 			'captchaId' => [
 				'type' => 'hidden',
@@ -135,7 +138,7 @@ class MockAuthRequestWithHiddenField extends AuthenticationRequest {
 }
 
 class MockAuthProviderWithHiddenField extends AbstractPreAuthenticationProvider {
-	public function getAuthenticationRequests( $action, array $options ) {
+	public function getAuthenticationRequests( $action, array $options ): array {
 		return [ new MockAuthRequestWithHiddenField ];
 	}
 }

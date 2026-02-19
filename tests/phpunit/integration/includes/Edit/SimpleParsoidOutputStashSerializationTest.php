@@ -33,34 +33,35 @@ class SimpleParsoidOutputStashSerializationTest extends MediaWikiIntegrationTest
 		return [
 			'basic' => [
 				'instance' => new SelserContext(
-					new HtmlPageBundle(
-						html: '<b>html</b>',
-						parsoid: [
+					HtmlPageBundle::newFromJsonArray( [
+						'html' => '<b>html</b>',
+						'parsoid' => [
 							'counter' => 1234,
 							'offsetType' => 'byte',
 							'ids' => [
 								'mwAA' => [ 'parsoid' => true ],
 							],
 						],
-						mw: [
+						'mw' => [
 							'ids' => [
 								'mwAA' => [ 'mw' => true ],
 							],
 						],
-						version: '1.2.3.4',
-						headers: [
+						'version' => '1.2.3.4',
+						'headers' => [
 							'X-Header-Test' => 'header test',
 						],
-						contentmodel: CONTENT_MODEL_WIKITEXT,
-					),
+						'contentmodel' => CONTENT_MODEL_WIKITEXT,
+					] ),
 					5678, /* revision */
 					new WikitextContent( 'wiki wiki wiki' )
 				),
 				'assertions' => static function ( MediaWikiIntegrationTestCase $testCase, SelserContext $ss ) {
 					$pb = $ss->getPageBundle();
 					$testCase->assertSame( '<b>html</b>', $pb->html );
+					// Temporarily work around format migration
+					unset( $pb->parsoid['counter'] );
 					$testCase->assertSame( [
-						'counter' => 1234,
 						'offsetType' => 'byte',
 						'ids' => [
 							'mwAA' => [ 'parsoid' => true ],

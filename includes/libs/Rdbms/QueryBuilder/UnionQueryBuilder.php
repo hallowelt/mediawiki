@@ -170,6 +170,21 @@ class UnionQueryBuilder {
 	 * @return IResultWrapper
 	 */
 	public function fetchResultSet() {
+		// @codeCoverageIgnoreStart
+		if ( defined( 'MW_PHPUNIT_TEST' ) && str_contains( $this->db->getSoftwareLink(), 'MySQL' ) ) {
+			// MySQL cannot open the same temporary table twice in the same query, and integration tests
+			// use temporary tables, so we need to emulate the UNION query (T412067).
+			$resultSets = array_map( static fn ( $qb ) => $qb->fetchResultSet(), $this->sqbs );
+			$res = [];
+			foreach ( $resultSets as $resultSet ) {
+				$res = array_merge( $res, iterator_to_array( $resultSet ) );
+			}
+			if ( $this->all === $this->db::UNION_DISTINCT ) {
+				$res = array_unique( $res );
+			}
+			return new FakeResultWrapper( $res );
+		}
+		// @codeCoverageIgnoreEnd
 		$query = new Query( $this->getSQL(), ISQLPlatform::QUERY_CHANGE_NONE, 'SELECT' );
 		return $this->db->query( $query, $this->caller );
 	}

@@ -286,4 +286,32 @@ class UserRequirementsConditionCheckerTest extends MediaWikiIntegrationTestCase 
 			],
 		];
 	}
+
+	/** @dataProvider provideExtractConditions */
+	public function testExtractConditions(
+		array $checkedCondition,
+		array $expectedResult
+	): void {
+		$conditionChecker = $this->getServiceContainer()->getUserRequirementsConditionChecker();
+		$result = $conditionChecker->extractConditions( $checkedCondition );
+		$this->assertArrayEquals( $expectedResult, $result );
+	}
+
+	public static function provideExtractConditions(): array {
+		return [
+			'No private conditions used' => [
+				'checkedCondition' => [ '&', 'cond1', 'cond2', [ '|', 'cond3', 'cond4' ] ],
+				'expectedResult' => [ 'cond1', 'cond2', 'cond3', 'cond4' ],
+			],
+			'Condition with arguments' => [
+				// 'arg' below serves as an argument; we want to ensure it's not treated as condition name
+				'checkedCondition' => [ '&', 'cond1', [ 'cond2', 'arg' ] ],
+				'expectedResult' => [ 'cond1', 'cond2' ],
+			],
+			'The same condition occuring multiple times' => [
+				'checkedCondition' => [ '&', 'cond1', 'cond1' ],
+				'expectedResult' => [ 'cond1' ],
+			],
+		];
+	}
 }

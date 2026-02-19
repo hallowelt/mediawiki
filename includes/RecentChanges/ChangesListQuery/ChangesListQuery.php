@@ -48,7 +48,6 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 		MainConfigNames::MiserMode,
 		MainConfigNames::RCMaxAge,
 		MainConfigNames::EnableChangesListQueryPartitioning,
-		MainConfigNames::ImageLinksSchemaMigrationStage,
 		...ExperienceCondition::CONSTRUCTOR_OPTIONS
 	];
 
@@ -71,7 +70,6 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	private int|float $rcMaxAge;
 	private bool $enablePartitioning;
 	private bool $forcePartitioning = false;
-	private int $imageLinksMigrationStage;
 
 	private array $densityTunables = [
 		self::DENSITY_LINKS => 0.1,
@@ -246,7 +244,6 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 
 		$this->rcMaxAge = (int)$config->get( MainConfigNames::RCMaxAge );
 		$this->enablePartitioning = (bool)$config->get( MainConfigNames::EnableChangesListQueryPartitioning );
-		$this->imageLinksMigrationStage = (int)$config->get( MainConfigNames::ImageLinksSchemaMigrationStage );
 	}
 
 	/**
@@ -1362,16 +1359,10 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 			return false;
 		}
 		$prefix = self::LINK_TABLE_PREFIXES[$linkTable];
-		$queryBuilder->where( [ "{$prefix}_from" => $page->getId() ] );
-		if ( $linkTable == 'imagelinks' && ( $this->imageLinksMigrationStage & SCHEMA_COMPAT_READ_OLD ) ) {
-			$queryBuilder->join( 'imagelinks', null, 'rc_title = il_to' )
-				->where( [ 'rc_namespace' => $page->getNamespace() ] );
-		} else {
-			$queryBuilder
-				->join( 'linktarget', null,
-					[ 'rc_namespace = lt_namespace', 'rc_title = lt_title' ] )
-				->join( $linkTable, null, "{$prefix}_target_id = lt_id" );
-		}
+		$queryBuilder
+			->where( [ "{$prefix}_from" => $page->getId() ] )
+			->join( 'linktarget', null, [ 'rc_namespace = lt_namespace', 'rc_title = lt_title' ] )
+			->join( $linkTable, null, "{$prefix}_target_id = lt_id" );
 		return true;
 	}
 

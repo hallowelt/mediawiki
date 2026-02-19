@@ -942,6 +942,7 @@
 	"apihelp-query+info-paramvalue-prop-protection": "Geef het beveiligingsniveau van elke pagina weer.",
 	"apihelp-query+info-paramvalue-prop-talkid": "De pagina-ID van de overlegpagina bij elke niet-overlegpagina.",
 	"apihelp-query+info-paramvalue-prop-watched": "Geef de volgstatus van elke pagina weer.",
+	"apihelp-query+info-paramvalue-prop-watchlistlabels": "De volglijstlabels voor elke pagina weergeven.",
 	"apihelp-query+info-paramvalue-prop-watchers": "Het aantal volgers, indien toegestaan.",
 	"apihelp-query+info-paramvalue-prop-visitingwatchers": "Het aantal volgers van elke pagina die recente versies van die pagina hebben bezocht, indien toegestaan.",
 	"apihelp-query+info-paramvalue-prop-notificationtimestamp": "Het tijdstempel van de volglijstmelding van elke pagina.",

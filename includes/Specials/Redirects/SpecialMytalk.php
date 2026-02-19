@@ -95,10 +95,18 @@ class SpecialMytalk extends RedirectSpecialArticle {
 	 * @return Status
 	 */
 	public function onSubmit() {
+		$tags = [];
+		$block = $this->getUser()->getBlock();
+		if ( $block && $block->isCreateAccountBlocked() && $block->appliesToNamespace( NS_USER_TALK ) ) {
+			// Apply a designated tag because temporary accounts created from IPs blocked from account creation
+			// may be confusing. Limit this to sitewide blocks (and partial blocks affecting NS_USER_TALK), since
+			// temporary accounts created under partial blocks can still edit pages other than their own talk page
+			$tags[] = ChangeTags::TAG_IPBLOCK_APPEAL;
+		}
 		return $this->tempUserCreator->create(
 			null,
 			$this->getContext()->getRequest(),
-			[ ChangeTags::TAG_IPBLOCK_APPEAL ]
+			$tags
 		);
 	}
 

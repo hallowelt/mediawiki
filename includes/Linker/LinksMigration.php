@@ -67,7 +67,7 @@ class LinksMigration {
 			'ns' => NS_FILE,
 			'title' => 'il_to',
 			'target_id' => 'il_target_id',
-			'deprecated_configs' => [],
+			'deprecated_configs' => [ SCHEMA_COMPAT_READ_OLD ],
 		],
 	];
 

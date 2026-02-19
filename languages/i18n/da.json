@@ -2279,7 +2279,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Tildel etiketter",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Kan ikke tildele etiketter",
 	"watchlistlabels-editwatchlist-dialog-intro": "Vælg {{PLURAL:$2|den etiket|de etiketter}} du vil {{PLURAL:$3|tildele}} til $1:",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Du kan ikke tildele etiketter til disse elementer på overvågningslisten, da du ikke har defineret nogen etiketter. Gå til [[{{#Special:WatchlistLabels}}]] for at oprette nogle.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Du kan ikke tildele etiketter til disse elementer på overvågningslisten, da du ikke har defineret nogen etiketter. Gå til [[$1]] for at oprette nogle.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Vælg venligst de sider, du vil tildele etiketter til.",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Fjern etiketter",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Etiketter kan ikke fjernes",

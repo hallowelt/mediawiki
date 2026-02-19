@@ -142,12 +142,17 @@ class SpecialEditWatchlist extends UnlistedSpecialPage {
 		] );
 		$out->addModules( [ 'mediawiki.special.watchlistedit' ] );
 		if ( $this->getConfig()->get( MainConfigNames::EnableWatchlistLabels ) ) {
-			$out->addJsConfigVars( [
-				'watchlistLabels' => array_map(
-					static fn ( $label ) => [ 'id' => $label->getId(), 'name' => $label->getName() ],
-					$this->watchlistLabelStore->loadAllForUser( $this->getUser() )
-				),
-			] );
+			$watchlistLabels = array_map(
+				static fn ( $label ) => [ 'id' => $label->getId(), 'name' => $label->getName() ],
+				$this->watchlistLabelStore->loadAllForUser( $this->getUser() )
+			);
+			$out->addJsConfigVars( 'watchlistLabels', $watchlistLabels );
+			if ( !$watchlistLabels ) {
+				$out->addJsConfigVars(
+					'SpecialWatchlistLabelsTitle',
+					SpecialPage::getTitleFor( 'WatchlistLabels' )->getFullText()
+				);
+			}
 		}
 
 		$mode = self::getMode( $this->getRequest(), $mode, self::EDIT );

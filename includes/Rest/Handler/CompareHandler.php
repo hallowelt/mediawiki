@@ -191,7 +191,7 @@ class CompareHandler extends Handler {
 	}
 
 	protected function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/RevisionCompare.json';
+		return __DIR__ . '/Schema/RevisionCompare.json';
 	}
 
 	/** @inheritDoc */

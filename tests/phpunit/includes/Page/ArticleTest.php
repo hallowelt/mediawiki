@@ -10,6 +10,7 @@ use MediaWiki\Page\ParserOutputAccess;
 use MediaWiki\Parser\ParserCacheFactory;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
@@ -421,5 +422,104 @@ class ArticleTest extends \MediaWikiIntegrationTestCase {
 			'postproc-parsoid-pcache'
 		], $calls, true );
 		$this->assertEquals( $html, $html2 );
+	}
+
+	/** @covers \MediaWiki\Page\Article::view */
+	public function testParsoidNewLcTrue(): void {
+		$this->overrideConfigValue( MainConfigNames::UsePostprocCacheParsoid, true );
+		$parserCacheFactory = $this->createMock( ParserCacheFactory::class );
+		$caches = [
+			$this->getParserCache( new HashBagOStuff() ),
+			$this->getParserCache( new HashBagOStuff() ),
+			$this->getParserCache( new HashBagOStuff() )
+		];
+		$calls = [];
+		$parserCacheFactory
+			->method( 'getParserCache' )
+			->willReturnCallback( static function ( $cacheName ) use ( &$calls, $caches ) {
+				static $cacheList = [];
+				$calls[] = $cacheName;
+				$which = array_search( $cacheName, $cacheList );
+				if ( $which === false ) {
+					$which = count( $cacheList );
+					$cacheList[] = $cacheName;
+				}
+				return $caches[$which];
+			} );
+		$this->overrideMwServices( null, [
+			'ParserCacheFactory' => static function () use ( $parserCacheFactory ) {
+				return $parserCacheFactory;
+			}
+		] );
+		$this->setTemporaryHook(
+			'ParserOptionsRegister',
+			static function ( &$defaults, &$inCacheKey, &$lazyLoad ) {
+				$defaults['useParsoid'] = true;
+			}
+		);
+		$title = $this->getExistingTestPage()->getTitle();
+		$req = new FauxRequest( [ 'parsoidnewlc' => true ] );
+		$context = new RequestContext();
+		$context->setRequest( $req );
+		$context->setTitle( $title );
+		$article = $this->newArticle( $title );
+		$article->setContext( $context );
+		$this->editPage( $title, '== Hello ==' );
+		// here we only hit the main parser cache for now.
+		// TODO PageUpdaterFactory (which is used for the edit here) hardwires the legacy cache, should this
+		// adjusted?
+		$this->assertArrayEquals( [ 'pcache' ], $calls, true );
+
+		$calls = [];
+		$article->view();
+		$expectedCallPattern = [
+			'postproc-parsoid-pcache', // first view, get postproc, miss
+			'postproc-parsoid-pcache', // creates worker to render the page
+			'parsoid-pcache', // first view, get pcache, miss
+			'parsoid-pcache', // first view, get pcache, check outdated cache (parsoid selective update)
+			'parsoid-pcache', // first view, get pcache, save to cache
+			'parsoid-pcache', // postproc, get primary from pcache, hit
+			'postproc-parsoid-pcache', // first view, store postproc
+			'postproc-parsoid-pcache', // postprocess, compute cache key for report
+		];
+		$html = self::removeTimingData(
+			$article->getContext()->getOutput()->getHTML()
+		);
+		$this->assertArrayEquals( $expectedCallPattern, $calls, true );
+		// check that we're running postprocessing (if the headers are wrapped then that's a good sign)
+		$this->assertStringContainsString(
+			'<div class="mw-heading mw-heading2"><h2 id="Hello">Hello</h2><span class="mw-editsection">',
+			$html
+		);
+
+		// Clear the per-process local cache (since even uncacheable parses
+		// are actually cached in the local cache)
+		$this->getServiceContainer()->getParserOutputAccess()->clearLocalCache();
+
+		$req = new FauxRequest( [ 'parsoidnewlc' => true ] );
+		$context = new RequestContext();
+		$context->setRequest( $req );
+		$context->setTitle( $title );
+		$article = $this->newArticle( $title );
+		$article->setContext( $context );
+
+		$calls = [];
+		$article->view();
+		$html2 = self::removeTimingData(
+			$article->getContext()->getOutput()->getHTML()
+		);
+		// unlike before, with parsoidnewlc we're not cached, so we hit
+		// all these caches again; this looks just like the first view.
+		$this->assertArrayEquals( $expectedCallPattern, $calls, true );
+		$this->assertEquals( $html, $html2 );
+	}
+
+	private static function removeTimingData( string $html ): string {
+		// Strip limit report and other timing data which could cause
+		// HTML equality checks to nondeterministically fail.
+		$html = preg_replace( '/NewPP limit report.*?(?=-->)/s', '', $html );
+		$html = preg_replace( '/Transclusion expansion time report.*?(?=-->)/s', '', $html );
+		$html = preg_replace( '/, generated at \d+/', '', $html );
+		return $html;
 	}
 }

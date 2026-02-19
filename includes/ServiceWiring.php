@@ -266,7 +266,7 @@ use MediaWiki\User\Options\UserOptionsManager;
 use MediaWiki\User\PasswordReset;
 use MediaWiki\User\Registration\LocalUserRegistrationProvider;
 use MediaWiki\User\Registration\UserRegistrationLookup;
-use MediaWiki\User\RestrictedUserGroupChecker;
+use MediaWiki\User\RestrictedUserGroupCheckerFactory;
 use MediaWiki\User\TalkPageNotificationManager;
 use MediaWiki\User\TempUser\RealTempUserConfig;
 use MediaWiki\User\TempUser\TempUserCreator;
@@ -1793,6 +1793,8 @@ return [
 
 	'ParserOutputAccess' => static function ( MediaWikiServices $services ): ParserOutputAccess {
 		$poa = new ParserOutputAccess(
+			$services->getMainConfig(),
+			$services->getDefaultOutputPipeline(),
 			$services->getParserCacheFactory(),
 			$services->getRevisionLookup(),
 			$services->getRevisionRenderer(),
@@ -2169,14 +2171,15 @@ return [
 		return $rl;
 	},
 
-	'RestrictedUserGroupChecker' => static function ( MediaWikiServices $services ): RestrictedUserGroupChecker {
-		return new RestrictedUserGroupChecker(
-			new ServiceOptions(
-				RestrictedUserGroupChecker::CONSTRUCTOR_OPTIONS, $services->getMainConfig()
-			),
-			$services->getUserRequirementsConditionChecker(),
-		);
-	},
+	'RestrictedUserGroupCheckerFactory' =>
+		static function ( MediaWikiServices $services ): RestrictedUserGroupCheckerFactory {
+			return new RestrictedUserGroupCheckerFactory(
+				new ServiceOptions(
+					RestrictedUserGroupCheckerFactory::CONSTRUCTOR_OPTIONS, $services->getMainConfig()
+				),
+				$services->getUserRequirementsConditionChecker()
+			);
+		},
 
 	'RestrictionStore' => static function ( MediaWikiServices $services ): RestrictionStore {
 		return new RestrictionStore(
@@ -2751,7 +2754,7 @@ return [
 			$services->getUserGroupManagerFactory(),
 			$services->getUserNameUtils(),
 			$services->getUserFactory(),
-			$services->getRestrictedUserGroupChecker(),
+			$services->getRestrictedUserGroupCheckerFactory(),
 			new HookRunner( $services->getHookContainer() ),
 			new ServiceOptions(
 				UserGroupAssignmentService::CONSTRUCTOR_OPTIONS, $services->getMainConfig()

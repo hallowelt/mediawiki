@@ -298,13 +298,20 @@
 	"rest-requestheader-desc-cookie": "Sta servers toe om statusinformatie in de browser van de cliënt op te slaan, waardoor functies zoals sessiebeheer, personalisatie en volgen mogelijk worden.",
 	"rest-requestheader-desc-authorization": "Biedt aanmeldgegevens waarmee een gebruikersagent zich kan authenticeren bij een server, waardoor toegang tot beveiligde bronnen mogelijk wordt.",
 	"rest-requestheader-desc-xrequestid": "Maakt het mogelijk om individuele HTTP-verzoeken te traceren en te correleren terwijl ze door gedistribueerde systemen stromen, zoals microservices, API-gateways en loadbalancers.",
-	"rest-requestheader-desc-useragent": "Verstuurt een karakteristieke tekenreeks naar webservers, waardoor deze de applicatie, het besturingssysteem, de leverancier en/of de versie van de aanvragende clientsoftware kunnen identificeren.",
-	"rest-requestheader-desc-ifmatch": "Hiermee wordt een verzoek voorwaardelijk gemaakt, zodat de gevraagde actie (zoals een update of verwijdering) alleen wordt uitgevoerd als de bron op de server overeenkomt met een specifieke versie (geïdentificeerd door de ETag) die door de client is verstrekt.",
+	"rest-requestheader-desc-useragent": "Verstuurt een karakteristieke tekenreeks naar webservers, waardoor deze de applicatie, het besturingssysteem, de leverancier en/of de versie van de aanvragende cliëntsoftware kunnen identificeren.",
+	"rest-requestheader-desc-ifmatch": "Hiermee wordt een verzoek voorwaardelijk gemaakt, zodat de gevraagde actie (zoals een update of verwijdering) alleen wordt uitgevoerd als de bron op de server overeenkomt met een specifieke versie (geïdentificeerd door de ETag) die door de cliënt is verstrekt.",
 	"rest-endpoint-desc-get-sitemap-index": "Geeft een XML-lijst terug met beschikbare pagina's binnen de sitemap. De standaardindex is 0; de aanwezigheid van extra indexen wordt vermeld in robots.txt. Aan elke index kunnen maximaal 10.000 pagina's worden gekoppeld.",
 	"rest-endpoint-summ-get-sitemap-index": "Een lijst met sitemap-pagina's opvragen",
 	"rest-endpoint-desc-get-sitemap-page": "Geeft een XML-lijst terug met pagina's die op de site aanwezig zijn. Elk item bevat een URL naar de pagina en de datum van de laatste wijziging. Elke pagina kan maximaal 10.000 URL-items bevatten.",
 	"rest-endpoint-summ-get-sitemap-page": "Een lijst met artikelposities per pagina opvragen",
 	"rest-param-desc-sitemap-index-id": "De sitemap-index begint bij 0. Aanvullende beschikbare indexen worden gespecificeerd in robots.txt.",
 	"rest-param-desc-sitemap-page-id": "De gewenste pagina met artikelen.",
-	"rest-param-desc-sitemap-include-namespace": "Namespace-ID's die in de sitemap moeten worden opgenomen. Indien niet gespecificeerd, wordt de standaardsitemap gebruikt."
+	"rest-param-desc-sitemap-include-namespace": "Namespace-ID's die in de sitemap moeten worden opgenomen. Indien niet gespecificeerd, wordt de standaardsitemap gebruikt.",
+	"rest-responseheader-desc-cachecontrol": "Bepaalt het cachegedrag van een browser, zodat deze weet hoe vaak lokaal opgeslagen bronnen moeten worden ververst.",
+	"rest-responseheader-desc-deprecation": "Bepaalt het cachegedrag van een browser, zodat deze weet hoe vaak lokaal opgeslagen bronnen moeten worden ververst.",
+	"rest-responseheader-desc-contentlanguage": "Informeert de klant over de natuurlijke taal/talen van de beoogde doelgroep voor de geretourneerde inhoud.",
+	"rest-responseheader-desc-contenttype": "Geeft het oorspronkelijke mediatype van een bron aan voordat er inhoudscodering op wordt toegepast.",
+	"rest-responseheader-desc-link": "Biedt een manier om een of meer koppelingen in HTTP-headers te serialiseren. Hierdoor kan de server een cliënt doorverwijzen naar een andere bron die metagegevens bevat over de gevraagde bron.",
+	"rest-responseheader-desc-expires": "Bevat de datum en tijd waarna de respons als verlopen wordt beschouwd in de context van HTTP-caching.",
+	"rest-responseheader-desc-location": "Geeft een doel-URL aan voor twee hoofddoelen: doorverwijzing en het identificeren van de locatie van een nieuw gecreëerde bron."
 }

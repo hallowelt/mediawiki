@@ -116,7 +116,8 @@ module.exports = defineComponent( {
 			if ( dialogAction.value === 'assign' ) {
 				showLabels.value = false;
 				if ( allLabels.size === 0 ) {
-					return mw.message( 'watchlistlabels-editwatchlist-dialog-intro-nolabels' ).parse();
+					const specialWatchlistLabelsLink = mw.config.get( 'SpecialWatchlistLabelsTitle' );
+					return mw.message( 'watchlistlabels-editwatchlist-dialog-intro-nolabels', specialWatchlistLabelsLink ).parse();
 				} else if ( selectedPages.value.length === 0 ) {
 					return mw.msg( 'watchlistlabels-editwatchlist-dialog-intro-noitems' );
 				}
@@ -173,6 +174,7 @@ module.exports = defineComponent( {
 		} );
 		const selectAllCheckbox = document.getElementById( 'select-all-checkbox' );
 		selectAllCheckbox.addEventListener( 'selectall', updateSelectedPagesList );
+		updateSelectedPagesList();
 
 		const openAssignDialog = () => {
 			isOpen.value = true;

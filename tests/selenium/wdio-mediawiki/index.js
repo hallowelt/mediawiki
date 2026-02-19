@@ -1,12 +1,15 @@
 import { mkdir } from 'fs/promises';
 import os from 'node:os';
 import process from 'node:process';
+import { spawn } from 'child_process';
+
+const DISPLAY_BASE = 100;
 
 /**
  * @since 1.1.0
  * @return {string} File name friendly version of ISO 8601 date and time
  */
-function makeFilenameDate() {
+export function makeFilenameDate() {
 	return new Date().toISOString().replace( /[:.]/g, '-' );
 }
 
@@ -36,7 +39,7 @@ function filePath( title, extension ) {
  * @param {string} title Description (will be sanitised and used as file name)
  * @return {Promise<string>} File path
  */
-async function saveScreenshot( title ) {
+export async function saveScreenshot( title ) {
 	// Create sensible file name for current test title
 	const path = filePath( title, 'png' );
 
@@ -53,10 +56,9 @@ async function saveScreenshot( title ) {
  * @param {string} title Test title
  * @return {Object} ffmpeg object is returned so it could be used in stopVideo()
  */
-async function startVideo( ffmpeg, title ) {
+export function startVideo( ffmpeg, title ) {
 	if ( process.env.DISPLAY && process.env.DISPLAY.startsWith( ':' ) ) {
 		const videoPath = filePath( title, 'mp4' );
-		const { spawn } = await import( 'child_process' );
 		ffmpeg = spawn( 'ffmpeg', [
 			'-f', 'x11grab', //  grab the X11 display
 			'-video_size', `${ browser.options.capabilities[ 'mw:width' ] }x${ browser.options.capabilities[ 'mw:height' ] }`, // video size need to match our XVFB setup
@@ -95,13 +97,13 @@ async function startVideo( ffmpeg, title ) {
  * @since 1.1.0
  * @param {Object} ffmpeg
  */
-function stopVideo( ffmpeg ) {
+export function stopVideo( ffmpeg ) {
 	if ( ffmpeg ) {
 		ffmpeg.kill( 'SIGINT' );
 	}
 }
 
-async function logBrowserInformation( browser ) {
+export async function logBrowserInformation( browser ) {
 	// Make sure we only log this once, maybe we can this smarter in the future
 	if ( process.env.WDIO_WORKER_ID !== '0-0' ) {
 		return;
@@ -116,7 +118,7 @@ async function logBrowserInformation( browser ) {
 	console.log( `[Browser information] ${ browserName } ${ browserVersion } viewPort ${ viewport.width }x${ viewport.height }` );
 }
 
-function logSystemInformation() {
+export function logSystemInformation() {
 	const bytesPerMegabyte = 1_000_000;
 	const bytesPerGigabyte = 1_000_000_000;
 
@@ -160,11 +162,64 @@ function logSystemInformation() {
 	console.log( `[System information] CPU: ${ cores } cores` );
 }
 
-export {
-	makeFilenameDate,
-	saveScreenshot,
-	startVideo,
-	stopVideo,
-	logSystemInformation,
-	logBrowserInformation
-};
+/**
+ * Export correct display number for this NodeJS process.
+ * Chrome will use the DISPLAY that is exported.
+ *
+ * @param {number} instances number of NodeJS processes running jobs
+ */
+export function setDisplay( instances ) {
+	// WDIO_WORKER_ID
+	// "An unique id that helps identify the worker process.
+	// It has format of {number}-{number} where the first number identifies the capability
+	// and the second the spec file that capability is running, e.g. 0-5 indicates a
+	// worker the first running the 6th spec file for the first capability."
+	// https://webdriver.io/docs/api/environment#wdio_worker_id
+	// By using the spec index and number of instances that runs simultanesly
+	// and use modulus we set the correct display for just this spec file.
+	const [ , index ] = ( process.env.WDIO_WORKER_ID ).split( '-' );
+	const slot = Number( index ) % instances;
+	const display = `:${ DISPLAY_BASE + slot }`;
+
+	process.env.DISPLAY = display;
+	console.log( `Worker ${ process.env.WDIO_WORKER_ID } DISPLAY ${ display }` );
+}
+
+/**
+ * Start multipe Xvfb depending on number of simultanesly running
+ * NodeJS instances.
+ *
+ * @param {number} instances The number of parallel Xvfb servers to launch.
+ * @param width The screen width
+ * @param height The screen height
+ * @return {object[]} An array of Xvfb child processes.
+ */
+export function startXvfb( instances, width, height ) {
+	const processes = [];
+	for ( let i = 0; i < instances; i++ ) {
+		const display = `:${ DISPLAY_BASE + i }`;
+		// https://gerrit.wikimedia.org/g/integration/quibble/+/0055a00b78a31125de2b0a0e93401d8e26e69043/quibble/backend.py#509
+		const xvfb = spawn(
+			'Xvfb',
+			[ display, '-screen', '0', `${ width }x${ height }x24`,
+				'-nolisten', 'tcp', '-nolisten', 'unix' ],
+			{ stdio: 'ignore' }
+		);
+		processes.push( xvfb );
+		console.log( `Started Xvfb on display ${ display }` );
+	}
+
+	return processes;
+}
+
+/**
+ * Stop Xvfb processes.
+ *
+ * @param {object[]} processes An array with Xvfb processed to stopped.
+ */
+export function stopXvfb( processes ) {
+	for ( const xvfbProcess of processes ) {
+		xvfbProcess.kill( 'SIGTERM' );
+	}
+
+}

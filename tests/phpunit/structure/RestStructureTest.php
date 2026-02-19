@@ -422,4 +422,31 @@ class RestStructureTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
+	public function testGetResponseBodySchema(): void {
+		static $metaSchema = [ '$ref' =>
+			'http://json-schema.org/draft-04/schema#'
+		];
+
+		$router = $this->getTestRouter();
+		foreach ( $router->getModuleIds() as $moduleName ) {
+			$module = $router->getModule( $moduleName );
+
+			foreach ( $module->getDefinedPaths() as $path => $methods ) {
+
+				foreach ( $methods as $method ) {
+					$handler = $module->getHandlerForPath( $path, new RequestData( [ 'method' => $method ] ), false );
+					$handler = TestingAccessWrapper::newFromObject( $handler );
+
+					$responseBodySchema = $handler->getResponseBodySchema( $method );
+
+					if ( $responseBodySchema === null ) {
+						continue;
+					}
+
+					$this->assertMatchesJsonSchema( $metaSchema, $responseBodySchema, self::SPEC_FILES, "Module '$moduleName'" );
+				}
+			}
+		}
+	}
+
 }

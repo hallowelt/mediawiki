@@ -18,13 +18,11 @@ use Wikimedia\Rdbms\IConnectionProvider;
 class SpecialUnusedImages extends ImageQueryPage {
 
 	private int $fileMigrationStage;
-	private int $imageLinksMigrationStage;
 
 	public function __construct( IConnectionProvider $dbProvider ) {
 		parent::__construct( 'Unusedimages' );
 		$this->setDatabaseProvider( $dbProvider );
 		$this->fileMigrationStage = $this->getConfig()->get( MainConfigNames::FileSchemaMigrationStage );
-		$this->imageLinksMigrationStage = $this->getConfig()->get( MainConfigNames::ImageLinksSchemaMigrationStage );
 	}
 
 	/** @inheritDoc */
@@ -58,35 +56,27 @@ class SpecialUnusedImages extends ImageQueryPage {
 			$fileJoins = [ 'filerevision' => [ 'JOIN', 'file_latest = fr_id' ] ];
 		}
 
-		if ( $this->imageLinksMigrationStage & SCHEMA_COMPAT_READ_OLD ) {
-			$linksTables = [ 'imagelinks' ];
-			$linksConds = [ 'il_to' => null ];
-			$linksJoins = [
-				'imagelinks' => [ 'LEFT JOIN', 'il_to = ' . $nameField ]
-			];
-		} else {
-			$linksTables = [ 'linktarget', 'imagelinks' ];
-			$linksConds = [ 'il_target_id' => null ];
-			$linksJoins = [
-				'linktarget' => [ 'LEFT JOIN', [ 'lt_title = ' . $nameField, 'lt_namespace' => NS_FILE ] ],
-				'imagelinks' => [ 'LEFT JOIN', 'il_target_id = lt_id' ]
-			];
-		}
-
 		$retval = [
-			'tables' => array_merge( $imageTables, $linksTables ),
+			'tables' => [ ...$imageTables, 'linktarget', 'imagelinks' ],
 			'fields' => [
 				'namespace' => NS_FILE,
 				'title' => $nameField,
 				'value' => $timestampField,
 			],
-			'conds' => array_merge( $linksConds, $fileConds ),
-			'join_conds' => array_merge( $fileJoins, $linksJoins ),
+			'conds' => [
+				'il_target_id' => null,
+				...$fileConds
+			],
+			'join_conds' => [
+				...$fileJoins,
+				'linktarget' => [ 'LEFT JOIN', [ 'lt_title = ' . $nameField, 'lt_namespace' => NS_FILE ] ],
+				'imagelinks' => [ 'LEFT JOIN', 'il_target_id = lt_id' ]
+			],
 		];
 
 		if ( $this->getConfig()->get( MainConfigNames::CountCategorizedImagesAsUsed ) ) {
 			// Order is significant
-			$retval['tables'] = [ ...$imageTables, 'page', 'categorylinks', ...$linksTables ];
+			$retval['tables'] = [ ...$imageTables, 'page', 'categorylinks', 'linktarget', 'imagelinks' ];
 			$retval['conds']['page_namespace'] = NS_FILE;
 			$retval['conds']['cl_from'] = null;
 			$retval['join_conds']['page'] = [ 'JOIN', $nameField . ' = page_title' ];

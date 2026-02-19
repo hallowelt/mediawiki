@@ -143,44 +143,6 @@ function wfArrayDiff2( $arr1, $arr2 ) {
 }
 
 /**
- * Merge arrays in the style of PermissionManager::getPermissionErrors, with duplicate removal
- * e.g.
- *     wfMergeErrorArrays(
- *       [ [ 'x' ] ],
- *       [ [ 'x', '2' ] ],
- *       [ [ 'x' ] ],
- *       [ [ 'y' ] ]
- *     );
- * returns:
- *     [
- *       [ 'x', '2' ],
- *       [ 'x' ],
- *       [ 'y' ]
- *     ]
- *
- * @deprecated since 1.43 Use StatusValue::merge() instead
- * @param array[] ...$args
- * @return array
- */
-function wfMergeErrorArrays( ...$args ) {
-	wfDeprecated( __FUNCTION__, '1.43' );
-	$out = [];
-	foreach ( $args as $errors ) {
-		foreach ( $errors as $params ) {
-			$originalParams = $params;
-			if ( $params[0] instanceof MessageSpecifier ) {
-				$params = [ $params[0]->getKey(), ...$params[0]->getParams() ];
-			}
-			# @todo FIXME: Sometimes get nested arrays for $params,
-			# which leads to E_NOTICEs
-			$spec = implode( "\t", $params );
-			$out[$spec] = $originalParams;
-		}
-	}
-	return array_values( $out );
-}
-
-/**
  * Insert an array into another array after the specified key. If the key is
  * not present in the input array, it is returned without modification.
  *

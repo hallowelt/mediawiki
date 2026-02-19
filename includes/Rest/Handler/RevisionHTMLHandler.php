@@ -147,7 +147,7 @@ class RevisionHTMLHandler extends SimpleHandler {
 	}
 
 	public function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/ExistingRevisionHtml.json';
+		return __DIR__ . '/Schema/ExistingRevisionHtml.json';
 	}
 
 	public function getParamSettings(): array {

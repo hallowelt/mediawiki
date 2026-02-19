@@ -27,7 +27,6 @@ class DumpUploads extends Maintenance {
 	private $mBasePath;
 
 	private int $fileMigrationStage;
-	private int $imageLinksMigrationStage;
 
 	public function __construct() {
 		parent::__construct();
@@ -39,7 +38,6 @@ By default, outputs relative paths against the parent directory of $wgUploadDire
 		$this->addOption( 'shared', 'Include images used from shared repository' );
 
 		$this->fileMigrationStage = $this->getConfig()->get( MainConfigNames::FileSchemaMigrationStage );
-		$this->imageLinksMigrationStage = $this->getConfig()->get( MainConfigNames::ImageLinksSchemaMigrationStage );
 	}
 
 	public function execute() {
@@ -77,24 +75,14 @@ By default, outputs relative paths against the parent directory of $wgUploadDire
 	 * @param bool $shared True to pass shared-dir settings to hash func
 	 */
 	private function fetchUsed( $shared ) {
-		if ( $this->imageLinksMigrationStage & SCHEMA_COMPAT_READ_OLD ) {
-			$ilToValues = $this->getReplicaDB( ImageLinksTable::VIRTUAL_DOMAIN )
-				->newSelectQueryBuilder()
-				->select( 'il_to' )
-				->distinct()
-				->from( 'imagelinks' )
-				->caller( __METHOD__ )
-				->fetchFieldValues();
-		} else {
-			$ilToValues = $this->getReplicaDB( ImageLinksTable::VIRTUAL_DOMAIN )
-				->newSelectQueryBuilder()
-				->select( 'lt_title' )
-				->distinct()
-				->from( 'imagelinks' )
-				->join( 'linktarget', null, 'il_target_id = lt_id' )
-				->caller( __METHOD__ )
-				->fetchFieldValues();
-		}
+		$imageLinksTargetTitles = $this->getReplicaDB( ImageLinksTable::VIRTUAL_DOMAIN )
+			->newSelectQueryBuilder()
+			->select( 'lt_title' )
+			->distinct()
+			->from( 'imagelinks' )
+			->join( 'linktarget', null, 'il_target_id = lt_id' )
+			->caller( __METHOD__ )
+			->fetchFieldValues();
 
 		$dbr = $this->getReplicaDB();
 
@@ -102,7 +90,7 @@ By default, outputs relative paths against the parent directory of $wgUploadDire
 			$result = $dbr->newSelectQueryBuilder()
 				->select( [ 'name' => 'img_name' ] )
 				->from( 'image' )
-				->where( [ 'img_name' => $ilToValues ] )
+				->where( [ 'img_name' => $imageLinksTargetTitles ] )
 				->caller( __METHOD__ )
 				->fetchResultSet();
 		} else {
@@ -110,7 +98,7 @@ By default, outputs relative paths against the parent directory of $wgUploadDire
 				->select( [ 'name' => 'file_name' ] )
 				->from( 'file' )
 				->where( [
-					'file_name' => $ilToValues,
+					'file_name' => $imageLinksTargetTitles,
 					'file_deleted' => 0
 				] )
 				->caller( __METHOD__ )

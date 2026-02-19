@@ -895,6 +895,8 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$parserCacheFactory->method( 'getParserCache' )->willReturn( $parserCache );
 		$parserCacheFactory->method( 'getRevisionOutputCache' )->willReturn( $revisionCache );
 		$parserOutputAccess = new ParserOutputAccess(
+			$services->getMainConfig(),
+			$services->getDefaultOutputPipeline(),
 			$parserCacheFactory,
 			$services->getRevisionLookup(),
 			$services->getRevisionRenderer(),

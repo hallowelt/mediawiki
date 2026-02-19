@@ -10,8 +10,8 @@ use MediaWiki\OutputTransform\Stages\ExtractBody;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
-use MediaWiki\Parser\Parsoid\ParsoidParser;
 use MediaWiki\Tests\OutputTransform\OutputTransformStageTestBase;
+use MediaWiki\Title\Title;
 use Psr\Log\NullLogger;
 use Wikimedia\Parsoid\Core\HtmlPageBundle;
 
@@ -115,12 +115,12 @@ HTML;
 		];
 		// Set test title in parser output extension data
 		foreach ( $testData as $label => $t ) {
-			$titleDBKey = strtr( $t['title'], ' ', '_' );
+			$title = Title::newFromText( $t['title'] );
 			$docHtml = $t['doc'] ?? str_replace( "__BODY__", $t['body'], $pageTemplate );
 			$poInput = new ParserOutput( $docHtml );
 			$poOutput = new ParserOutput( $t['result'] );
-			$poInput->setExtensionData( ParsoidParser::PARSOID_TITLE_KEY, $titleDBKey );
-			$poOutput->setExtensionData( ParsoidParser::PARSOID_TITLE_KEY, $titleDBKey );
+			$poInput->setTitle( $title );
+			$poOutput->setTitle( $title );
 			yield $label => [ $poInput, ParserOptions::newFromAnon(), [], $poOutput ];
 		}
 	}

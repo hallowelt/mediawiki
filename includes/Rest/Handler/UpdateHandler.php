@@ -263,6 +263,6 @@ class UpdateHandler extends EditHandler {
 	}
 
 	public function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/ExistingPageSource.json';
+		return __DIR__ . '/Schema/ExistingPageSource.json';
 	}
 }

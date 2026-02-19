@@ -36,6 +36,7 @@ use MediaWiki\User\TempUser\TempUserCreator;
 use MediaWiki\User\UserFactory;
 use MediaWiki\Utils\UrlUtils;
 use MediaWiki\Watchlist\WatchedItemStore;
+use MediaWiki\Watchlist\WatchlistLabelStore;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\EnumDef;
 use Wikimedia\Timestamp\TimestampFormat as TS;
@@ -53,6 +54,7 @@ class ApiQueryInfo extends ApiQueryBase {
 	private TitleFactory $titleFactory;
 	private TitleFormatter $titleFormatter;
 	private WatchedItemStore $watchedItemStore;
+	private WatchlistLabelStore $watchlistLabelStore;
 	private RestrictionStore $restrictionStore;
 	private LinksMigration $linksMigration;
 	private TempUserCreator $tempUserCreator;
@@ -69,6 +71,7 @@ class ApiQueryInfo extends ApiQueryBase {
 	private bool $fld_url = false;
 	private bool $fld_readable = false;
 	private bool $fld_watched = false;
+	private bool $fld_watchlistlabels = false;
 	private bool $fld_watchers = false;
 	private bool $fld_visitingwatchers = false;
 	private bool $fld_notificationtimestamp = false;
@@ -131,6 +134,8 @@ class ApiQueryInfo extends ApiQueryBase {
 	private $restrictionTypes;
 	/** @var bool[][] */
 	private $watched;
+	/** @var array[][][] */
+	private $watchlistLabels;
 	/** @var int[][] */
 	private $watchers;
 	/** @var int[][] */
@@ -173,6 +178,7 @@ class ApiQueryInfo extends ApiQueryBase {
 		TitleFactory $titleFactory,
 		TitleFormatter $titleFormatter,
 		WatchedItemStore $watchedItemStore,
+		WatchlistLabelStore $watchlistLabelStore,
 		LanguageConverterFactory $languageConverterFactory,
 		RestrictionStore $restrictionStore,
 		LinksMigration $linksMigration,
@@ -191,6 +197,7 @@ class ApiQueryInfo extends ApiQueryBase {
 		$this->titleFactory = $titleFactory;
 		$this->titleFormatter = $titleFormatter;
 		$this->watchedItemStore = $watchedItemStore;
+		$this->watchlistLabelStore = $watchlistLabelStore;
 		$this->restrictionStore = $restrictionStore;
 		$this->linksMigration = $linksMigration;
 		$this->tempUserCreator = $tempUserCreator;
@@ -228,6 +235,8 @@ class ApiQueryInfo extends ApiQueryBase {
 			$prop = array_fill_keys( $this->params['prop'], true );
 			$this->fld_protection = isset( $prop['protection'] );
 			$this->fld_watched = isset( $prop['watched'] );
+			$this->fld_watchlistlabels = isset( $prop['watchlistlabels'] )
+				&& $this->getConfig()->get( MainConfigNames::EnableWatchlistLabels );
 			$this->fld_watchers = isset( $prop['watchers'] );
 			$this->fld_visitingwatchers = isset( $prop['visitingwatchers'] );
 			$this->fld_notificationtimestamp = isset( $prop['notificationtimestamp'] );
@@ -293,7 +302,7 @@ class ApiQueryInfo extends ApiQueryBase {
 			$this->getProtectionInfo();
 		}
 
-		if ( $this->fld_watched || $this->fld_notificationtimestamp ) {
+		if ( $this->fld_watched || $this->fld_watchlistlabels || $this->fld_notificationtimestamp ) {
 			$this->getWatchedInfo();
 		}
 
@@ -398,6 +407,14 @@ class ApiQueryInfo extends ApiQueryBase {
 			if ( isset( $this->watchlistExpiries[$ns][$dbkey] ) ) {
 				$pageInfo['watchlistexpiry'] = $this->watchlistExpiries[$ns][$dbkey];
 			}
+		}
+
+		if ( $this->fld_watchlistlabels ) {
+			$pageInfo['watchlistlabels'] = [];
+			if ( isset( $this->watchlistLabels[$ns][$dbkey] ) ) {
+				$pageInfo['watchlistlabels'] = $this->watchlistLabels[$ns][$dbkey];
+			}
+			ApiResult::setIndexedTagName( $pageInfo['watchlistlabels'], 'label' );
 		}
 
 		if ( $this->fld_watchers ) {
@@ -730,30 +747,20 @@ class ApiQueryInfo extends ApiQueryBase {
 			if ( $protectedPages ) {
 				$this->setVirtualDomain( ImageLinksTable::VIRTUAL_DOMAIN );
 
-				$migrationStage = $this->getConfig()->get( MainConfigNames::ImageLinksSchemaMigrationStage );
 				$queryInfo = $this->linksMigration->getQueryInfo( 'imagelinks' );
 
-				$queryBuilder = $this->getDB()->newSelectQueryBuilder()
+				$res = $this->getDB()->newSelectQueryBuilder()
+					->fields( [ 'il_from', 'lt_title' ] )
 					->tables( $queryInfo['tables'] )
 					->where( [ 'il_from' => array_keys( $protectedPages ) ] )
-					->caller( __METHOD__ );
-
-				if ( $migrationStage & SCHEMA_COMPAT_READ_NEW ) {
-					$queryBuilder
-						->fields( [ 'il_from', 'il_to' => 'lt_title' ] )
-						->joinConds( $queryInfo['joins'] )
-						->andWhere( [ 'lt_title' => $images, 'lt_namespace' => NS_FILE ] );
-				} else {
-					$queryBuilder
-						->fields( [ 'il_from', 'il_to' ] )
-						->andWhere( [ 'il_to' => $images ] );
-				}
-
-				$res = $queryBuilder->fetchResultSet();
+					->joinConds( $queryInfo['joins'] )
+					->andWhere( [ 'lt_title' => $images, 'lt_namespace' => NS_FILE ] )
+					->caller( __METHOD__ )
+					->fetchResultSet();
 
 				foreach ( $res as $row ) {
 					$protection = $protectedPages[$row->il_from];
-					$this->protections[NS_FILE][$row->il_to][] = $protection;
+					$this->protections[NS_FILE][$row->lt_title][] = $protection;
 				}
 
 				$this->resetVirtualDomain();
@@ -913,6 +920,7 @@ class ApiQueryInfo extends ApiQueryBase {
 
 		$this->watched = [];
 		$this->watchlistExpiries = [];
+		$this->watchlistLabels = [];
 		$this->notificationtimestamps = [];
 
 		$items = $this->watchedItemStore->loadWatchedItemsBatch( $user, $this->everything );
@@ -927,6 +935,20 @@ class ApiQueryInfo extends ApiQueryBase {
 				$expiry = $item->getExpiry( TS::ISO_8601 );
 				if ( $expiry ) {
 					$this->watchlistExpiries[$nsId][$dbKey] = $expiry;
+				}
+			}
+
+			if ( $this->fld_watchlistlabels ) {
+				$labels = $item->getLabels();
+				if ( $labels ) {
+					$labelData = [];
+					foreach ( $labels as $label ) {
+						$labelData[] = [
+							'id' => $label->getId(),
+							'name' => $label->getName(),
+						];
+					}
+					$this->watchlistLabels[$nsId][$dbKey] = $labelData;
 				}
 			}
 
@@ -1064,6 +1086,7 @@ class ApiQueryInfo extends ApiQueryBase {
 					'protection',
 					'talkid',
 					'watched', # private
+					'watchlistlabels', # private
 					'watchers', # private
 					'visitingwatchers', # private
 					'notificationtimestamp', # private

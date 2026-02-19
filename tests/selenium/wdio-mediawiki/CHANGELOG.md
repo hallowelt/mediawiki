@@ -1,5 +1,53 @@
 # Changelog
 
+## 6.3.0 / 2026-02-18
+
+This new release of wdio-mediawiki has one main focus:
+-  making core tests and tests that use wdio-mediawiki run faster in CI.
+The overall goal is to shorten the developer feedback loop.
+
+To achieve this, we are increasing the number of test suites that run in parallel.
+For you as a developer, this means that tests in different suites must not depend on each other.
+As stated in the documentation:
+> "Tests don't depend on others. The test suite should pass when tests are running in random order or in parallel."
+https://www.mediawiki.org/wiki/Selenium/Explanation/Anti-patterns
+
+With this release, we also start following WebdriverIO best practices by enabling Chrome headless mode by default.
+This reduces CPU usage in CI, since we Chrome in headless is faster and we will no longer record videos with FFmpeg by default.
+
+If you have failing tests in CI and the logs are not enough to debug the issue,
+you can still enable video recording by adding the following to your wdio configuration:
+
+```
+recordVideo: true,
+useBrowserHeadless: false,
+```
+
+We also removed default screenshots for passing tests. Instead of taking screenshots
+for both passing and failing tests, we now only create screenshots for failing tests.
+
+If you still need screenshots for passing tests, you can re-enable them temporarly with:
+```screenshotsOnFailureOnly: false```
+
+By reducing the time spent recording videos and taking screenshots for passing tests,
+we can spend more time running tests in parallel, which further improves CI speed and shortens the feedback loop.
+
+Finally, with this release we increase the default `maxInstances` setting from 1 to 6 when you run in CI.
+This means that if you have multiple test suites, they can run in parallel (up to 6 at the same time).
+We chose 6 because our CI environment has 8 cores and we need some head room for other things.
+
+For core tests, the speed improvements is huge. With some more tuning
+(running slow test first/split test suites) the performance win will be even higher. We are gonna quantify our
+wins in https://phabricator.wikimedia.org/T417654
+
+The full change list in this release:
+* Fix XVFB handling outside of CI (T417752)
+* Increase default max instances to 6 (T414904)
+* Run maxInstances 6 and headless only in CI by default (T417732)
+* Start one xvfb per maxInstance (NodeJS instance) (T344754)
+* Take screenshot only on failures (T416704)
+* Use headless as default (T411784)
+
 ## 6.2.0 / 2026-02-12
 This release cleanup the default configuration code, add a helper method for dirname.
 The last change moves out settings for video and headless to make it easier to users

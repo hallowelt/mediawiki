@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\Rdbms;
+namespace Wikimedia\Rdbms\DBAL;
 
 /**
  * Interface SchemaChangeBuilder that gets a definition and produces ALTER TABLE SQL based on RDBMS

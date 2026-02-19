@@ -2231,7 +2231,7 @@
 	"watchlistlabels-editwatchlist-dialog-button": "Задај натписи",
 	"watchlistlabels-editwatchlist-dialog-assign-error": "Не можам да зададам натписи",
 	"watchlistlabels-editwatchlist-dialog-intro": "{{PLURAL:$2|Изберете го натписот што сакате да го зададете|Изберете кои натписи да се зададат}} {{PLURAL:$3|на}} $1:",
-	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Не можете да им задавате ознаки на овие ставки во набљудуваните бидејќи немате определено натписи. Појдете на [[{{#Special:WatchlistLabels}}]] и направете некои.",
+	"watchlistlabels-editwatchlist-dialog-intro-nolabels": "Не можете да им задавате ознаки на овие ставки во набљудуваните бидејќи немате определено натписи. Појдете на [[$1]] и направете некои.",
 	"watchlistlabels-editwatchlist-dialog-intro-noitems": "Изберете на кои страници сакате да им зададете натписи",
 	"watchlistlabels-editwatchlist-dialog-button-unassign": "Отстрани натписи",
 	"watchlistlabels-editwatchlist-dialog-unassign-error": "Не можам да отстранам натписи",

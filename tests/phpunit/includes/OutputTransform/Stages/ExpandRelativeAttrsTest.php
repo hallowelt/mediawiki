@@ -10,8 +10,8 @@ use MediaWiki\OutputTransform\Stages\ExpandRelativeAttrs;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
-use MediaWiki\Parser\Parsoid\ParsoidParser;
 use MediaWiki\Tests\OutputTransform\OutputTransformStageTestBase;
+use MediaWiki\Title\Title;
 use Psr\Log\NullLogger;
 use Wikimedia\Parsoid\Core\HtmlPageBundle;
 use Wikimedia\Parsoid\Mocks\MockSiteConfig;
@@ -27,6 +27,7 @@ class ExpandRelativeAttrsTest extends OutputTransformStageTestBase {
 			new NullLogger(),
 			$this->getServiceContainer()->getUrlUtils(),
 			new MockSiteConfig( [] ),
+			$this->getServiceContainer()->getTitleFormatter(),
 			null
 		);
 	}
@@ -85,12 +86,12 @@ class ExpandRelativeAttrsTest extends OutputTransformStageTestBase {
 		];
 		// Set test title in parser output extension data
 		foreach ( $testData as $label => $t ) {
-			$titleDBKey = strtr( $t['title'], ' ', '_' );
+			$title = Title::newFromText( $t['title'] );
 			$docHtml = $t['doc'] ?? $t['body'];
 			$poInput = new ParserOutput( $docHtml );
 			$poOutput = new ParserOutput( $t['result'] );
-			$poInput->setExtensionData( ParsoidParser::PARSOID_TITLE_KEY, $titleDBKey );
-			$poOutput->setExtensionData( ParsoidParser::PARSOID_TITLE_KEY, $titleDBKey );
+			$poInput->setTitle( $title );
+			$poOutput->setTitle( $title );
 			yield $label => [ $poInput, ParserOptions::newFromAnon(), [], $poOutput ];
 		}
 	}

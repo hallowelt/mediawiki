@@ -175,7 +175,7 @@ class ModuleSpecHandler extends SimpleHandler {
 	}
 
 	protected function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/ModuleSpec.json';
+		return __DIR__ . '/Schema/ModuleSpec.json';
 	}
 
 	/** @inheritDoc */

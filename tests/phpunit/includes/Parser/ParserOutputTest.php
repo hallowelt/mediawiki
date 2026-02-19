@@ -5,7 +5,6 @@ namespace MediaWiki\Tests\Parser;
 use LogicException;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Parser\ContentHolder;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\ParserOutputFlags;
@@ -1520,11 +1519,5 @@ class ParserOutputTest extends MediaWikiLangTestCase {
 		$this->assertTrue( $pOutput->getOutputFlag( ParserOutputFlags::IS_PREVIEW ) );
 		$this->assertFalse( $pOutput->isCacheable() );
 		$this->assertTrue( $pOutput->getOutputFlag( ParserOutputFlags::COLLAPSIBLE_SECTIONS ) );
-	}
-
-	public function ignoreForObjectEquality(): array {
-		return [
-			[ ContentHolder::class, 'ownerDocument' ],
-		];
 	}
 }

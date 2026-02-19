@@ -485,6 +485,6 @@ class PageHistoryHandler extends SimpleHandler {
 	}
 
 	public function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/PageHistory.json';
+		return __DIR__ . '/Schema/PageHistory.json';
 	}
 }

@@ -119,7 +119,7 @@ class CreationHandler extends EditHandler {
 	 * @return ?string The file path to the NewPage JSON schema.
 	 */
 	public function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/NewPage.json';
+		return __DIR__ . '/Schema/NewPage.json';
 	}
 
 	/** @inheritDoc */

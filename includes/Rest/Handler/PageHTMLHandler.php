@@ -206,6 +206,6 @@ class PageHTMLHandler extends SimpleHandler {
 	}
 
 	public function getResponseBodySchemaFileName( string $method ): ?string {
-		return 'includes/Rest/Handler/Schema/ExistingPageHtml.json';
+		return __DIR__ . '/Schema/ExistingPageHtml.json';
 	}
 }

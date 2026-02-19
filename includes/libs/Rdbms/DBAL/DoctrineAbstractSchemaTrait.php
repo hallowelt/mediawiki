@@ -3,7 +3,7 @@
  * @license GPL-2.0-or-later
  * @file
  */
-namespace Wikimedia\Rdbms;
+namespace Wikimedia\Rdbms\DBAL;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;

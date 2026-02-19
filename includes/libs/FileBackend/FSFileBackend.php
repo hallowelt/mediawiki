@@ -61,14 +61,13 @@ class FSFileBackend extends FileBackendStore {
 	protected $fileMode;
 	/** @var string Required OS username to own files */
 	protected $fileOwner;
-
-	/** @var string Simpler version of PHP_OS_FAMILY */
-	protected $os;
 	/** @var string OS username running this script */
 	protected $currentUser;
 
 	/** @var bool[] Map of (stack index => whether a warning happened) */
 	private $warningTrapStack = [];
+	/** @var bool Simpler version of PHP_OS_FAMILY */
+	private $isWindows;
 
 	/**
 	 * @see FileBackendStore::__construct()
@@ -83,13 +82,6 @@ class FSFileBackend extends FileBackendStore {
 	public function __construct( array $config ) {
 		parent::__construct( $config );
 
-		if ( PHP_OS_FAMILY === 'Windows' ) {
-			$this->os = 'Windows';
-		} elseif ( PHP_OS_FAMILY === 'BSD' || PHP_OS_FAMILY === 'Darwin' ) {
-			$this->os = 'BSD';
-		} else {
-			$this->os = 'Linux';
-		}
 		// Remove any possible trailing slash from directories
 		if ( isset( $config['basePath'] ) ) {
 			$this->basePath = rtrim( $config['basePath'], '/' ); // remove trailing slash
@@ -111,6 +103,7 @@ class FSFileBackend extends FileBackendStore {
 		}
 
 		$this->usableDirCache = new MapCacheLRU( self::CACHE_CHEAP_SIZE );
+		$this->isWindows = ( PHP_OS_FAMILY === 'Windows' );
 	}
 
 	/** @inheritDoc */
@@ -142,7 +135,7 @@ class FSFileBackend extends FileBackendStore {
 		if ( preg_match( '![^/]{256}!', $fsPath ) ) { // ext3/NTFS
 			return false;
 		}
-		if ( $this->os === 'Windows' ) { // NTFS
+		if ( $this->isWindows ) { // NTFS
 			return !preg_match( '![:*?"<>|]!', $fsPath );
 		} else {
 			return true;
@@ -230,7 +223,7 @@ class FSFileBackend extends FileBackendStore {
 			}
 			$cmd = $this->makeCopyCommand( $tempFile->getPath(), $fsDstPath, false );
 			$handler = function ( $errors, StatusValue $status, array $params, $cmd ) {
-				if ( $errors !== '' && !( $this->os === 'Windows' && $errors[0] === " " ) ) {
+				if ( $errors !== '' && !( $this->isWindows && $errors[0] === " " ) ) {
 					$status->fatal( 'backend-fail-create', $params['dst'] );
 					trigger_error( "$cmd\n$errors", E_USER_WARNING ); // command output
 				}
@@ -284,7 +277,7 @@ class FSFileBackend extends FileBackendStore {
 		if ( !empty( $params['async'] ) ) { // deferred
 			$cmd = $this->makeCopyCommand( $fsSrcPath, $fsDstPath, false );
 			$handler = function ( $errors, StatusValue $status, array $params, $cmd ) {
-				if ( $errors !== '' && !( $this->os === 'Windows' && $errors[0] === " " ) ) {
+				if ( $errors !== '' && !( $this->isWindows && $errors[0] === " " ) ) {
 					$status->fatal( 'backend-fail-store', $params['src'], $params['dst'] );
 					trigger_error( "$cmd\n$errors", E_USER_WARNING ); // command output
 				}
@@ -347,7 +340,7 @@ class FSFileBackend extends FileBackendStore {
 		if ( !empty( $params['async'] ) ) { // deferred
 			$cmd = $this->makeCopyCommand( $fsSrcPath, $fsDstPath, $ignoreMissing );
 			$handler = function ( $errors, StatusValue $status, array $params, $cmd ) {
-				if ( $errors !== '' && !( $this->os === 'Windows' && $errors[0] === " " ) ) {
+				if ( $errors !== '' && !( $this->isWindows && $errors[0] === " " ) ) {
 					$status->fatal( 'backend-fail-copy', $params['src'], $params['dst'] );
 					trigger_error( "$cmd\n$errors", E_USER_WARNING ); // command output
 				}
@@ -412,7 +405,7 @@ class FSFileBackend extends FileBackendStore {
 		if ( !empty( $params['async'] ) ) { // deferred
 			$cmd = $this->makeMoveCommand( $fsSrcPath, $fsDstPath, $ignoreMissing );
 			$handler = function ( $errors, StatusValue $status, array $params, $cmd ) {
-				if ( $errors !== '' && !( $this->os === 'Windows' && $errors[0] === " " ) ) {
+				if ( $errors !== '' && !( $this->isWindows && $errors[0] === " " ) ) {
 					$status->fatal( 'backend-fail-move', $params['src'], $params['dst'] );
 					trigger_error( "$cmd\n$errors", E_USER_WARNING ); // command output
 				}
@@ -451,7 +444,7 @@ class FSFileBackend extends FileBackendStore {
 		if ( !empty( $params['async'] ) ) { // deferred
 			$cmd = $this->makeUnlinkCommand( $fsSrcPath, $ignoreMissing );
 			$handler = function ( $errors, StatusValue $status, array $params, $cmd ) {
-				if ( $errors !== '' && !( $this->os === 'Windows' && $errors[0] === " " ) ) {
+				if ( $errors !== '' && !( $this->isWindows && $errors[0] === " " ) ) {
 					$status->fatal( 'backend-fail-delete', $params['src'] );
 					trigger_error( "$cmd\n$errors", E_USER_WARNING ); // command output
 				}
@@ -836,7 +829,7 @@ class FSFileBackend extends FileBackendStore {
 		$encSrc = Shellbox::escape( $this->cleanPathSlashes( $fsSrcPath ) );
 		$encStage = Shellbox::escape( $this->cleanPathSlashes( $fsStagePath ) );
 		$encDst = Shellbox::escape( $this->cleanPathSlashes( $fsDstPath ) );
-		if ( $this->os === 'Windows' ) {
+		if ( $this->isWindows ) {
 			// https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/copy
 			// https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/move
 			$cmdWrite = "COPY /B /Y $encSrc $encStage 2>&1 && MOVE /Y $encStage $encDst 2>&1";
@@ -867,7 +860,7 @@ class FSFileBackend extends FileBackendStore {
 		// https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/move
 		$encSrc = Shellbox::escape( $this->cleanPathSlashes( $fsSrcPath ) );
 		$encDst = Shellbox::escape( $this->cleanPathSlashes( $fsDstPath ) );
-		if ( $this->os === 'Windows' ) {
+		if ( $this->isWindows ) {
 			$writeCmd = "MOVE /Y $encSrc $encDst 2>&1";
 			$cmd = $ignoreMissing ? "IF EXIST $encSrc $writeCmd" : $writeCmd;
 		} else {
@@ -887,7 +880,7 @@ class FSFileBackend extends FileBackendStore {
 		// https://manpages.debian.org/buster/coreutils/rm.1.en.html
 		// https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/del
 		$encSrc = Shellbox::escape( $this->cleanPathSlashes( $fsPath ) );
-		if ( $this->os === 'Windows' ) {
+		if ( $this->isWindows ) {
 			$writeCmd = "DEL /Q $encSrc 2>&1";
 			$cmd = $ignoreMissing ? "IF EXIST $encSrc $writeCmd" : $writeCmd;
 		} else {
@@ -904,7 +897,7 @@ class FSFileBackend extends FileBackendStore {
 	 * @return bool Success
 	 */
 	protected function chmod( $fsPath ) {
-		if ( $this->os === 'Windows' ) {
+		if ( $this->isWindows ) {
 			return true;
 		}
 
@@ -986,7 +979,7 @@ class FSFileBackend extends FileBackendStore {
 	 * @return string
 	 */
 	protected function cleanPathSlashes( $fsPath ) {
-		return ( $this->os === 'Windows' ) ? strtr( $fsPath, '/', '\\' ) : $fsPath;
+		return ( $this->isWindows ) ? strtr( $fsPath, '/', '\\' ) : $fsPath;
 	}
 
 	/**
@@ -1033,7 +1026,7 @@ class FSFileBackend extends FileBackendStore {
 		if ( $regex === null ) {
 			// "No such file or directory": string literal in spl_directory.c etc.
 			$alternatives = [ ': No such file or directory' ];
-			if ( $this->os === 'Windows' ) {
+			if ( $this->isWindows ) {
 				// 2 = The system cannot find the file specified.
 				// 3 = The system cannot find the path specified.
 				$alternatives[] = ' \(code: [23]\)';

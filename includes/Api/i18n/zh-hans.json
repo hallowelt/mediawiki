@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"0x48fe75df30",
 			"94rain",
 			"A Retired User",
 			"Anterdc99",
@@ -984,6 +985,7 @@
 	"apihelp-query+info-paramvalue-prop-protection": "列出每个页面的保护等级。",
 	"apihelp-query+info-paramvalue-prop-talkid": "每个非讨论页面的讨论页的页面ID。",
 	"apihelp-query+info-paramvalue-prop-watched": "列出每个页面的被监视状态。",
+	"apihelp-query+info-paramvalue-prop-watchlistlabels": "列出每个页面的监视列表标签。",
 	"apihelp-query+info-paramvalue-prop-watchers": "监视人员数，如果允许。",
 	"apihelp-query+info-paramvalue-prop-visitingwatchers": "访问了每个页面的最近编辑的监视者数量，如果允许。",
 	"apihelp-query+info-paramvalue-prop-notificationtimestamp": "每个页面的监视列表通知时间戳。",

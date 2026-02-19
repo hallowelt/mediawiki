@@ -54,6 +54,7 @@ class ParsoidParserTest extends MediaWikiIntegrationTestCase {
 			'isMessage',
 			'isPreview',
 			'isSectionPreview',
+			'parsoidnewlc',
 			'useParsoid',
 			'wrapclass',
 		];
@@ -98,6 +99,9 @@ class ParsoidParserTest extends MediaWikiIntegrationTestCase {
 			$pageTitle->getPrefixedDBkey(),
 			$output->getExtensionData( ParsoidParser::PARSOID_TITLE_KEY )
 		);
+		$this->assertTrue(
+			$output->getTitle()->isSameLinkAs( $pageTitle )
+		);
 		$usedOptions = [
 			'collapsibleSections',
 			'disableContentConversion',
@@ -105,6 +109,7 @@ class ParsoidParserTest extends MediaWikiIntegrationTestCase {
 			'isMessage',
 			'isPreview',
 			'isSectionPreview',
+			'parsoidnewlc',
 			'useParsoid',
 			'wrapclass',
 		];
