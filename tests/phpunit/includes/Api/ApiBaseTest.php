@@ -4,13 +4,13 @@ namespace MediaWiki\Tests\Api;
 
 use DomainException;
 use Exception;
+use LogicException;
 use MediaWiki\Api\ApiBase;
 use MediaWiki\Api\ApiMain;
 use MediaWiki\Api\ApiUsageException;
 use MediaWiki\Api\Validator\SubmoduleDef;
 use MediaWiki\Context\DerivativeContext;
 use MediaWiki\Context\RequestContext;
-use MediaWiki\Exception\MWException;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
 use MediaWiki\Page\WikiPage;
@@ -1330,22 +1330,22 @@ class ApiBaseTest extends ApiTestCase {
 	/**
 	 * @dataProvider provideGetFinalParamDescription
 	 */
-	public function testGetFinalParamDescription( $paramSettings, $expectedMessages ) {
+	public function testGetFinalParamDescription( $settings, $messages ) {
 		$mock = $this->getMockBuilder( MockApi::class )
 			->onlyMethods( [ 'getAllowedParams', 'getModulePath' ] )
 			->getMock();
 		$mock->method( 'getAllowedParams' )->willReturn( [
-			'param' => $paramSettings,
+			'param' => $settings,
 		] );
 		$mock->method( 'getModulePath' )->willReturn( 'test' );
-		if ( $expectedMessages instanceof Exception ) {
-			$this->expectExceptionObject( $expectedMessages );
+		if ( $messages instanceof Exception ) {
+			$this->expectExceptionObject( $messages );
 		}
 		$paramDescription = $mock->getFinalParamDescription();
 		$this->assertArrayHasKey( 'param', $paramDescription );
-		$messages = $paramDescription['param'];
-		$messageKeys = array_map( static fn ( MessageSpecifier $m ) => $m->getKey(), $messages );
-		$this->assertSame( $expectedMessages, $messageKeys );
+		$paramMessages = $paramDescription['param'];
+		$messageKeys = array_map( static fn ( MessageSpecifier $m ) => $m->getKey(), $paramMessages );
+		$this->assertSame( $messages, $messageKeys );
 	}
 
 	public static function provideGetFinalParamDescription() {
@@ -1403,7 +1403,7 @@ class ApiBaseTest extends ApiTestCase {
 					ParamValidator::PARAM_TYPE => 'string',
 					ApiBase::PARAM_HELP_MSG_PER_VALUE => [],
 				],
-				'messages' => new MWException(
+				'messages' => new LogicException(
 					'Internal error in ' . ApiBase::class . '::getFinalParamDescription: '
 					. 'ApiBase::PARAM_HELP_MSG_PER_VALUE may only be used when '
 					. "ParamValidator::PARAM_TYPE is an array or it is 'string' "

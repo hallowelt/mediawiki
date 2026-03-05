@@ -20,15 +20,13 @@ use Wikimedia\ParamValidator\ParamValidator;
  */
 class ApiEmailUser extends ApiBase {
 
-	private EmailUserFactory $emailUserFactory;
-	private UserFactory $userFactory;
-
-	public function __construct( ApiMain $mainModule, string $moduleName,
-		EmailUserFactory $emailUserFactory, UserFactory $userFactory ) {
+	public function __construct(
+		ApiMain $mainModule,
+		string $moduleName,
+		private readonly EmailUserFactory $emailUserFactory,
+		private readonly UserFactory $userFactory
+	) {
 		parent::__construct( $mainModule, $moduleName );
-
-		$this->emailUserFactory = $emailUserFactory;
-		$this->userFactory = $userFactory;
 	}
 
 	public function execute() {

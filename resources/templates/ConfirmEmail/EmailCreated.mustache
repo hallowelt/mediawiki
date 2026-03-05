@@ -100,14 +100,18 @@
 {{/logo}}
 	<p class="mw-confirm-email__welcome">{{{par1}}}</p>
 	<p>{{{par2}}}</p>
+{{#button}}
 	<div class="mw-confirm-email__button-wrapper">
 		<a class="mw-confirm-email__button" href="{{confirmationUrl}}">
 			{{buttonLabel}}
 		</a>
 	</div>
+{{/button}}
+	{{#footer}}
 	<p class="mw-confirm-email__footer">
 		<small>{{{footer}}}</small>
 	</p>
+	{{/footer}}
 </section>
 </div>
 </body>

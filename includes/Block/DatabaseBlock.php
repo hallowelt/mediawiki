@@ -117,7 +117,7 @@ class DatabaseBlock extends AbstractBlock {
 	 *
 	 * @deprecated since 1.42 use DatabaseBlockStore::newFromID()
 	 * @param int $id ID to search for
-	 * @return DatabaseBlock|null
+	 * @return self|null
 	 */
 	public static function newFromID( $id ) {
 		wfDeprecated( __METHOD__, '1.42' );
@@ -129,10 +129,10 @@ class DatabaseBlock extends AbstractBlock {
 	 * Check if two blocks are effectively equal.  Doesn't check irrelevant things like
 	 * the blocking user or the block timestamp, only things which affect the blocked user
 	 *
-	 * @param DatabaseBlock $block
+	 * @param self $block
 	 * @return bool
 	 */
-	public function equals( DatabaseBlock $block ) {
+	public function equals( self $block ) {
 		return (
 			( $this->target ? $this->target->equals( $block->target ) : $block->target === null )
 			&& $this->auto == $block->auto
@@ -159,7 +159,7 @@ class DatabaseBlock extends AbstractBlock {
 	 * @deprecated since 1.44 use DatabaseBlockStore::newFromRow
 	 *
 	 * @param stdClass $row Row from the ipblocks table
-	 * @return DatabaseBlock
+	 * @return self
 	 */
 	public static function newFromRow( $row ) {
 		wfDeprecated( __METHOD__, '1.44' );
@@ -416,7 +416,7 @@ class DatabaseBlock extends AbstractBlock {
 	 *   block which affects that target (so for an IP address, get ranges containing that IP;
 	 *   and also get any relevant autoblocks). Leave empty or blank to skip IP-based lookups.
 	 * @param bool $fromPrimary Whether to use the DB_PRIMARY database
-	 * @return DatabaseBlock|null (null if no relevant block could be found). The target and type
+	 * @return self|null (null if no relevant block could be found). The target and type
 	 *   of the returned block will refer to the actual block which was found, which might
 	 *   not be the same as the target you gave if you used $vagueTarget!
 	 */
@@ -439,7 +439,7 @@ class DatabaseBlock extends AbstractBlock {
 	 * @param string|UserIdentity|int|null $specificTarget
 	 * @param string|UserIdentity|int|null $vagueTarget
 	 * @param bool $fromPrimary
-	 * @return DatabaseBlock[] Any relevant blocks
+	 * @return self[] Any relevant blocks
 	 */
 	public static function newListFromTarget(
 		$specificTarget,

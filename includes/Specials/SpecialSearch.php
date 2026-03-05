@@ -13,7 +13,7 @@ use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\FileRepo\RepoGroup;
 use MediaWiki\Html\Html;
 use MediaWiki\Interwiki\InterwikiLookup;
-use MediaWiki\Languages\LanguageConverterFactory;
+use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Message\Message;
 use MediaWiki\Navigation\CodexPagerNavigationBuilder;
@@ -36,6 +36,7 @@ use MediaWiki\Status\Status;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
 use MediaWiki\User\Options\UserOptionsManager;
+use StatusValue;
 use Wikimedia\Rdbms\ReadOnlyMode;
 
 /**
@@ -94,24 +95,7 @@ class SpecialSearch extends SpecialPage {
 	protected $runSuggestion = true;
 
 	/**
-	 * Search engine configurations.
-	 * @var SearchEngineConfig
-	 */
-	protected $searchConfig;
-
-	private SearchEngineFactory $searchEngineFactory;
-	private NamespaceInfo $nsInfo;
-	private IContentHandlerFactory $contentHandlerFactory;
-	private InterwikiLookup $interwikiLookup;
-	private ReadOnlyMode $readOnlyMode;
-	private UserOptionsManager $userOptionsManager;
-	private LanguageConverterFactory $languageConverterFactory;
-	private RepoGroup $repoGroup;
-	private SearchResultThumbnailProvider $thumbnailProvider;
-	private TitleMatcher $titleMatcher;
-
-	/**
-	 * @var Status Holds any parameter validation errors that should
+	 * @var StatusValue Holds any parameter validation errors that should
 	 *  be displayed back to the user.
 	 */
 	private $loadStatus;
@@ -119,30 +103,19 @@ class SpecialSearch extends SpecialPage {
 	private const NAMESPACES_CURRENT = 'sense';
 
 	public function __construct(
-		SearchEngineConfig $searchConfig,
-		SearchEngineFactory $searchEngineFactory,
-		NamespaceInfo $nsInfo,
-		IContentHandlerFactory $contentHandlerFactory,
-		InterwikiLookup $interwikiLookup,
-		ReadOnlyMode $readOnlyMode,
-		UserOptionsManager $userOptionsManager,
-		LanguageConverterFactory $languageConverterFactory,
-		RepoGroup $repoGroup,
-		SearchResultThumbnailProvider $thumbnailProvider,
-		TitleMatcher $titleMatcher
+		protected readonly SearchEngineConfig $searchConfig,
+		private readonly SearchEngineFactory $searchEngineFactory,
+		private readonly NamespaceInfo $nsInfo,
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+		private readonly InterwikiLookup $interwikiLookup,
+		private readonly ReadOnlyMode $readOnlyMode,
+		private readonly UserOptionsManager $userOptionsManager,
+		private readonly LanguageConverterFactory $languageConverterFactory,
+		private readonly RepoGroup $repoGroup,
+		private readonly SearchResultThumbnailProvider $thumbnailProvider,
+		private readonly TitleMatcher $titleMatcher,
 	) {
 		parent::__construct( 'Search' );
-		$this->searchConfig = $searchConfig;
-		$this->searchEngineFactory = $searchEngineFactory;
-		$this->nsInfo = $nsInfo;
-		$this->contentHandlerFactory = $contentHandlerFactory;
-		$this->interwikiLookup = $interwikiLookup;
-		$this->readOnlyMode = $readOnlyMode;
-		$this->userOptionsManager = $userOptionsManager;
-		$this->languageConverterFactory = $languageConverterFactory;
-		$this->repoGroup = $repoGroup;
-		$this->thumbnailProvider = $thumbnailProvider;
-		$this->titleMatcher = $titleMatcher;
 	}
 
 	/**
@@ -231,7 +204,7 @@ class SpecialSearch extends SpecialPage {
 	 * @see tests/phpunit/includes/specials/SpecialSearchTest.php
 	 */
 	public function load() {
-		$this->loadStatus = new Status();
+		$this->loadStatus = new StatusValue();
 
 		$request = $this->getRequest();
 		$this->searchEngineType = $request->getVal( 'srbackend' );
@@ -414,7 +387,7 @@ class SpecialSearch extends SpecialPage {
 		$textMatches = $engine->searchText( $term );
 
 		$textStatus = null;
-		if ( $textMatches instanceof Status ) {
+		if ( $textMatches instanceof StatusValue ) {
 			$textStatus = $textMatches;
 			$textMatches = $textStatus->getValue();
 		}
@@ -480,12 +453,12 @@ class SpecialSearch extends SpecialPage {
 			[ $error, $warning ] = $textStatus->splitByErrorType();
 			if ( $error->getMessages() ) {
 				$out->addHTML( Html::errorBox(
-					$error->getHTML( 'search-error' )
+					Status::wrap( $error )->getHTML( 'search-error' )
 				) );
 			}
 			if ( $warning->getMessages() ) {
 				$out->addHTML( Html::warningBox(
-					$warning->getHTML( 'search-warning' )
+					Status::wrap( $warning )->getHTML( 'search-warning' )
 				) );
 			}
 		}

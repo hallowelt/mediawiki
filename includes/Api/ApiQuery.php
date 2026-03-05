@@ -115,7 +115,6 @@ class ApiQuery extends ApiBase {
 				'TitleFactory',
 				'TitleFormatter',
 				'WatchedItemStore',
-				'WatchlistLabelStore',
 				'LanguageConverterFactory',
 				'RestrictionStore',
 				'LinksMigration',
@@ -594,20 +593,16 @@ class ApiQuery extends ApiBase {
 
 	/** @var array */
 	private $mParams;
-	/** @var ApiModuleManager */
-	private $mModuleMgr;
 
-	private WikiExporterFactory $wikiExporterFactory;
-	private TitleFormatter $titleFormatter;
-	private TitleFactory $titleFactory;
+	private ApiModuleManager $mModuleMgr;
 
 	public function __construct(
 		ApiMain $main,
 		string $action,
 		ObjectFactory $objectFactory,
-		WikiExporterFactory $wikiExporterFactory,
-		TitleFormatter $titleFormatter,
-		TitleFactory $titleFactory
+		private readonly WikiExporterFactory $wikiExporterFactory,
+		private readonly TitleFormatter $titleFormatter,
+		private readonly TitleFactory $titleFactory,
 	) {
 		parent::__construct( $main, $action );
 
@@ -629,9 +624,6 @@ class ApiQuery extends ApiBase {
 
 		// Create PageSet that will process titles/pageids/revids/generator
 		$this->mPageSet = new ApiPageSet( $this );
-		$this->wikiExporterFactory = $wikiExporterFactory;
-		$this->titleFormatter = $titleFormatter;
-		$this->titleFactory = $titleFactory;
 	}
 
 	/**

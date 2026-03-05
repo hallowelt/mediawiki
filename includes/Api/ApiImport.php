@@ -22,16 +22,12 @@ use Wikimedia\ParamValidator\ParamValidator;
  */
 class ApiImport extends ApiBase {
 
-	private WikiImporterFactory $wikiImporterFactory;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		WikiImporterFactory $wikiImporterFactory
+		private readonly WikiImporterFactory $wikiImporterFactory,
 	) {
 		parent::__construct( $main, $action );
-
-		$this->wikiImporterFactory = $wikiImporterFactory;
 	}
 
 	public function execute() {

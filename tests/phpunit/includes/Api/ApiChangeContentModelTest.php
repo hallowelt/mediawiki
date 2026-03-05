@@ -2,7 +2,6 @@
 
 namespace MediaWiki\Tests\Api;
 
-use MediaWiki\Api\ApiUsageException;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Permissions\RateLimiter;
 use MediaWiki\Status\Status;
@@ -166,10 +165,8 @@ class ApiChangeContentModelTest extends ApiTestCase {
 	 * Test the EditFilterMergedContent hook can be intercepted
 	 *
 	 * @dataProvider provideTestEditFilterMergedContent
-	 * @param string|bool $customMessage Hook message, or false
-	 * @param string $expectedMessage expected fatal
 	 */
-	public function testEditFilterMergedContent( $customMessage, $expectedMessage ) {
+	public function testEditFilterMergedContent( ?string $customMessage, string $expectedMessage ) {
 		$title = Title::makeTitle( NS_MAIN, 'ExistingPage' );
 
 		$this->assertSame(
@@ -179,20 +176,15 @@ class ApiChangeContentModelTest extends ApiTestCase {
 		);
 
 		$this->setTemporaryHook( 'EditFilterMergedContent',
-			static function ( $unused1, $unused2, Status $status ) use ( $customMessage ) {
-				if ( $customMessage !== false ) {
+			static function ( $context, $content, Status $status ) use ( $customMessage ) {
+				if ( $customMessage ) {
 					$status->fatal( $customMessage );
 				}
 				return false;
 			}
 		);
 
-		$exception = new ApiUsageException(
-			null,
-			Status::newFatal( $expectedMessage )
-		);
-		$this->expectException( ApiUsageException::class );
-		$this->expectExceptionMessage( $exception->getMessage() );
+		$this->expectApiErrorCode( $expectedMessage );
 
 		$this->doApiRequestWithToken( [
 				'action' => 'changecontentmodel',
@@ -207,8 +199,8 @@ class ApiChangeContentModelTest extends ApiTestCase {
 
 	public static function provideTestEditFilterMergedContent() {
 		return [
-			[ 'DannyS712 objects to this change!', 'DannyS712 objects to this change!' ],
-			[ false, 'hookaborted' ]
+			[ 'DannyS712 objects to this change!', 'DannyS712_objects_to_this_change_' ],
+			[ null, 'hookaborted' ]
 		];
 	}
 

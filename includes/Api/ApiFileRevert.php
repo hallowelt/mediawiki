@@ -26,16 +26,12 @@ class ApiFileRevert extends ApiBase {
 	/** @var array */
 	protected $params;
 
-	/** @var RepoGroup */
-	private $repoGroup;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		RepoGroup $repoGroup
+		private readonly RepoGroup $repoGroup,
 	) {
 		parent::__construct( $main, $action );
-		$this->repoGroup = $repoGroup;
 	}
 
 	public function execute() {

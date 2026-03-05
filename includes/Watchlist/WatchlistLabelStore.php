@@ -5,9 +5,10 @@ namespace MediaWiki\Watchlist;
 use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\MainConfigNames;
-use MediaWiki\Status\Status;
+use MediaWiki\Message\Message;
 use MediaWiki\User\UserIdentity;
 use Psr\Log\LoggerInterface;
+use StatusValue;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**
@@ -19,7 +20,6 @@ class WatchlistLabelStore {
 
 	public const TABLE_WATCHLIST_LABEL = 'watchlist_label';
 	public const TABLE_WATCHLIST_LABEL_MEMBER = 'watchlist_label_member';
-	private int $userLabelCount = 0;
 
 	public function __construct(
 		private IConnectionProvider $dbProvider,
@@ -32,7 +32,7 @@ class WatchlistLabelStore {
 	 * Save a watchlist label to the database.
 	 * If this results in a new row, the label's ID will be set.
 	 */
-	public function save( WatchlistLabel $label ): Status {
+	public function save( WatchlistLabel $label ): StatusValue {
 		$dbw = $this->dbProvider->getPrimaryDatabase();
 		if ( $label->getId() ) {
 			$dbw->newUpdateQueryBuilder()
@@ -46,21 +46,21 @@ class WatchlistLabelStore {
 					__METHOD__ . " Watchlist label not saved. ID: {0}; Name: {1}",
 					[ $label->getId(), $label->getName() ]
 				);
-				return Status::newFatal( 'unknown-error' );
+				return StatusValue::newFatal( 'unknown-error' );
 			}
 		} else {
 			$userId = $label->getUser()->getId();
 			if ( !$userId ) {
 				throw new InvalidArgumentException( 'user ID must not be zero' );
 			}
-			$this->userLabelCount = $this->countAllForUser( $label->getUser() );
+			$userLabelCount = $this->countAllForUser( $label->getUser() );
 			// Check the user has not exceeded their label limit.
 			if (
-				$this->config->get( MainConfigNames::WatchlistLabelsMaxPerUser ) <= $this->userLabelCount
+				$this->config->get( MainConfigNames::WatchlistLabelsMaxPerUser ) <= $userLabelCount
 			) {
-				return Status::newFatal(
+				return StatusValue::newFatal(
 					'watchlistlabels-limit-reached',
-					$this->config->get( MainConfigNames::WatchlistLabelsMaxPerUser )
+					Message::numParam( $this->config->get( MainConfigNames::WatchlistLabelsMaxPerUser ) )
 				);
 			}
 			$dbw->newInsertQueryBuilder()
@@ -73,7 +73,7 @@ class WatchlistLabelStore {
 				$label->setId( $dbw->insertId() );
 			}
 		}
-		return Status::newGood();
+		return StatusValue::newGood();
 	}
 
 	/**
@@ -127,16 +127,30 @@ class WatchlistLabelStore {
 	 * @return ?WatchlistLabel The label, or null if not found.
 	 */
 	public function loadById( UserIdentity $user, int $id ): ?WatchlistLabel {
-		$select = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
-		$result = $select->table( self::TABLE_WATCHLIST_LABEL )
-			->fields( [ 'wll_id', 'wll_name' ] )
+		return $this->loadByIds( $user, [ $id ] )[0] ?? null;
+	}
+
+	/**
+	 * Load multiple watchlist labels at once by their IDs.
+	 *
+	 * @param UserIdentity $user
+	 * @param int[] $ids The IDs of the watchlist labels to load.
+	 *
+	 * @return WatchlistLabel[] The labels that were found.
+	 */
+	public function loadByIds( UserIdentity $user, array $ids ): array {
+		$result = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder()
+			->select( [ 'wll_id', 'wll_name' ] )
+			->from( self::TABLE_WATCHLIST_LABEL )
 			// It's not necessary to query for the user, but it adds an extra check.
-			->where( [ 'wll_id' => $id, 'wll_user' => $user->getId() ] )
+			->where( [ 'wll_id' => $ids, 'wll_user' => $user->getId() ] )
 			->caller( __METHOD__ )
-			->fetchRow();
-		return $result
-			? new WatchlistLabel( $user, $result->wll_name, $result->wll_id )
-			: null;
+			->fetchResultSet();
+
+		return array_map(
+			static fn ( $row ) => new WatchlistLabel( $user, $row->wll_name, $row->wll_id ),
+			iterator_to_array( $result )
+		);
 	}
 
 	/**

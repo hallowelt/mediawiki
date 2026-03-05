@@ -20,21 +20,14 @@ class ApiImageRotate extends ApiBase {
 	/** @var ApiPageSet|null */
 	private $mPageSet = null;
 
-	private RepoGroup $repoGroup;
-	private TempFSFileFactory $tempFSFileFactory;
-	private TitleFactory $titleFactory;
-
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
-		RepoGroup $repoGroup,
-		TempFSFileFactory $tempFSFileFactory,
-		TitleFactory $titleFactory
+		private readonly RepoGroup $repoGroup,
+		private readonly TempFSFileFactory $tempFSFileFactory,
+		private readonly TitleFactory $titleFactory,
 	) {
 		parent::__construct( $mainModule, $moduleName );
-		$this->repoGroup = $repoGroup;
-		$this->tempFSFileFactory = $tempFSFileFactory;
-		$this->titleFactory = $titleFactory;
 	}
 
 	public function execute() {

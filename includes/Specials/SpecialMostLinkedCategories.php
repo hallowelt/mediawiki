@@ -10,7 +10,7 @@ namespace MediaWiki\Specials;
 
 use MediaWiki\Html\Html;
 use MediaWiki\Language\ILanguageConverter;
-use MediaWiki\Languages\LanguageConverterFactory;
+use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Linker\Linker;
 use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\Skin\Skin;
@@ -30,12 +30,12 @@ use Wikimedia\Rdbms\IResultWrapper;
  */
 class SpecialMostLinkedCategories extends QueryPage {
 
-	private ILanguageConverter $languageConverter;
+	private readonly ILanguageConverter $languageConverter;
 
 	public function __construct(
 		IConnectionProvider $dbProvider,
 		LinkBatchFactory $linkBatchFactory,
-		LanguageConverterFactory $languageConverterFactory
+		LanguageConverterFactory $languageConverterFactory,
 	) {
 		parent::__construct( 'Mostlinkedcategories' );
 		$this->setDatabaseProvider( $dbProvider );

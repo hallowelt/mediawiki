@@ -8,7 +8,7 @@ use MediaWiki\Watchlist\WatchlistLabel;
  * @group Database
  * @group Watchlist
  *
- * @covers \MediaWiki\Watchlist\WatchedItemStore
+ * @covers \MediaWiki\Watchlist\WatchlistLabelStore
  */
 class WatchlistLabelStoreIntegrationTest extends MediaWikiIntegrationTestCase {
 
@@ -64,6 +64,24 @@ class WatchlistLabelStoreIntegrationTest extends MediaWikiIntegrationTestCase {
 		$this->assertCount( 6, $store->loadAllForUser( $user ) );
 		$notDeleted = $store->delete( $user, [ 9, 10, $otherUserLabel->getId() ] );
 		$this->assertSame( false, $notDeleted );
+	}
+
+	public function testLoadLabelsByIds() {
+		// Create 10 labels for a test user.
+		$user = $this->getTestUser()->getUser();
+		$store = $this->getServiceContainer()->getWatchlistLabelStore();
+		$ids = [];
+		for ( $i = 0; $i < 10; $i++ ) {
+			$label = new WatchlistLabel( $user, "Test label $i" );
+			$store->save( $label );
+			$ids[] = $label->getId();
+		}
+		// Add an invalid ID that shouldn't be associated with a label
+		$ids[] = -1;
+
+		$labels = $store->loadByIds( $user, $ids );
+		$this->assertCount( 10, $labels );
+		$this->assertContainsOnlyInstancesOf( WatchlistLabel::class, $labels );
 	}
 
 	public function testCountItems(): void {

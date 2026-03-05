@@ -26,7 +26,6 @@ use MediaWiki\ParamValidator\TypeDef\TitleDef;
 use MediaWiki\ParamValidator\TypeDef\UserDef;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
-use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\Options\UserOptionsLookup;
 use MediaWiki\User\UserIdentityLookup;
 use MediaWiki\Watchlist\WatchedItemStoreInterface;
@@ -45,39 +44,22 @@ class ApiBlock extends ApiBase {
 
 	use ApiWatchlistTrait;
 
-	private BlockPermissionCheckerFactory $blockPermissionCheckerFactory;
-	private BlockUserFactory $blockUserFactory;
-	private TitleFactory $titleFactory;
-	private UserIdentityLookup $userIdentityLookup;
-	private WatchedItemStoreInterface $watchedItemStore;
-	private BlockActionInfo $blockActionInfo;
-	private DatabaseBlockStore $blockStore;
-	private BlockTargetFactory $blockTargetFactory;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		BlockPermissionCheckerFactory $blockPermissionCheckerFactory,
-		BlockUserFactory $blockUserFactory,
-		TitleFactory $titleFactory,
-		UserIdentityLookup $userIdentityLookup,
+		private readonly BlockPermissionCheckerFactory $blockPermissionCheckerFactory,
+		private readonly BlockUserFactory $blockUserFactory,
+		private readonly UserIdentityLookup $userIdentityLookup,
 		WatchedItemStoreInterface $watchedItemStore,
-		BlockTargetFactory $blockTargetFactory,
-		BlockActionInfo $blockActionInfo,
-		DatabaseBlockStore $blockStore,
+		private readonly BlockTargetFactory $blockTargetFactory,
+		private readonly BlockActionInfo $blockActionInfo,
+		private readonly DatabaseBlockStore $blockStore,
 		WatchlistManager $watchlistManager,
-		UserOptionsLookup $userOptionsLookup
+		UserOptionsLookup $userOptionsLookup,
 	) {
 		parent::__construct( $main, $action );
 
-		$this->blockPermissionCheckerFactory = $blockPermissionCheckerFactory;
-		$this->blockUserFactory = $blockUserFactory;
-		$this->titleFactory = $titleFactory;
-		$this->userIdentityLookup = $userIdentityLookup;
 		$this->watchedItemStore = $watchedItemStore;
-		$this->blockTargetFactory = $blockTargetFactory;
-		$this->blockActionInfo = $blockActionInfo;
-		$this->blockStore = $blockStore;
 
 		// Variables needed in ApiWatchlistTrait trait
 		$this->watchlistExpiryEnabled = $this->getConfig()->get( MainConfigNames::WatchlistExpiry );

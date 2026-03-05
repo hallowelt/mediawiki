@@ -187,11 +187,11 @@ class EditPage implements IEditObject {
 	 */
 	private $action = 'submit';
 
-	/** @var bool Whether an edit conflict needs to be resolved. Detected based on whether
+	/** Whether an edit conflict needs to be resolved. Detected based on whether
 	 * $editRevId is different than the latest revision. When a conflict has successfully
 	 * been resolved by a 3-way-merge, this field is set to false.
 	 */
-	public $isConflict = false;
+	public bool $isConflict = false;
 
 	/** @var bool New page or new section */
 	private $isNew = false;
@@ -217,14 +217,12 @@ class EditPage implements IEditObject {
 	/** @var bool */
 	private $missingSummary = false;
 
-	/** @var bool */
-	private $allowBlankSummary = false;
+	private bool $allowBlankSummary = false;
 
 	/** @var bool */
 	protected $blankArticle = false;
 
-	/** @var bool */
-	private $allowBlankArticle = false;
+	private bool $allowBlankArticle = false;
 
 	/** @var ?Title */
 	private $problematicRedirectTarget = null;
@@ -232,11 +230,9 @@ class EditPage implements IEditObject {
 	/** @var ?Title */
 	private $allowedProblematicRedirectTarget = null;
 
-	/** @var bool */
-	private $ignoreProblematicRedirects = false;
+	private bool $ignoreProblematicRedirects = false;
 
-	/** @var string */
-	private $autoSumm = '';
+	private string $autoSumm = '';
 
 	/** @var string */
 	private $hookError = '';
@@ -258,30 +254,27 @@ class EditPage implements IEditObject {
 	/** @var bool */
 	private $diff = false;
 
-	/** @var bool */
-	private $minoredit = false;
+	private bool $minoredit = false;
 
-	/** @var bool */
-	private $watchthis = false;
+	private bool $watchthis = false;
 
 	/** @var bool Corresponds to $wgWatchlistExpiry */
 	private $watchlistExpiryEnabled;
 
 	private WatchedItemStoreInterface $watchedItemStore;
 
-	/** @var string|null The expiry time of the watch item, or null if it is not watched temporarily. */
-	private $watchlistExpiry;
+	/** The expiry time of the watch item, or null if it is not watched temporarily. */
+	private ?string $watchlistExpiry = null;
 
-	/** @var bool */
-	private $recreate = false;
+	private bool $recreate = false;
 
 	/** @var bool */
 	private $ignoreRevisionDeletedWarning = false;
 
-	/** @var string
+	/**
 	 * Page content input field.
 	 */
-	public $textbox1 = '';
+	public string $textbox1 = '';
 
 	/**
 	 * @deprecated since 1.44
@@ -289,8 +282,7 @@ class EditPage implements IEditObject {
 	 */
 	private $textbox2 = '';
 
-	/** @var string */
-	public $summary = '';
+	public string $summary = '';
 
 	/**
 	 * @var bool
@@ -298,13 +290,14 @@ class EditPage implements IEditObject {
 	 */
 	private $nosummary = false;
 
-	/** @var string|null
+	/**
 	 * Timestamp of the latest revision of the page when editing was initiated
 	 * on the client.
 	 */
-	public $edittime = '';
+	public ?string $edittime = '';
 
-	/** @var int|null Revision ID of the latest revision of the page when editing
+	/**
+	 * Revision ID of the latest revision of the page when editing
 	 * was initiated on the client.  This is used to detect and resolve edit
 	 * conflicts.
 	 *
@@ -315,51 +308,45 @@ class EditPage implements IEditObject {
 	 * @see $oldid
 	 * @see getExpectedParentRevision()
 	 */
-	private $editRevId = null;
+	private ?int $editRevId = null;
 
-	/** @var string */
-	public $section = '';
+	public string $section = '';
 
-	/** @var string|null */
-	public $sectiontitle = null;
+	public ?string $sectiontitle = null;
 
-	/** @var string|null */
-	private $newSectionAnchor = null;
+	private ?string $newSectionAnchor = null;
 
-	/** @var string|null
+	/**
 	 * Timestamp from the first time the edit form was rendered.
 	 */
-	public $starttime = '';
+	public ?string $starttime = '';
 
-	/** @var int Revision ID the edit is based on, or 0 if it's the current revision.
+	/**
+	 * Revision ID the edit is based on, or 0 if it's the current revision.
 	 * FIXME: This isn't used in conflict resolution--provide a better
 	 * justification or merge with parentRevId.
 	 * @see $editRevId
 	 */
-	public $oldid = 0;
+	public int $oldid = 0;
 
 	/**
-	 * @var int Revision ID the edit is based on, adjusted when an edit conflict is resolved.
+	 * Revision ID the edit is based on, adjusted when an edit conflict is resolved.
 	 * @see $editRevId
 	 * @see $oldid
 	 * @see getparentRevId()
 	 */
-	private $parentRevId = 0;
+	private int $parentRevId = 0;
 
 	/** @var int|null */
 	private $scrolltop = null;
 
-	/** @var bool */
-	private $markAsBot = true;
+	private bool $markAsBot = true;
 
-	/** @var string */
-	public $contentModel;
+	public string $contentModel;
 
-	/** @var null|string */
-	public $contentFormat = null;
+	public ?string $contentFormat = null;
 
-	/** @var null|array */
-	private $changeTags = null;
+	private ?array $changeTags = null;
 
 	# Placeholders for text injection by hooks (must be HTML)
 	# extensions should take care to _append_ to the present value
@@ -383,26 +370,20 @@ class EditPage implements IEditObject {
 
 	/** @var bool should be set to true whenever an article was successfully altered. */
 	public $didSave = false;
-	/** @var int */
-	public $undidRev = 0;
-	/** @var int */
-	private $undoAfter = 0;
+	public int $undidRev = 0;
+	private int $undoAfter = 0;
 
 	/** @var bool */
 	public $suppressIntro = false;
 
-	/** @var int|false */
-	private $contentLength = false;
+	private int|false $contentLength = false;
 
 	/**
-	 * @var bool Set in ApiEditPage, based on ContentHandler::allowsDirectApiEditing
+	 * Set in ApiEditPage, based on ContentHandler::allowsDirectApiEditing
 	 */
-	private $enableApiEditOverride = false;
+	private bool $enableApiEditOverride = false;
 
-	/**
-	 * @var IContextSource
-	 */
-	protected $context;
+	protected IContextSource $context;
 
 	/**
 	 * @var bool Whether an old revision is edited
@@ -410,9 +391,9 @@ class EditPage implements IEditObject {
 	private $isOldRev = false;
 
 	/**
-	 * @var string|null What the user submitted in the 'wpUnicodeCheck' field
+	 * What the user submitted in the 'wpUnicodeCheck' field
 	 */
-	private $unicodeCheck;
+	private ?string $unicodeCheck = null;
 
 	/** @var callable|null */
 	private $editConflictHelperFactory = null;
@@ -441,8 +422,8 @@ class EditPage implements IEditObject {
 	/** @var User|null */
 	private $savedTempUser;
 
-	/** @var bool Whether temp user creation will be attempted */
-	private $tempUserCreateActive = false;
+	/** Whether temp user creation will be attempted */
+	private bool $tempUserCreateActive = false;
 
 	/** @var string|null If a temp user name was acquired, this is the name */
 	private $tempUserName;
@@ -450,8 +431,8 @@ class EditPage implements IEditObject {
 	/** @var bool Whether temp user creation was successful */
 	private $tempUserCreateDone = false;
 
-	/** @var bool Whether temp username acquisition failed (false indicates no failure or not attempted) */
-	private $unableToAcquireTempName = false;
+	/** Whether temp username acquisition failed (false indicates no failure or not attempted) */
+	private bool $unableToAcquireTempName = false;
 
 	private LinkRenderer $linkRenderer;
 	private LinkBatchFactory $linkBatchFactory;
@@ -549,10 +530,8 @@ class EditPage implements IEditObject {
 	 * Allow editing of content that supports API direct editing, but not general
 	 * direct editing. Set to false by default.
 	 * @internal Must only be used by ApiEditPage
-	 *
-	 * @param bool $enableOverride
 	 */
-	public function setApiEditOverride( $enableOverride ) {
+	public function setApiEditOverride( bool $enableOverride ): void {
 		$this->enableApiEditOverride = $enableOverride;
 	}
 
@@ -991,15 +970,11 @@ class EditPage implements IEditObject {
 			$text = $this->textbox1;
 			$out->addWikiMsg( 'viewyourtext' );
 		} else {
-			try {
-				$text = $this->pageEditingHelper->toEditText(
-					$content, $this->contentFormat, $this->enableApiEditOverride
-				);
-			} catch ( MWException ) {
-				# Serialize using the default format if the content model is not supported
-				# (e.g. for an old revision with a different model)
-				$text = $content->serialize();
-			}
+			// Convert the content to editable text, or serialize using the default format if the content model is not
+			// supported (e.g. for an old revision with a different model)
+			$text = $this->pageEditingHelper->toEditText(
+				$content, $this->contentFormat, $this->enableApiEditOverride
+			) ?? $content->serialize();
 			$out->addWikiMsg( 'viewsourcetext' );
 		}
 
@@ -1576,29 +1551,30 @@ class EditPage implements IEditObject {
 	 * When using the "undo" action, generate a default edit summary and save it
 	 * to $this->summary
 	 *
-	 * @param RevisionRecord|null $oldrev The revision in the URI "undoafter" field
+	 * @param RevisionRecord|null $oldRev The revision in the URI "undoafter" field
 	 * @param int $undo The integer in the URI "undo" field
-	 * @param RevisionRecord|null $undorev The revision in the URI "undo" field
+	 * @param RevisionRecord|null $undoRev The revision in the URI "undo" field
 	 * @param MediaWikiServices $services Service container
-	 * @return void
 	 */
-	private function generateUndoEditSummary( ?RevisionRecord $oldrev, int $undo,
-		?RevisionRecord $undorev, MediaWikiServices $services
-	) {
+	private function generateUndoEditSummary(
+		?RevisionRecord $oldRev,
+		int $undo,
+		?RevisionRecord $undoRev,
+		MediaWikiServices $services
+	): void {
 		// Generate an autosummary
-		$firstrev = $this->revisionStore->getNextRevision( $oldrev );
-		// Undid just one revision
-		if ( $firstrev && $firstrev->getId() == $undo ) {
-			$userText = $undorev->getUser() ?
-				$undorev->getUser()->getName() :
-				'';
-			if ( $userText === '' ) {
+		$firstRev = $this->revisionStore->getNextRevision( $oldRev );
+		if ( $firstRev && $firstRev->getId() == $undo ) {
+			// Undid just one revision
+			$userText = $undoRev->getUser()?->getName();
+			// @phan-suppress-next-line PhanImpossibleTypeComparison T418946
+			if ( $userText === null ) {
 				$undoSummary = $this->context->msg(
 					'undo-summary-username-hidden',
 					$undo
 				)->inContentLanguage()->text();
-			// Handle external users (imported revisions)
 			} elseif ( ExternalUserNames::isExternal( $userText ) ) {
+				// Handle external users (imported revisions)
 				$userLinkTitle = ExternalUserNames::getUserLinkTitle( $userText );
 				if ( $userLinkTitle ) {
 					$userLink = $userLinkTitle->getPrefixedText();
@@ -1617,8 +1593,8 @@ class EditPage implements IEditObject {
 				}
 			} else {
 				$undoIsAnon =
-					!$undorev->getUser() ||
-					!$undorev->getUser()->isRegistered();
+					!$undoRev->getUser() ||
+					!$undoRev->getUser()->isRegistered();
 				$disableAnonTalk = $services->getMainConfig()->get( MainConfigNames::DisableAnonTalk );
 				$undoMessage = ( $undoIsAnon && $disableAnonTalk ) ?
 					'undo-summary-anon' :
@@ -1629,20 +1605,14 @@ class EditPage implements IEditObject {
 					$userText
 				)->inContentLanguage()->text();
 			}
-			if ( $this->summary === '' ) {
-				$this->summary = $undoSummary;
-			} else {
-				$this->summary = $undoSummary . $this->context->msg( 'colon-separator' )
-					->inContentLanguage()->text() . $this->summary;
-			}
-		// Undid multiple revisions
 		} else {
-			$firstRevisionId = $firstrev->getId();
-			$lastRevisionId = $undorev->getId();
+			// Undid multiple revisions
+			$firstRevisionId = $firstRev->getId();
+			$lastRevisionId = $undoRev->getId();
 			$revisionCount = $services->getRevisionStore()->countRevisionsBetween(
-				$firstrev->getPageId(),
-				$firstrev,
-				$undorev,
+				$firstRev->getPageId(),
+				$firstRev,
+				$undoRev,
 				null,
 				[ RevisionStore::INCLUDE_BOTH, RevisionStore::INCLUDE_DELETED_REVISIONS ]
 			);
@@ -1651,12 +1621,12 @@ class EditPage implements IEditObject {
 				->params( $firstRevisionId, $lastRevisionId )
 				->inContentLanguage()
 				->text();
-			if ( $this->summary === '' ) {
-				$this->summary = $undoSummary;
-			} else {
-				$this->summary = $undoSummary . $this->context->msg( 'colon-separator' )
-					->inContentLanguage()->text() . $this->summary;
-			}
+		}
+		if ( $this->summary === '' ) {
+			$this->summary = $undoSummary;
+		} else {
+			$this->summary = $undoSummary . $this->context->msg( 'colon-separator' )
+				->inContentLanguage()->text() . $this->summary;
 		}
 	}
 
@@ -2303,7 +2273,7 @@ class EditPage implements IEditObject {
 		// Check for length errors again now that the section is merged in
 		$this->contentLength = strlen( $this->pageEditingHelper->toEditText(
 			$content, $this->contentFormat, $this->enableApiEditOverride
-		) );
+		) ?? '' );
 
 		$postMergeChecksRunner = $this->getPostMergeChecksRunner(
 			$content,
@@ -2447,7 +2417,6 @@ class EditPage implements IEditObject {
 
 			// If the article has been deleted while editing, don't save it without confirmation
 			$this->constraintFactory->newAccidentalRecreationConstraint(
-				$this->context,
 				$this->getTitle(),
 				$this->recreate,
 				$this->starttime,
@@ -3081,7 +3050,7 @@ class EditPage implements IEditObject {
 		if ( $this->isConflict ) {
 			$currentText = $this->pageEditingHelper->toEditText(
 				$this->getCurrentContent(), $this->contentFormat, $this->enableApiEditOverride
-			);
+			) ?? '';
 
 			$editConflictHelper = $this->getEditConflictHelper();
 			$editConflictHelper->setTextboxes( $this->textbox1, $currentText );
@@ -3257,7 +3226,6 @@ class EditPage implements IEditObject {
 			$constraintFactory = MediaWikiServices::getInstance()->getService( '_EditConstraintFactory' );
 			$constraintRunner = new EditConstraintRunner(
 				$constraintFactory->newAccidentalRecreationConstraint(
-					$this->context,
 					$this->getTitle(),
 					// Ignore wpRedirect so the warning is still shown after a save attempt
 					false,
@@ -4027,7 +3995,7 @@ class EditPage implements IEditObject {
 		$parserOptions = $this->page->makeParserOptions( $this->context );
 		$parserOptions->setRenderReason( 'page-preview' );
 		$parserOptions->setIsPreview( true );
-		$parserOptions->setIsSectionPreview( $this->section !== null && $this->section !== '' );
+		$parserOptions->setIsSectionPreview( $this->section !== '' );
 		$parserOptions->setSuppressSectionEditLinks();
 
 		// XXX: we could call $parserOptions->setCurrentRevisionRecordCallback here to force the

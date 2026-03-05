@@ -61,7 +61,7 @@ class Session implements \Countable, \Iterator, \ArrayAccess {
 	}
 
 	public function __destruct() {
-		$this->backend->deregisterSession( $this->index );
+		$this->backend?->deregisterSession( $this->index );
 	}
 
 	/**
@@ -289,7 +289,7 @@ class Session implements \Countable, \Iterator, \ArrayAccess {
 	 *
 	 * @param WebRequest $request Any existing session associated with this
 	 *  WebRequest object will be overwritten.
-	 * @return Session
+	 * @return self
 	 */
 	public function sessionWithRequest( WebRequest $request ) {
 		$request->setSessionId( $this->backend->getSessionId() );

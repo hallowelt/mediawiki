@@ -35,15 +35,13 @@ use Wikimedia\RemexHtml\Serializer\SerializerNode;
  * @ingroup API
  */
 class ApiHelp extends ApiBase {
-	private SkinFactory $skinFactory;
 
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		SkinFactory $skinFactory
+		private readonly SkinFactory $skinFactory,
 	) {
 		parent::__construct( $main, $action );
-		$this->skinFactory = $skinFactory;
 	}
 
 	public function execute() {

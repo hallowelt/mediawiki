@@ -55,16 +55,16 @@ class MultiFormatUserIdentityLookupTest extends MediaWikiIntegrationTestCase {
 	public function testLookupFailsOnNonLocalDatabase() {
 		$service = $this->getServiceContainer()->getMultiFormatUserIdentityLookup();
 		$status = $service->getUserIdentity( 'Example@nonlocal' )->getStatusValue();
-		$this->assertFalse( $status->isOK() );
-		$this->assertTrue( $status->hasMessage( 'userrights-nodatabase' ) );
+		$this->assertStatusNotOK( $status );
+		$this->assertStatusMessage( 'userrights-nodatabase', $status );
 	}
 
 	/** @dataProvider provideLookupFailsForEmptyUsername */
 	public function testLookupFailsForEmptyUsername( string $designator, string $message ) {
 		$service = $this->getServiceContainer()->getMultiFormatUserIdentityLookup();
 		$status = $service->getUserIdentity( $designator )->getStatusValue();
-		$this->assertFalse( $status->isOK() );
-		$this->assertTrue( $status->hasMessage( $message ) );
+		$this->assertStatusNotOK( $status );
+		$this->assertStatusMessage( $message, $status );
 	}
 
 	public static function provideLookupFailsForEmptyUsername(): array {
@@ -81,7 +81,7 @@ class MultiFormatUserIdentityLookupTest extends MediaWikiIntegrationTestCase {
 	public function testLookupForIP() {
 		$service = $this->getServiceContainer()->getMultiFormatUserIdentityLookup();
 		$status = $service->getUserIdentity( '127.0.0.1' )->getStatusValue();
-		$this->assertTrue( $status->isOK() );
+		$this->assertStatusOK( $status );
 		$user = $status->value;
 		$this->assertSame( '127.0.0.1', $user->getName() );
 		$this->assertSame( UserIdentity::LOCAL, $user->getWikiId() );
@@ -122,7 +122,7 @@ class MultiFormatUserIdentityLookupTest extends MediaWikiIntegrationTestCase {
 		$this->setService( 'ActorStoreFactory', $lookupFactoryMock );
 		$service = $this->getServiceContainer()->getMultiFormatUserIdentityLookup();
 		$status = $service->getUserIdentity( $designator )->getStatusValue();
-		$this->assertTrue( $status->isOK() );
+		$this->assertStatusOK( $status );
 		$user = $status->value;
 		$this->assertInstanceOf( UserIdentity::class, $user );
 		$this->assertSame( $expectedId, $user->getId( $expectedWiki ) );
@@ -219,7 +219,7 @@ class MultiFormatUserIdentityLookupTest extends MediaWikiIntegrationTestCase {
 			$this->assertSame( 'TargetUser', $user->getName() );
 			$this->assertSame( $targetWiki, $user->getWikiId() );
 		} else {
-			$this->assertTrue( $status->hasMessage( 'nosuchusershort' ) );
+			$this->assertStatusMessage( 'nosuchusershort', $status );
 		}
 	}
 

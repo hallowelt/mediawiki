@@ -34,7 +34,6 @@ class CoreMagicVariablesTest extends MediaWikiIntegrationTestCase {
 			MainConfigNames::LanguageCode => $contLang->getCode(),
 			// NOTE: Europe/Stockholm DST applies Sun, Mar 26, 2023 2:00 - Sun, Oct 29, 2023 3:00AM
 			MainConfigNames::Localtimezone => 'Europe/Stockholm',
-			MainConfigNames::MiserMode => false,
 			MainConfigNames::ParserCacheExpireTime => 86400 * 7,
 		] );
 	}
@@ -280,6 +279,16 @@ class CoreMagicVariablesTest extends MediaWikiIntegrationTestCase {
 			$this->parserOptions
 		);
 		$this->assertSame( 'x-target', $res );
+	}
+
+	public function testCacheExpirySourceIsSet() {
+		$parser = $this->getParser();
+		$title = Title::makeTitle( NS_MAIN, 'Tests' );
+		$parser->preprocess( '{{CURRENTMONTH}}', $title, $this->getParserOptions() );
+
+		$source = $parser->getOutput()->getCacheExpirySource();
+		$this->assertNotNull( $source );
+		$this->assertStringContainsString( 'currentmonth', $source );
 	}
 
 	# ############## HELPERS ############################################

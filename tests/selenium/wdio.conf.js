@@ -7,8 +7,8 @@ export const config = { ...wdioDefaults,
 	// Example:
 	// logLevel: 'info',
 	specs: [
-		'docs/**/specs/*.js',
 		'specs/**/*.js',
+		'docs/**/specs/*.js',
 		'wdio-mediawiki/specs/*.js'
 	],
 	// To enable video recording, enable video and disable browser headless

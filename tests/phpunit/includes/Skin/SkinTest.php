@@ -777,7 +777,7 @@ class SkinTest extends MediaWikiIntegrationTestCase {
 					'infinity'
 				)
 				->placeBlock();
-			$this->assertTrue( $blockStatus->isGood() );
+			$this->assertStatusGood( $blockStatus );
 			$result = array_keys( $skin->buildSidebar()['TOOLBOX'] );
 			$expected = [ 'changeblockip', 'contributions', 'log', 'unblockip' ];
 			$this->assertArrayEquals(

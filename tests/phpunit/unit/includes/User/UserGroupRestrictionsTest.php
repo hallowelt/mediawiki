@@ -24,6 +24,8 @@ class UserGroupRestrictionsTest extends MediaWikiUnitTestCase {
 		$this->assertSame( [ 'cond1', 'cond2' ], $restrictions->getMemberConditions() );
 		$this->assertSame( [ 'cond3' ], $restrictions->getUpdaterConditions() );
 		$this->assertTrue( $restrictions->canBeIgnored() );
+		$this->assertFalse( $restrictions->continuouslyEnforced() );
+		$this->assertTrue( $restrictions->hasAnyConditions() );
 	}
 
 	public function testFromFullSpecWithScalarConditions() {
@@ -36,6 +38,8 @@ class UserGroupRestrictionsTest extends MediaWikiUnitTestCase {
 		$this->assertSame( [ 'cond1' ], $restrictions->getMemberConditions() );
 		$this->assertSame( [ 'cond3' ], $restrictions->getUpdaterConditions() );
 		$this->assertTrue( $restrictions->canBeIgnored() );
+		$this->assertFalse( $restrictions->continuouslyEnforced() );
+		$this->assertTrue( $restrictions->hasAnyConditions() );
 	}
 
 	public function testFromEmptySpec() {
@@ -43,5 +47,15 @@ class UserGroupRestrictionsTest extends MediaWikiUnitTestCase {
 		$this->assertSame( [], $restrictions->getMemberConditions() );
 		$this->assertSame( [], $restrictions->getUpdaterConditions() );
 		$this->assertFalse( $restrictions->canBeIgnored() );
+		$this->assertFalse( $restrictions->continuouslyEnforced() );
+		$this->assertFalse( $restrictions->hasAnyConditions() );
+	}
+
+	public function testContinuouslyEnforced() {
+		$spec = [
+			'memberConditions' => [ 'cond1' ],
+		];
+		$restrictions = new UserGroupRestrictions( $spec );
+		$this->assertTrue( $restrictions->continuouslyEnforced() );
 	}
 }

@@ -113,15 +113,15 @@ use MediaWiki\Json\RsaJwtCodec;
 use MediaWiki\Language\FormatterFactory;
 use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageCode;
+use MediaWiki\Language\LanguageConverterFactory;
+use MediaWiki\Language\LanguageEventIngress;
+use MediaWiki\Language\LanguageFactory;
+use MediaWiki\Language\LanguageFallback;
 use MediaWiki\Language\LanguageNameSearch;
+use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\Language\LazyLocalizationContext;
 use MediaWiki\Language\LeximorphFactory;
 use MediaWiki\Language\MessageParser;
-use MediaWiki\Languages\LanguageConverterFactory;
-use MediaWiki\Languages\LanguageEventIngress;
-use MediaWiki\Languages\LanguageFactory;
-use MediaWiki\Languages\LanguageFallback;
-use MediaWiki\Languages\LanguageNameUtils;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkRendererFactory;
 use MediaWiki\Linker\LinksMigration;
@@ -136,6 +136,7 @@ use MediaWiki\Mail\Emailer;
 use MediaWiki\Mail\EmailUser;
 use MediaWiki\Mail\EmailUserFactory;
 use MediaWiki\Mail\IEmailer;
+use MediaWiki\Mail\NotificationEmail\NotificationEmailSender;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
@@ -267,6 +268,7 @@ use MediaWiki\User\PasswordReset;
 use MediaWiki\User\Registration\LocalUserRegistrationProvider;
 use MediaWiki\User\Registration\UserRegistrationLookup;
 use MediaWiki\User\RestrictedUserGroupCheckerFactory;
+use MediaWiki\User\RestrictedUserGroupConfigReader;
 use MediaWiki\User\TalkPageNotificationManager;
 use MediaWiki\User\TempUser\RealTempUserConfig;
 use MediaWiki\User\TempUser\TempUserCreator;
@@ -710,7 +712,8 @@ return [
 			new HookRunner( $services->getHookContainer() ),
 			$services->getUserFactory(),
 			$services->getEmailer(),
-			$services->getConfirmEmailBuilderFactory()
+			$services->getConfirmEmailBuilderFactory(),
+			LoggerFactory::getInstance( 'confirmemail' )
 		);
 	},
 
@@ -1574,6 +1577,18 @@ return [
 		);
 	},
 
+	'NotificationEmailSender' => static function ( MediaWikiServices $services ): NotificationEmailSender {
+		return new NotificationEmailSender(
+			new ServiceOptions(
+				NotificationEmailSender::CONSTRUCTOR_OPTIONS,
+				$services->getMainConfig()
+			),
+			$services->getEmailer(),
+			$services->getLocalServerObjectCache(),
+			$services->getUrlUtils()
+		);
+	},
+
 	'NotificationService' => static function ( MediaWikiServices $services ): NotificationService {
 		$handlers = ExtensionRegistry::getInstance()->getAttribute( 'NotificationHandlers' );
 		// Inject default MediaWiki handlers
@@ -2174,10 +2189,17 @@ return [
 	'RestrictedUserGroupCheckerFactory' =>
 		static function ( MediaWikiServices $services ): RestrictedUserGroupCheckerFactory {
 			return new RestrictedUserGroupCheckerFactory(
-				new ServiceOptions(
-					RestrictedUserGroupCheckerFactory::CONSTRUCTOR_OPTIONS, $services->getMainConfig()
-				),
+				$services->getRestrictedUserGroupConfigReader(),
 				$services->getUserRequirementsConditionChecker()
+			);
+		},
+
+	'RestrictedUserGroupConfigReader' =>
+		static function ( MediaWikiServices $services ): RestrictedUserGroupConfigReader {
+			return new RestrictedUserGroupConfigReader(
+				new ServiceOptions(
+					RestrictedUserGroupConfigReader::CONSTRUCTOR_OPTIONS, $services->getMainConfig()
+				)
 			);
 		},
 
@@ -2777,7 +2799,9 @@ return [
 			$services->getHookContainer(),
 			$services->getJobQueueGroupFactory(),
 			$services->getTempUserConfig(),
+			$services->getUserFactory(),
 			$services->getUserRequirementsConditionCheckerFactory(),
+			$services->getRestrictedUserGroupConfigReader(),
 			[ static function ( UserIdentity $user ) use ( $services ) {
 				if ( $user->getWikiId() === UserIdentity::LOCAL ) {
 					$services->getPermissionManager()->invalidateUsersRightsCache( $user );
@@ -3076,7 +3100,7 @@ return [
 
 			// AccidentalRecreationConstraint
 			$services->getConnectionProvider(),
-			$services->getCommentStore(),
+			$services->getLogFormatterFactory(),
 		);
 	},
 

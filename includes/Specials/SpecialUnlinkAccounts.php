@@ -18,12 +18,13 @@ use StatusValue;
 class SpecialUnlinkAccounts extends AuthManagerSpecialPage {
 	/** @inheritDoc */
 	protected static $allowedActions = [ AuthManager::ACTION_UNLINK ];
-	private SessionManager $sessionManager;
 
-	public function __construct( AuthManager $authManager, SessionManager $sessionManager ) {
+	public function __construct(
+		AuthManager $authManager,
+		private readonly SessionManager $sessionManager,
+	) {
 		parent::__construct( 'UnlinkAccounts' );
 		$this->setAuthManager( $authManager );
-		$this->sessionManager = $sessionManager;
 	}
 
 	/** @inheritDoc */
@@ -91,7 +92,7 @@ class SpecialUnlinkAccounts extends AuthManagerSpecialPage {
 		}
 
 		$status = StatusValue::newGood();
-		$status->warning( $this->msg( 'unlinkaccounts-success' ) );
+		$status->warning( 'unlinkaccounts-success' );
 		$this->loadAuth( $subPage, null, true ); // update requests so the unlinked one doesn't show up
 
 		// Reset sessions - if the user unlinked an account because it was compromised,

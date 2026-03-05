@@ -13,6 +13,7 @@ use MediaWiki\Cache\HTMLFileCache;
 use MediaWiki\CommentFormatter\CommentFormatter;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Context\RequestContext;
+use MediaWiki\Debug\DeprecationHelper;
 use MediaWiki\EditPage\EditPage;
 use MediaWiki\Exception\PermissionsError;
 use MediaWiki\HookContainer\HookRunner;
@@ -20,7 +21,6 @@ use MediaWiki\HookContainer\ProtectedHookAccessorTrait;
 use MediaWiki\Html\Html;
 use MediaWiki\JobQueue\JobQueueGroup;
 use MediaWiki\JobQueue\Jobs\ParsoidCachePrewarmJob;
-use MediaWiki\Language\Language;
 use MediaWiki\Linker\Linker;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Logging\LogEventsList;
@@ -40,13 +40,13 @@ use MediaWiki\Revision\ArchivedRevisionLookup;
 use MediaWiki\Revision\BadRevisionException;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\RevisionStore;
-use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Skin\Skin;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
 use MediaWiki\User\Options\UserOptionsLookup;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserNameUtils;
+use StatusValue;
 use Wikimedia\HtmlArmor\HtmlArmor;
 use Wikimedia\IPUtils;
 use Wikimedia\NonSerializable\NonSerializableTrait;
@@ -64,13 +64,14 @@ use Wikimedia\Rdbms\IConnectionProvider;
 class Article implements Page {
 	use ProtectedHookAccessorTrait;
 	use NonSerializableTrait;
+	use DeprecationHelper;
 
 	/**
 	 * @var IContextSource|null The context this Article is executed in.
 	 * If null, RequestContext::getMain() is used.
 	 * @deprecated since 1.35, must be private, use {@link getContext}
 	 */
-	protected $mContext;
+	private $mContext;
 
 	/** @var WikiPage The WikiPage object of this instance */
 	protected $mPage;
@@ -88,7 +89,7 @@ class Article implements Page {
 	public $mRedirectUrl = false;
 
 	/**
-	 * @var Status|null represents the outcome of fetchRevisionRecord().
+	 * @var StatusValue|null represents the outcome of fetchRevisionRecord().
 	 * $fetchResult->value is the RevisionRecord object, if the operation was successful.
 	 */
 	private $fetchResult = null;
@@ -137,6 +138,8 @@ class Article implements Page {
 	 * @param int|null $oldId Revision ID, null to fetch from request, zero for current
 	 */
 	public function __construct( Title $title, $oldId = null ) {
+		$this->deprecatePublicProperty( 'mContext', '1.35', __CLASS__ );
+
 		$this->mOldId = $oldId;
 		$this->mPage = $this->newPage( $title );
 
@@ -371,7 +374,7 @@ class Article implements Page {
 						$this->getTitle()->getPrefixedText() );
 
 					// Output for this case is done by showMissingArticle().
-					$this->fetchResult = Status::newFatal( 'noarticletext' );
+					$this->fetchResult = StatusValue::newFatal( 'noarticletext' );
 					return null;
 				}
 			} else {
@@ -380,7 +383,7 @@ class Article implements Page {
 				if ( !$this->mRevisionRecord ) {
 					wfDebug( __METHOD__ . " failed to load revision, rev_id $oldid" );
 
-					$this->fetchResult = Status::newFatal( $this->getMissingRevisionMsg( $oldid ) );
+					$this->fetchResult = StatusValue::newFatal( $this->getMissingRevisionMsg( $oldid ) );
 					return null;
 				}
 			}
@@ -391,7 +394,7 @@ class Article implements Page {
 
 			// Output for this case is done by showDeletedRevisionHeader().
 			// title used in wikilinks, should not contain whitespaces
-			$this->fetchResult = new Status;
+			$this->fetchResult = new StatusValue();
 			$title = $this->getTitle()->getPrefixedDBkey();
 
 			if ( $this->mRevisionRecord->isDeleted( RevisionRecord::DELETED_RESTRICTED ) ) {
@@ -403,7 +406,7 @@ class Article implements Page {
 			return null;
 		}
 
-		$this->fetchResult = Status::newGood( $this->mRevisionRecord );
+		$this->fetchResult = StatusValue::newGood( $this->mRevisionRecord );
 		return $this->mRevisionRecord;
 	}
 
@@ -788,7 +791,7 @@ class Article implements Page {
 
 		$rev = $this->fetchRevisionRecord();
 		if ( !$this->fetchResult->isOK() ) {
-			$this->showViewError( $this->fetchResult->getWikiText(
+			$this->showViewError( Status::wrap( $this->fetchResult )->getWikiText(
 				false, false, $this->getContext()->getLanguage()
 			) );
 			return true;
@@ -993,6 +996,11 @@ class Article implements Page {
 
 		$outputPage->addPostProcessedParserOutput( $pOutput );
 
+		if ( $pOutput->getRedirectHeader() !== null ) {
+			$outputPage->addSubtitle( "<span id=\"redirectsub\">" .
+				$this->getContext()->msg( 'redirectpagesub' )->parse() . "</span>" );
+		}
+
 		# Preload timestamp to avoid a DB hit
 		$cachedTimestamp = $pOutput->getRevisionTimestamp();
 		if ( $cachedTimestamp !== null ) {
@@ -1003,14 +1011,14 @@ class Article implements Page {
 
 	private function doOutputFromRenderStatus(
 		RevisionRecord $rev,
-		Status $renderStatus,
+		StatusValue $renderStatus,
 		OutputPage $outputPage,
 		ParserOptions $parserOptions,
 		array $textOptions,
 	) {
 		$context = $this->getContext();
 		if ( !$renderStatus->isOK() ) {
-			$this->showViewError( $renderStatus->getWikiText(
+			$this->showViewError( Status::wrap( $renderStatus )->getWikiText(
 				false, 'view-pool-error', $context->getLanguage()
 			) );
 			return;
@@ -1044,22 +1052,10 @@ class Article implements Page {
 
 		$outputPage->addPostProcessedParserOutput( $pOutput );
 
-		if ( $this->getRevisionRedirectTarget( $rev ) ) {
+		if ( $pOutput->getRedirectHeader() !== null ) {
 			$outputPage->addSubtitle( "<span id=\"redirectsub\">" .
 				$context->msg( 'redirectpagesub' )->parse() . "</span>" );
 		}
-	}
-
-	/**
-	 * @param RevisionRecord $revision
-	 * @return null|Title
-	 */
-	private function getRevisionRedirectTarget( RevisionRecord $revision ) {
-		// TODO: find a *good* place for the code that determines the redirect target for
-		// a given revision!
-		// NOTE: Use main slot content. Compare code in DerivedPageDataUpdater::revisionIsRedirect.
-		$content = $revision->getContent( SlotRecord::MAIN );
-		return $content ? $content->getRedirectTarget() : null;
 	}
 
 	/**
@@ -1977,25 +1973,6 @@ class Article implements Page {
 				'mw-revision'
 			)
 		);
-	}
-
-	/**
-	 * Return the HTML for the top of a redirect page
-	 *
-	 * Chances are you should just be using the ParserOutput from
-	 * WikitextContent::getParserOutput instead of calling this for redirects.
-	 *
-	 * @since 1.23
-	 * @param Language $lang
-	 * @param Title $target Destination to redirect
-	 * @param bool $forceKnown Should the image be shown as a bluelink regardless of existence?
-	 * @return string Containing HTML with redirect link
-	 * @deprecated since 1.41, use LinkRenderer::makeRedirectHeader() instead
-	 */
-	public static function getRedirectHeaderHtml( Language $lang, Title $target, $forceKnown = false ) {
-		wfDeprecated( __METHOD__, '1.41' );
-		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
-		return $linkRenderer->makeRedirectHeader( $lang, $target, $forceKnown );
 	}
 
 	/**

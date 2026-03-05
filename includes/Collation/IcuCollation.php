@@ -9,7 +9,7 @@ namespace MediaWiki\Collation;
 use Collator;
 use InvalidArgumentException;
 use MediaWiki\Language\Language;
-use MediaWiki\Languages\LanguageFactory;
+use MediaWiki\Language\LanguageFactory;
 use MediaWiki\MediaWikiServices;
 use RuntimeException;
 use Wikimedia\ArrayUtils\ArrayUtils;
@@ -18,7 +18,7 @@ use Wikimedia\ArrayUtils\ArrayUtils;
  * @since 1.16.3
  */
 class IcuCollation extends Collation {
-	private const FIRST_LETTER_VERSION = 5;
+	private const FIRST_LETTER_VERSION = 6;
 
 	/** @var Collator */
 	private $primaryCollator;
@@ -425,6 +425,7 @@ class IcuCollation extends Collation {
 				'first-letters',
 				static::class,
 				$this->locale,
+				(int)$this->isNumericCollation,
 				$this->digitTransformLanguage->getCode(),
 				INTL_ICU_VERSION,
 				self::FIRST_LETTER_VERSION

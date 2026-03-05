@@ -1,6 +1,5 @@
 = MediaWiki 1.46 =
 
-PHP 8.1 workboard: https://phabricator.wikimedia.org/tag/php_8.1_support/
 PHP 8.2 workboard: https://phabricator.wikimedia.org/tag/php_8.2_support/
 PHP 8.3 workboard: https://phabricator.wikimedia.org/tag/php_8.3_support/
 PHP 8.4 workboard: https://phabricator.wikimedia.org/tag/php_8.4_support/
@@ -29,6 +28,8 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 * $wgSVGConverter inkscape now requires Inkscape 1.0 or newer
 * $wgSVGConverter presets sodipodi and imgserv were removed
+* $wgLogos['1.5x'] is no longer used. Devices that previously
+  displayed the 1.5x logo will use $wgLogos['2x'] instead.
 * …
 
 ==== New configuration ====
@@ -40,6 +41,8 @@ For notes on 1.45.x and older releases, see HISTORY.
 * $wgUserJsPrefLimit – (T408733) This setting lets you limit the maximum number
   of supported custom JS preferences each user can have, to reduce load. The
   default value is 100.
+* $wgBotPasswordsLimit - This setting allows administrators to configure the
+  maximum number of bot passwords a user can create. The default value is 100.
 * …
 
 ==== Changed configuration ====
@@ -50,6 +53,11 @@ For notes on 1.45.x and older releases, see HISTORY.
   The browser adds restrictions on the SVG when included as an <img> for
   additional protection. We do advise configuring CSP headers to protect users
   in case they open a SVG file directly in the browser.
+* $wgThumbLimits has two new entries by default, 220px and 400px.  This
+  matches the configuration used by WMF in production.  Since the default
+  user thumbsize option is an index into this list (currently, '5'), this
+  has the effect of changing the user default thumbnail size from 300px
+  to 250px; again matching current WMF production defaults.
 * …
 
 ==== Removed configuration ====
@@ -106,23 +114,24 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 ===== New development-only external libraries =====
 
+* Added ergebnis/phpunit-slow-test-detector v2.23.0.
 * …
 
 ==== Changed external libraries ====
 
 * Updated codex, codex-design-tokens and codex-icons
-  from v2.3.2 to v2.3.4.
-* Updated jsonrainbow/json-schema from 5.3.0 to 5.3.1.
+  from v2.3.2 to v2.4.0.
+* Updated jsonrainbow/json-schema from 5.3.0 to 5.3.2.
 * Updated lcobucci/jwt from 4.1.5 to 5.6.0.
 * Updated monolog/monolog from 2.9.3 to 2.11.0.
 * Updated oojs/oojs-ui (OOUI) from v0.53.0 to v0.53.1.
 * Updated pear/net_smtp from 1.12.1 to 1.12.2.
 * Updated psy/psysh from ^0.12.3 to 0.12.19.
-* Updated symfony/yaml from 6.4.26 to 6.4.30.
-* Updated wikimedia/bcp-47-code from 2.0.1 to 2.0.2.
-* Updated wikimedia/css-sanitizer from 6.1.0 to 6.2.0.
+* Updated symfony/yaml from 6.4.26 to 7.4.6.
+* Updated wikimedia/bcp-47-code from 2.0.1 to 2.0.3.
+* Updated wikimedia/css-sanitizer from 6.1.0 to 6.2.1.
 * Updated wikimedia/ip-utils from 5.0.0 to 6.0.1.
-* Updated wikimedia/less.php from 5.2.2 to 5.5.0.
+* Updated wikimedia/less.php from 5.2.2 to 5.5.1.
 * Updated wikimedia/minify from 2.9.0 to 2.10.0.
 * Updated wikimedia/relpath from 4.0.2 to 4.1.1.
 * Updated wikimedia/running-stat from 2.1.0 to 2.2.0.
@@ -134,7 +143,7 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 ===== Changed development-only external libraries =====
 
-* Updated doctrine/dbal from 3.10.0 to 3.10.4.
+* Updated doctrine/dbal from 3.10.0 to 3.10.5.
 * Updated doctrine/sql-formatter from 1.5.2 to 1.5.4.
 * Updated eslint-config-wikimedia from 0.31.0 to 0.32.3.
 * Updated mck89/peast from 1.17.2 to 1.17.4.
@@ -147,6 +156,11 @@ For notes on 1.45.x and older releases, see HISTORY.
 ==== Removed external libraries ====
 
 * Removed symfony/polyfill-php82.
+* …
+
+===== Removed development-only external libraries =====
+
+* Dropped johnkary/phpunit-speedtrap, incompatible with PHPUnit 10+. (T328919)
 * …
 
 === Bug fixes in 1.46 ===
@@ -216,6 +230,11 @@ because of Phabricator reports.
 * The tests/phpunit/suite.xml configuration file and
   tests/phpunit/bootstrap.integration.php bootstrap, deprecated in 1.42, have
   been removed. Use phpunit.xml.dist and bootstrap.php instead.
+* The phpunit.xml.dist configuration file has been removed. MediaWiki now
+  provides a phpunit.xml.template file that will be used to generate a local
+  configuration file dependent on the wiki config. The local configuration
+  can be generated manually by running `composer phpunit:config`, or
+  automatically when running tests via `composer phpunit`.
 * The tables represented by subclasses of TitleLinksTable are now expected to
   be normalized to use the linktarget table. If they are not, they should
   override the linksTargetNormalizationStage method to return MIGRATION_OLD.
@@ -224,6 +243,9 @@ because of Phabricator reports.
 * EtcdConfig::setLogger(), deprecated in 1.41, has been removed.
 * DatabaseBlock::delete, deprecated in 1.36, has been removed. Please use
   DatabaseBlockStore::deleteBlock instead.
+* The Result class has been removed; it was an unused alias of
+  Shellbox\Command\UnboxedResult since 1.36.
+* The PageContentSave hook, deprecated in 1.35, has been removed.
 * The UserIsBlockedGlobally hook, deprecated in 1.40, has been removed
 * The hooks 'AbortTalkPageEmailNotification' and 'AbortEmailNotification'
   (deprecated in 1.44 and 1.45) have been removed.
@@ -243,15 +265,31 @@ because of Phabricator reports.
   interface MediaWiki\Rest\ResponseInterface has been likewise updated.
 * The global function wfAssembleUrl(), deprecated in 1.39, has been removed.
   Instead, use UrlUtils::assemble().
+* The global function wfArrayDiff2(), deprecated in 1.43, has been removed.
 * Parser::Options(), deprecated in 1.35, has been dropped. Instead, use the
   ::getOptions() and ::setOptions() methods.
+* DefaultSettings.php, deprecated in 1.39, has been removed.
 * Various deprecated Parser class functions have been dropped.
-  - Parser::OutputType(), depercated in 1.35. Use ::getOutputType() and
+  - Parser::OutputType(), deprecated in 1.35. Use ::getOutputType() and
     ::setOutputType() instead.
   - Parser::getFunctionLang(), deprecated in 1.40. Use ::getTargetLanguage().
   - Parser::doBlockLevels(), deprecated in 1.35. Internal-only replacement
     is provided by BlockLevelPass::doBlockLevels().
+  - Parser::attributeStripCallback(), deprecated with warnings in 1.35.
+    This was never intended to be public.
+  - Parser::enableOOUI(), deprecated with warnings in 1.35. Use
+    $parser->getOutput()->setEnableOOUI() instead.
+  - Parser::getPage() never returns null.  Calling ::getPage() without
+    a title set was deprecated in 1.34 and has emitted warnings when
+    returning null since 1.41.
+  - Parser::getOutput() never returns null.  Calling ::getOutput() before
+    the initialization of ParserOutput has been deprecated with warnings
+    since 1.43.
 * wfMergeErrorArrays(), deprecated in 1.43, has been dropped.
+* Article::getRedirectHeaderHtml(), deprecated in 1.41, has been dropped.
+  Instead, use LinkRenderer::makeRedirectHeader().
+* MergeHistory::isValidMerge() and MergeHistory::merge() now return StatusValue
+  instead of Status. There are no known callers outside of core.
 * …
 
 === Deprecations in 1.46 ===
@@ -847,6 +885,16 @@ because of Phabricator reports.
     - QuorumLockManager
     - RedisLockManager
     - ScopedLock
+* Wikimedia\MapCacheLRU\MapCacheLRU renamed to
+  Wikimedia\ObjectCache\MapCacheLRU.
+* MediaWiki\Cache\Hook\MessageCacheFetchOverridesHook renamed to
+  MediaWiki\Language\Hook\MessageCacheFetchOverridesHook.
+* MediaWiki\Cache\Hook\MessageCacheReplaceHook renamed to
+  MediaWiki\Language\Hook\MessageCacheReplaceHook.
+* MediaWiki\Cache\Hook\MessageCache__getHook renamed to
+  MediaWiki\Language\Hook\MessageCache__getHook.
+* MediaWiki\Cache\Hook\MessagesPreLoadHook renamed to
+  MediaWiki\Language\Hook\MessagesPreLoadHook.
 * Using an int for the $mode parameter of LanguageFallback::getAll() is now
   deprecated.  Use the new LanguageFallbackMode enumeration instead.
 * LanguageFallback::MESSAGES and LanguageFallback::STRICT are deprecated; use
@@ -860,10 +908,12 @@ because of Phabricator reports.
 * Parser::makeImage() has been deprecated with warnings; use
   ::makeImageHtml() instead, which doesn't expose the internal LinkHolderArray.
 * Parser::replaceLinkHolders() now emits deprecation warnings; it was
-  deprecared in 1.34.
+  deprecated in 1.34.
 * The WatchedItemQueryServiceExtensions hook is deprecated and is no longer
   called. Use ApiQueryBaseBeforeQuery, ApiQueryBaseAfterQuery,
   ApiQueryBaseProcessRow and ApiQueryWatchlistExtractOutputData.
+* Passing oldid on WatchlistManager::clearTitleUserNotifications is deprecated
+  and emits notice, pass RevisionRecord instead.
 * ApiUpload::getDummyInstance was deprecated, subclasses of ApiUpload can use
   ApiUpload::getUploadImageInfo() instead.
 * The UserLinkRenderer service has been marked @internal and the
@@ -875,6 +925,9 @@ because of Phabricator reports.
   warnings. In most cases (such as for use with UserOptionsManager) calling
   this method is no longer needed. In other cases use getInstanceFromPrimary()
   instead.
+* The use of "fromdb", "fromdbmaster", "forupdate" constants in WikiPage methods
+  has been deprecated. Effected methods include loadFromRow(), wasLoadedFrom(),
+  and loadPageData().
 * Some static methods in Xml, deprecated in 1.42, now emit deprecation warnings:
   - Xml::attrib(),
   - Xml::buildForm(),
@@ -889,6 +942,8 @@ because of Phabricator reports.
   deprecation warnings.  They will be made private in a future release.
 * Modification of the namespaces key will no longer modify associated pages
   in the SkinTemplateNavigation::Universal hook (T412238).
+* The global function wfArrayPlus2d() has been deprecated.
+* The global function wfArrayInsertAfter() has been deprecated.
 * All skins are now required to declare the menus they render in their
   skin definition (per T409774). In future this will allow for
   skin optimizations.

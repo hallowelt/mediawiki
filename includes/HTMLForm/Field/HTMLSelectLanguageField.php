@@ -3,6 +3,7 @@
 namespace MediaWiki\HTMLForm\Field;
 
 use MediaWiki\HTMLForm\HTMLForm;
+use MediaWiki\Json\FormatJson;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Widget\LanguageSelectWidget;
@@ -61,6 +62,25 @@ class HTMLSelectLanguageField extends HTMLSelectField {
 	 * @inheritDoc
 	 * @stable to override
 	 */
+	public function getOOUI( $value ) {
+		$layout = parent::getOOUI( $value );
+
+		// When using Codex, the field returns raw HTML, which evaluates $infusable to false.
+		// So data-ooui config won't be serialized, so we must manually set data-cond-state
+		// for cond-state.js to use in its non-OOUI fallback handling.
+		if ( $this->useCodex && $this->mCondState ) {
+			$layout->setAttributes( [
+				'data-cond-state' => FormatJson::encode( $this->parseCondStateForClient() )
+			] );
+		}
+
+		return $layout;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @stable to override
+	 */
 	public function getInputOOUI( $value ) {
 		if ( $this->useCodex ) {
 			return $this->getInputCodex( $value, false );
@@ -76,7 +96,7 @@ class HTMLSelectLanguageField extends HTMLSelectField {
 		// Add module for language selector widget
 		$this->mParent->getOutput()->addModules( 'mediawiki.widgets.LanguageSelectWidget' );
 
-		$standardAttribs = $this->getAttributes( [ 'disabled', 'required', 'multiple' ] );
+		$standardAttribs = $this->getAttributes( [ 'disabled', 'required', 'multiple', 'size' ] );
 
 		$widget = new LanguageSelectWidget( [
 			'languages' => $this->languages,

@@ -26,11 +26,8 @@ class HashConfig implements Config, MutableConfig, IterableConfig {
 	 */
 	private $settings;
 
-	/**
-	 * @return HashConfig
-	 */
-	public static function newInstance() {
-		return new HashConfig;
+	public static function newInstance(): self {
+		return new self();
 	}
 
 	/**

@@ -45,56 +45,76 @@ class HTMLConfirmEmailBuilder implements IConfirmEmailBuilder {
 	}
 
 	public function buildEmailCreated( ConfirmEmailData $data ): ConfirmEmailContent {
+		return $this->buildConfirmationEmail(
+			$data,
+			'confirmemail_html_par1',
+			'confirmemail_html_par2'
+		);
+	}
+
+	public function buildEmailChanged( ConfirmEmailData $data ): ConfirmEmailContent {
+		return $this->buildConfirmationEmail(
+			$data,
+			'confirmemail_html_par1_changed',
+			'confirmemail_html_par2_changed'
+		);
+	}
+
+	public function buildEmailSet( ConfirmEmailData $data ): ConfirmEmailContent {
+		return $this->buildConfirmationEmail(
+			$data,
+			'confirmemail_html_par1_set',
+			'confirmemail_html_par2_set'
+		);
+	}
+
+	/**
+	 * Build a confirmation email with the given greeting and body message keys.
+	 *
+	 * @param ConfirmEmailData $data
+	 * @param string $par1Key Message key for the greeting (e.g. "Hello $1,")
+	 * @param string $par2Key Message key for the body paragraph
+	 */
+	private function buildConfirmationEmail(
+		ConfirmEmailData $data,
+		string $par1Key,
+		string $par2Key
+	): ConfirmEmailContent {
+		$username = $data->getRecipientUser()->getName();
 		return new ConfirmEmailContent(
 			$this->context->msg( 'confirmemail_html_subject' )->text(),
 			implode( PHP_EOL . PHP_EOL, [
-				$this->context->msg(
-					'confirmemail_html_par1',
-					$data->getRecipientUser()->getName(),
-				)->text(),
-				$this->context->msg(
-					'confirmemail_html_par2',
-				)->text(),
+				$this->context->msg( $par1Key, $username )->text(),
+				$this->context->msg( $par2Key )->text(),
 				$this->context->msg(
 					'confirmemail_plaintext_button_label',
-					$data->getRecipientUser()->getName(),
+					$username,
 					$data->getConfirmationUrl(),
 				)->text(),
 				$this->context->msg(
 					'confirmemail_plaintext_footer',
-					$data->getRecipientUser()->getName(),
+					$username,
 					$data->getInvalidationUrl(),
 				)->text(),
 			] ),
 			$this->templateParser->processTemplate( 'EmailCreated', [
 				'logo' => $this->buildLogoContext(),
-				'confirmationUrl' => $data->getConfirmationUrl(),
-				'par1' => $this->context->msg(
-					'confirmemail_html_par1',
-					$data->getRecipientUser()->getName(),
-				)->parse(),
-				'par2' => $this->context->msg(
-					'confirmemail_html_par2',
-				)->parse(),
-				'buttonLabel' => $this->context->msg(
-					'confirmemail_html_button_label',
-					$data->getRecipientUser()->getName(),
-				)->text(),
+				'button' => [
+					'confirmationUrl' => $data->getConfirmationUrl(),
+					'buttonLabel' => $this->context->msg(
+						'confirmemail_html_button_label',
+						$username,
+					)->text(),
+				],
+				'par1' => $this->context->msg( $par1Key, $username )->parse(),
+				'par2' => $this->context->msg( $par2Key )->parse(),
 				'footer' => $this->context->msg(
 					'confirmemail_html_footer',
-					$data->getRecipientUser()->getName(),
+					$username,
 					$data->getInvalidationUrl(),
 				)->parse(),
-				'username' => $data->getRecipientUser()->getName(),
+				'username' => $username,
 			] )
 		);
-	}
-
-	public function buildEmailChanged( ConfirmEmailData $data ): ConfirmEmailContent {
-		return $this->buildEmailCreated( $data );
-	}
-
-	public function buildEmailSet( ConfirmEmailData $data ): ConfirmEmailContent {
-		return $this->buildEmailCreated( $data );
 	}
 }

@@ -30,11 +30,8 @@ use Wikimedia\ParamValidator\ParamValidator;
  */
 class ApiAuthManagerHelper {
 
-	/** @var ApiBase API module, for context and parameters */
-	private $module;
-
 	/** @var string Message output format */
-	private $messageFormat;
+	private string $messageFormat;
 
 	private AuthManager $authManager;
 
@@ -46,12 +43,10 @@ class ApiAuthManagerHelper {
 	 * @param UserIdentityUtils|null $identityUtils
 	 */
 	public function __construct(
-		ApiBase $module,
+		private readonly ApiBase $module,
 		?AuthManager $authManager = null,
-		?UserIdentityUtils $identityUtils = null
+		?UserIdentityUtils $identityUtils = null,
 	) {
-		$this->module = $module;
-
 		$params = $module->extractRequestParams();
 		$this->messageFormat = $params['messageformat'] ?? 'wikitext';
 		$this->authManager = $authManager ?? MediaWikiServices::getInstance()->getAuthManager();
@@ -63,7 +58,7 @@ class ApiAuthManagerHelper {
 	 * Static version of the constructor, for chaining
 	 * @param ApiBase $module API module, for context and parameters
 	 * @param AuthManager|null $authManager
-	 * @return ApiAuthManagerHelper
+	 * @return self
 	 */
 	public static function newForModule( ApiBase $module, ?AuthManager $authManager = null ) {
 		return new self( $module, $authManager );

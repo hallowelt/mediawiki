@@ -22,6 +22,8 @@ function useLanguageSelector(
 ) {
 	const searchQuery = ref( '' );
 	const searchResults = ref( [] );
+	const searchQueryHits = ref( {} );
+	const isSearching = ref( false );
 
 	const languages = computed( () => selectableLanguages.value || supportedLanguages );
 	const selection = computed( () => {
@@ -50,16 +52,21 @@ function useLanguageSelector(
 			languageClient = languageSearchClient( searchApiUrl );
 		}
 		const searchRequest = languageClient.searchLanguages( query );
+		isSearching.value = true;
 
 		try {
 			const response = await searchRequest;
-			const responseLanguageCodes = Object.keys( response.languagesearch || {} );
+			searchQueryHits.value = response.languagesearch || {};
+			const responseLanguageCodes = Object.keys( searchQueryHits.value );
 			searchResults.value = responseLanguageCodes.filter(
 				( code ) => Object.keys( languages.value ).includes( code )
 			);
 		} catch ( error ) {
+			searchQueryHits.value = {};
 			mw.log.error( 'Language search failed:', error );
 			throw new Error( 'Language search failed' + error );
+		} finally {
+			isSearching.value = false;
 		}
 	};
 
@@ -96,10 +103,12 @@ function useLanguageSelector(
 		clearSearchQuery,
 		languages,
 		searchQuery,
+		searchQueryHits,
 		searchResults,
 		selection,
 		selectedValues,
 		search: debouncedSearch,
+		isSearching,
 		isSelectionUpdated
 	};
 }

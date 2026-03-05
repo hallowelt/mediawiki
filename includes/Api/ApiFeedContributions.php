@@ -38,37 +38,21 @@ use Wikimedia\Rdbms\IConnectionProvider;
  */
 class ApiFeedContributions extends ApiBase {
 
-	private RevisionStore $revisionStore;
-	private LinkRenderer $linkRenderer;
-	private LinkBatchFactory $linkBatchFactory;
-	private HookContainer $hookContainer;
-	private IConnectionProvider $dbProvider;
-	private NamespaceInfo $namespaceInfo;
-	private UserFactory $userFactory;
-	private CommentFormatter $commentFormatter;
 	private ApiHookRunner $hookRunner;
 
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		RevisionStore $revisionStore,
-		LinkRenderer $linkRenderer,
-		LinkBatchFactory $linkBatchFactory,
-		HookContainer $hookContainer,
-		IConnectionProvider $dbProvider,
-		NamespaceInfo $namespaceInfo,
-		UserFactory $userFactory,
-		CommentFormatter $commentFormatter
+		private readonly RevisionStore $revisionStore,
+		private readonly LinkRenderer $linkRenderer,
+		private readonly LinkBatchFactory $linkBatchFactory,
+		private readonly HookContainer $hookContainer,
+		private readonly IConnectionProvider $dbProvider,
+		private readonly NamespaceInfo $namespaceInfo,
+		private readonly UserFactory $userFactory,
+		private readonly CommentFormatter $commentFormatter,
 	) {
 		parent::__construct( $main, $action );
-		$this->revisionStore = $revisionStore;
-		$this->linkRenderer = $linkRenderer;
-		$this->linkBatchFactory = $linkBatchFactory;
-		$this->hookContainer = $hookContainer;
-		$this->dbProvider = $dbProvider;
-		$this->namespaceInfo = $namespaceInfo;
-		$this->userFactory = $userFactory;
-		$this->commentFormatter = $commentFormatter;
 
 		$this->hookRunner = new ApiHookRunner( $hookContainer );
 	}

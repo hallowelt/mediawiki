@@ -58,7 +58,6 @@ class ApiEditPage extends ApiBase {
 
 	private IContentHandlerFactory $contentHandlerFactory;
 	private RevisionLookup $revisionLookup;
-	private WatchedItemStoreInterface $watchedItemStore;
 	private WikiPageFactory $wikiPageFactory;
 	private RedirectLookup $redirectLookup;
 	private TempUserCreator $tempUserCreator;
@@ -86,7 +85,7 @@ class ApiEditPage extends ApiBase {
 	) {
 		parent::__construct( $mainModule, $moduleName );
 
-		// This class is extended and therefor fallback to global state - T264213
+		// This class is extended and therefore fallback to global state - T264213
 		$services = MediaWikiServices::getInstance();
 		$this->contentHandlerFactory = $contentHandlerFactory ?? $services->getContentHandlerFactory();
 		$this->revisionLookup = $revisionLookup ?? $services->getRevisionLookup();

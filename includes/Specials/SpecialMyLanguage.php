@@ -6,7 +6,7 @@
 
 namespace MediaWiki\Specials;
 
-use MediaWiki\Languages\LanguageNameUtils;
+use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\Page\RedirectLookup;
 use MediaWiki\SpecialPage\RedirectSpecialArticle;
 use MediaWiki\Title\Title;
@@ -24,16 +24,11 @@ use MediaWiki\Title\Title;
  */
 class SpecialMyLanguage extends RedirectSpecialArticle {
 
-	private LanguageNameUtils $languageNameUtils;
-	private RedirectLookup $redirectLookup;
-
 	public function __construct(
-		LanguageNameUtils $languageNameUtils,
-		RedirectLookup $redirectLookup
+		private readonly LanguageNameUtils $languageNameUtils,
+		private readonly RedirectLookup $redirectLookup,
 	) {
 		parent::__construct( 'MyLanguage' );
-		$this->languageNameUtils = $languageNameUtils;
-		$this->redirectLookup = $redirectLookup;
 	}
 
 	/**

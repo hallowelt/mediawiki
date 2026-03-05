@@ -25,6 +25,7 @@ use MediaWiki\User\Registration\UserRegistrationLookup;
 use MediaWiki\User\TempUser\RealTempUserConfig;
 use MediaWiki\User\User;
 use MediaWiki\User\UserEditTracker;
+use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityValue;
@@ -100,7 +101,9 @@ class UserGroupManagerTest extends MediaWikiIntegrationTestCase {
 				'matchPattern' => '*Unregistered $1',
 				'genPattern' => '*Unregistered $1'
 			] ),
+			$services->getUserFactory(),
 			$userRequirementsConditionCheckerFactory,
+			$services->getRestrictedUserGroupConfigReader(),
 			$callback ? [ $callback ] : []
 		);
 
@@ -133,6 +136,7 @@ class UserGroupManagerTest extends MediaWikiIntegrationTestCase {
 
 		$this->expiryTime = wfTimestamp( TS::MW, time() + 100500 );
 		$this->clearHooks();
+		$this->overrideConfigValue( MainConfigNames::RestrictedGroups, [] );
 	}
 
 	/**
@@ -274,6 +278,62 @@ class UserGroupManagerTest extends MediaWikiIntegrationTestCase {
 			}
 		);
 		$this->assertContains( 'from_hook', $manager->getUserEffectiveGroups( $user ) );
+	}
+
+	public function testGetEffectiveGroups_disabled() {
+		$this->overrideConfigValue( MainConfigNames::RestrictedGroups, [
+			'interface-admin' => [
+				'memberConditions' => [ APCOND_EDITCOUNT, 1000 ]
+			],
+		] );
+		$manager = $this->getManager();
+		$user = $this->getTestUser( [ 'interface-admin', 'sysop' ] )->getUser();
+		$this->assertArrayEquals(
+			[ '*', 'user', 'autoconfirmed', 'sysop' ],
+			$manager->getUserEffectiveGroups( $user )
+		);
+	}
+
+	public function testGetDisabledGroups() {
+		$this->overrideConfigValue( MainConfigNames::RestrictedGroups, [
+			'bureaucrat' => [
+				'memberConditions' => [ APCOND_EDITCOUNT, 1000 ],
+				'canBeIgnored' => true,
+			],
+			'interface-admin' => [
+				'memberConditions' => [ APCOND_EDITCOUNT, 1000 ]
+			],
+			'suppress' => [
+				'memberConditions' => [ APCOND_EDITCOUNT, 0 ]
+			],
+		] );
+		$manager = $this->getManager();
+		$user = $this->getTestUser( [ 'bureaucrat', 'interface-admin', 'suppress', 'sysop' ] )->getUser();
+		$this->assertCount( 1, $manager->getUserDisabledGroups( $user ) );
+		$this->assertSame( [ 'interface-admin' ], $manager->getUserDisabledGroups( $user ) );
+	}
+
+	public function testSystemUserHasNoDisabledGroups() {
+		$this->overrideConfigValue( MainConfigNames::RestrictedGroups, [
+			'sysop' => [
+				'memberConditions' => [ APCOND_EDITCOUNT, 1000 ]
+			],
+		] );
+		$user = $this->getTestUser( [ 'sysop' ] )->getUser();
+
+		$userFactoryMock = $this->createMock( UserFactory::class );
+		$userFactoryMock->method( 'newFromUserIdentity' )
+			->willReturnCallback( function ( UserIdentity $userIdentity ) {
+				$userMock = $this->createMock( User::class );
+				$userMock->method( 'isSystemUser' )->willReturn( true );
+				$userMock->method( 'isRegistered' )->willReturn( true );
+				$userMock->method( 'getId' )->willReturn( $userIdentity->getId() );
+				return $userMock;
+			} );
+		$this->setService( 'UserFactory', $userFactoryMock );
+
+		$manager = $this->getManager();
+		$this->assertCount( 0, $manager->getUserDisabledGroups( $user ) );
 	}
 
 	public function testAddUserToGroup() {
@@ -662,6 +722,12 @@ class UserGroupManagerTest extends MediaWikiIntegrationTestCase {
 		yield 'Not old enough' => [
 			[ APCOND_AGE_FROM_EDIT, 10000000 ], MWTimestamp::now(), []
 		];
+		yield 'Not old enough, using AutoConfirmAge via unset' => [
+			[ APCOND_AGE_FROM_EDIT ], MWTimestamp::now(), []
+		];
+		yield 'Not old enough, using AutoConfirmAge via null' => [
+			[ APCOND_AGE_FROM_EDIT, null ], MWTimestamp::now(), []
+		];
 	}
 
 	/**
@@ -679,6 +745,7 @@ class UserGroupManagerTest extends MediaWikiIntegrationTestCase {
 			->with( $user )
 			->willReturn( $firstEditTs );
 		$manager = $this->getManager( [
+			MainConfigNames::AutoConfirmAge => 10000000,
 			MainConfigNames::Autopromote => [ 'test_autoconfirmed' => $requiredCondition ]
 		], $mockUserEditTracker );
 		$this->assertArrayEquals( $expected, $manager->getUserAutopromoteGroups( $user ) );

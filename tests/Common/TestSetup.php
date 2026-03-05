@@ -48,6 +48,7 @@ class TestSetup {
 		global $wgDevelopmentWarnings;
 		global $wgSessionProviders, $wgSessionPbkdf2Iterations;
 		global $wgCentralIdLookupProvider;
+		global $wgMiserMode;
 		global $wgJobTypeConf;
 		global $wgMWLoggerDefaultSpi;
 		global $wgAuthManagerConfig;
@@ -134,6 +135,7 @@ class TestSetup {
 
 		// T277470
 		$wgCentralIdLookupProvider = 'local';
+		$wgMiserMode = false;
 
 		// Generic AuthManager configuration for testing
 		$wgAuthManagerConfig = [

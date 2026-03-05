@@ -1,7 +1,9 @@
 ( function () {
 	// The name of the page to watch or unwatch
 	const pageTitle = mw.config.get( 'wgRelevantPageName' ),
-		isWatchlistExpiryEnabled = require( './config.json' ).WatchlistExpiry,
+		config = require( './config.json' ),
+		isWatchlistExpiryEnabled = config.WatchlistExpiry,
+		watchlistLabelsEnabled = config.EnableWatchlistLabels,
 		// Use Object.create( null ) instead of {} to get an Object without predefined properties.
 		// This avoids problems if the title is 'hasOwnPropery' or similar. Bug: T342137
 		watchstarsByTitle = Object.create( null );
@@ -339,11 +341,13 @@
 			// Preload the notification module for mw.notify
 			const modulesToLoad = [ 'mediawiki.notification' ];
 
-			// Preload watchlist expiry widget so it runs in parallel with the api call
-			if ( isWatchlistExpiryEnabled ) {
+			// Preload modules required for the popup in parallel with the initial watch API call.
+			if ( isWatchlistExpiryEnabled || watchlistLabelsEnabled ) {
 				modulesToLoad.push( 'mediawiki.watchstar.widgets' );
 			}
-
+			if ( watchlistLabelsEnabled ) {
+				modulesToLoad.push( 'mediawiki.widgets.MenuTagMultiselectWidget' );
+			}
 			mw.loader.load( modulesToLoad );
 
 			const api = new mw.Api();
@@ -359,8 +363,8 @@
 					let notifyPromise;
 					let watchlistPopup;
 					// @since 1.35 - pop up notification will be loaded with OOUI
-					// only if Watchlist Expiry is enabled
-					if ( isWatchlistExpiryEnabled ) {
+					// only if one or both of watchlist expiry or watchlist labels are enabled
+					if ( isWatchlistExpiryEnabled || watchlistLabelsEnabled ) {
 						if ( isWatched ) {
 							if ( !preferredExpiry || mw.util.isInfinity( preferredExpiry ) ) {
 								// The message should include `infinite` watch period
@@ -371,15 +375,17 @@
 						}
 
 						notifyPromise = mw.loader.using( 'mediawiki.watchstar.widgets' ).then( ( require ) => {
-							const WatchlistExpiryWidget = require( 'mediawiki.watchstar.widgets' );
+							const WatchlistPopup = require( 'mediawiki.watchstar.widgets' );
 
 							if ( !watchlistPopup ) {
-								watchlistPopup = new WatchlistExpiryWidget(
+								watchlistPopup = new WatchlistPopup(
 									action,
 									title,
 									watchResponse.expiry,
 									updateWatchLink,
 									{
+										expiryEnabled: isWatchlistExpiryEnabled,
+										labelsEnabled: watchlistLabelsEnabled,
 										// The following messages can be used here:
 										// * addedwatchindefinitelytext-talk
 										// * addedwatchindefinitelytext

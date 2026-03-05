@@ -17,15 +17,13 @@ use MediaWiki\MainConfigNames;
  * @ingroup API
  */
 class ApiChangeAuthenticationData extends ApiBase {
-	private AuthManager $authManager;
 
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		AuthManager $authManager
+		private readonly AuthManager $authManager,
 	) {
 		parent::__construct( $main, $action, 'changeauth' );
-		$this->authManager = $authManager;
 	}
 
 	public function execute() {

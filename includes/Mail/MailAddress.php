@@ -43,10 +43,10 @@ class MailAddress implements Stringable {
 	/**
 	 * @since 1.24
 	 * @param UserEmailContact $user
-	 * @return MailAddress
+	 * @return self
 	 */
 	public static function newFromUser( UserEmailContact $user ) {
-		return new MailAddress( $user->getEmail(), $user->getUser()->getName(), $user->getRealName() );
+		return new self( $user->getEmail(), $user->getUser()->getName(), $user->getRealName() );
 	}
 
 	/**

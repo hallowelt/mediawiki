@@ -43,7 +43,7 @@
 	border-radius: @border-radius-base;
 	white-space: nowrap;
 
-	.darkmode-custom-fix( {
+	.darkmode-override( {
 		// Color is calculated to match @background-color-interactive in dark-mode.
 		// The passed-in background color is @background-color-inverted.
 		// Transparency is needed for T400577.
@@ -57,7 +57,7 @@ a.mw-tempuserlink.mw-userlink.external {
 	/* stylelint-disable-next-line declaration-no-important */
 	background-color: @tempuserlink-color !important;
 
-	.darkmode-custom-fix( {
+	.darkmode-override( {
 		/* stylelint-disable-next-line declaration-no-important */
 		background-color: @tempuserlink-color-dark-mode !important;
 	} );

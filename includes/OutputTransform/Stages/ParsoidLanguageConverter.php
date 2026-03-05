@@ -350,7 +350,7 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 		// Fetch all variants in a single query
 		$ids = $linkBatch->execute();
 		// Make a helper function that looks up IDs in this result
-		// We're not doing to rely on the LinkCache here, since we could
+		// We're not going to rely on the LinkCache here, since we could
 		// potentially have more than LinkCache::MAX_SIZE titles to lookup.
 		$titleExists = static fn ( $t ) => ( $ids[$t->getPrefixedDBkey() ] ?? 0 ) > 0;
 
@@ -358,14 +358,13 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 		foreach ( $elMap as [ $a, $wasRelative, $title, $fragment, $queryElts ] ) {
 			$ns = $title->getNamespace();
 			$link = $title->getText();
+			$variants = $varLookup[$ns][$link] ?? [];
 			// Find self-links first, which take precedence
 			$varnt = array_find(
-				$varLookup[$ns][$link], static fn ( $t ) => $t->isSamePageAs( $baseTitle )
+				$variants, static fn ( $t ) => $t->isSamePageAs( $baseTitle )
 			);
 			// Find the first title which resolves to an existing page
-			$varnt ??= array_find(
-				$varLookup[$ns][$link], $titleExists
-			);
+			$varnt ??= array_find( $variants, $titleExists );
 			if ( $varnt === null ) {
 				// No matching variant title found, leave this as a red link
 				continue;
@@ -374,7 +373,7 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 			$suffix = ( $fragment !== null ) ? "#$fragment" : "";
 			unset( $queryElts['title'] );
 			unset( $queryElts['action'] );
-			unset( $queryElts['redlinks'] );
+			unset( $queryElts['redlink'] );
 			$href = $wasRelative ? $varnt->getLocalURL( $queryElts ) :
 				  $varnt->getFullURL( $queryElts );
 			$a->setAttribute( 'href', $href . $suffix );

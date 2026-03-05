@@ -18,18 +18,13 @@ use Wikimedia\Rdbms\IDBAccessObject;
  */
 class ApiChangeContentModel extends ApiBase {
 
-	private IContentHandlerFactory $contentHandlerFactory;
-	private ContentModelChangeFactory $contentModelChangeFactory;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		IContentHandlerFactory $contentHandlerFactory,
-		ContentModelChangeFactory $contentModelChangeFactory
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+		private readonly ContentModelChangeFactory $contentModelChangeFactory,
 	) {
 		parent::__construct( $main, $action );
-		$this->contentHandlerFactory = $contentHandlerFactory;
-		$this->contentModelChangeFactory = $contentModelChangeFactory;
 	}
 
 	/**

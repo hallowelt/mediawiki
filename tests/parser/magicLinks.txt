@@ -71,7 +71,7 @@ cat
 !! html/php
 <p><a href="/wiki/Special:BookSources/0306406152" class="internal mw-magiclink-isbn">ISBN 0-306-40615-2</a>
 </p>
-!! html/parsoid
+!! html/parsoid+integrated
 <p><a href="/wiki/Special:BookSources/0306406152" class="internal mw-magiclink-isbn" typeof="mw:Transclusion" data-mw='{"parts":[{"template":{"target":{"wt":"#isbn:0-306-40615-2","function":"isbn"},"params":{},"i":0}}]}'>ISBN 0-306-40615-2</a></p>
 !! end
 

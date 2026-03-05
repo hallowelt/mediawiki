@@ -17,15 +17,12 @@ use MediaWiki\User\TalkPageNotificationManager;
  */
 class ApiClearHasMsg extends ApiBase {
 
-	private TalkPageNotificationManager $talkPageNotificationManager;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		TalkPageNotificationManager $talkPageNotificationManager
+		private readonly TalkPageNotificationManager $talkPageNotificationManager,
 	) {
 		parent::__construct( $main, $action );
-		$this->talkPageNotificationManager = $talkPageNotificationManager;
 	}
 
 	public function execute() {

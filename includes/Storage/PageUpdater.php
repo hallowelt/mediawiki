@@ -33,7 +33,6 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Revision\SlotRoleRegistry;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFormatter;
-use MediaWiki\User\User;
 use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserIdentity;
 use Psr\Log\LoggerInterface;
@@ -336,15 +335,6 @@ class PageUpdater implements PageUpdateCauses {
 		}
 
 		return $this->derivedDataUpdater;
-	}
-
-	/**
-	 * @param UserIdentity $user
-	 *
-	 * @return User
-	 */
-	private static function toLegacyUser( UserIdentity $user ) {
-		return User::newFromIdentity( $user );
 	}
 
 	/**
@@ -930,20 +920,6 @@ class PageUpdater implements PageUpdateCauses {
 		$allowedByHook = $this->hookRunner->onMultiContentSave(
 			$renderedRevision, $this->author, $summary, $this->flags, $hookStatus
 		);
-		if ( $allowedByHook && $this->hookContainer->isRegistered( 'PageContentSave' ) ) {
-			// Also run the legacy hook.
-			// NOTE: WikiPage should only be used for the legacy hook,
-			// and only if something uses the legacy hook.
-			$mainContent = $this->derivedDataUpdater->getSlots()->getContent( SlotRecord::MAIN );
-
-			$legacyUser = self::toLegacyUser( $this->author );
-
-			// Deprecated since 1.35.
-			$allowedByHook = $this->hookRunner->onPageContentSave(
-				$this->getWikiPage(), $legacyUser, $mainContent, $summary,
-				(bool)( $this->flags & EDIT_MINOR ), null, null, $this->flags, $hookStatus
-			);
-		}
 
 		if ( !$allowedByHook ) {
 			// The hook has prevented this change from being saved.
@@ -953,7 +929,7 @@ class PageUpdater implements PageUpdateCauses {
 			}
 
 			$this->status = $hookStatus;
-			$this->logger->info( "Hook prevented page save", [ 'status' => $hookStatus ] );
+			$this->logger->info( 'Hook prevented page save', [ 'status' => $hookStatus ] );
 			return null;
 		}
 
@@ -1385,12 +1361,12 @@ class PageUpdater implements PageUpdateCauses {
 		if ( $changed ) {
 			if ( $this->forceEmptyRevision ) {
 				throw new LogicException(
-					"Content was changed even though forceEmptyRevision() was called."
+					'Content has been changed even though setForceEmptyRevision( true ) was called.'
 				);
 			}
 			if ( $this->preventChange ) {
 				throw new LogicException(
-					"Content was changed even though preventChange() was called."
+					'Content has been changed even though preventChange() was called.'
 				);
 			}
 		}
@@ -1435,7 +1411,7 @@ class PageUpdater implements PageUpdateCauses {
 			// TODO: move to storage service
 			$wasRedirect = $this->derivedDataUpdater->wasRedirect();
 			if ( !$wikiPage->updateRevisionOn( $dbw, $newRevisionRecord, null, $wasRedirect ) ) {
-				throw new PageUpdateException( "Failed to update page row to use new revision." );
+				throw new PageUpdateException( 'Failed to update page row to use new revision.' );
 			}
 
 			$editResult = $this->getEditResult();
@@ -1518,7 +1494,7 @@ class PageUpdater implements PageUpdateCauses {
 	private function doCreate( CommentStoreComment $summary ): PageUpdateStatus {
 		if ( $this->preventChange ) {
 			throw new LogicException(
-				"Content was changed even though preventChange() was called."
+				'Content was changed even though preventChange is true.'
 			);
 		}
 		$wikiPage = $this->getWikiPage(); // TODO: use for legacy hooks only!
@@ -1564,7 +1540,7 @@ class PageUpdater implements PageUpdateCauses {
 		// Update the page record with revision data
 		// TODO: move to storage service
 		if ( !$wikiPage->updateRevisionOn( $dbw, $newRevisionRecord, 0, false ) ) {
-			throw new PageUpdateException( "Failed to update page row to use new revision." );
+			throw new PageUpdateException( 'Failed to update page row to use new revision.' );
 		}
 
 		$tags = $this->computeEffectiveTags();

@@ -481,9 +481,23 @@ class PageUpdaterTest extends MediaWikiIntegrationTestCase {
 				'getAuthor'
 			);
 
+			$editResult = $event->getEditResult();
 			Assert::assertNotNull(
-				$event->getEditResult(),
+				$editResult,
 				'getEditResult'
+			);
+
+			// NOTE: $editResult->isNullEdit() returns true for dummy revisions! (T392333)
+			Assert::assertSame(
+				$event->isEffectiveContentChange(),
+				!$editResult->isNullEdit(),
+				'getEditResult()->isNullEdit()'
+			);
+
+			Assert::assertSame(
+				$event->isCreation(),
+				$editResult->isNew(),
+				'getEditResult()->isNew()'
 			);
 
 			if ( $old ) {

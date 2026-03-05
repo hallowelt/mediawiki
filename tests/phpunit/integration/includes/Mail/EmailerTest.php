@@ -25,8 +25,7 @@ class EmailerTest extends MediaWikiIntegrationTestCase {
 		array $options = [] ) {
 		$emailer = new Emailer();
 		$status = $emailer->send( $to, $from, $subject, $bodyText, $bodyHtml, $options );
-		// The test is successful if the status is good.
-		$this->assertTrue( $status->isGood() );
+		$this->assertStatusGood( $status );
 	}
 
 	public function testSendWithBadAddress() {
@@ -39,8 +38,7 @@ class EmailerTest extends MediaWikiIntegrationTestCase {
 			'',
 			'',
 		);
-		// The test is successful if the status is not good.
-		$this->assertFalse( $status->isGood() );
+		$this->assertStatusNotGood( $status );
 	}
 
 	public static function provideSend(): array {

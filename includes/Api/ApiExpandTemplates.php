@@ -24,18 +24,14 @@ use Wikimedia\ParamValidator\ParamValidator;
  * @ingroup API
  */
 class ApiExpandTemplates extends ApiBase {
-	private RevisionStore $revisionStore;
-	private ParserFactory $parserFactory;
 
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		RevisionStore $revisionStore,
-		ParserFactory $parserFactory
+		private readonly RevisionStore $revisionStore,
+		private readonly ParserFactory $parserFactory,
 	) {
 		parent::__construct( $main, $action );
-		$this->revisionStore = $revisionStore;
-		$this->parserFactory = $parserFactory;
 	}
 
 	public function execute() {

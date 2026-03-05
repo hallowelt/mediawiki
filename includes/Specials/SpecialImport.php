@@ -33,14 +33,10 @@ class SpecialImport extends SpecialPage {
 	/** @var array */
 	private $importSources;
 
-	private WikiImporterFactory $wikiImporterFactory;
-
 	public function __construct(
-		WikiImporterFactory $wikiImporterFactory
+		private readonly WikiImporterFactory $wikiImporterFactory
 	) {
 		parent::__construct( 'Import', 'import' );
-
-		$this->wikiImporterFactory = $wikiImporterFactory;
 	}
 
 	/** @inheritDoc */
@@ -219,7 +215,6 @@ class SpecialImport extends SpecialPage {
 			$reporter = new ImportReporter(
 				$importer,
 				$isUpload,
-				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable False positive
 				$fullInterwikiPrefix,
 				$logcomment,
 				$this->getContext()

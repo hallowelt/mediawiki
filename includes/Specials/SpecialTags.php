@@ -47,7 +47,7 @@ class SpecialTags extends SpecialPage {
 	public function execute( $par ) {
 		$this->setHeaders();
 		$this->outputHeader();
-		$this->addHelpLink( 'Manual:Tags' );
+		$this->addHelpLink( 'Help:Tags' );
 		$this->getOutput()->addModuleStyles( 'mediawiki.codex.messagebox.styles' );
 
 		$request = $this->getRequest();
@@ -510,6 +510,11 @@ class SpecialTags extends SpecialPage {
 			// 'deactivate',
 			// 'create',
 		];
+	}
+
+	/** @inheritDoc */
+	public function doesWrites() {
+		return true;
 	}
 
 	/** @inheritDoc */

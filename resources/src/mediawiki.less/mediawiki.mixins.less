@@ -222,8 +222,9 @@
 }
 
 // Generate selectors for custom dark mode styles.
-// Design tokens should be used where possible instead of this mixin.
-.darkmode-custom-fix( @rules ) {
+// Use design tokens instead of this mixin if possible.
+// See https://doc.wikimedia.org/codex/latest/design-tokens/color.html
+.darkmode-override( @rules ) {
 	@media screen {
 		html.skin-theme-clientpref-night & {
 			@rules();

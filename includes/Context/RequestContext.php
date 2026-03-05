@@ -107,10 +107,7 @@ class RequestContext implements IContextSource, MutableContext {
 	 */
 	private $config;
 
-	/**
-	 * @var RequestContext|null
-	 */
-	private static $instance = null;
+	private static ?self $instance = null;
 
 	/**
 	 * Boolean flag to guard against recursion in getLanguage
@@ -616,9 +613,8 @@ class RequestContext implements IContextSource, MutableContext {
 	/**
 	 * Get the RequestContext object associated with the main request
 	 */
-	public static function getMain(): RequestContext {
+	public static function getMain(): self {
 		self::$instance ??= new self;
-
 		return self::$instance;
 	}
 
@@ -627,7 +623,7 @@ class RequestContext implements IContextSource, MutableContext {
 	 * and gives a warning to the log, to find places, where a context maybe is missing.
 	 *
 	 * @param string $func @phan-mandatory-param
-	 * @return RequestContext
+	 * @return self
 	 * @since 1.24
 	 */
 	public static function getMainAndWarn( $func = __METHOD__ ) {
@@ -714,7 +710,7 @@ class RequestContext implements IContextSource, MutableContext {
 		$importSessionFunc = static function ( User $user, array $params ) use ( $services ) {
 			global $wgRequest;
 
-			$context = RequestContext::getMain();
+			$context = self::getMain();
 
 			// Commit and close any current session
 			if ( PHPSessionHandler::isEnabled() ) {
@@ -770,8 +766,8 @@ class RequestContext implements IContextSource, MutableContext {
 				global $wgRequest;
 				$importSessionFunc( $oUser, $oParams );
 				// Restore the exact previous Request object (instead of leaving MediaWiki\Request\FauxRequest)
-				RequestContext::getMain()->setRequest( $oRequest );
-				$wgRequest = RequestContext::getMain()->getRequest(); // b/c
+				self::getMain()->setRequest( $oRequest );
+				$wgRequest = self::getMain()->getRequest(); // b/c
 			}
 		);
 	}
@@ -788,7 +784,7 @@ class RequestContext implements IContextSource, MutableContext {
 	 *
 	 * @param Title $title Title to use for the extraneous request
 	 * @param WebRequest|array $request A WebRequest or data to use for a MediaWiki\Request\FauxRequest
-	 * @return RequestContext
+	 * @return self
 	 */
 	public static function newExtraneousContext( Title $title, $request = [] ) {
 		$context = new self;

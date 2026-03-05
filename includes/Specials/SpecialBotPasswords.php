@@ -13,6 +13,7 @@ use MediaWiki\HTMLForm\Field\HTMLRestrictionsField;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Message\Message;
 use MediaWiki\Password\InvalidPassword;
 use MediaWiki\Password\PasswordError;
 use MediaWiki\Password\PasswordFactory;
@@ -44,14 +45,14 @@ class SpecialBotPasswords extends FormSpecialPage {
 	/** @var string|null New password set, for communication between onSubmit() and onSuccess() */
 	private $password = null;
 
-	private LoggerInterface $logger;
+	private readonly LoggerInterface $logger;
 
 	public function __construct(
 		private readonly PasswordFactory $passwordFactory,
 		AuthManager $authManager,
 		private readonly CentralIdLookup $centralIdLookup,
 		private readonly GrantsInfo $grantsInfo,
-		private readonly GrantsLocalization $grantsLocalization
+		private readonly GrantsLocalization $grantsLocalization,
 	) {
 		parent::__construct( 'BotPasswords', 'editmyprivateinfo' );
 		$this->logger = LoggerFactory::getInstance( 'authentication' );
@@ -183,7 +184,6 @@ class SpecialBotPasswords extends FormSpecialPage {
 				'required' => true,
 				'default' => $this->botPassword->getRestrictions(),
 			];
-
 		} else {
 			$linkRenderer = $this->getLinkRenderer();
 
@@ -292,6 +292,20 @@ class SpecialBotPasswords extends FormSpecialPage {
 				return false;
 
 			case 'create':
+				// Check if user has reached the maximum number of bot passwords
+				$limit = $this->getConfig()->get( MainConfigNames::BotPasswordsLimit );
+				$dbr = BotPassword::getReplicaDatabase();
+				$count = $dbr->newSelectQueryBuilder()
+					->select( 'COUNT(*)' )
+					->from( 'bot_passwords' )
+					->where( [ 'bp_user' => $this->userId ] )
+					->caller( __METHOD__ )
+					->fetchField();
+
+				if ( $count >= $limit ) {
+					return Status::newFatal( 'botpasswords-too-many', Message::numParam( $limit ) );
+				}
+
 				$this->operation = 'insert';
 				return $this->save( $data );
 

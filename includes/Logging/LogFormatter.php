@@ -57,7 +57,7 @@ class LogFormatter {
 	/**
 	 * Constructs a new formatter suitable for given entry.
 	 * @param LogEntry $entry
-	 * @return LogFormatter
+	 * @return self
 	 * @deprecated since 1.42, use LogFormatterFactory instead, hard-deprecated since 1.43
 	 */
 	public static function newFromEntry( LogEntry $entry ) {
@@ -70,7 +70,7 @@ class LogFormatter {
 	 * database row.
 	 * @param stdClass|array $row
 	 * @see DatabaseLogEntry::getSelectQueryData
-	 * @return LogFormatter
+	 * @return self
 	 * @deprecated since 1.42, use LogFormatterFactory instead, hard-deprecated since 1.43
 	 */
 	public static function newFromRow( $row ) {

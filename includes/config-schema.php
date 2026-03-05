@@ -309,8 +309,10 @@ return [
 				150,
 				180,
 				200,
+				220,
 				250,
 				300,
+				400,
 			],
 			'ThumbnailNamespaces' => [
 				6,
@@ -402,7 +404,7 @@ return [
 			'VirtualDomainsMapping' => [
 			],
 			'FileSchemaMigrationStage' => 3,
-			'ImageLinksSchemaMigrationStage' => 769,
+			'ImageLinksSchemaMigrationStage' => 768,
 			'ExternalLinksDomainGaps' => [
 			],
 			'ContentHandlers' => [
@@ -573,6 +575,8 @@ return [
 			'SuspiciousIpExpiry' => false,
 			'SessionPbkdf2Iterations' => 10001,
 			'UseSessionCookieJwt' => false,
+			'UseSessionCookieForBotPasswords' => false,
+			'JwtSessionCookieIssuer' => null,
 			'MemCachedServers' => [
 				'127.0.0.1:11211',
 			],
@@ -1865,6 +1869,7 @@ return [
 			'EnableBotPasswords' => true,
 			'BotPasswordsCluster' => false,
 			'BotPasswordsDatabase' => false,
+			'BotPasswordsLimit' => 100,
 			'SecretKey' => false,
 			'JwtPrivateKey' => false,
 			'JwtPublicKey' => false,
@@ -3087,6 +3092,7 @@ return [
 				'string',
 				'boolean',
 			],
+			'BotPasswordsLimit' => 'integer',
 			'CSPHeader' => [
 				'boolean',
 				'object',

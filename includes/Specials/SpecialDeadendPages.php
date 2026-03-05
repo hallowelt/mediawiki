@@ -7,7 +7,7 @@
 namespace MediaWiki\Specials;
 
 use MediaWiki\Deferred\LinksUpdate\PageLinksTable;
-use MediaWiki\Languages\LanguageConverterFactory;
+use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\SpecialPage\PageQueryPage;
 use MediaWiki\Title\NamespaceInfo;
@@ -20,16 +20,13 @@ use Wikimedia\Rdbms\IConnectionProvider;
  */
 class SpecialDeadendPages extends PageQueryPage {
 
-	private NamespaceInfo $namespaceInfo;
-
 	public function __construct(
-		NamespaceInfo $namespaceInfo,
+		private readonly NamespaceInfo $namespaceInfo,
 		IConnectionProvider $dbProvider,
 		LinkBatchFactory $linkBatchFactory,
 		LanguageConverterFactory $languageConverterFactory
 	) {
 		parent::__construct( 'Deadendpages' );
-		$this->namespaceInfo = $namespaceInfo;
 		$this->setDatabaseProvider( $dbProvider );
 		$this->setLinkBatchFactory( $linkBatchFactory );
 		$this->setLanguageConverter( $languageConverterFactory->getLanguageConverter( $this->getContentLanguage() ) );

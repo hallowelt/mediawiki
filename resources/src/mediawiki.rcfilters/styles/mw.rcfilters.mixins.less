@@ -52,7 +52,7 @@
 .background-color-with-dark-mode( @bgcolor ) {
 	background-color: @bgcolor;
 	// TODO: Use design tokens instead
-	.darkmode-custom-fix( {
+	.darkmode-override( {
 		background-color: darken( @bgcolor, 70% );
 	} );
 }

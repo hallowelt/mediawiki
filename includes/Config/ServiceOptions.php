@@ -34,7 +34,7 @@ class ServiceOptions {
 	 * @stable to call since 1.36
 	 *
 	 * @param string[] $keys Which keys to extract from $sources
-	 * @param Config|ServiceOptions|array ...$sources Each source is either a Config object or an array. If the
+	 * @param Config|self|array ...$sources Each source is either a Config object or an array. If the
 	 *  same key is present in two sources, the first one takes precedence. Keys that are not in
 	 *  $keys are ignored.
 	 * @throws InvalidArgumentException if one of $keys is not found in any of $sources
@@ -48,7 +48,7 @@ class ServiceOptions {
 						$this->options[$key] = $source->get( $key );
 						continue 2;
 					}
-				} elseif ( $source instanceof ServiceOptions ) {
+				} elseif ( $source instanceof self ) {
 					if ( array_key_exists( $key, $source->options ) ) {
 						$this->options[$key] = $source->get( $key );
 						continue 2;

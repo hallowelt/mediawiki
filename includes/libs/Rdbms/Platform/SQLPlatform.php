@@ -512,6 +512,12 @@ class SQLPlatform implements ISQLPlatform {
 		if ( $cond instanceof IExpression ) {
 			$cond = $cond->toSql( $this->quoter );
 		}
+		if ( $caseTrueExpression instanceof Subquery ) {
+			$caseTrueExpression = (string)$caseTrueExpression;
+		}
+		if ( $caseFalseExpression instanceof Subquery ) {
+			$caseFalseExpression = (string)$caseFalseExpression;
+		}
 
 		return "(CASE WHEN $cond THEN $caseTrueExpression ELSE $caseFalseExpression END)";
 	}

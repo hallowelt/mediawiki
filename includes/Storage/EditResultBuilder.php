@@ -252,6 +252,9 @@ class EditResultBuilder {
 
 	/**
 	 * Returns the revision that is being repeated or restored.
+	 * The contents of the original revision should be the same as the contents
+	 * of the new revision.
+	 *
 	 * Returns null if not set for this edit.
 	 *
 	 * @return RevisionRecord|null
@@ -288,6 +291,9 @@ class EditResultBuilder {
 
 	/**
 	 * An edit is a null edit if the original revision is equal to the parent revision.
+	 *
+	 * @note The term "null edit" is here understood to include dummy revisions,
+	 * which is different from how that term is used elsewhere in the code.
 	 */
 	private function isNullEdit(): bool {
 		if ( $this->isNew ) {

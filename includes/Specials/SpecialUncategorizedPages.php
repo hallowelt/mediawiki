@@ -7,7 +7,7 @@
 namespace MediaWiki\Specials;
 
 use MediaWiki\Deferred\LinksUpdate\CategoryLinksTable;
-use MediaWiki\Languages\LanguageConverterFactory;
+use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\SpecialPage\PageQueryPage;
 use MediaWiki\Title\NamespaceInfo;
@@ -24,16 +24,13 @@ class SpecialUncategorizedPages extends PageQueryPage {
 	/** @var int|false */
 	protected $requestedNamespace = false;
 
-	private NamespaceInfo $namespaceInfo;
-
 	public function __construct(
-		NamespaceInfo $namespaceInfo,
+		private readonly NamespaceInfo $namespaceInfo,
 		IConnectionProvider $dbProvider,
 		LinkBatchFactory $linkBatchFactory,
 		LanguageConverterFactory $languageConverterFactory
 	) {
 		parent::__construct( 'Uncategorizedpages' );
-		$this->namespaceInfo = $namespaceInfo;
 		$this->setDatabaseProvider( $dbProvider );
 		$this->setLinkBatchFactory( $linkBatchFactory );
 		$this->setLanguageConverter( $languageConverterFactory->getLanguageConverter( $this->getContentLanguage() ) );

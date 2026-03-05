@@ -52,14 +52,11 @@ class SpecialEditTags extends UnlistedSpecialPage {
 	/** @var string */
 	private $reason;
 
-	private PermissionManager $permissionManager;
-	private ChangeTagsStore $changeTagsStore;
-
-	public function __construct( PermissionManager $permissionManager, ChangeTagsStore $changeTagsStore ) {
+	public function __construct(
+		private readonly PermissionManager $permissionManager,
+		private readonly ChangeTagsStore $changeTagsStore,
+	) {
 		parent::__construct( 'EditTags', 'changetags' );
-
-		$this->permissionManager = $permissionManager;
-		$this->changeTagsStore = $changeTagsStore;
 	}
 
 	/** @inheritDoc */
@@ -78,6 +75,7 @@ class SpecialEditTags extends UnlistedSpecialPage {
 
 		$this->setHeaders();
 		$this->outputHeader();
+		$this->addHelpLink( 'Help:Tags' );
 
 		$output->addModules( [ 'mediawiki.misc-authed-curate' ] );
 		$output->addModuleStyles( [

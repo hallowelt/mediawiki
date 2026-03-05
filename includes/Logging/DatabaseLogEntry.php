@@ -91,7 +91,7 @@ class DatabaseLogEntry extends LogEntryBase {
 	 *
 	 * @param stdClass|array $row
 	 * @param string|false $wikiId Wiki from which this row was loaded (since 1.46)
-	 * @return DatabaseLogEntry
+	 * @return self
 	 */
 	public static function newFromRow( $row, string|false $wikiId = WikiAwareEntity::LOCAL ) {
 		$row = (object)$row;
@@ -107,7 +107,7 @@ class DatabaseLogEntry extends LogEntryBase {
 	 *
 	 * @param int $id
 	 * @param IReadableDatabase $db
-	 * @return DatabaseLogEntry|null
+	 * @return self|null
 	 */
 	public static function newFromId( $id, IReadableDatabase $db ) {
 		$wikiId = WikiMap::getWikiIdFromDbDomain( $db->getDomainID() );

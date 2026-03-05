@@ -34,15 +34,12 @@ class ApiFeedWatchlist extends ApiBase {
 	/** @var bool */
 	private $linkToSections = false;
 
-	private ParserFactory $parserFactory;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		ParserFactory $parserFactory
+		private readonly ParserFactory $parserFactory,
 	) {
 		parent::__construct( $main, $action );
-		$this->parserFactory = $parserFactory;
 	}
 
 	/**

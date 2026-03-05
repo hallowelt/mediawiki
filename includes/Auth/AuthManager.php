@@ -20,7 +20,7 @@ use MediaWiki\Exception\MWExceptionHandler;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Language\Language;
-use MediaWiki\Languages\LanguageConverterFactory;
+use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Notification\NotificationService;
@@ -1178,7 +1178,7 @@ class AuthManager implements LoggerAwareInterface {
 	): StatusValue {
 		// Wiki is read-only?
 		if ( $this->readOnlyMode->isReadOnly() ) {
-			return StatusValue::newFatal( wfMessage( 'readonlytext', $this->readOnlyMode->getReason() ) );
+			return StatusValue::newFatal( 'readonlytext', $this->readOnlyMode->getReason() );
 		}
 
 		$permStatus = new PermissionStatus();
@@ -1968,7 +1968,7 @@ class AuthManager implements LoggerAwareInterface {
 			] );
 			$user->setId( 0 );
 			$user->loadFromId();
-			$fatalStatus = Status::newFatal( wfMessage( 'readonlytext', $reason ) );
+			$fatalStatus = Status::newFatal( 'readonlytext', $reason );
 			$this->logAutocreationAttempt( $fatalStatus, $user, $source, $login );
 			return $fatalStatus;
 		}

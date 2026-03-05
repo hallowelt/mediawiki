@@ -34,7 +34,9 @@ class UserGroupManagerFactory {
 	 * @param HookContainer $hookContainer
 	 * @param JobQueueGroupFactory $jobQueueGroupFactory
 	 * @param TempUserConfig $tempUserConfig Assumed to be the same across all domains.
+	 * @param UserFactory $userFactory
 	 * @param UserRequirementsConditionCheckerFactory $userRequirementsConditionCheckerFactory
+	 * @param RestrictedUserGroupConfigReader $restrictedUserGroupConfigReader
 	 * @param callable[] $clearCacheCallbacks
 	 */
 	public function __construct(
@@ -44,7 +46,9 @@ class UserGroupManagerFactory {
 		private readonly HookContainer $hookContainer,
 		private readonly JobQueueGroupFactory $jobQueueGroupFactory,
 		private readonly TempUserConfig $tempUserConfig,
+		private readonly UserFactory $userFactory,
 		private readonly UserRequirementsConditionCheckerFactory $userRequirementsConditionCheckerFactory,
+		private readonly RestrictedUserGroupConfigReader $restrictedUserGroupConfigReader,
 		private readonly array $clearCacheCallbacks = [],
 	) {
 	}
@@ -66,7 +70,9 @@ class UserGroupManagerFactory {
 				$this->hookContainer,
 				$this->jobQueueGroupFactory->makeJobQueueGroup( $wikiId ),
 				$this->tempUserConfig,
+				$this->userFactory,
 				$this->userRequirementsConditionCheckerFactory,
+				$this->restrictedUserGroupConfigReader,
 				$this->clearCacheCallbacks,
 				$wikiId
 			);

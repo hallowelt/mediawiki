@@ -238,7 +238,6 @@ config-schema:
             This is an array which should have the following k/v pairs:
             All path values can be either absolute or relative URIs
             The `1x` key is a path to the 1x version of square logo (should be 135x135 pixels)
-            The `1.5x` key is a path to the 1.5x version of square logo
             The `2x` key is a path to the 2x version of square logo
             The `svg` key is a path to the svg version of square logo
             The `icon` key is a path to the version of the logo without wordmark and tagline
@@ -256,7 +255,6 @@ config-schema:
             @code
             $wgLogos = [
                '1x' => 'path/to/1x_version.png',
-               '1.5x' => 'path/to/1.5x_version.png',
                '2x' => 'path/to/2x_version.png',
                'svg' => 'path/to/svg_version.svg',
                'icon' => 'path/to/icon.png',
@@ -1379,8 +1377,10 @@ config-schema:
             - 150
             - 180
             - 200
+            - 220
             - 250
             - 300
+            - 400
         type: array
         description: |-
             Adjust thumbnails on image pages according to a user setting. In order to
@@ -2031,7 +2031,7 @@ config-schema:
             History:
               - 1.44: Added
     ImageLinksSchemaMigrationStage:
-        default: 769
+        default: 768
         type: integer
         description: |-
             Migration stage for imagelinks tables
@@ -2700,6 +2700,21 @@ config-schema:
               appropriate $wgCookieDomain settings, enabling this will break session handling.
             @since 1.45
             @see SessionManager::getJwtData()
+    UseSessionCookieForBotPasswords:
+        default: false
+        description: |-
+            TEMPORARY feature flag.
+            Used in conjunction with `UseSessionCookieJwt` above to enable JWT session
+            cookie for bot passwords. Will be removed once it's enabled everywhere in
+            production.
+            @since 1.46
+            @see BotPasswordSessionProvider::provideSessionInfo()
+    JwtSessionCookieIssuer:
+        default: null
+        description: |-
+            The wiki's URL that would create, sign and issue JWTs using the configured
+            private key. The entity is identified by the `iss` claim in the JWT payload.
+            @since 1.46
     MemCachedServers:
         default:
             - '127.0.0.1:11211'
@@ -5899,6 +5914,12 @@ config-schema:
             "{$database}-{$prefix}".
             @since 1.27
             @deprecated since 1.42 Use $wgVirtualDomainsMapping instead.
+    BotPasswordsLimit:
+        default: 100
+        type: integer
+        description: |-
+            Maximum number of bot passwords a user can create.
+            @since 1.46
     SecretKey:
         default: false
         description: 'This should always be customised in LocalSettings.php'

@@ -149,7 +149,7 @@ class ArticleTest extends \MediaWikiIntegrationTestCase {
 			->getMovePageFactory()
 			->newMovePage( $oldTitle, $newTitle )
 			->move( $this->getTestUser()->getUser() );
-		$this->assertTrue( $status->isOK() );
+		$this->assertStatusOK( $status );
 
 		$sysop = $this->getTestUser( 'sysop' )->getUser();
 		$article = $this->newArticle( $newTitle, $sysop );

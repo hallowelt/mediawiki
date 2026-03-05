@@ -26,25 +26,13 @@ use Wikimedia\ParamValidator\ParamValidator;
  */
 class ApiLogin extends ApiBase {
 
-	private AuthManager $authManager;
-
-	private UserIdentityUtils $identityUtils;
-
-	/**
-	 * @param ApiMain $main
-	 * @param string $action
-	 * @param AuthManager $authManager
-	 * @param UserIdentityUtils $identityUtils IdentityUtils to retrieve account type
-	 */
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		AuthManager $authManager,
-		UserIdentityUtils $identityUtils
+		private readonly AuthManager $authManager,
+		private readonly UserIdentityUtils $identityUtils
 	) {
 		parent::__construct( $main, $action, 'lg' );
-		$this->authManager = $authManager;
-		$this->identityUtils = $identityUtils;
 	}
 
 	/** @inheritDoc */

@@ -25,6 +25,7 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\TempUser\TempUserCreator;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
+use Wikimedia\ArrayUtils\ArrayUtils;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\RequestTimeout\TimeoutException;
 use Wikimedia\Timestamp\TimestampFormat as TS;
@@ -34,43 +35,26 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
  */
 class ApiComparePages extends ApiBase {
 
-	private RevisionStore $revisionStore;
-	private ArchivedRevisionLookup $archivedRevisionLookup;
-	private SlotRoleRegistry $slotRoleRegistry;
-
 	/** @var Title|null|false */
 	private $guessedTitle = false;
 	/** @var array<string,true> */
 	private $props;
 
-	private IContentHandlerFactory $contentHandlerFactory;
-	private ContentTransformer $contentTransformer;
-	private CommentFormatter $commentFormatter;
-	private TempUserCreator $tempUserCreator;
-	private UserFactory $userFactory;
 	private DifferenceEngine $differenceEngine;
 
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
-		RevisionStore $revisionStore,
-		ArchivedRevisionLookup $archivedRevisionLookup,
-		SlotRoleRegistry $slotRoleRegistry,
-		IContentHandlerFactory $contentHandlerFactory,
-		ContentTransformer $contentTransformer,
-		CommentFormatter $commentFormatter,
-		TempUserCreator $tempUserCreator,
-		UserFactory $userFactory
+		private readonly RevisionStore $revisionStore,
+		private readonly ArchivedRevisionLookup $archivedRevisionLookup,
+		private readonly SlotRoleRegistry $slotRoleRegistry,
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+		private readonly ContentTransformer $contentTransformer,
+		private readonly CommentFormatter $commentFormatter,
+		private readonly TempUserCreator $tempUserCreator,
+		private readonly UserFactory $userFactory,
 	) {
 		parent::__construct( $mainModule, $moduleName );
-		$this->revisionStore = $revisionStore;
-		$this->archivedRevisionLookup = $archivedRevisionLookup;
-		$this->slotRoleRegistry = $slotRoleRegistry;
-		$this->contentHandlerFactory = $contentHandlerFactory;
-		$this->contentTransformer = $contentTransformer;
-		$this->commentFormatter = $commentFormatter;
-		$this->tempUserCreator = $tempUserCreator;
-		$this->userFactory = $userFactory;
 		$this->differenceEngine = new DifferenceEngine;
 	}
 
@@ -741,7 +725,7 @@ class ApiComparePages extends ApiBase {
 			$ret["to$k"] = $v;
 		}
 
-		$ret = wfArrayInsertAfter(
+		$ret = ArrayUtils::insertAfter(
 			$ret,
 			[ 'torelative' => [ ParamValidator::PARAM_TYPE => [ 'prev', 'next', 'cur' ], ] ],
 			'torev'

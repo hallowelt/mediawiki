@@ -19,18 +19,13 @@ use MediaWiki\Utils\UrlUtils;
  */
 class ApiAMCreateAccount extends ApiBase {
 
-	private AuthManager $authManager;
-	private UrlUtils $urlUtils;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		AuthManager $authManager,
-		UrlUtils $urlUtils
+		private readonly AuthManager $authManager,
+		private readonly UrlUtils $urlUtils,
 	) {
 		parent::__construct( $main, $action, 'create' );
-		$this->authManager = $authManager;
-		$this->urlUtils = $urlUtils;
 	}
 
 	/** @inheritDoc */

@@ -1915,7 +1915,7 @@ abstract class File implements MediaHandlerState {
 	public function modifyClientThumbUrl( $url, $handlerParams ) {
 		if ( $this->repo->isLocal() && ( $handlerParams['isFilePageThumb'] ?? null ) ) {
 			// Use a versioned URL on file description pages
-			return wfAppendQuery( $url, urlencode( $this->getTimestamp() ) );
+			return wfAppendQuery( $url, [ '_' => $this->getTimestamp() ] );
 		} else {
 			return $url;
 		}

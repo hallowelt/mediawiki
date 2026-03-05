@@ -10,7 +10,7 @@ use MediaWiki\Actions\WatchAction;
 use MediaWiki\Config\Config;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Language\Language;
-use MediaWiki\Languages\LanguageNameUtils;
+use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Sanitizer;
@@ -1780,7 +1780,10 @@ return [
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.page.watch.ajax",
 		'packageFiles' => [
 			'watch-ajax.js',
-			[ 'name' => 'config.json', 'config' => [ MainConfigNames::WatchlistExpiry ] ],
+			[
+				'name' => 'config.json',
+				'config' => [ MainConfigNames::WatchlistExpiry, MainConfigNames::EnableWatchlistLabels ],
+			],
 		],
 		'dependencies' => [
 			'mediawiki.api',
@@ -2912,6 +2915,7 @@ return [
 	],
 	'mediawiki.special.watchlistlabels.onboarding' => [
 		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.special.watchlistlabels',
+		'remoteBasePath' => $wgResourceBasePath . '/resources/src/mediawiki.special.watchlistlabels',
 		'packageFiles' => [
 			'label-onboarding.js',
 			'LabelOnboarding.vue',
@@ -3468,12 +3472,12 @@ return [
 		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.watchstar.widgets',
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.watchstar.widgets",
 		'packageFiles' => [
-			'WatchlistExpiryWidget.js',
+			'WatchlistPopup.js',
 			[ 'name' => 'data.json', 'callback' => static function ( MessageLocalizer $messageLocalizer ) {
 				return WatchAction::getExpiryOptions( $messageLocalizer, false );
 			} ]
 		],
-		'styles' => 'WatchlistExpiryWidget.css',
+		'styles' => 'WatchlistPopup.css',
 		'dependencies' => [
 			'oojs-ui',
 			'mediawiki.api'

@@ -1577,6 +1577,18 @@ $wgSessionPbkdf2Iterations = null;
 $wgUseSessionCookieJwt = null;
 
 /**
+ * Config variable stub for the UseSessionCookieForBotPasswords setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::UseSessionCookieForBotPasswords
+ */
+$wgUseSessionCookieForBotPasswords = null;
+
+/**
+ * Config variable stub for the JwtSessionCookieIssuer setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::JwtSessionCookieIssuer
+ */
+$wgJwtSessionCookieIssuer = null;
+
+/**
  * Config variable stub for the MemCachedServers setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::MemCachedServers
  */
@@ -3052,6 +3064,12 @@ $wgBotPasswordsCluster = null;
  * @see MediaWiki\MainConfigSchema::BotPasswordsDatabase
  */
 $wgBotPasswordsDatabase = null;
+
+/**
+ * Config variable stub for the BotPasswordsLimit setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::BotPasswordsLimit
+ */
+$wgBotPasswordsLimit = null;
 
 /**
  * Config variable stub for the SecretKey setting, for use by phpdoc and IDEs.

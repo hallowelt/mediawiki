@@ -329,7 +329,7 @@ class ContentModelChangeTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$status = $change->authorizeChange();
-		$this->assertFalse( $status->isOK() );
+		$this->assertStatusNotOK( $status );
 		$this->assertTrue( $status->isRateLimitExceeded() );
 	}
 

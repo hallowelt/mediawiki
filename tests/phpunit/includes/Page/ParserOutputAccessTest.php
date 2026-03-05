@@ -1650,8 +1650,8 @@ class ParserOutputAccessTest extends MediaWikiIntegrationTestCase {
 			[ ParserOutputAccess::OPT_POOL_COUNTER => ParserOutputAccess::POOL_COUNTER_ARTICLE_VIEW ]
 		);
 
-		$this->assertFalse( $status->isOK() );
-		$this->assertTrue( $status->hasMessage( 'pool-timeout' ) );
+		$this->assertStatusNotOK( $status );
+		$this->assertStatusMessage( 'pool-timeout', $status );
 	}
 
 	public function testDoesNotCacheNotSafe() {
@@ -1742,7 +1742,7 @@ class ParserOutputAccessTest extends MediaWikiIntegrationTestCase {
 			$options
 		);
 
-		$this->assertTrue( $status->isOK() );
+		$this->assertStatusOK( $status );
 		$this->assertSame( $output->getRawText(), $status->getValue()->getRawText() );
 
 		// get old revision output
@@ -1753,7 +1753,7 @@ class ParserOutputAccessTest extends MediaWikiIntegrationTestCase {
 			$options
 		);
 
-		$this->assertTrue( $status->isOK() );
+		$this->assertStatusOK( $status );
 		$this->assertSame( $output->getRawText(), $status->getValue()->getRawText() );
 	}
 

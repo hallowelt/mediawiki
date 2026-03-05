@@ -324,7 +324,6 @@ class ApiMain extends ApiBase {
 			'services' => [
 				'BlockPermissionCheckerFactory',
 				'BlockUserFactory',
-				'TitleFactory',
 				'UserIdentityLookup',
 				'WatchedItemStore',
 				'BlockTargetFactory',

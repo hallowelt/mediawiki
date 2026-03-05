@@ -15,7 +15,7 @@ use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\ContentHandler;
 use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageCode;
-use MediaWiki\Languages\LanguageNameUtils;
+use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\Linker\Linker;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -1035,7 +1035,7 @@ class CoreParserFunctions {
 		if ( $t === null || !$t->canHaveTalkPage() ) {
 			return '';
 		}
-		return wfEscapeWikiText( $t->getTalkPage()->getPrefixedText() );
+		return wfEscapeWikiText( $t->getTalkPageIfDefined()->getPrefixedText() ?? '' );
 	}
 
 	/**
@@ -1048,7 +1048,7 @@ class CoreParserFunctions {
 		if ( $t === null || !$t->canHaveTalkPage() ) {
 			return '';
 		}
-		return wfEscapeWikiText( $t->getTalkPage()->getPrefixedURL() );
+		return wfEscapeWikiText( $t->getTalkPageIfDefined()->getPrefixedURL() );
 	}
 
 	/**
@@ -1057,11 +1057,12 @@ class CoreParserFunctions {
 	 * @return string
 	 */
 	public static function subjectpagename( $parser, $title = null ) {
+		$namespaceInfo = MediaWikiServices::getInstance()->getNamespaceInfo();
 		$t = self::makeTitle( $parser, $title );
 		if ( $t === null ) {
 			return '';
 		}
-		return wfEscapeWikiText( $t->getSubjectPage()->getPrefixedText() );
+		return wfEscapeWikiText( Title::newFromLinkTarget( $namespaceInfo->getSubjectPage( $t ) )->getPrefixedText() );
 	}
 
 	/**
@@ -1070,11 +1071,12 @@ class CoreParserFunctions {
 	 * @return string
 	 */
 	public static function subjectpagenamee( $parser, $title = null ) {
+		$namespaceInfo = MediaWikiServices::getInstance()->getNamespaceInfo();
 		$t = self::makeTitle( $parser, $title );
 		if ( $t === null ) {
 			return '';
 		}
-		return wfEscapeWikiText( $t->getSubjectPage()->getPrefixedURL() );
+		return wfEscapeWikiText( Title::newFromLinkTarget( $namespaceInfo->getSubjectPage( $t ) )->getPrefixedURL() );
 	}
 
 	/**
@@ -1689,13 +1691,12 @@ class CoreParserFunctions {
 			return '';
 		}
 
-		$services = MediaWikiServices::getInstance();
 		if (
 			$t->equals( $parser->getTitle() ) &&
-			$services->getMainConfig()->get( MainConfigNames::MiserMode ) &&
+			$parser->getMiserMode() &&
 			!$parser->getOptions()->getInterfaceMessage() &&
 			// @TODO: disallow this word on all namespaces (T235957)
-			$services->getNamespaceInfo()->isSubject( $t->getNamespace() )
+			$parser->getNamespaceInfo()->isSubject( $t->getNamespace() )
 		) {
 			// Use a stub result instead of the actual revision ID in order to avoid
 			// double parses on page save but still allow preview detection (T137900)

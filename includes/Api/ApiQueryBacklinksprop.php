@@ -73,15 +73,12 @@ class ApiQueryBacklinksprop extends ApiQueryGeneratorBase {
 		],
 	];
 
-	private LinksMigration $linksMigration;
-
 	public function __construct(
 		ApiQuery $query,
 		string $moduleName,
-		LinksMigration $linksMigration
+		private readonly LinksMigration $linksMigration,
 	) {
 		parent::__construct( $query, $moduleName, self::$settings[$moduleName]['code'] );
-		$this->linksMigration = $linksMigration;
 	}
 
 	public function execute() {
@@ -258,7 +255,7 @@ class ApiQueryBacklinksprop extends ApiQueryGeneratorBase {
 		// MySQL's optimizer chokes if we have too many values in "$bl_title IN
 		// (...)" and chooses the wrong index, so specify the correct index to
 		// use for the query. See T139056 for details.
-		if ( !empty( $settings['index'] ) &&
+		if ( array_key_exists( 'index', $settings ) &&
 			$params['namespace'] !== null &&
 			count( $params['namespace'] ) == 1 &&
 			!empty( $settings['from_namespace'] )

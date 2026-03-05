@@ -19,6 +19,7 @@ use MediaWiki\Request\WebRequest;
 use MediaWiki\Shell\Shell;
 use MediaWiki\Title\Title;
 use MediaWiki\Utils\UrlUtils;
+use Wikimedia\ArrayUtils\ArrayUtils;
 use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FSFile\TempFSFile;
 use Wikimedia\Http\HttpStatus;
@@ -100,49 +101,6 @@ function wfLoadSkins( array $skins ) {
 }
 
 /**
- * Like array_diff( $arr1, $arr2 ) except that it works with two-dimensional arrays.
- * @deprecated since 1.43 Use StatusValue::merge() instead
- * @param string[]|array[] $arr1
- * @param string[]|array[] $arr2
- * @return array
- */
-function wfArrayDiff2( $arr1, $arr2 ) {
-	wfDeprecated( __FUNCTION__, '1.43' );
-	/**
-	 * @param string|array $a
-	 * @param string|array $b
-	 */
-	$comparator = static function ( $a, $b ): int {
-		if ( is_string( $a ) && is_string( $b ) ) {
-			return strcmp( $a, $b );
-		}
-		if ( !is_array( $a ) && !is_array( $b ) ) {
-			throw new InvalidArgumentException(
-				'This function assumes that array elements are all strings or all arrays'
-			);
-		}
-		if ( count( $a ) !== count( $b ) ) {
-			return count( $a ) <=> count( $b );
-		} else {
-			reset( $a );
-			reset( $b );
-			while ( key( $a ) !== null && key( $b ) !== null ) {
-				$valueA = current( $a );
-				$valueB = current( $b );
-				$cmp = strcmp( $valueA, $valueB );
-				if ( $cmp !== 0 ) {
-					return $cmp;
-				}
-				next( $a );
-				next( $b );
-			}
-			return 0;
-		}
-	};
-	return array_udiff( $arr1, $arr2, $comparator );
-}
-
-/**
  * Insert an array into another array after the specified key. If the key is
  * not present in the input array, it is returned without modification.
  *
@@ -150,24 +108,10 @@ function wfArrayDiff2( $arr1, $arr2 ) {
  * @param array $insert The array to insert.
  * @param mixed $after The key to insert after.
  * @return array
+ * @deprecated since 1.46, use ArrayUtils::insertAfter
  */
 function wfArrayInsertAfter( array $array, array $insert, $after ) {
-	// Find the offset of the element to insert after.
-	$keys = array_keys( $array );
-	$offsetByKey = array_flip( $keys );
-
-	if ( !\array_key_exists( $after, $offsetByKey ) ) {
-		return $array;
-	}
-	$offset = $offsetByKey[$after];
-
-	// Insert at the specified offset
-	$before = array_slice( $array, 0, $offset + 1, true );
-	$after = array_slice( $array, $offset + 1, count( $array ) - $offset, true );
-
-	$output = $before + $insert + $after;
-
-	return $output;
+	return ArrayUtils::insertAfter( $array, $insert, $after );
 }
 
 /**
@@ -1950,16 +1894,8 @@ function wfThumbIsStandard( File $file, array $params ) {
  * @param array $newValues An array with new values
  * @return array The combined array
  * @since 1.26
+ * @deprecated since 1.46, use ArrayUtils::arrayPlus2d
  */
 function wfArrayPlus2d( array $baseArray, array $newValues ) {
-	// First merge items that are in both arrays
-	foreach ( $baseArray as $name => &$groupVal ) {
-		if ( isset( $newValues[$name] ) ) {
-			$groupVal += $newValues[$name];
-		}
-	}
-	// Now add items that didn't exist yet
-	$baseArray += $newValues;
-
-	return $baseArray;
+	return ArrayUtils::arrayPlus2d( $baseArray, $newValues );
 }

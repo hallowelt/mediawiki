@@ -9,8 +9,6 @@
 namespace MediaWiki\Api;
 
 use MediaWiki\Page\MergeHistoryFactory;
-use MediaWiki\Page\PageIdentity;
-use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -20,15 +18,12 @@ use Wikimedia\ParamValidator\ParamValidator;
  */
 class ApiMergeHistory extends ApiBase {
 
-	private MergeHistoryFactory $mergeHistoryFactory;
-
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
-		MergeHistoryFactory $mergeHistoryFactory
+		private readonly MergeHistoryFactory $mergeHistoryFactory,
 	) {
 		parent::__construct( $mainModule, $moduleName );
-		$this->mergeHistoryFactory = $mergeHistoryFactory;
 	}
 
 	public function execute() {
@@ -68,12 +63,12 @@ class ApiMergeHistory extends ApiBase {
 			self::dieDebug( __METHOD__, 'unknown to parameter' );
 		}
 
-		$reason = $params['reason'];
-		$timestamp = $params['timestamp'] ?? '';
-		$startTimestamp = $params['starttimestamp'] ?? '';
-
-		// Merge!
-		$status = $this->merge( $fromTitle, $toTitle, $timestamp, $reason, $startTimestamp );
+		$status = $this->mergeHistoryFactory->newMergeHistory(
+			$fromTitle,
+			$toTitle,
+			$params['timestamp'],
+			$params['starttimestamp']
+		)->merge( $this->getAuthority(), $params['reason'] );
 		if ( !$status->isOK() ) {
 			$this->dieStatus( $status );
 		}
@@ -87,20 +82,6 @@ class ApiMergeHistory extends ApiBase {
 		$result = $this->getResult();
 
 		$result->addValue( null, $this->getModuleName(), $r );
-	}
-
-	/**
-	 * @param PageIdentity $from
-	 * @param PageIdentity $to
-	 * @param string $timestamp
-	 * @param string $reason
-	 * @param string $startTimestamp
-	 * @return Status
-	 */
-	protected function merge( PageIdentity $from, PageIdentity $to, $timestamp, $reason, $startTimestamp ) {
-		$mh = $this->mergeHistoryFactory->newMergeHistory( $from, $to, $timestamp, $startTimestamp );
-
-		return $mh->merge( $this->getAuthority(), $reason );
 	}
 
 	/** @inheritDoc */

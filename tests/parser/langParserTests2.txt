@@ -1,5 +1,8 @@
 # LanguageConverter and language variants parser tests (v2)
 # Based on https://www.mediawiki.org/wiki/Writing_systems/Syntax
+# This file is primarily for testing actual LanguageConverter
+# behavior, aka +langconv output for various constructs, focusing
+# on examples from the zhwiki documentation.
 !! options
 version=2
 parsoid-compatible=wt2html
@@ -772,7 +775,7 @@ language=zh htmlVariantLanguage=zh,zh-hans,zh-cn,zh-my,zh-sg,zh-hant,zh-hk,zh-mo
 <p>電電電⇒大陆：气气气；
 </p>
 !! html/parsoid+langconv
-<p><span typeof="mw:LanguageVariant" data-mw-variant='{"add":true,"describe":true,"oneway":[{"f":"電電電","l":"zh-cn","t":""}]}'>電電電⇒大陆：气气气；</span></p>
+<p><span typeof="mw:LanguageVariant" data-mw-variant='{"add":true,"describe":true,"oneway":[{"f":"電電電","l":"zh-cn","t":"气气气"}]}'>電電電⇒大陆：气气气；</span></p>
 !! end
 
 # N flag

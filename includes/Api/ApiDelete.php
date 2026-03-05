@@ -34,21 +34,16 @@ class ApiDelete extends ApiBase {
 
 	use ApiWatchlistTrait;
 
-	private RepoGroup $repoGroup;
-	private DeletePageFactory $deletePageFactory;
-
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
-		RepoGroup $repoGroup,
+		private readonly RepoGroup $repoGroup,
 		WatchlistManager $watchlistManager,
 		WatchedItemStoreInterface $watchedItemStore,
 		UserOptionsLookup $userOptionsLookup,
-		DeletePageFactory $deletePageFactory
+		private readonly DeletePageFactory $deletePageFactory,
 	) {
 		parent::__construct( $mainModule, $moduleName );
-		$this->repoGroup = $repoGroup;
-		$this->deletePageFactory = $deletePageFactory;
 
 		// Variables needed in ApiWatchlistTrait trait
 		$this->watchlistExpiryEnabled = $this->getConfig()->get( MainConfigNames::WatchlistExpiry );

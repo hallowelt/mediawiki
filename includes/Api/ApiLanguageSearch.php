@@ -17,15 +17,13 @@ use Wikimedia\ParamValidator\ParamValidator;
  * @ingroup API
  */
 class ApiLanguageSearch extends ApiBase {
-	private LanguageNameSearch $languageNameSearch;
 
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		LanguageNameSearch $languageNameSearch
+		private readonly LanguageNameSearch $languageNameSearch,
 	) {
 		parent::__construct( $main, $action );
-		$this->languageNameSearch = $languageNameSearch;
 	}
 
 	/**

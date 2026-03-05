@@ -31,24 +31,13 @@ class ApiFeedRecentChanges extends ApiBase {
 	/** @var array */
 	private $params;
 
-	private SpecialPageFactory $specialPageFactory;
-	private TempUserConfig $tempUserConfig;
-
-	/**
-	 * @param ApiMain $mainModule
-	 * @param string $moduleName
-	 * @param SpecialPageFactory $specialPageFactory
-	 * @param TempUserConfig $tempUserConfig
-	 */
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
-		SpecialPageFactory $specialPageFactory,
-		TempUserConfig $tempUserConfig
+		private readonly SpecialPageFactory $specialPageFactory,
+		private readonly TempUserConfig $tempUserConfig,
 	) {
 		parent::__construct( $mainModule, $moduleName );
-		$this->specialPageFactory = $specialPageFactory;
-		$this->tempUserConfig = $tempUserConfig;
 	}
 
 	/**

@@ -23,13 +23,6 @@ use MediaWiki\Message\Message;
  */
 class ApiHelpParamValueMessage extends Message {
 
-	/** @var string */
-	protected $paramValue;
-	/** @var bool */
-	protected $deprecated;
-	/** @var bool */
-	protected $internal;
-
 	/**
 	 * @see Message::__construct
 	 * @stable to call
@@ -43,16 +36,13 @@ class ApiHelpParamValueMessage extends Message {
 	 * @since 1.35 Added the `$internal` parameter
 	 */
 	public function __construct(
-		$paramValue,
+		protected readonly string $paramValue,
 		$text,
 		$params = [],
-		$deprecated = false,
-		$internal = false
+		protected readonly bool $deprecated = false,
+		protected readonly bool $internal = false,
 	) {
 		parent::__construct( $text, $params );
-		$this->paramValue = $paramValue;
-		$this->deprecated = (bool)$deprecated;
-		$this->internal = (bool)$internal;
 	}
 
 	/**

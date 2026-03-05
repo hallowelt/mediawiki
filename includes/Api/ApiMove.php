@@ -27,22 +27,16 @@ class ApiMove extends ApiBase {
 
 	use ApiWatchlistTrait;
 
-	private MovePageFactory $movePageFactory;
-	private RepoGroup $repoGroup;
-
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
-		MovePageFactory $movePageFactory,
-		RepoGroup $repoGroup,
+		private readonly MovePageFactory $movePageFactory,
+		private readonly RepoGroup $repoGroup,
 		WatchlistManager $watchlistManager,
 		WatchedItemStoreInterface $watchedItemStore,
-		UserOptionsLookup $userOptionsLookup
+		UserOptionsLookup $userOptionsLookup,
 	) {
 		parent::__construct( $mainModule, $moduleName );
-
-		$this->movePageFactory = $movePageFactory;
-		$this->repoGroup = $repoGroup;
 
 		// Variables needed in ApiWatchlistTrait trait
 		$this->watchlistExpiryEnabled = $this->getConfig()->get( MainConfigNames::WatchlistExpiry );

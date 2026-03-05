@@ -26,17 +26,17 @@ use Wikimedia\ParamValidator\TypeDef\ExpiryDef;
 trait ApiWatchlistTrait {
 
 	/** @var bool Whether watchlist expiries are enabled. */
-	private $watchlistExpiryEnabled;
+	private bool $watchlistExpiryEnabled;
 
 	/** @var string Relative maximum expiry. */
-	private $watchlistMaxDuration;
+	private string $watchlistMaxDuration;
 
 	private ?WatchlistManager $watchlistManager = null;
 	private WatchedItemStoreInterface $watchedItemStore;
 	private ?UserOptionsLookup $userOptionsLookup = null;
 
 	private function initServices() {
-		// This trait is used outside of core and therefor fallback to global state - T263904
+		// This trait is used outside of core and therefore fallback to global state - T263904
 		$this->watchlistManager ??= MediaWikiServices::getInstance()->getWatchlistManager();
 		$this->watchedItemStore ??= MediaWikiServices::getInstance()->getWatchedItemStore();
 		$this->userOptionsLookup ??= MediaWikiServices::getInstance()->getUserOptionsLookup();

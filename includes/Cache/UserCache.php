@@ -34,7 +34,7 @@ class UserCache {
 
 	/**
 	 * @deprecated since 1.43, use MediaWikiServices::getInstance()->getUserCache()
-	 * @return UserCache
+	 * @return self
 	 */
 	public static function singleton() {
 		wfDeprecated( __METHOD__, '1.43' );

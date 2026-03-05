@@ -34,17 +34,8 @@ class ApiErrorFormatter {
 	/** @var PageReference Dummy title to silence warnings from MessageCache::parse() */
 	private static $dummyTitle = null;
 
-	/** @var ApiResult */
-	protected $result;
-
-	/** @var Language */
-	protected $lang;
 	/** @var PageReference|null page used for rendering error messages, or null to use the dummy title */
 	private $title = null;
-	/** @var bool */
-	protected $useDB = false;
-	/** @var string */
-	protected $format = 'none';
 
 	/**
 	 * @param ApiResult $result Into which data will be added
@@ -58,11 +49,12 @@ class ApiErrorFormatter {
 	 *  - none: Code and data only, no human-readable text
 	 * @param bool $useDB Whether to use local translations for errors and warnings.
 	 */
-	public function __construct( ApiResult $result, Language $lang, $format, $useDB = false ) {
-		$this->result = $result;
-		$this->lang = $lang;
-		$this->useDB = $useDB;
-		$this->format = $format;
+	public function __construct(
+		protected readonly ApiResult $result,
+		protected readonly Language $lang,
+		protected readonly string $format = 'none',
+		protected readonly bool $useDB = false,
+	) {
 	}
 
 	/**
@@ -90,7 +82,7 @@ class ApiErrorFormatter {
 	 *
 	 * @since 1.32
 	 * @param string $format New format.
-	 * @return ApiErrorFormatter
+	 * @return self
 	 */
 	public function newWithFormat( $format ) {
 		return new self( $this->result, $this->lang, $format, $this->useDB );
@@ -287,7 +279,7 @@ class ApiErrorFormatter {
 		}
 
 		$result = new ApiResult( 1_000_000 );
-		$formatter = new ApiErrorFormatter(
+		$formatter = new self(
 			$result, $this->lang, $format ?: $this->format, $this->useDB
 		);
 		$formatter->addMessagesFromStatus( null, $status, [ $type ] );

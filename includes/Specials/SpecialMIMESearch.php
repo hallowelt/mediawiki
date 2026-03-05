@@ -10,7 +10,7 @@ use MediaWiki\FileRepo\File\File;
 use MediaWiki\FileRepo\File\FileSelectQueryBuilder;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Language\ILanguageConverter;
-use MediaWiki\Languages\LanguageConverterFactory;
+use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Linker\Linker;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -37,12 +37,12 @@ class SpecialMIMESearch extends QueryPage {
 	/** @var string */
 	protected $mime;
 
-	private ILanguageConverter $languageConverter;
+	private readonly ILanguageConverter $languageConverter;
 
 	public function __construct(
 		IConnectionProvider $dbProvider,
 		LinkBatchFactory $linkBatchFactory,
-		LanguageConverterFactory $languageConverterFactory
+		LanguageConverterFactory $languageConverterFactory,
 	) {
 		parent::__construct( 'MIMEsearch' );
 		$this->setDatabaseProvider( $dbProvider );

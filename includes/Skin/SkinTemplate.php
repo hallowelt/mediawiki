@@ -26,6 +26,7 @@ use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Specials\Contribute\ContributeFactory;
 use MediaWiki\Title\Title;
 use RuntimeException;
+use Wikimedia\ArrayUtils\ArrayUtils;
 use Wikimedia\Message\MessageParam;
 use Wikimedia\Message\MessageSpecifier;
 use Wikimedia\Timestamp\TimestampFormat as TS;
@@ -60,9 +61,6 @@ class SkinTemplate extends Skin {
 
 	/** @var bool */
 	private $isTempUser;
-
-	/** @var bool */
-	private $isNamedUser;
 
 	/** @var bool */
 	private $isAnonUser;
@@ -126,10 +124,9 @@ class SkinTemplate extends Skin {
 		$this->loggedin = $user->isRegistered();
 		$this->username = $user->getName();
 		$this->isTempUser = $user->isTemp();
-		$this->isNamedUser = $this->loggedin && !$this->isTempUser;
 		$this->isAnonUser = $user->isAnon();
 
-		if ( $this->isNamedUser ) {
+		if ( $this->loggedin ) {
 			$this->userpageUrlDetails = self::makeUrlDetails( $userpageTitle );
 		} else {
 			# This won't be used in the standard skins, but we define it to preserve the interface
@@ -746,7 +743,7 @@ class SkinTemplate extends Skin {
 	 * @param string $idSuffix Something to add to the IDs to make them unique
 	 */
 	private function addPersonalPageItem( &$links, $idSuffix ) {
-		if ( $this->isNamedUser ) { // T340152
+		if ( $this->loggedin ) {
 			$links['userpage'] = $this->buildPersonalPageItem( 'pt-userpage' . $idSuffix );
 		}
 	}
@@ -762,6 +759,9 @@ class SkinTemplate extends Skin {
 		// T335440 Temp accounts dont show a user page link
 		// But we still need to update the user icon, as its used by other UI elements
 		$icon = $this->isTempUser ? 'userTemporary' : 'userAvatar';
+		if ( $this->isTempUser ) {
+			$linkClasses[] = 'mw-temp-user-link';
+		}
 		$href = &$this->userpageUrlDetails['href'];
 		return [
 			'id' => $id,
@@ -1577,10 +1577,10 @@ class SkinTemplate extends Skin {
 			] + $userMenu;
 		}
 
-		// userpage is only defined for logged-in users, and wfArrayInsertAfter requires the
+		// userpage is only defined for logged-in users, and ArrayUtils::insertAfter requires the
 		// $after parameter to be a known key in the array.
 		if ( isset( $userMenu['userpage'] ) && isset( $contentNavigation['notifications'] ) ) {
-			$userMenu = wfArrayInsertAfter(
+			$userMenu = ArrayUtils::insertAfter(
 				$userMenu,
 				$contentNavigation['notifications'],
 				'userpage'

@@ -116,6 +116,14 @@ use Wikimedia\Message\MessageSpecifier;
  *                             the message.
  *    'label'               -- alternatively, a raw text message. Overridden by
  *                             label-message
+ *    'description-raw'     -- message text for a message to use as a description text.
+ *    'description-message' -- message key or object for a message to use as a description text.
+ *                             can be an array of msg key and then parameters to
+ *                             the message.
+ *                             Overwrites 'description-messages' and 'description-raw'.
+ *    'description-messages'-- array of message keys/objects. As above, each item can
+ *                             be an array of msg key and then parameters.
+ *                             Overwrites 'description-raw'.
  *    'help-raw'            -- message text for a message to use as a help text.
  *    'help-message'        -- message key or object for a message to use as a help text.
  *                             can be an array of msg key and then parameters to
@@ -131,7 +139,11 @@ use Wikimedia\Message\MessageSpecifier;
  *                             Only used by OOUI form fields.
  *    'required'            -- passed through to the object, indicating that it
  *                             is a required field.
- *    'size'                -- the length of text fields
+ *    'show-optional-flag'  -- (Codex-only) adds an "(optional)" flag to the title to indicate
+ *                             that a field is not required. Must not have `required=true`.
+ *    'optional-message'    -- alternative message key to use for the flag shown
+ *                             with `show-optional-flag`
+ *    'size'                -- the length of text fields; (Codex-only) use large/medium/small for buttons
  *    'filter-callback'     -- a function name to give you the chance to
  *                             massage the inputted value before it's processed.
  *                             See {@link HTMLFormField::filter}
@@ -433,7 +445,7 @@ class HTMLForm extends ContextSource {
 	 * @param IContextSource $context Context used to fetch submitted form fields and
 	 *     generate localisation messages
 	 * @param string $messagePrefix A prefix to go in front of default messages
-	 * @return HTMLForm
+	 * @return self
 	 */
 	public static function factory(
 		$displayFormat, $descriptor, IContextSource $context, $messagePrefix = ''
@@ -479,7 +491,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param array $descriptor Array of Field constructs, as described
 	 * 	in the class documentation
-	 * @return HTMLForm
+	 * @return $this
 	 */
 	public function addFields( $descriptor ) {
 		$loadedDescriptor = [];
@@ -537,7 +549,7 @@ class HTMLForm extends ContextSource {
 	 *   $this->availableDisplayFormats
 	 *
 	 * @since 1.20
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setDisplayFormat( $format ) {
 		if (
@@ -614,13 +626,13 @@ class HTMLForm extends ContextSource {
 	 * @param string $fieldname Name of the field
 	 * @param array $descriptor Input Descriptor, as described
 	 * 	in the class documentation
-	 * @param HTMLForm|null $parent Parent instance of HTMLForm
+	 * @param self|null $parent Parent instance of HTMLForm
 	 *
 	 * @warning Not passing (or passing null) for $parent is deprecated as of 1.40
 	 * @return HTMLFormField Instance of a subclass of HTMLFormField
 	 */
 	public static function loadInputFromParameters( $fieldname, $descriptor,
-		?HTMLForm $parent = null
+		?self $parent = null
 	) {
 		$class = static::getClassFromDescriptor( $fieldname, $descriptor );
 
@@ -641,7 +653,7 @@ class HTMLForm extends ContextSource {
 	 * @warning When doing method chaining, that should be the very last
 	 * method call before displayForm().
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function prepareForm() {
 		# Load data from the request.
@@ -851,7 +863,7 @@ class HTMLForm extends ContextSource {
 	 *   HTMLForm::filterDataForSubmit and this HTMLForm object, and must
 	 *   return as documented for HTMLForm::trySubmit
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setSubmitCallback( $cb ) {
 		$this->mSubmitCallback = $cb;
@@ -866,7 +878,7 @@ class HTMLForm extends ContextSource {
 	 *     (so each entry must itself be an array of arguments)
 	 * @phan-param non-empty-array[] $msg
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setValidationErrorMessage( $msg ) {
 		$this->mValidationErrorMessage = $msg;
@@ -1058,7 +1070,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param array[] $sections Array of section information, keyed on section name.
 	 *
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function setSections( $sections ) {
 		if ( $this->getDisplayFormat() !== 'codex' ) {
@@ -1080,7 +1092,7 @@ class HTMLForm extends ContextSource {
 	 * @param mixed $value Field value
 	 * @param array $attribs
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function addHiddenField( $name, $value, array $attribs = [] ) {
 		if ( !is_array( $value ) ) {
@@ -1101,7 +1113,7 @@ class HTMLForm extends ContextSource {
 	 * @param array $fields Associative array of fields to add;
 	 *        mapping names to their values
 	 *
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function addHiddenFields( array $fields ) {
 		foreach ( $fields as $name => $value ) {
@@ -1136,7 +1148,7 @@ class HTMLForm extends ContextSource {
 	 *  - framed: (boolean=true, optional) OOUI framed attribute.
 	 * @phpcs:ignore Generic.Files.LineLength
 	 * @phan-param array{name:string,value:string,label-message?:string|array<string|MessageParam>|MessageSpecifier,label?:string,label-raw?:string,id?:string,attribs?:array,flags?:string|string[],framed?:bool} $data
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function addButton( $data ) {
 		if ( !is_array( $data ) ) {
@@ -1177,7 +1189,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @since 1.24
 	 * @param string|array $salt Salt to use
-	 * @return HTMLForm $this For chaining calls
+	 * @return $this For chaining calls
 	 */
 	public function setTokenSalt( $salt ) {
 		$this->mTokenSalt = $salt;
@@ -1265,7 +1277,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @since 1.34
 	 * @param bool $collapsedByDefault Whether the form is collapsed by default (optional).
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function setCollapsibleOptions( $collapsedByDefault = false ) {
 		$this->mCollapsible = true;
@@ -1517,7 +1529,7 @@ class HTMLForm extends ContextSource {
 	 * @param string $t Plaintext
 	 * @param-taint $t escapes_html
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setSubmitText( $t ) {
 		$this->mSubmitText = $t;
@@ -1529,7 +1541,7 @@ class HTMLForm extends ContextSource {
 	 * Identify that the submit button in the form has a destructive action
 	 * @since 1.24
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.28)
+	 * @return $this for chaining calls (since 1.28)
 	 */
 	public function setSubmitDestructive() {
 		$this->mSubmitFlags = [ 'destructive', 'primary' ];
@@ -1543,7 +1555,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param string|Message $msg Message key or Message object
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setSubmitTextMsg( $msg ) {
 		if ( !$msg instanceof Message ) {
@@ -1565,7 +1577,7 @@ class HTMLForm extends ContextSource {
 	/**
 	 * @param string $name Submit button name
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setSubmitName( $name ) {
 		$this->mSubmitName = $name;
@@ -1576,7 +1588,7 @@ class HTMLForm extends ContextSource {
 	/**
 	 * @param string $name Tooltip for the submit button
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setSubmitTooltip( $name ) {
 		$this->mSubmitTooltip = $name;
@@ -1590,7 +1602,7 @@ class HTMLForm extends ContextSource {
 	 * @param string $t
 	 *
 	 * @todo FIXME: Integrity of $t is *not* validated
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setSubmitID( $t ) {
 		$this->mSubmitID = $t;
@@ -1631,7 +1643,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param bool $suppressSubmit Set to false to re-enable the button again
 	 *
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function suppressDefaultSubmit( $suppressSubmit = true ) {
 		$this->mShowSubmit = !$suppressSubmit;
@@ -1642,7 +1654,7 @@ class HTMLForm extends ContextSource {
 	/**
 	 * Show a cancel button (or prevent it). The button is not shown by default.
 	 * @param bool $show
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 * @since 1.27
 	 */
 	public function showCancel( $show = true ) {
@@ -1653,7 +1665,7 @@ class HTMLForm extends ContextSource {
 	/**
 	 * Sets the target where the user is redirected to after clicking cancel.
 	 * @param LinkTarget|PageReference|string $target Target as an object or an URL
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 * @since 1.27
 	 */
 	public function setCancelTarget( $target ) {
@@ -1686,7 +1698,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param string $id New value of the id attribute, or "" to remove
 	 *
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function setTableId( $id ) {
 		$this->mTableId = $id;
@@ -1697,7 +1709,7 @@ class HTMLForm extends ContextSource {
 	/**
 	 * @param string $id DOM id for the form
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setId( $id ) {
 		$this->mId = $id;
@@ -1707,7 +1719,7 @@ class HTMLForm extends ContextSource {
 
 	/**
 	 * @param string $name 'name' attribute for the form
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function setName( $name ) {
 		$this->mName = $name;
@@ -1725,7 +1737,7 @@ class HTMLForm extends ContextSource {
 	 *     The string will be escaped before being output (this doesn't support HTML).
 	 * @param-taint $legend escapes_html
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setWrapperLegend( $legend ) {
 		$this->mWrapperLegend = $legend;
@@ -1738,7 +1750,7 @@ class HTMLForm extends ContextSource {
 	 * support for gadgets/user scripts is warranted.
 	 * @param array $attributes
 	 * @internal
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function setWrapperAttributes( $attributes ) {
 		$this->mWrapperAttributes = $attributes;
@@ -1753,7 +1765,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param string|Message $msg Message key or Message object
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setWrapperLegendMsg( $msg ) {
 		if ( !$msg instanceof Message ) {
@@ -1771,7 +1783,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param string $p
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setMessagePrefix( $p ) {
 		$this->mMessagePrefix = $p;
@@ -1784,7 +1796,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param PageReference $t The page the form is on/should be posted to
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setTitle( $t ) {
 		// TODO: make mTitle a PageReference when we have a better way to get URLs, see T282283.
@@ -1805,7 +1817,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param string $method
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setMethod( $method = 'post' ) {
 		$this->mMethod = strtolower( $method );
@@ -2079,7 +2091,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param string|bool $action
 	 *
-	 * @return HTMLForm $this for chaining calls (since 1.20)
+	 * @return $this for chaining calls (since 1.20)
 	 */
 	public function setAction( $action ) {
 		$this->mAction = $action;
@@ -2121,7 +2133,7 @@ class HTMLForm extends ContextSource {
 	 *
 	 * @param string|null $autocomplete
 	 *
-	 * @return HTMLForm $this for chaining calls
+	 * @return $this for chaining calls
 	 */
 	public function setAutocomplete( $autocomplete ) {
 		$this->mAutocomplete = $autocomplete;

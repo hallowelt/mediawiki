@@ -764,7 +764,7 @@ class TemporaryPasswordPrimaryAuthenticationProviderTest extends MediaWikiIntegr
 		$provider = $this->getProvider( $providerConfig );
 		$status = $provider->providerAllowsAuthenticationDataChange( $req );
 
-		$this->assertFalse( $status->isGood() );
+		$this->assertStatusNotGood( $status );
 		$this->assertSame(
 			[ $expectedError ],
 			array_map( static fn ( MessageSpecifier $spec ) => $spec->getKey(), $status->getMessages() )
@@ -855,7 +855,7 @@ class TemporaryPasswordPrimaryAuthenticationProviderTest extends MediaWikiIntegr
 
 		$status = $this->getProvider()->testForAccountCreation( $user, $user, $reqs );
 
-		$this->assertTrue( $status->isGood() );
+		$this->assertStatusGood( $status );
 	}
 
 	public static function provideAccountCreationSuccessCases(): iterable {
@@ -885,8 +885,8 @@ class TemporaryPasswordPrimaryAuthenticationProviderTest extends MediaWikiIntegr
 			$user, $user, [ TemporaryPasswordAuthenticationRequest::class => $req ]
 		);
 
-		$this->assertFalse( $status->isGood() );
-		$this->assertTrue( $status->hasMessage( 'arbitrary warning' ) );
+		$this->assertStatusNotGood( $status );
+		$this->assertStatusMessage( 'arbitrary warning', $status );
 	}
 
 	/**

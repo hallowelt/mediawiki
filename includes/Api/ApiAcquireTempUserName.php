@@ -22,15 +22,12 @@ use MediaWiki\User\TempUser\TempUserCreator;
  */
 class ApiAcquireTempUserName extends ApiBase {
 
-	private TempUserCreator $tempUserCreator;
-
 	public function __construct(
 		ApiMain $main,
 		string $action,
-		TempUserCreator $tempUserCreator
+		private readonly TempUserCreator $tempUserCreator,
 	) {
 		parent::__construct( $main, $action );
-		$this->tempUserCreator = $tempUserCreator;
 	}
 
 	public function execute() {

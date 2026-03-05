@@ -153,7 +153,7 @@ class Category {
 	 *
 	 * @param string $name A category name (no "Category:" prefix).  It need
 	 *   not be normalized, with spaces replaced by underscores.
-	 * @return Category|bool Category, or false on a totally invalid name
+	 * @return self|false Category, or false on a totally invalid name
 	 */
 	public static function newFromName( $name ) {
 		$title = Title::makeTitleSafe( NS_CATEGORY, $name );
@@ -171,7 +171,7 @@ class Category {
 	 * Factory function.
 	 *
 	 * @param PageIdentity $page Category page. Warning, no validation is performed!
-	 * @return Category
+	 * @return self
 	 */
 	public static function newFromTitle( PageIdentity $page ): self {
 		$cat = new self();
@@ -186,7 +186,7 @@ class Category {
 	 * Factory function.
 	 *
 	 * @param int $id A category id. Warning, no validation is performed!
-	 * @return Category
+	 * @return self
 	 */
 	public static function newFromID( $id ) {
 		$cat = new self();
@@ -202,7 +202,7 @@ class Category {
 	 *   given. If the fields are null and no PageIdentity was given, this method fails and returns
 	 *   false.
 	 * @param PageIdentity|null $page This must be provided if there is no cat_title field in $row.
-	 * @return Category|false
+	 * @return self|false
 	 */
 	public static function newFromRow( stdClass $row, ?PageIdentity $page = null ) {
 		$cat = new self();

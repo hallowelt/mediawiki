@@ -312,6 +312,10 @@ class UserRequirementsConditionCheckerTest extends MediaWikiIntegrationTestCase 
 				'checkedCondition' => [ '&', 'cond1', 'cond1' ],
 				'expectedResult' => [ 'cond1' ],
 			],
+			'Empty conditions' => [
+				'checkedCondition' => [],
+				'expectedResult' => [],
+			],
 		];
 	}
 }

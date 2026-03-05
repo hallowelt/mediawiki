@@ -40,28 +40,17 @@ class ApiWatch extends ApiBase {
 	/** @var bool Whether watchlist labels are enabled. */
 	private $labelsEnabled;
 
-	protected WatchlistManager $watchlistManager;
-	private TitleFormatter $titleFormatter;
-	private WatchlistLabelStore $watchlistLabelStore;
-	private WatchedItemStoreInterface $watchedItemStore;
-	private NamespaceInfo $namespaceInfo;
-
 	public function __construct(
 		ApiMain $mainModule,
 		string $moduleName,
-		WatchlistManager $watchlistManager,
-		TitleFormatter $titleFormatter,
-		WatchlistLabelStore $watchlistLabelStore,
-		WatchedItemStoreInterface $watchedItemStore,
-		NamespaceInfo $namespaceInfo
+		private readonly WatchlistManager $watchlistManager,
+		private readonly TitleFormatter $titleFormatter,
+		private readonly WatchlistLabelStore $watchlistLabelStore,
+		private readonly WatchedItemStoreInterface $watchedItemStore,
+		private readonly NamespaceInfo $namespaceInfo,
 	) {
 		parent::__construct( $mainModule, $moduleName );
 
-		$this->watchlistManager = $watchlistManager;
-		$this->titleFormatter = $titleFormatter;
-		$this->watchlistLabelStore = $watchlistLabelStore;
-		$this->watchedItemStore = $watchedItemStore;
-		$this->namespaceInfo = $namespaceInfo;
 		$this->expiryEnabled = $this->getConfig()->get( MainConfigNames::WatchlistExpiry );
 		$this->maxDuration = $this->getConfig()->get( MainConfigNames::WatchlistExpiryMaxDuration );
 		$this->labelsEnabled = $this->getConfig()->get( MainConfigNames::EnableWatchlistLabels );
@@ -286,18 +275,8 @@ class ApiWatch extends ApiBase {
 			];
 		}
 
-		// Validate each label ID, collecting valid ones and tracking if any are invalid
-		$validLabels = [];
-		$hasError = false;
-		foreach ( $labelIds as $labelId ) {
-			$label = $this->watchlistLabelStore->loadById( $user, (int)$labelId );
-			if ( !$label ) {
-				// Mark that we found an invalid label
-				$hasError = true;
-			} else {
-				$validLabels[] = $label;
-			}
-		}
+		$validLabels = $this->watchlistLabelStore->loadByIds( $user, $labelIds );
+		$hasError = count( $labelIds ) !== count( $validLabels );
 
 		return [
 			'labels' => $validLabels,

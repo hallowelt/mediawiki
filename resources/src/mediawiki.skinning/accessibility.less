@@ -32,7 +32,9 @@
 // (for example the underline user preference currently residing in `content-links` feature.
 // @todo: these sizes should be made configurable (T417516)
 .mw-parser-output[ data-mw-parsoid-version ] {
-	.mw-default-size img {
+	// Restrict to width='250' to prevent upscaling images which were
+	// originally smaller than the default thumbnail size (T417828)
+	.mw-default-size img[ width='250' ] {
 		width: 250px;
 		height: auto;
 

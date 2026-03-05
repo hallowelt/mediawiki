@@ -14,6 +14,7 @@ use TestLogger;
 use Wikimedia\Rdbms\DBLanguageError;
 use Wikimedia\Rdbms\Expression;
 use Wikimedia\Rdbms\LikeMatch;
+use Wikimedia\Rdbms\Subquery;
 
 /**
  * @covers \Wikimedia\Rdbms\Platform\SQLPlatform
@@ -815,6 +816,14 @@ class SQLPlatformTest extends TestCase {
 					'false' => 'NULL',
 				],
 				"(CASE WHEN field=1 THEN 1 ELSE NULL END)"
+			],
+			[
+				[
+					'conds' => 'field=1',
+					'true' => new Subquery( 'SELECT 1 FROM table' ),
+					'false' => new Subquery( 'SELECT 2 FROM table' ),
+				],
+				"(CASE WHEN field=1 THEN (SELECT 1 FROM table) ELSE (SELECT 2 FROM table) END)"
 			],
 		];
 	}

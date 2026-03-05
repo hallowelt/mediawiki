@@ -1918,15 +1918,14 @@ class User implements Stringable, Authority, UserIdentity, UserEmailContact {
 		$emailAuthentication = $config->get( MainConfigNames::EmailAuthentication );
 
 		if ( $emailAuthentication && $type === 'changed' && $this->isEmailConfirmed() ) {
-			// Send the user an email notifying the user of the change in registered
-			// email address on their previous verified email address
 			$change = $str != '' ? 'changed' : 'removed';
-			$notificationResult = $this->sendMail(
-				wfMessage( 'notificationemail_subject_' . $change )->text(),
-				wfMessage( 'notificationemail_body_' . $change,
-					$this->getRequest()->getIP(),
-					$this->getName(),
-					$str )->text()
+			$notificationResult = Status::wrap(
+				MediaWikiServices::getInstance()->getNotificationEmailSender()->sendNotificationMail(
+					RequestContext::getMain(),
+					$this,
+					$change,
+					$str
+				)
 			);
 		}
 
@@ -2981,6 +2980,18 @@ class User implements Stringable, Authority, UserIdentity, UserEmailContact {
 		if ( !$this->isEmailConfirmed() ) {
 			$this->setEmailAuthenticationTimestamp( wfTimestampNow() );
 			$this->getHookRunner()->onConfirmEmailComplete( $this );
+			$logContext = [ 'event' => 'email_confirmed' ];
+			if ( $this->mEmailTokenExpires !== null ) {
+				$tokenLifetime = MediaWikiServices::getInstance()->getMainConfig()
+					->get( MainConfigNames::UserEmailConfirmationTokenExpiry );
+				$tokenExpiry = wfTimestamp( TS_UNIX, $this->mEmailTokenExpires );
+				if ( is_numeric( $tokenLifetime ) && $tokenExpiry !== false ) {
+					$emailSentAt = (int)$tokenExpiry - (int)$tokenLifetime;
+					$delaySec = max( 0, (int)ConvertibleTimestamp::time() - $emailSentAt );
+					$logContext['confirmation_delay_seconds'] = $delaySec;
+				}
+			}
+			LoggerFactory::getInstance( 'confirmemail' )->info( 'Email address confirmed', $logContext );
 		}
 		return true;
 	}
@@ -3269,7 +3280,7 @@ class User implements Stringable, Authority, UserIdentity, UserEmailContact {
 	/**
 	 * @note This is only here for compatibility with the Authority interface.
 	 * @since 1.36
-	 * @return UserIdentity $this
+	 * @return $this
 	 */
 	public function getUser(): UserIdentity {
 		return $this;

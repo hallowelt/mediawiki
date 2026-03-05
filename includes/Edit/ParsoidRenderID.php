@@ -75,7 +75,7 @@ class ParsoidRenderID implements Stringable {
 	 * @param string $eTag ETag with double quotes,
 	 *   see https://www.rfc-editor.org/rfc/rfc7232#section-2.3
 	 *
-	 * @return ParsoidRenderID|null The render ID embedded in the ETag,
+	 * @return self|null The render ID embedded in the ETag,
 	 *         or null if the ETag was malformed.
 	 * @see newFromKey() if ETag already has outside quotes trimmed
 	 */

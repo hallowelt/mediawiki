@@ -17,6 +17,7 @@ use Psr\Log\NullLogger;
  * subclasses of MediaWikiIntegrationTestCase or MediaWikiUnitTestCase.
  *
  * @stable to use
+ * @since 1.39
  */
 trait AuthenticationProviderTestTrait {
 

@@ -219,8 +219,11 @@ class EditResult implements JsonSerializable {
 	}
 
 	/**
-	 * An edit is a null edit if the original revision is equal to the parent revision,
-	 * i.e. no changes were made.
+	 * An edit is considered null edit if the original revision is equal to the
+	 * parent revision, i.e. no changes were made.
+	 *
+	 * @note The term "null edit" is here understood to include dummy revisions,
+	 * which is different from how that term is used elsewhere in the code.
 	 */
 	public function isNullEdit(): bool {
 		return $this->isNullEdit;

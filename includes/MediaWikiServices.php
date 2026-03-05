@@ -78,15 +78,15 @@ use MediaWiki\Json\JwtCodec;
 use MediaWiki\Language\FormatterFactory;
 use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageCode;
+use MediaWiki\Language\LanguageConverterFactory;
+use MediaWiki\Language\LanguageFactory;
+use MediaWiki\Language\LanguageFallback;
 use MediaWiki\Language\LanguageNameSearch;
+use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\Language\LeximorphFactory;
 use MediaWiki\Language\LocalisationCache;
 use MediaWiki\Language\MessageCache;
 use MediaWiki\Language\MessageParser;
-use MediaWiki\Languages\LanguageConverterFactory;
-use MediaWiki\Languages\LanguageFactory;
-use MediaWiki\Languages\LanguageFallback;
-use MediaWiki\Languages\LanguageNameUtils;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkRendererFactory;
 use MediaWiki\Linker\LinksMigration;
@@ -97,6 +97,7 @@ use MediaWiki\Mail\ConfirmEmail\ConfirmEmailBuilderFactory;
 use MediaWiki\Mail\ConfirmEmail\ConfirmEmailSender;
 use MediaWiki\Mail\EmailUserFactory;
 use MediaWiki\Mail\IEmailer;
+use MediaWiki\Mail\NotificationEmail\NotificationEmailSender;
 use MediaWiki\Media\MediaHandlerFactory;
 use MediaWiki\Notification\NotificationService;
 use MediaWiki\ObjectCache\ObjectCacheFactory;
@@ -198,6 +199,7 @@ use MediaWiki\User\Options\UserOptionsManager;
 use MediaWiki\User\PasswordReset;
 use MediaWiki\User\Registration\UserRegistrationLookup;
 use MediaWiki\User\RestrictedUserGroupCheckerFactory;
+use MediaWiki\User\RestrictedUserGroupConfigReader;
 use MediaWiki\User\TalkPageNotificationManager;
 use MediaWiki\User\TempUser\RealTempUserConfig;
 use MediaWiki\User\TempUser\TempUserCreator;
@@ -1001,6 +1003,10 @@ class MediaWikiServices extends ServiceContainer {
 
 	public function getConfirmEmailSender(): ConfirmEmailSender {
 		return $this->getService( 'ConfirmEmailSender' );
+	}
+
+	public function getNotificationEmailSender(): NotificationEmailSender {
+		return $this->getService( 'NotificationEmailSender' );
 	}
 
 	/**
@@ -1934,6 +1940,13 @@ class MediaWikiServices extends ServiceContainer {
 	 */
 	public function getRestrictedUserGroupCheckerFactory(): RestrictedUserGroupCheckerFactory {
 		return $this->getService( 'RestrictedUserGroupCheckerFactory' );
+	}
+
+	/**
+	 * @since 1.46
+	 */
+	public function getRestrictedUserGroupConfigReader(): RestrictedUserGroupConfigReader {
+		return $this->getService( 'RestrictedUserGroupConfigReader' );
 	}
 
 	/**
