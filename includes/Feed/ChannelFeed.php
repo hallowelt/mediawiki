@@ -13,6 +13,8 @@ namespace MediaWiki\Feed;
 use MediaWiki\Html\TemplateParser;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Output\OutputPage;
+use MediaWiki\Request\WebRequest;
 
 /**
  * Class to support the outputting of syndication feeds in Atom and RSS format.
@@ -75,16 +77,15 @@ abstract class ChannelFeed extends FeedItem {
 	 * content might end up being cached and re-sent with
 	 * these same headers later.
 	 *
-	 * This should be called from the outHeader() method,
-	 * but can also be called separately.
+	 * @param OutputPage $output
+	 * @since 1.46
 	 */
-	public function httpHeaders() {
-		global $wgOut;
+	public function sendHttpHeaders( $output ): void {
 		$varyOnXFP = MediaWikiServices::getInstance()->getMainConfig()
 			->get( MainConfigNames::VaryOnXFP );
 		# We take over from $wgOut, excepting its cache header info
-		$wgOut->disable();
-		$mimetype = $this->contentType();
+		$output->disable();
+		$mimetype = $this->contentType( $output->getRequest() );
 		header( "Content-type: $mimetype; charset=UTF-8" );
 		// @todo Maybe set a CSP header here at some point as defense in depth.
 		// need to figure out how that interacts with browser display of article
@@ -96,22 +97,34 @@ abstract class ChannelFeed extends FeedItem {
 		header( "Content-Disposition: inline; filename=\"feed.{$ext}\"" );
 
 		if ( $varyOnXFP ) {
-			$wgOut->addVaryHeader( 'X-Forwarded-Proto' );
+			$output->addVaryHeader( 'X-Forwarded-Proto' );
 		}
-		$wgOut->sendCacheControl();
+		$output->sendCacheControl();
+	}
+
+	/**
+	 * Setup and send HTTP headers. Don't send any content;
+	 * content might end up being cached and re-sent with
+	 * these same headers later.
+	 *
+	 * This should be called from the outHeader() method,
+	 * but can also be called separately.
+	 *
+	 * @deprecated since 1.46; use sendHttpHeaders() instead
+	 */
+	public function httpHeaders() {
+		wfDeprecated( __METHOD__, '1.46' );
+		global $wgOut;
+		$this->sendHttpHeaders( $wgOut );
 	}
 
 	/**
 	 * Return an internet media type to be sent in the headers.
 	 *
-	 * @stable to override
-	 *
-	 * @return string
+	 * @param WebRequest $request
 	 */
-	private function contentType() {
-		global $wgRequest;
-
-		$ctype = $wgRequest->getVal( 'ctype', 'application/xml' );
+	private function contentType( $request ): string {
+		$ctype = $request->getVal( 'ctype', 'application/xml' );
 		$allowedctypes = [
 			'application/xml',
 			'text/xml',
@@ -124,9 +137,23 @@ abstract class ChannelFeed extends FeedItem {
 
 	/**
 	 * Output the initial XML headers.
+	 *
+	 * @param OutputPage $output
+	 * @since 1.46
+	 */
+	protected function outputXmlHeader( $output ): void {
+		$this->sendHttpHeaders( $output );
+		echo '<?xml version="1.0"?>' . "\n";
+	}
+
+	/**
+	 * Output the initial XML headers.
+	 *
+	 * @deprecated since 1.46; use outputXmlHeader() instead
 	 */
 	protected function outXmlHeader() {
-		$this->httpHeaders();
-		echo '<?xml version="1.0"?>' . "\n";
+		wfDeprecated( __METHOD__, '1.46' );
+		global $wgOut;
+		$this->outputXmlHeader( $wgOut );
 	}
 }

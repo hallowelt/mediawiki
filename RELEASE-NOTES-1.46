@@ -538,6 +538,10 @@ because of Phabricator reports.
     - LanguageZh
     - LanguageHsb
     - LanguageGan
+  - Linker related hooks: MediaWiki\Hook => MediaWiki\Linker\Hook
+    - LinkerMakeExternalImageHook
+    - LinkerMakeExternalLinkHook
+    - LinkerMakeMediaLinkFileHook
   - MediaWiki\ObjectCache:
     - ObjectCache
     - ObjectCacheFactory
@@ -1001,6 +1005,9 @@ because of Phabricator reports.
   deprecated and emits deprecation warnings.
 * The HtmlCacheUpdater service has been renamed to HTMLCacheUpdater (T419427).
   Using the old name is now deprecated and emits deprecation warnings.
+* ChannelFeed::httpHeaders() and ChannelFeed::outXmlHeader() have been
+  deprecated and emit deprecation warnings, use ::sendHttpHeaders() and
+  ::outputXmlHeader() instead.
 * …
 
 === Other changes in 1.46 ===
