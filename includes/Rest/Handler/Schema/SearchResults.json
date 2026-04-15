@@ -15,6 +15,7 @@
 					"title",
 					"excerpt",
 					"matched_title",
+					"anchor",
 					"description",
 					"thumbnail"
 				],
@@ -40,6 +41,11 @@
 						"type": "string",
 						"nullable": true,
 						"x-i18n-description": "rest-property-desc-search-matched-title"
+					},
+					"anchor": {
+						"type": "string",
+						"nullable": true,
+						"x-i18n-description": "rest-property-desc-search-anchor"
 					},
 					"description": {
 						"type": "string",

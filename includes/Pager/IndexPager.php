@@ -497,6 +497,7 @@ abstract class IndexPager extends ContextSource implements Pager {
 		}
 
 		return [
+			// NOTE: The `array_merge` here will override any previously set conflicting options (e.g. HAVING)
 			$tables, $fields, array_merge( $conds, $offsetConds ), $fname, array_merge( $options, $sortOptions ),
 			$join_conds
 		];
@@ -527,37 +528,48 @@ abstract class IndexPager extends ContextSource implements Pager {
 			$operator = $this->mIncludeOffset ? '<=' : '<';
 		}
 		if ( $offset ) {
-			$offsets = explode( '|', $offset, /* Limit to max of indices */ count( $indexColumns ) );
+			$rawOffsets = explode( '|', $offset, /* Limit to max of indices */ count( $indexColumns ) );
+			// There may be fewer offsets than $columns, in which case the remaining columns should be ignored (T318080)
+			$offsetColumns = array_slice( $indexColumns, 0, count( $rawOffsets ) );
 
-			$conds = $this->buildOffsetConds(
-				$offsets,
-				$indexColumns,
-				$operator
-			);
+			$mappedOffsets = array_combine( $offsetColumns, $rawOffsets );
+			$this->adjustQueryStringOffsets( $mappedOffsets );
+
+			if ( $this->indexUsesAggregate() && $this->mDb->getType() === 'postgres' ) {
+				// Postgres doesn't allow aliases in HAVING, so expand them if possible. Don't do that in other
+				// DBMSs so that the query remains more readable.
+				$fields = $this->getQueryInfo()['fields'];
+				foreach ( $mappedOffsets as $col => $val ) {
+					if ( isset( $fields[$col] ) ) {
+						$mappedOffsets[ $fields[$col] ] = $val;
+						unset( $mappedOffsets[$col] );
+					}
+				}
+			}
+
+			$offsetConds = $this->mDb->buildComparison( $operator, $mappedOffsets );
+
+			if ( $this->indexUsesAggregate() ) {
+				$options['HAVING'] = $offsetConds;
+			} else {
+				$conds = $offsetConds;
+			}
 		}
 		$options['LIMIT'] = $limit;
 		return [ $conds, $options ];
 	}
 
 	/**
-	 * Build the conditions for the offset, given that we may be paginating on a
-	 * single column or multiple columns. Where we paginate on multiple columns,
-	 * the sort order is defined by the order of the columns in $mIndexField.
+	 * Override to adjust offsets extracted from the query string. Typically this is not needed, but sometimes we need
+	 * to typecast offset values: type information is lost when building the query string. And for example, when
+	 * paginating on an aggregate in SQLite, the compared value needs to be integer, or the comparison won't work
+	 * (numeric string doesn't work either).
 	 *
-	 * @param string[] $offsets The offset for each index field
-	 * @param string[] $columns The name of each index field
-	 * @param string $operator Operator for the final part of each inner
-	 *  condition. This will be '>' if the query order is ascending, or '<' if
-	 *  the query order is descending. If the offset should be included, it will
-	 *  also have '=' appended.
-	 * @return string The conditions for getting results from the offset
+	 * @param array<string,string> &$offsets Maps column name to offset value
+	 * @return void
 	 */
-	private function buildOffsetConds( $offsets, $columns, $operator ) {
-		// $offsets may be shorter than $columns, in which case the remaining columns should be ignored
-		// (T318080)
-		$columns = array_slice( $columns, 0, count( $offsets ) );
-		$conds = array_combine( $columns, $offsets );
-		return $this->mDb->buildComparison( $operator, $conds );
+	protected function adjustQueryStringOffsets( array &$offsets ): void {
+		// Nothing by default.
 	}
 
 	/**
@@ -953,6 +965,19 @@ abstract class IndexPager extends ContextSource implements Pager {
 	 * @return string|string[]|array[]
 	 */
 	abstract public function getIndexField();
+
+	/**
+	 * Returns whether the index field, as provided by {@link self::getIndexField}, uses an aggregate function.
+	 * This lets us adjust the query accordingly (e.g., using HAVING instead of WHERE). See T308694.
+	 *
+	 * @note For Postgres support, make sure that any aliases used here are included in the field list returned
+	 * by {@link self::getQueryInfo}.
+	 *
+	 * @since 1.46
+	 */
+	protected function indexUsesAggregate(): bool {
+		return false;
+	}
 
 	/**
 	 * Returns the names of secondary columns to order by in addition to the
