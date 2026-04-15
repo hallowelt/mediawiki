@@ -29,6 +29,11 @@ class PageContent extends IPageContent {
 	}
 
 	/** @inheritDoc */
+	public function getRevisionId(): ?int {
+		return $this->rev->getId();
+	}
+
+	/** @inheritDoc */
 	public function getRoles(): array {
 		return $this->rev->getSlotRoles();
 	}
