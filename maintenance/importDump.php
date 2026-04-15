@@ -10,6 +10,8 @@
  * @ingroup Maintenance
  */
 
+use MediaWiki\Import\ImportStreamSource;
+use MediaWiki\Import\WikiRevision;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\Permissions\UltimateAuthority;

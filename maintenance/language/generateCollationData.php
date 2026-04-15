@@ -11,6 +11,7 @@
 require_once __DIR__ . '/../Maintenance.php';
 // @codeCoverageIgnoreEnd
 
+use MediaWiki\Collation\IcuCollation;
 use MediaWiki\Maintenance\Maintenance;
 use Wikimedia\StaticArrayWriter;
 use Wikimedia\StringUtils\StringUtils;

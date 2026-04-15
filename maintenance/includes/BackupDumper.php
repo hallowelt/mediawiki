@@ -18,8 +18,17 @@ require_once __DIR__ . '/../Maintenance.php';
 require_once __DIR__ . '/../../includes/Export/WikiExporter.php';
 // @codeCoverageIgnoreEnd
 
+use MediaWiki\Export\Dump7ZipOutput;
+use MediaWiki\Export\DumpBZip2Output;
+use MediaWiki\Export\DumpDBZip2Output;
+use MediaWiki\Export\DumpFileOutput;
 use MediaWiki\Export\DumpFilter;
+use MediaWiki\Export\DumpGZipOutput;
+use MediaWiki\Export\DumpLatestFilter;
+use MediaWiki\Export\DumpLBZip2Output;
 use MediaWiki\Export\DumpMultiWriter;
+use MediaWiki\Export\DumpNamespaceFilter;
+use MediaWiki\Export\DumpNotalkFilter;
 use MediaWiki\Export\DumpOutput;
 use MediaWiki\Export\ExportProgressFilter;
 use MediaWiki\Export\WikiExporter;
@@ -133,16 +142,16 @@ abstract class BackupDumper extends Maintenance {
 		$this->stderr = fopen( "php://stderr", "wt" );
 
 		// Built-in output and filter plugins
-		$this->registerOutput( 'file', \DumpFileOutput::class );
-		$this->registerOutput( 'gzip', \DumpGZipOutput::class );
-		$this->registerOutput( 'bzip2', \DumpBZip2Output::class );
-		$this->registerOutput( 'dbzip2', \DumpDBZip2Output::class );
-		$this->registerOutput( 'lbzip2', \DumpLBZip2Output::class );
-		$this->registerOutput( '7zip', \Dump7ZipOutput::class );
+		$this->registerOutput( 'file', DumpFileOutput::class );
+		$this->registerOutput( 'gzip', DumpGZipOutput::class );
+		$this->registerOutput( 'bzip2', DumpBZip2Output::class );
+		$this->registerOutput( 'dbzip2', DumpDBZip2Output::class );
+		$this->registerOutput( 'lbzip2', DumpLBZip2Output::class );
+		$this->registerOutput( '7zip', Dump7ZipOutput::class );
 
-		$this->registerFilter( 'latest', \DumpLatestFilter::class );
-		$this->registerFilter( 'notalk', \DumpNotalkFilter::class );
-		$this->registerFilter( 'namespace', \DumpNamespaceFilter::class );
+		$this->registerFilter( 'latest', DumpLatestFilter::class );
+		$this->registerFilter( 'notalk', DumpNotalkFilter::class );
+		$this->registerFilter( 'namespace', DumpNamespaceFilter::class );
 
 		// These three can be specified multiple times
 		$this->addOption( 'plugin', 'Load a dump plugin class. Specify as <class>[:<file>].',

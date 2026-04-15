@@ -25,9 +25,11 @@ require_once __DIR__ . '/Maintenance.php';
 use MediaWiki\ChangeTags\ChangeTags;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Maintenance\Maintenance;
+use MediaWiki\Media\MediaHandler;
 use MediaWiki\Specials\SpecialUpload;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
+use MediaWiki\Utils\MWFileProps;
 use Wikimedia\FileBackend\FSFile\FSFile;
 
 class ImportImages extends Maintenance {

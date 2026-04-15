@@ -12,6 +12,7 @@
 
 use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\Permissions\UltimateAuthority;
+use MediaWiki\User\User;
 use MediaWiki\User\UserIdentityValue;
 
 // @codeCoverageIgnoreStart

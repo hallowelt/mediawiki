@@ -8,6 +8,7 @@
  */
 
 use MediaWiki\Content\ContentHandler;
+use MediaWiki\Import\WikiRevision;
 use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;

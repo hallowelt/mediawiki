@@ -7,7 +7,7 @@
 
 use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\Maintenance\Maintenance;
-use MediaWiki\Pager\AllMessagesTablePager;
+use MediaWiki\Specials\Pager\AllMessagesTablePager;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 

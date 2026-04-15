@@ -6,6 +6,7 @@
 use MediaWiki\Category\CategoriesRdf;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Maintenance\Maintenance;
+use MediaWiki\Utils\BatchRowIterator;
 use Wikimedia\Purtle\RdfWriter;
 use Wikimedia\Purtle\RdfWriterFactory;
 use Wikimedia\Rdbms\IReadableDatabase;

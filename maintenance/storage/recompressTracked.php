@@ -8,6 +8,7 @@
  * @ingroup Maintenance ExternalStorage
  */
 
+use MediaWiki\ExternalStore\ExternalStoreDB;
 use MediaWiki\Logger\LegacyLogger;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Shell\Shell;

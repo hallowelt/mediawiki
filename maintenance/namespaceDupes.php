@@ -27,6 +27,7 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleValue;
+use MediaWiki\User\User;
 use Wikimedia\Rdbms\IDBAccessObject;
 use Wikimedia\Rdbms\IExpression;
 use Wikimedia\Rdbms\IResultWrapper;

@@ -7,6 +7,9 @@
  * @ingroup Maintenance ExternalStorage
  */
 
+use MediaWiki\ExternalStore\ExternalStoreDB;
+use MediaWiki\Import\ImportStreamSource;
+use MediaWiki\Import\WikiRevision;
 use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\Permissions\UltimateAuthority;
 use MediaWiki\Shell\Shell;

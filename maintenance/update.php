@@ -21,6 +21,8 @@ use MediaWiki\Context\RequestContext;
 use MediaWiki\Installer\DatabaseInstaller;
 use MediaWiki\Installer\DatabaseUpdater;
 use MediaWiki\Installer\Installer;
+use MediaWiki\Language\LCStoreNull;
+use MediaWiki\Language\LocalisationCache;
 use MediaWiki\Maintenance\LoggedUpdateMaintenance;
 use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\Settings\SettingsBuilder;

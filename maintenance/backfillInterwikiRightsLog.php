@@ -10,6 +10,8 @@ declare( strict_types = 1 );
 
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\Logging\DatabaseLogEntry;
+use MediaWiki\Logging\LogEntry;
+use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\Title\Title;

@@ -6,6 +6,8 @@
 use MediaWiki\Category\CategoriesRdf;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Maintenance\Maintenance;
+use MediaWiki\RecentChanges\RecentChange;
+use MediaWiki\Utils\BatchRowIterator;
 use MediaWiki\Utils\MWTimestamp;
 use Wikimedia\Purtle\RdfWriter;
 use Wikimedia\Purtle\TurtleRdfWriter;

@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\Maintenance\LoggedUpdateMaintenance;
+
 require_once __DIR__ . '/TableCleanup.php';
 
 /**

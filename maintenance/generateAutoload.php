@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Autoload\AutoloadGenerator;
 use MediaWiki\Maintenance\Maintenance;
 
 // @codeCoverageIgnoreStart
