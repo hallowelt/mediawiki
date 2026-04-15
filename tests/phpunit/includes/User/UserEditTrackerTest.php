@@ -11,6 +11,7 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityValue;
 use MediaWiki\User\UserRigorOptions;
+use Wikimedia\TestingAccessWrapper;
 
 /**
  * @covers \MediaWiki\User\UserEditTracker
@@ -91,6 +92,7 @@ class UserEditTrackerTest extends MediaWikiIntegrationTestCase {
 		$this->editTrackerDoEdit( $user, '20200101000000' );
 		$tracker = $this->getServiceContainer()->getUserEditTracker();
 		$tracker->initializeUserEditCount( $user );
+		$tracker->clearUserEditCache( $user );
 		$this->runJobs();
 		$this->assertSame( 1, $tracker->getUserEditCount( $user ) );
 	}
@@ -107,6 +109,13 @@ class UserEditTrackerTest extends MediaWikiIntegrationTestCase {
 		$this->editTrackerDoEdit( $user, $ts3 );
 		$this->editTrackerDoEdit( $user, $ts2 );
 		$this->editTrackerDoEdit( $user, $ts1 );
+
+		// Normally, this would happen naturally on submitting the edit request
+		$tracker->clearUserEditCache( $user );
+		$tracker->incrementUserEditCount( $user );
+		$tracker->incrementUserEditCount( $user );
+		$tracker->incrementUserEditCount( $user );
+		$this->runDeferredUpdates();
 
 		$this->assertSame( $ts1, $tracker->getFirstEditTimestamp( $user ) );
 		$this->assertSame( $ts3, $tracker->getLatestEditTimestamp( $user ) );
@@ -230,5 +239,50 @@ class UserEditTrackerTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( 1, $tracker->getUserEditCount( $user1 ) );
 		$this->assertSame( 2, $tracker->getUserEditCount( $user2 ) );
+	}
+
+	public function testGetEditTimestamp_caching() {
+		$user = $this->getMutableTestUser()->getUser();
+		$tracker = $this->getServiceContainer()->getUserEditTracker();
+
+		$mockTime = time();
+		$wrappedTracker = TestingAccessWrapper::newFromObject( $tracker );
+		// Mock time is passed as reference, so it's only seemingly unused later in this test
+		$wrappedTracker->wanObjectCache->setMockTime( $mockTime );
+
+		$this->assertFalse( $tracker->getFirstEditTimestamp( $user ) );
+
+		$ts = '20010101000000';
+		$this->editTrackerDoEdit( $user, $ts );
+
+		// Normally, this would happen naturally on submitting the edit request
+		$tracker->clearUserEditCache( $user );
+		$tracker->incrementUserEditCount( $user );
+		$this->runDeferredUpdates();
+
+		$mockTime += 1000;
+		$this->assertSame( $ts, $tracker->getFirstEditTimestamp( $user ) );
+
+		$this->getDb()->newDeleteQueryBuilder()
+			->delete( 'revision' )
+			->where( '1=1' )
+			->caller( __METHOD__ )
+			->execute();
+
+		$this->assertFalse( $tracker->getFirstEditTimestamp( $user, IDBAccessObject::READ_LATEST ) );
+		$this->assertSame( $ts, $tracker->getFirstEditTimestamp( $user ) );
+
+		// Ensure that cache is invalidated only if we pass matching timestamp
+		$tracker->invalidateCachedFirstEditTimestamps( [
+			[ $user, '20260101000000' ],
+		] );
+		$mockTime += 1000;
+		$this->assertSame( $ts, $tracker->getFirstEditTimestamp( $user ) );
+
+		$tracker->invalidateCachedFirstEditTimestamps( [
+			[ $user, $ts ],
+		] );
+		$mockTime += 1000;
+		$this->assertFalse( $tracker->getFirstEditTimestamp( $user ) );
 	}
 }

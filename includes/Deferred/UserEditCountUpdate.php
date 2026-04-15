@@ -65,6 +65,8 @@ class UserEditCountUpdate implements DeferrableUpdate, MergeableUpdate {
 
 		( new AutoCommitUpdate( $dbw, __METHOD__, function () use ( $lb, $dbw, $fname, $editTracker ) {
 			foreach ( $this->infoByUser as $userId => $info ) {
+				$user = $info->getUser();
+
 				$dbw->newUpdateQueryBuilder()
 					->update( 'user' )
 					->set( [
@@ -84,11 +86,16 @@ class UserEditCountUpdate implements DeferrableUpdate, MergeableUpdate {
 					// is harmless and waitForPrimaryPos() will just no-op.
 					$dbr->flushSnapshot( $fname );
 					$lb->waitForPrimaryPos( $dbr );
-					$editTracker->initializeUserEditCount( $info->getUser() );
+					$editTracker->initializeUserEditCount( $user );
 				}
 
 				// Clear the edit count in the UserEditTracker cache.
-				$editTracker->clearUserEditCache( $info->getUser() );
+				$editTracker->clearUserEditCache( $user );
+
+				// If the user's first edit timestamp is false (i.e. no edit), invalidate the cache.
+				$editTracker->invalidateCachedFirstEditTimestamps( [
+					[ $user, false ],
+				] );
 			}
 		} ) )->doUpdate();
 

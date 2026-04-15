@@ -9,6 +9,7 @@ use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Deferred\UserEditCountUpdate;
 use MediaWiki\JobQueue\JobQueueGroup;
 use MediaWiki\WikiMap\WikiMap;
+use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Rdbms\IDBAccessObject;
 use Wikimedia\Rdbms\SelectQueryBuilder;
@@ -27,20 +28,17 @@ class UserEditTracker {
 	private const FIRST_EDIT = 1;
 	private const LATEST_EDIT = 2;
 
-	/**
-	 * @var int[]
-	 *
-	 * Mapping of user id to edit count for caching
-	 * The keys are in one of the forms:
-	 * * `u{user_id}` - for registered users from the local wiki
-	 * * `{wiki_id}:u{user_id}` - for registered users from other wikis
-	 */
-	private $userEditCountCache = [];
+	private const CACHE_FIRST_EDIT = 'firsteditts';
+	private const CACHE_EDIT_COUNT = 'editcount';
+
+	/** @var int[] */
+	private array $userEditCountCache = [];
 
 	public function __construct(
 		private readonly ActorNormalization $actorNormalization,
 		private readonly IConnectionProvider $dbProvider,
 		private readonly JobQueueGroup $jobQueueGroup,
+		private readonly WANObjectCache $wanObjectCache,
 	) {
 	}
 
@@ -55,7 +53,7 @@ class UserEditTracker {
 			return null;
 		}
 
-		$cacheKey = $this->getCacheKey( $user );
+		$cacheKey = $this->getCacheKey( self::CACHE_EDIT_COUNT, $user );
 		if ( isset( $this->userEditCountCache[ $cacheKey ] ) ) {
 			return $this->userEditCountCache[ $cacheKey ];
 		}
@@ -118,7 +116,7 @@ class UserEditTracker {
 
 			foreach ( $rows as $row ) {
 				if ( $row->user_editcount !== null ) {
-					$key = $this->getCacheKeyByUserId( (int)$row->user_id );
+					$key = $this->getCacheKeyByUserId( self::CACHE_EDIT_COUNT, (int)$row->user_id );
 
 					$this->userEditCountCache[$key] = (int)$row->user_editcount;
 				}
@@ -173,15 +171,47 @@ class UserEditTracker {
 	}
 
 	/**
-	 * Get the user's first edit timestamp
+	 * Get the user's first edit timestamp. First edit timestamp is fairly immutable and therefore it's cached.
+	 * If you need to obtain uncached data, use $flags different from READ_NORMAL.
 	 *
 	 * @param UserIdentity $user
 	 * @param int $flags bit field, see IDBAccessObject::READ_XXX
 	 * @return string|false Timestamp of first edit, or false for non-existent/anonymous user
 	 *  accounts.
 	 */
-	public function getFirstEditTimestamp( UserIdentity $user, int $flags = IDBAccessObject::READ_NORMAL ) {
-		return $this->getUserEditTimestamp( $user, self::FIRST_EDIT, $flags );
+	public function getFirstEditTimestamp(
+		UserIdentity $user,
+		int $flags = IDBAccessObject::READ_NORMAL
+	): string|false {
+		if ( !$user->isRegistered() ) {
+			// User is unregistered, quick to determine, no need to cache
+			return false;
+		}
+		if ( $flags !== IDBAccessObject::READ_NORMAL ) {
+			return $this->getUserEditTimestamp( $user, self::FIRST_EDIT, $flags );
+		}
+
+		// For users with edits, the first edit timestamp is fairly stable, only deleting their first edit can
+		// alter it, so we can cache it for a long time.
+		$timestamp = $this->wanObjectCache->getWithSetCallback(
+			$this->getCacheKey( self::CACHE_FIRST_EDIT, $user ),
+			WANObjectCache::TTL_MONTH,
+			function () use ( $user ) {
+				$timestamp = $this->getUserEditTimestamp( $user, self::FIRST_EDIT );
+				if ( $timestamp === false ) {
+					$timestamp = 0;
+				}
+				return $timestamp;
+			},
+			[
+				'lockTSE' => 30,
+				'staleTTL' => WANObjectCache::TTL_DAY,
+			]
+		);
+		if ( $timestamp === 0 ) {
+			return false;
+		}
+		return $timestamp;
 	}
 
 	/**
@@ -239,7 +269,7 @@ class UserEditTracker {
 			return;
 		}
 
-		$cacheKey = $this->getCacheKey( $user );
+		$cacheKey = $this->getCacheKey( self::CACHE_EDIT_COUNT, $user );
 		unset( $this->userEditCountCache[ $cacheKey ] );
 	}
 
@@ -254,44 +284,72 @@ class UserEditTracker {
 			throw new InvalidArgumentException( __METHOD__ . ' with an anonymous user' );
 		}
 
-		$cacheKey = $this->getCacheKey( $user );
+		$cacheKey = $this->getCacheKey( self::CACHE_EDIT_COUNT, $user );
 		$this->userEditCountCache[ $cacheKey ] = $editCount;
 	}
 
 	/**
-	 * Returns the cache key to be used for reading from or updating the edit
-	 * count cache for a given user, provided as a UserIdentity instance.
+	 * Invalidates the timestamps of the first edits by users, if they are equal to the timestamps
+	 * passed together with users.
+	 * @param array<array{0:UserIdentity,1:string|false}> $users Array of pairs (UserIdentity, timestamp).
+	 */
+	public function invalidateCachedFirstEditTimestamps( array $users ): void {
+		foreach ( $users as [ $user, $timestamp ] ) {
+			if ( !$user->isRegistered() ) {
+				continue;
+			}
+
+			if ( $timestamp === false ) {
+				// We cache "no first edit" as 0, because false means "don't cache"
+				$timestamp = 0;
+			}
+
+			$key = $this->getCacheKey( self::CACHE_FIRST_EDIT, $user );
+			$cachedTimestamp = $this->wanObjectCache->get( $key );
+
+			if ( $timestamp === $cachedTimestamp ) {
+				$this->wanObjectCache->delete( $key );
+			}
+		}
+	}
+
+	/**
+	 * Returns the cache key to be used for reading from or updating the cache
+	 * for a given user, identified by its user ID and the ID of the wiki it
+	 * belongs to. This key can be used for WANObjectCache and array-based caches.
 	 *
+	 * @param string $keygroup Key group component, to separate different things.
 	 * @param UserIdentity $user User to get the cache key for.
 	 * @return string
 	 */
-	private function getCacheKey( UserIdentity $user ): string {
+	private function getCacheKey( string $keygroup, UserIdentity $user ): string {
 		if ( !$user->isRegistered() ) {
 			throw new InvalidArgumentException( 'Cannot prepare cache key for an anonymous user' );
 		}
 
 		$wikiId = $user->getWikiId();
 
-		return $this->getCacheKeyByUserId( $user->getId( $wikiId ), $wikiId );
+		return $this->getCacheKeyByUserId( $keygroup, $user->getId( $wikiId ), $wikiId );
 	}
 
 	/**
-	 * Returns the cache key to be used for reading from or updating the edit
-	 * count cache for a given user, identified by its user ID and the ID of the
-	 * wiki it belongs to.
+	 * Returns the cache key to be used for reading from or updating the cache
+	 * for a given user, identified by its user ID and the ID of the wiki it
+	 * belongs to. This key can be used for WANObjectCache and array-based caches.
 	 *
+	 * @param string $keygroup Key group component, to separate different things.
 	 * @param int $userId ID of the user to get the cache key for.
 	 * @param string|false $wikiId ID of the wiki the user belongs to.
 	 * @return string
 	 */
 	private function getCacheKeyByUserId(
+		string $keygroup,
 		int $userId,
 		string|bool $wikiId = WikiAwareEntity::LOCAL
 	): string {
-		$isRemoteWiki = ( $wikiId !== UserIdentity::LOCAL ) && !WikiMap::isCurrentWikiId( $wikiId );
-		if ( $isRemoteWiki ) {
-			return $wikiId . ':u' . $userId;
+		if ( $wikiId === WikiAwareEntity::LOCAL ) {
+			$wikiId = WikiMap::getCurrentWikiId();
 		}
-		return 'u' . $userId;
+		return $this->wanObjectCache->makeKey( $keygroup, $userId, $wikiId );
 	}
 }

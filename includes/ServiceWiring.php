@@ -2798,7 +2798,8 @@ return [
 		return new UserEditTracker(
 			$services->getActorNormalization(),
 			$services->getConnectionProvider(),
-			$services->getJobQueueGroup()
+			$services->getJobQueueGroup(),
+			$services->getMainWANObjectCache()
 		);
 	},
 
