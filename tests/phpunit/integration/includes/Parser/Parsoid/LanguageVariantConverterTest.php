@@ -25,10 +25,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 
 	public static function provideConvertPageBundleVariant() {
 		yield 'No source or base, rely on page language (en)' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html: '<p>test language conversion</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers: []
 			),
@@ -38,10 +36,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>esttay anguagelay onversioncay<'
 		];
 		yield 'Source variant is base language' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html: '<p>test language conversion</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers:[ 'content-language' => 'en' ]
 			),
@@ -51,10 +47,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>esttay anguagelay onversioncay<'
 		];
 		yield 'Source language is null' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html: '<p>Бутун инсанлар сербестлик, менлик ве укъукъларда мусавий олып дунйагъа келелер.</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers: [ 'content-language' => 'crh' ]
 			),
@@ -64,10 +58,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>Butun insanlar serbestlik, menlik ve uquqlarda musaviy olıp dunyağa keleler.</'
 		];
 		yield 'Source language is explicit' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html: '<p>Бутун инсанлар сербестлик, менлик ве укъукъларда мусавий олып дунйагъа келелер.</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers: [ 'content-language' => 'crh' ]
 			),
@@ -77,10 +69,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>Butun insanlar serbestlik, menlik ve uquqlarda musaviy olıp dunyağa keleler.</'
 		];
 		yield 'Content language is provided via HTTP header' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html: '<p>Бутун инсанлар сербестлик, менлик ве укъукъларда мусавий олып дунйагъа келелер.</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers:[ 'content-language' => 'crh-Cyrl' ]
 			),
@@ -90,10 +80,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>Butun insanlar serbestlik, menlik ve uquqlarda musaviy olıp dunyağa keleler.</'
 		];
 		yield 'Content language is variant' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html:'<p>Бутун инсанлар сербестлик, менлик ве укъукъларда мусавий олып дунйагъа келелер.</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers:[]
 			),
@@ -103,10 +91,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>Butun insanlar serbestlik, menlik ve uquqlarda musaviy olıp dunyağa keleler.</'
 		];
 		yield 'No content-language, but source variant provided' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html:'<p>Бутун инсанлар сербестлик, менлик ве укъукъларда мусавий олып дунйагъа келелер.</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers: []
 			),
@@ -116,10 +102,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>Butun insanlar serbestlik, menlik ve uquqlarda musaviy olıp dunyağa keleler.</'
 		];
 		yield 'Source variant is a base language code' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html: '<p>Бутун инсанлар сербестлик, менлик ве укъукъларда мусавий олып дунйагъа келелер.</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers: []
 			),
@@ -129,10 +113,8 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 			'>Butun insanlar serbestlik, menlik ve uquqlarda musaviy olıp dunyağa keleler.</'
 		];
 		yield 'Base language does not support variants' => [
-			new HtmlPageBundle(
+			HtmlPageBundle::newEmpty(
 				html: '<p>Hallo Wereld</p>',
-				parsoid: [ 'parsoid-data' ],
-				mw: [ 'mw-data' ],
 				version: Parsoid::defaultHTMLVersion(),
 				headers:[]
 			),

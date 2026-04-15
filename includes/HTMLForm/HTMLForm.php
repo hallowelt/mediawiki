@@ -635,6 +635,11 @@ class HTMLForm extends ContextSource {
 		$descriptor['fieldname'] = $fieldname;
 		if ( $parent ) {
 			$descriptor['parent'] = $parent;
+		} else {
+			wfDeprecatedMsg(
+				'Calling HTMLForm::loadInputFromParameters without a parent was deprecated in 1.40',
+				'1.40'
+			);
 		}
 
 		# @todo This will throw a fatal error whenever someone try to use
