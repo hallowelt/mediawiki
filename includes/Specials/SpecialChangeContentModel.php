@@ -110,6 +110,8 @@ class SpecialChangeContentModel extends FormSpecialPage {
 			$this->getOutput()->addBacklinkSubtitle( $this->title );
 		} else {
 			$form->setFormIdentifier( 'titleform' );
+			// T120576
+			$form->setSubmitTextMsg( 'changecontentmodel-submit' );
 		}
 	}
 
