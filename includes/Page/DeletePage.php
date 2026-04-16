@@ -33,7 +33,9 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
+use MediaWiki\User\UserEditTracker;
 use MediaWiki\User\UserFactory;
+use MediaWiki\User\UserIdentityValue;
 use StatusValue;
 use Wikimedia\IPUtils;
 use Wikimedia\Message\ITextFormatter;
@@ -42,6 +44,8 @@ use Wikimedia\ObjectCache\BagOStuff;
 use Wikimedia\Rdbms\IDBAccessObject;
 use Wikimedia\Rdbms\LBFactory;
 use Wikimedia\RequestTimeout\TimeoutException;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
+use Wikimedia\Timestamp\TimestampFormat as TS;
 
 /**
  * Backend logic for performing a page delete action.
@@ -96,70 +100,35 @@ class DeletePage {
 	private $attemptedDeletion = false;
 
 	private HookRunner $hookRunner;
-	private DomainEventDispatcher $eventDispatcher;
-	private RevisionStore $revisionStore;
-	private LBFactory $lbFactory;
-	private JobQueueGroup $jobQueueGroup;
-	private CommentStore $commentStore;
-	private ServiceOptions $options;
-	private BagOStuff $recentDeletesCache;
-	private string $localWikiID;
-	private string $webRequestID;
-	private WikiPageFactory $wikiPageFactory;
-	private UserFactory $userFactory;
-	private BacklinkCacheFactory $backlinkCacheFactory;
-	private NamespaceInfo $namespaceInfo;
-	private ITextFormatter $contLangMsgTextFormatter;
-	private RedirectStore $redirectStore;
 	private WikiPage $page;
-	private Authority $deleter;
-	private WriteDuplicator $linkWriteDuplicator;
 
 	/**
 	 * @internal Create via the PageDeleteFactory service.
 	 */
 	public function __construct(
 		HookContainer $hookContainer,
-		DomainEventDispatcher $eventDispatcher,
-		RevisionStore $revisionStore,
-		LBFactory $lbFactory,
-		JobQueueGroup $jobQueueGroup,
-		CommentStore $commentStore,
-		ServiceOptions $serviceOptions,
-		BagOStuff $recentDeletesCache,
-		string $localWikiID,
-		string $webRequestID,
-		WikiPageFactory $wikiPageFactory,
-		UserFactory $userFactory,
-		BacklinkCacheFactory $backlinkCacheFactory,
-		NamespaceInfo $namespaceInfo,
-		ITextFormatter $contLangMsgTextFormatter,
-		RedirectStore $redirectStore,
+		private readonly DomainEventDispatcher $eventDispatcher,
+		private readonly RevisionStore $revisionStore,
+		private readonly LBFactory $lbFactory,
+		private readonly JobQueueGroup $jobQueueGroup,
+		private readonly CommentStore $commentStore,
+		private readonly ServiceOptions $options,
+		private readonly BagOStuff $recentDeletesCache,
+		private readonly string $webRequestID,
+		private readonly WikiPageFactory $wikiPageFactory,
+		private readonly UserFactory $userFactory,
+		private readonly BacklinkCacheFactory $backlinkCacheFactory,
+		private readonly NamespaceInfo $namespaceInfo,
+		private readonly ITextFormatter $contLangMsgTextFormatter,
+		private readonly RedirectStore $redirectStore,
 		ProperPageIdentity $page,
-		Authority $deleter,
-		WriteDuplicator $linkWriteDuplicator
+		private readonly Authority $deleter,
+		private readonly WriteDuplicator $linkWriteDuplicator,
+		private readonly UserEditTracker $userEditTracker
 	) {
 		$this->hookRunner = new HookRunner( $hookContainer );
-		$this->eventDispatcher = $eventDispatcher;
-		$this->revisionStore = $revisionStore;
-		$this->lbFactory = $lbFactory;
-		$this->jobQueueGroup = $jobQueueGroup;
-		$this->commentStore = $commentStore;
-		$serviceOptions->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
-		$this->options = $serviceOptions;
-		$this->recentDeletesCache = $recentDeletesCache;
-		$this->localWikiID = $localWikiID;
-		$this->webRequestID = $webRequestID;
-		$this->wikiPageFactory = $wikiPageFactory;
-		$this->userFactory = $userFactory;
-		$this->backlinkCacheFactory = $backlinkCacheFactory;
-		$this->namespaceInfo = $namespaceInfo;
-		$this->contLangMsgTextFormatter = $contLangMsgTextFormatter;
-		$this->linkWriteDuplicator = $linkWriteDuplicator;
-
+		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->page = $wikiPageFactory->newFromTitle( $page );
-		$this->deleter = $deleter;
-		$this->redirectStore = $redirectStore;
 	}
 
 	/**
@@ -753,6 +722,7 @@ class DeletePage {
 		$ipRevIds = [];
 
 		$done = true;
+		$revAuthors = [];
 		foreach ( $res as $row ) {
 			if ( count( $revids ) >= $deleteBatchSize ) {
 				$done = false;
@@ -781,7 +751,17 @@ class DeletePage {
 			if ( (int)$row->rev_user === 0 && IPUtils::isValid( $row->rev_user_text ) ) {
 				$ipRevIds[] = $row->rev_id;
 			}
+
+			// Record the timestamp of the first edit by the user to this page,
+			// used for purging UserEditTracker cache.
+			if ( !array_key_exists( (int)$row->rev_user, $revAuthors ) ) {
+				$userIdentity = new UserIdentityValue( (int)$row->rev_user, $row->rev_user_text );
+				$timestamp = ConvertibleTimestamp::convert( TS::MW, $row->rev_timestamp );
+				$revAuthors[$userIdentity->getId()] = [ $userIdentity, $timestamp ];
+			}
 		}
+
+		$this->userEditTracker->invalidateCachedFirstEditTimestamps( array_values( $revAuthors ) );
 
 		if ( count( $revids ) > 0 ) {
 			// Copy them into the archive table

@@ -26,6 +26,7 @@ use MediaWiki\Revision\RevisionStore;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
+use MediaWiki\User\UserEditTracker;
 use MediaWiki\User\UserFactory;
 use MediaWikiUnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -122,7 +123,6 @@ class DeletePageTest extends MediaWikiUnitTestCase {
 			$this->createMock( CommentStore::class ),
 			$options ?? $this->getServiceOptions(),
 			$this->createMock( BagOStuff::class ),
-			'wiki-id',
 			'req-foo-bar',
 			$wpFactory,
 			$this->createMock( UserFactory::class ),
@@ -132,7 +132,8 @@ class DeletePageTest extends MediaWikiUnitTestCase {
 			$this->createMock( RedirectStore::class ),
 			$page,
 			$deleter ?? $this->createMock( Authority::class ),
-			$this->createMock( WriteDuplicator::class )
+			$this->createMock( WriteDuplicator::class ),
+			$this->createMock( UserEditTracker::class ),
 		);
 		$ret->setIsDeletePageUnitTest( true );
 		return $ret;

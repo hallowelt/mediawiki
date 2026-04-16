@@ -263,6 +263,7 @@ class UserEditTrackerTest extends MediaWikiIntegrationTestCase {
 		$mockTime += 1000;
 		$this->assertSame( $ts, $tracker->getFirstEditTimestamp( $user ) );
 
+		// Delete directly from database to ensure that the result is cached
 		$this->getDb()->newDeleteQueryBuilder()
 			->delete( 'revision' )
 			->where( '1=1' )

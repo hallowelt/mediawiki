@@ -194,7 +194,6 @@ class PageCommandFactory implements
 			$this->commentStore,
 			new ServiceOptions( DeletePage::CONSTRUCTOR_OPTIONS, $this->config ),
 			$this->mainStash,
-			$this->localWikiID,
 			$this->webRequestID,
 			$this->wikiPageFactory,
 			$this->userFactory,
@@ -204,7 +203,8 @@ class PageCommandFactory implements
 			$this->redirectStore,
 			$page,
 			$deleter,
-			$this->linkWriteDuplicator
+			$this->linkWriteDuplicator,
+			$this->userEditTracker,
 		);
 	}
 

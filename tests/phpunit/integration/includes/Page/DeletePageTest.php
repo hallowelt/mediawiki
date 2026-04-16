@@ -267,6 +267,7 @@ class DeletePageTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testDeleteUnsafe( bool $suppress, array $tags, bool $immediate, string $logSubtype ) {
 		$teardownScope = DeferredUpdates::preventOpportunisticUpdates();
+		$pageAuthor = $this->getTestUser()->getUser();
 		$deleterUser = static::getTestSysop()->getUser();
 		$deleter = new UltimateAuthority( $deleterUser );
 
@@ -286,6 +287,9 @@ class DeletePageTest extends MediaWikiIntegrationTestCase {
 			$this->overrideConfigValue( MainConfigNames::DeleteRevisionsBatchSize, 1 );
 			$this->editPage( $page, "second revision" );
 		}
+
+		$editTracker = $this->getServiceContainer()->getUserEditTracker();
+		$this->assertNotFalse( $editTracker->getFirstEditTimestamp( $pageAuthor ) );
 
 		$reason = "testing deletion";
 		$deletePage = $this->getDeletePage( $page, $deleter );
@@ -327,6 +331,7 @@ class DeletePageTest extends MediaWikiIntegrationTestCase {
 		$this->assertDeletionLogged( $page, $id, $deleterUser, $reason, $suppress, $logSubtype, $logID );
 		$this->assertDeletionTags( $logID, $tags );
 		$this->assertPageLinksUpdate( $id, $immediate );
+		$this->assertFalse( $editTracker->getFirstEditTimestamp( $pageAuthor ) );
 
 		ScopedCallback::consume( $teardownScope );
 	}

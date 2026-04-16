@@ -59,7 +59,13 @@ trait ChangeTrackingUpdateSpyTrait {
 		// Spy for UserEditTracker
 		$userEditTracker = $this->createNoOpMock(
 			UserEditTracker::class,
-			[ 'incrementUserEditCount', 'setCachedUserEditCount', 'clearUserEditCache' ]
+			[
+				'incrementUserEditCount',
+				'setCachedUserEditCount',
+				'clearUserEditCache',
+				'invalidateCachedFirstEditTimestamps',
+				'getUserEditCount',
+			]
 		);
 
 		$userEditTracker->expects( $this->exactly( $userEditCount ) )

@@ -3737,7 +3737,7 @@ class EditPage implements IEditObject {
 			[ 'minor' => $this->minoredit, 'watch' => $this->watchthis, 'wpWatchlistExpiry' => $expiryFromRequest ]
 		);
 		$watchlistLabelsWidget = $this->getWatchlistLabelsWidget( $tabindex );
-		$watchlistLabelClass = 'mw-editpage-watchlistLabels';
+		$watchlistLabelClass = 'mw-watchlistlabels-component';
 		// Add a message (inline with the checkboxes) when the user doesn't have any labels.
 		if ( $this->context->getUser()->isNamed() && !$watchlistLabelsWidget && $this->watchlistLabelsEnabled ) {
 			$checkboxes['watchlistlabels'] = new OOUI\LabelWidget( [
@@ -3751,7 +3751,7 @@ class EditPage implements IEditObject {
 		if ( $watchlistLabelsWidget ) {
 			$out->addHTML( Html::rawElement(
 				'div',
-				[ 'class' => $watchlistLabelClass ],
+				[ 'class' => $watchlistLabelClass . ' mw-editpage-watchlistLabels' ],
 				(string)$watchlistLabelsWidget
 			) . "\n" );
 		}
