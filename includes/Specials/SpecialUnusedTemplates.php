@@ -9,7 +9,6 @@
 namespace MediaWiki\Specials;
 
 use MediaWiki\Deferred\LinksUpdate\TemplateLinksTable;
-use MediaWiki\Linker\LinksMigration;
 use MediaWiki\Skin\Skin;
 use MediaWiki\SpecialPage\QueryPage;
 use MediaWiki\SpecialPage\SpecialPage;
@@ -28,7 +27,6 @@ class SpecialUnusedTemplates extends QueryPage {
 
 	public function __construct(
 		IConnectionProvider $dbProvider,
-		private readonly LinksMigration $linksMigration,
 	) {
 		parent::__construct( 'Unusedtemplates' );
 		$this->setDatabaseProvider( $dbProvider );
@@ -56,24 +54,8 @@ class SpecialUnusedTemplates extends QueryPage {
 
 	/** @inheritDoc */
 	public function getQueryInfo() {
-		$queryInfo = $this->linksMigration->getQueryInfo(
-			'templatelinks',
-			'templatelinks',
-			'LEFT JOIN'
-		);
-		[ $ns, $title ] = $this->linksMigration->getTitleFields( 'templatelinks' );
-		$joinConds = [];
-		$templatelinksJoin = [
-			'LEFT JOIN', [ "$title = page_title",
-				"$ns = page_namespace" ] ];
-		if ( in_array( 'linktarget', $queryInfo['tables'] ) ) {
-			$joinConds['linktarget'] = $templatelinksJoin;
-		} else {
-			$joinConds['templatelinks'] = $templatelinksJoin;
-		}
-		$joinConds['page_props'] = [ 'LEFT JOIN', [ 'page_id = pp_page', 'pp_propname' => 'expectunusedtemplate' ] ];
 		return [
-			'tables' => array_merge( $queryInfo['tables'], [ 'page' ], [ 'page_props' ] ),
+			'tables' => [ 'linktarget', 'templatelinks', 'page', 'page_props' ],
 			'fields' => [
 				'namespace' => 'page_namespace',
 				'title' => 'page_title',
@@ -84,7 +66,11 @@ class SpecialUnusedTemplates extends QueryPage {
 				'page_is_redirect' => 0,
 				'pp_page' => null
 			],
-			'join_conds' => array_merge( $joinConds, $queryInfo['joins'] )
+			'join_conds' => [
+				'linktarget' => [ 'LEFT JOIN', [ 'lt_title = page_title', 'lt_namespace = page_namespace' ] ],
+				'templatelinks' => [ 'LEFT JOIN', [ 'tl_target_id = lt_id' ] ],
+				'page_props' => [ 'LEFT JOIN', [ 'page_id = pp_page', 'pp_propname' => 'expectunusedtemplate' ] ]
+			]
 		];
 	}
 

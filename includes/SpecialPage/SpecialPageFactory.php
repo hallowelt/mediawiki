@@ -347,7 +347,6 @@ class SpecialPageFactory {
 			'class' => SpecialUnusedTemplates::class,
 			'services' => [
 				'ConnectionProvider',
-				'LinksMigration',
 			]
 		],
 		'Unwatchedpages' => [
@@ -364,7 +363,6 @@ class SpecialPageFactory {
 				'ConnectionProvider',
 				'LinkBatchFactory',
 				'LanguageConverterFactory',
-				'LinksMigration',
 			]
 		],
 		'Wantedfiles' => [
