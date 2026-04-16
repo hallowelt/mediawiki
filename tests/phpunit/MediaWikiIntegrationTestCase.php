@@ -15,6 +15,7 @@ use MediaWiki\ExternalStore\ExternalStoreDB;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\JobQueue\JobQueueMemory;
 use MediaWiki\Language\Language;
+use MediaWiki\Linker\Linker;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Logger\LegacyLogger;
 use MediaWiki\Logger\LegacySpi;
@@ -558,6 +559,9 @@ abstract class MediaWikiIntegrationTestCase extends PHPUnit\Framework\TestCase {
 
 		// Invalidate any Title objects cached by newFromText() or isMainPage() (T395214).
 		Title::clearCaches();
+
+		// Clear accessKeyCache in case a test changed the language
+		Linker::$accesskeycache = [];
 	}
 
 	/**
