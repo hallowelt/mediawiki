@@ -581,7 +581,7 @@ class DifferenceEngine extends ContextSource {
 		if ( $this->mOldid && !$this->mOldRevisionRecord ) {
 			$missing[] = $this->deletedIdMarker( $this->mOldid );
 		}
-		if ( !$this->mNewRevisionRecord ) {
+		if ( $this->mNewid && !$this->mNewRevisionRecord ) {
 			$missing[] = $this->deletedIdMarker( $this->mNewid );
 		}
 

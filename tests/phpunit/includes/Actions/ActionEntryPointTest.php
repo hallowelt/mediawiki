@@ -550,4 +550,256 @@ class ActionEntryPointTest extends MediaWikiIntegrationTestCase {
 		Assert::assertStringContainsString( 'Accueil', $output );
 	}
 
+	private function getOutputFromParams( $params ) {
+		$request = new FauxRequest( $params );
+
+		$env = new MockEnvironment( $request );
+		$context = $env->makeFauxContext();
+
+		$entryPoint = $this->getEntryPoint( $env );
+		$entryPoint->run();
+		return $entryPoint->getCapturedOutput();
+	}
+
+	private function getOutputFromParamsAsAdmin( $params ) {
+		$request = new FauxRequest( $params );
+
+		$env = new MockEnvironment( $request );
+		$context = $env->makeFauxContext();
+		$context->setUser( $this->getTestSysop()->getUser() );
+		$entryPoint = $this->getEntryPoint( $env, $context );
+		$entryPoint->run();
+		return $entryPoint->getCapturedOutput();
+	}
+
+	// These tests also test some code in Article.php and DifferenceEngine.php; they are put here because isolating all of the different
+	// bits from each other is tricky and not worth it
+	public function testBogusOldid() {
+		$this->overrideConfigValue( MainConfigNames::LanguageCode, 'qqx' );
+		$revid = $this->editPage( 'Existing', 'Example2' )->getNewRevision()->getId();
+		// Only oldid
+		$this->assertStringContainsString( '(missing-revision-nolog: 99999)', $this->getOutputFromParams(
+			[ 'oldid' => 99999 ]
+		) );
+		// Oldid and title
+		$this->assertStringContainsString( '(missing-revision: 99999)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Example' ]
+		) );
+		// Oldid and diff
+		$this->assertStringContainsString( '(difference-missing-revision-nolog: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'diff' => 'cur' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision-nolog: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'diff' => 'prev' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision-nolog: 99999(and)(word-separator)99998, 2)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'diff' => 99998 ]
+		) );
+		// These cases below are all identical in expected behavior to each other, listing for completeness
+		// Oldid and diff and title (non-existing)
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Example', 'diff' => 'cur' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Example', 'diff' => 'prev' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999(and)(word-separator)99998, 2)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Example', 'diff' => 99998 ]
+		) );
+		// Oldid and diff and title (existing)
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 'cur' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 'prev' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999(and)(word-separator)99998, 2)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 99998 ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999(and)(word-separator)99998, 2)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 99998 ]
+		) );
+		$this->deletePage( 'existing' );
+		// Oldid and diff and title (deleted)
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 'cur' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 'prev' ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999(and)(word-separator)99998, 2)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 99998 ]
+		) );
+		$this->assertStringContainsString( '(difference-missing-revision: 99999(and)(word-separator)99998, 2)', $this->getOutputFromParams(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => 99998 ]
+		) );
+		// Test that a diff between a bogus and a deleted revision shows the undelete for the deleted revision
+		$this->assertStringContainsString( 'Special:Undelete', $this->getOutputFromParamsAsAdmin(
+			[ 'oldid' => 99999, 'title' => 'Existing', 'diff' => $revid ]
+		) );
+		$this->assertStringContainsString( 'Special:Undelete', $this->getOutputFromParamsAsAdmin(
+			[ 'oldid' => 99999, 'diff' => $revid ]
+		) );
+	}
+
+	public function testBogusDiff() {
+		$this->overrideConfigValue( MainConfigNames::LanguageCode, 'qqx' );
+		$revid = $this->editPage( 'Existing', 'Example2' )->getNewRevision()->getId();
+		// Only diff
+		$this->assertStringContainsString( '(difference-missing-revision-nolog: 99999, 1)', $this->getOutputFromParams(
+			[ 'diff' => 99999 ]
+		) );
+		// Diff and title
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'diff' => 99999, 'title' => 'Example' ]
+		) );
+		// Existing oldid and diff
+		$this->assertStringContainsString( '(difference-missing-revision: 99999, 1)', $this->getOutputFromParams(
+			[ 'oldid' => $revid, 'diff' => 99999 ]
+		) );
+		$this->deletePage( 'Existing' );
+		// Deleted oldid and diff
+		$text = $this->getOutputFromParams(
+			[ 'oldid' => $revid, 'diff' => 99999 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: $revid(and)(word-separator)99999, 2)", $text );
+		$this->assertStringNotContainsString( "Special:Undelete", $text );
+		$text = $this->getOutputFromParamsAsAdmin(
+			[ 'oldid' => $revid, 'diff' => 99999 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: ", $text );
+		$this->assertStringContainsString( "$revid</a>(and)(word-separator)99999, 2)", $text );
+		$this->assertStringContainsString( "Special:Undelete", $text );
+
+		// Deleted oldid and diff and title
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: $revid(and)(word-separator)99999, 2)", $this->getOutputFromParams(
+			[ 'oldid' => $revid, 'diff' => 99999 ]
+		) );
+	}
+
+	public function testDeletedDiff() {
+		$this->overrideConfigValue( MainConfigNames::LanguageCode, 'qqx' );
+		$revid1 = $this->editPage( 'Page1', 'Example2' )->getNewRevision()->getId();
+		$revid2 = $this->editPage( 'Page1', 'Example3' )->getNewRevision()->getId();
+		$revid3 = $this->editPage( 'Page2', 'Example4' )->getNewRevision()->getId();
+		$this->deletePage( 'Page1' );
+		// Two deleted revs from same title
+		$text = $this->getOutputFromParams(
+			[ 'oldid' => $revid1, 'diff' => $revid2 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: $revid1(and)(word-separator)$revid2, 2)", $text );
+		$this->assertStringNotContainsString( "Special:Undelete", $text );
+		$text = $this->getOutputFromParamsAsAdmin(
+			[ 'oldid' => $revid1, 'diff' => $revid2 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog:", $text );
+		$this->assertStringContainsString( "$revid1</a>(and)(word-separator)", $text );
+		$this->assertStringContainsString( "$revid2</a>, 2)", $text );
+		$this->assertEquals( 2, substr_count( $text, 'Special:Undelete' ) );
+		// One revision deleted, one existing
+		$text = $this->getOutputFromParams(
+			[ 'oldid' => $revid1, 'diff' => $revid3 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: $revid1, 1)", $text );
+		$this->assertStringNotContainsString( "Special:Undelete", $text );
+		$text = $this->getOutputFromParamsAsAdmin(
+			[ 'oldid' => $revid1, 'diff' => $revid3 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: ", $text );
+		$this->assertStringContainsString( "$revid1</a>, 1)", $text );
+		$this->assertSame( 1, substr_count( $text, 'Special:Undelete' ) );
+		// One revision deleted, one bogus
+		$text = $this->getOutputFromParams(
+			[ 'oldid' => $revid1, 'diff' => 99999 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: $revid1(and)(word-separator)99999, 2)", $text );
+		$this->assertStringNotContainsString( "Special:Undelete", $text );
+		$text = $this->getOutputFromParamsAsAdmin(
+			[ 'oldid' => $revid1, 'diff' => 99999 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: ", $text );
+		$this->assertStringContainsString( "$revid1</a>(and)(word-separator)99999, 2)", $text );
+		$this->assertSame( 1, substr_count( $text, 'Special:Undelete' ) );
+		// Two deleted revs from different titles
+		$this->deletePage( 'Page2' );
+		$text = $this->getOutputFromParams(
+			[ 'oldid' => $revid1, 'diff' => $revid3 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: $revid1(and)(word-separator)$revid3, 2)", $text );
+		$this->assertStringNotContainsString( "Special:Undelete", $text );
+		$text = $this->getOutputFromParamsAsAdmin(
+			[ 'oldid' => $revid1, 'diff' => $revid3 ]
+		);
+		$this->assertStringContainsString( "(difference-missing-revision-nolog: ", $text );
+		$this->assertStringContainsString( "$revid1</a>(and)(word-separator)", $text );
+		$this->assertStringContainsString( "$revid3</a>, 2)", $text );
+		$this->assertEquals( 2, substr_count( $text, 'Special:Undelete' ) );
+	}
+
+	private function getOutputFromParamsEnglish( $params ) {
+		$request = new FauxRequest( $params );
+
+		$env = new MockEnvironment( $request );
+		$context = $env->makeFauxContext();
+		$context->setLanguage( 'en' );
+		$entryPoint = $this->getEntryPoint( $env, $context );
+		$entryPoint->run();
+		return $entryPoint->getCapturedOutput();
+	}
+
+	private function getOutputFromParamsAsAdminEnglish( $params ) {
+		$request = new FauxRequest( $params );
+
+		$env = new MockEnvironment( $request );
+		$context = $env->makeFauxContext();
+		$context->setLanguage( 'en' );
+		$context->setUser( $this->getTestSysop()->getUser() );
+		$entryPoint = $this->getEntryPoint( $env, $context );
+		$entryPoint->run();
+		return $entryPoint->getCapturedOutput();
+	}
+
+	public function testTitleContext() {
+		// From the deletion log URL, confirming that the title is passed through as-is
+		$this->assertStringContainsString( 'page=Example', $this->getOutputFromParamsEnglish(
+			[ 'oldid' => 99999, 'title' => 'Example' ]
+		) );
+		$this->assertStringContainsString( 'page=Example', $this->getOutputFromParamsEnglish(
+			[ 'oldid' => 99999, 'diff' => 99998, 'title' => 'Example' ]
+		) );
+		$revid = $this->editPage( 'Existing', 'Example2' )->getNewRevision()->getId();
+		// If 'oldid' is given then the deletion log for the page associated with that oldid is shown
+		$this->assertStringContainsString( 'page=Existing', $this->getOutputFromParamsEnglish(
+			[ 'oldid' => $revid, 'diff' => 99999, 'title' => 'Example' ]
+		) );
+		// But not the other way around
+		$this->assertStringContainsString( 'page=Existing', $this->getOutputFromParamsEnglish(
+			[ 'oldid' => $revid, 'diff' => 99999, 'title' => 'Example' ]
+		) );
+		// An existing oldid takes priority over the title
+		$this->assertStringContainsString( 'page=Existing', $this->getOutputFromParamsEnglish(
+			[ 'oldid' => $revid, 'diff' => 99999, 'title' => 'Example' ]
+		) );
+		$this->deletePage( 'Existing' );
+		// If it's deleted then it falls back to the title parameter
+		$this->assertStringContainsString( 'page=Example', $this->getOutputFromParamsEnglish(
+			[ 'oldid' => $revid, 'diff' => 99999, 'title' => 'Example' ]
+		) );
+		// But not the Main Page
+		$this->assertStringNotContainsString( 'deletion log', $this->getOutputFromParamsEnglish(
+			[ 'oldid' => $revid, 'diff' => 99999 ]
+		) );
+		// The "diff" param doesn't set title context for bogus diffs, even as an admin
+		$text = $this->getOutputFromParamsAsAdminEnglish(
+			[ 'diff' => $revid ]
+		);
+		$this->assertStringContainsString( 'Special:Undelete', $text );
+		$this->assertStringNotContainsString( 'deletion log', $text );
+		$text = $this->getOutputFromParamsAsAdminEnglish(
+			[ 'diff' => $revid, 'title' => 'Example' ]
+		);
+		$this->assertStringContainsString( 'page=Example', $text );
+		$this->assertStringContainsString( 'Special:Undelete', $text );
+	}
+
 }

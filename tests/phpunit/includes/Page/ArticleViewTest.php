@@ -387,7 +387,7 @@ class ArticleViewTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( 'Test A', $this->getHtml( $output ) );
 	}
 
-	public function testViewOfDeletedRevision() {
+	public function testViewOfRevdelledRevision() {
 		$revisions = [];
 		$page = $this->getPage( __METHOD__, [ 1 => 'Test A', 2 => 'Test B' ], $revisions );
 		$idA = $revisions[1]->getId();
@@ -409,7 +409,38 @@ class ArticleViewTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( 'Test B', $this->getHtml( $output ) );
 	}
 
-	public function testUnhiddenViewOfDeletedRevision() {
+	public function testViewOfDeletedRevision() {
+		$revisions = [];
+		$page = $this->getPage( __METHOD__, [ 1 => 'Test A' ], $revisions );
+		$idA = $revisions[1]->getId();
+
+		$this->deletePage( __METHOD__ );
+		$article = new Article( $page->getTitle(), $idA );
+		$article->getContext()->getOutput()->setTitle( $page->getTitle() );
+		$article->view();
+
+		$output = $article->getContext()->getOutput();
+		$this->assertStringContainsString( 'missing-revision-nolog', $this->getHtml( $output ) );
+	}
+
+	public function testViewOfDeletedRevisionWithPerm() {
+		$revisions = [];
+		$page = $this->getPage( __METHOD__, [ 1 => 'Test A' ], $revisions );
+		$idA = $revisions[1]->getId();
+
+		$this->deletePage( __METHOD__ );
+		$article = new Article( $page->getTitle(), $idA );
+		$article->getContext()->getOutput()->setTitle( $page->getTitle() );
+		$article->getContext()->setUser( $this->getTestSysop()->getUser() );
+		// setUser reset the language, so reset it
+		$article->getContext()->setLanguage( 'qqx' );
+		$article->view();
+
+		$output = $article->getContext()->getOutput();
+		$this->assertStringContainsString( 'missing-revision-permission', $this->getHtml( $output ) );
+	}
+
+	public function testUnhiddenViewOfRevdelledRevision() {
 		$revisions = [];
 		$page = $this->getPage( __METHOD__, [ 1 => 'Test A', 2 => 'Test B' ], $revisions );
 		$idA = $revisions[1]->getId();
@@ -464,7 +495,7 @@ class ArticleViewTest extends MediaWikiIntegrationTestCase {
 		$realContext->setUser( $oldUser );
 	}
 
-	public function testHiddenViewOfDeletedRevision() {
+	public function testHiddenViewOfRevdelledRevision() {
 		$revisions = [];
 		$page = $this->getPage( __METHOD__, [ 1 => 'Test A', 2 => 'Test B' ], $revisions );
 		$idA = $revisions[1]->getId();
