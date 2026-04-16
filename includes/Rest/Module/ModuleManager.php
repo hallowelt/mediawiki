@@ -92,8 +92,6 @@ class ModuleManager {
 	 * @return string[]
 	 */
 	private function initRouteFiles(): array {
-		global $IP;
-
 		// Always include the "official" routes. Include additional routes if specified.
 		// Routes in extensions are added to RestAPIAdditionalRouteFiles by ExtensionProcessor.
 		$routeFiles = array_merge(
@@ -102,14 +100,10 @@ class ModuleManager {
 		);
 
 		foreach ( $routeFiles as &$file ) {
-			if ( str_starts_with( $file, '/' ) ) {
-				// Allow absolute paths on non-Windows
-			} elseif ( str_starts_with( $file, 'extensions/' ) ) {
+			if ( str_starts_with( $file, 'extensions/' ) ) {
 				// Support hacks like Wikibase.ci.php
 				$file = substr_replace( $file, $this->extensionDirectory,
 					0, strlen( 'extensions' ) );
-			} else {
-				$file = "$IP/$file";
 			}
 		}
 

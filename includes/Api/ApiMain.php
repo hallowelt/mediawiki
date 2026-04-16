@@ -1153,8 +1153,9 @@ class ApiMain extends ApiBase {
 	 * If it is set and the session is safe, then the appropriate CORS headers are set.
 	 *
 	 * @return bool False if the caller should abort (403 case), true otherwise (all other cases)
+	 * @internal For use in SessionProvider
 	 */
-	protected function handleCORS() {
+	public function handleCORS() {
 		$originParam = $this->getParameter( 'origin' ); // defaults to null
 		$crossOriginParam = $this->getParameter( 'crossorigin' ); // defaults to false
 		if ( $originParam === null && !$crossOriginParam ) {

@@ -7,6 +7,7 @@
 namespace MediaWiki\Session;
 
 use InvalidArgumentException;
+use MediaWiki\Api\ApiMain;
 use MediaWiki\Api\ApiUsageException;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
@@ -672,7 +673,8 @@ abstract class SessionProvider implements Stringable, SessionProviderInterface {
 			$this->hookContainer->register(
 				'ApiBeforeMain',
 				// @phan-suppress-next-line PhanPluginNeverReturnFunction Closures should not get doc
-				static function () use ( $msg ) {
+				static function ( ApiMain &$main ) use ( $msg ) {
+					$main->handleCORS();
 					throw ApiUsageException::newWithMessage( null, $msg );
 				}
 			);
