@@ -1811,7 +1811,7 @@
 	"hidden-category-category-desc": "The category contains <code><nowiki>__HIDDENCAT__</nowiki></code> in its page content, which prevents it from showing up in the category links box on pages by default.",
 	"trackingcategories-nodesc": "No description available.",
 	"trackingcategories-disabled": "Category is disabled",
-	"mailnologin": "No send address",
+	"mailnologin": "No sender address",
 	"mailnologintext": "You must be [[Special:UserLogin|logged in]] and have a confirmed email address in your [[Special:Preferences|preferences]] to send email to other users.",
 	"emailuser": "Email this user",
 	"emailuser-title-target": "Email this {{GENDER:$1|user}}",
