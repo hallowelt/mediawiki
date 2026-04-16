@@ -88,9 +88,6 @@ class NamespaceDupes extends Maintenance {
 			false, true );
 		$this->addOption( 'dest-namespace', "In combination with --source-pseudo-namespace, " .
 			"specify the namespace ID of the destination.", false, true );
-		$this->addOption( 'move-talk', "If this is specified, pages in the Talk namespace that " .
-			"begin with a conflicting prefix will be renamed, for example " .
-			"Talk:File:Foo -> File_Talk:Foo" );
 	}
 
 	public function execute() {
@@ -99,7 +96,6 @@ class NamespaceDupes extends Maintenance {
 			'merge' => $this->hasOption( 'merge' ),
 			'add-suffix' => $this->getOption( 'add-suffix', '' ),
 			'add-prefix' => $this->getOption( 'add-prefix', '' ),
-			'move-talk' => $this->hasOption( 'move-talk' ),
 			'source-pseudo-namespace' => $this->getOption( 'source-pseudo-namespace', '' ),
 			'dest-namespace' => intval( $this->getOption( 'dest-namespace', 0 ) )
 		];
@@ -281,7 +277,7 @@ class NamespaceDupes extends Maintenance {
 	 * @return bool
 	 */
 	private function checkNamespace( $ns, $name, $options ) {
-		$targets = $this->getTargetList( $ns, $name, $options );
+		$targets = $this->getTargetList( $ns, $name );
 		$count = $targets->numRows();
 		$this->totalPages += $count;
 		if ( $count == 0 ) {
@@ -597,15 +593,13 @@ class NamespaceDupes extends Maintenance {
 	 *
 	 * @param int $ns Destination namespace id
 	 * @param string $name Prefix that is being made a namespace
-	 * @param array $options Associative array of validated command-line options
 	 *
 	 * @return IResultWrapper
 	 */
-	private function getTargetList( $ns, $name, $options ) {
+	private function getTargetList( $ns, $name ) {
 		$dbw = $this->getPrimaryDB();
 
 		if (
-			$options['move-talk'] &&
 			$this->getServiceContainer()->getNamespaceInfo()->isSubject( $ns )
 		) {
 			$checkNamespaces = [ NS_MAIN, NS_TALK ];
@@ -642,7 +636,7 @@ class NamespaceDupes extends Maintenance {
 		$destNS = $ns;
 		$nsInfo = $this->getServiceContainer()->getNamespaceInfo();
 		if ( $sourceNs == NS_TALK && $nsInfo->isSubject( $ns ) ) {
-			// This is an associated talk page moved with the --move-talk feature.
+			// This is an associated talk page
 			$destNS = $nsInfo->getTalk( $destNS );
 		}
 		return [ $destNS, $dbk ];
