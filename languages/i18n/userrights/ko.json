@@ -253,6 +253,7 @@
 	"action-viewmyprivateinfo": "자신의 개인정보 보기",
 	"action-editmyprivateinfo": "자신의 개인정보 편집",
 	"action-editcontentmodel": "문서의 콘텐츠 모델을 편집",
+	"action-createwithcontentmodel": "기본이 아닌 콘텐츠 모델로 문서 생성",
 	"action-managechangetags": "데이터베이스에서 태그를 만들거나 지우기",
 	"action-applychangetags": "당신이 편집할 때 태그를 적용하기",
 	"action-changetags": "문서의 특정 판과 특정 기록 항목에 임의의 태그를 추가하거나 제거하기",

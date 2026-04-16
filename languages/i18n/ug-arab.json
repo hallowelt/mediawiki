@@ -63,6 +63,7 @@
 	"navigation-heading": "يولباشچى تىزىملىكى",
 	"errorpagetitle": "خاتالىق",
 	"returnto": "$1 غا قايت.",
+	"returnto-login": "تىزىمغا كىرىشكە قايت",
 	"tagline": "ئورنى {{SITENAME}}",
 	"help": "ياردەم",
 	"help-mediawiki": "MediaWiki ھەققىدە ياردەم",

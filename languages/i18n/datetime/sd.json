@@ -4,7 +4,8 @@
 			"Aursani",
 			"BukhariSaeed",
 			"Charoo",
-			"Mehtab ahmed"
+			"Mehtab ahmed",
+			"Siddhu Talreja"
 		]
 	},
 	"january": "جنوري",
@@ -82,6 +83,7 @@
 	"seconds": "{{PLURAL:$1|$1 سيڪنڊ|$1 سيڪنڊَ}}",
 	"days-abbrev": "$1 ڏ",
 	"ago": "$1 اڳ",
+	"duration-centuries": "$1 {{PLURAL:$1|صدي|صديون}}",
 	"duration-weeks": "$1 {{PLURAL:$1|هفتو|هفتا}}",
 	"duration-days": "$1 {{PLURAL:$1|ڏينھُن|ڏينھَن}}",
 	"duration-hours": "$1 {{PLURAL:$1|ڪلاڪ}}",

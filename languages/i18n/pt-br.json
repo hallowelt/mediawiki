@@ -788,7 +788,7 @@
 	"permissionserrorstext": "Você não possui permissão de fazer isso, {{PLURAL:$1|pelo seguinte motivo|pelos seguintes motivos}}:",
 	"permissionserrorstext-withaction": "Você não possui permissão para $2, {{PLURAL:$1|pelo seguinte motivo|pelos motivos a seguir}}:",
 	"permissionserrorstext-withaction-noreason": "Você não tem permissão para acessar $1.",
-	"permissionerror-login": "Você precisa de 1 a $3.",
+	"permissionerror-login": "Você precisa de $1 a $3.",
 	"contentmodelediterror": "Você não pode editar essa revisão pois seu modelo de conteúdo é <code>$1</code>, que difere do modelo de conteúdo atual da página <code>$2</code>.",
 	"recreate-moveddeleted-warn": "'''Atenção: Você está recriando uma página já eliminada em outra ocasião.'''\n\nConsidere se é realmente adequado continuar editando esta página.\nOs registros de eliminação e de movimentação desta página são exibidos a seguir, para sua comodidade:",
 	"moveddeleted-notice": "Esta página não existe.\nOs registros de eliminação, proteção e de movimentação para esta página estão disponibilizados abaixo, para referência.",

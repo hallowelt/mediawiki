@@ -85,8 +85,10 @@
 	"rest-module": "모듈",
 	"rest-module-default": "기본 모듈",
 	"rest-module-extra-routes-title": "미디어위키 REST API",
-	"rest-module-specs.v0-title": "사양",
-	"rest-module-content.v1-title": "문서 내용",
+	"rest-module-specs.v0-title": "사양 API",
+	"rest-module-content.v1-title": "내용 API",
+	"rest-module-site.v1-title": "사이트 API",
+	"rest-param-desc-mock-desc": "가짜 설명.",
 	"rest-param-desc-revision-id": "판 식별자",
 	"rest-param-desc-html-input-title": "HTML 입력 제목 변환",
 	"rest-param-desc-html-input-oldid": "HTML 입력 oldid 변환",
@@ -126,6 +128,7 @@
 	"rest-schema-desc-revision-metadata": "판 메타데이터",
 	"rest-schema-desc-new-page": "소스 (보통 위키텍스트)를 포함한 새 문서",
 	"rest-schema-desc-bare-page": "내용이 없는 문서",
+	"rest-schema-desc-page-history": "문서 판 역사",
 	"rest-schema-desc-search-results": "검색 결과",
 	"rest-schema-desc-revision-compare": "판 비교"
 }
