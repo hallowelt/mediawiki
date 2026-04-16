@@ -65,6 +65,7 @@ trait ChangeTrackingUpdateSpyTrait {
 				'clearUserEditCache',
 				'invalidateCachedFirstEditTimestamps',
 				'getUserEditCount',
+				'getFirstEditTimestamp',
 			]
 		);
 
