@@ -2984,9 +2984,8 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 		$queryData = $args['queryData'] ?? [];
 
 		$fauxRequest = new FauxRequest( $queryData, false );
-		$this->setRequest( $fauxRequest );
 
-		$actualReturn = OutputPage::transformCssMedia( $args['media'] );
+		$actualReturn = OutputPage::transformCssMedia( $args['media'], $fauxRequest );
 		$this->assertSame( $args['expectedReturn'], $actualReturn, $args['message'] );
 	}
 

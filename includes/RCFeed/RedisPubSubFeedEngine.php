@@ -25,8 +25,8 @@ use Wikimedia\ObjectCache\RedisConnectionPool;
  * @par Example:
  * @code
  * $wgRCFeeds['rc-to-redis'] = [
- *      'class' => 'RedisPubSubFeedEngine',
- *      'formatter' => 'JSONRCFeedFormatter',
+ *      'class' => RedisPubSubFeedEngine::class,
+ *      'formatter' => JSONRCFeedFormatter::class,
  *      'uri' => "redis://127.0.0.1:6379/rc.$wgDBname",
  * ];
  * @endcode

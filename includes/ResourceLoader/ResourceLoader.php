@@ -1473,9 +1473,13 @@ MESSAGE;
 	 * single stylesheet with "@media" blocks.
 	 *
 	 * @param array<string,string|string[]> $stylePairs Map from media type to CSS string(s)
+	 * @param WebRequest|null $request Null (deprecated since 1.46) falls back to $wgRequest
 	 * @return string[] CSS strings
 	 */
-	public static function makeCombinedStyles( array $stylePairs ) {
+	public static function makeCombinedStyles( array $stylePairs, $request = null ) {
+		if ( $request === null ) {
+			wfDeprecated( __METHOD__ . ' with null $request', '1.46' );
+		}
 		$out = [];
 		foreach ( $stylePairs as $media => $styles ) {
 			// FileModule::getStyle can return the styles as a string or an
@@ -1489,7 +1493,7 @@ MESSAGE;
 				}
 				// Transform the media type based on request params and config
 				// The way that this relies on $wgRequest to propagate request params is slightly evil
-				$media = OutputPage::transformCssMedia( $media );
+				$media = OutputPage::transformCssMedia( $media, $request );
 
 				if ( $media === '' || $media == 'all' ) {
 					$out[] = $style;

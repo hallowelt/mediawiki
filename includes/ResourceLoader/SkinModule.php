@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Output\OutputPage;
+use MediaWiki\Request\WebRequest;
 use Wikimedia\Minify\CSSMin;
 
 /**
@@ -442,12 +443,13 @@ class SkinModule extends FileModule {
 	 *
 	 * @param array $featureStyles
 	 * @param array $parentStyles
+	 * @param WebRequest $request
 	 *
 	 * @return array
 	 */
-	private function combineFeatureAndParentStyles( $featureStyles, $parentStyles ) {
-		$combinedFeatureStyles = ResourceLoader::makeCombinedStyles( $featureStyles );
-		$combinedParentStyles = ResourceLoader::makeCombinedStyles( $parentStyles );
+	private function combineFeatureAndParentStyles( $featureStyles, $parentStyles, $request ) {
+		$combinedFeatureStyles = ResourceLoader::makeCombinedStyles( $featureStyles, $request );
+		$combinedParentStyles = ResourceLoader::makeCombinedStyles( $parentStyles, $request );
 		$combinedStyles = array_merge( $combinedFeatureStyles, $combinedParentStyles );
 		return [ '' => $combinedStyles ];
 	}
@@ -540,7 +542,7 @@ class SkinModule extends FileModule {
 			}
 		}
 
-		return $this->combineFeatureAndParentStyles( $featureStyles, $parentStyles );
+		return $this->combineFeatureAndParentStyles( $featureStyles, $parentStyles, $context->getRequest() );
 	}
 
 	/**

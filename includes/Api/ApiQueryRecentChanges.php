@@ -150,7 +150,9 @@ class ApiQueryRecentChanges extends ApiQueryGeneratorBase {
 			if ( $titleObj === null || $titleObj->isExternal() ) {
 				$this->dieWithError( [ 'apierror-invalidtitle', wfEscapeWikiText( $title ) ] );
 			} else {
-				if ( $params['namespace'] && !in_array( $titleObj->getNamespace(), $params['namespace'] ) ) {
+				if ( $params['namespace'] &&
+					!$titleObj->inNamespaces( $params['namespace'] )
+				) {
 					$this->requireMaxOneParameter( $params, 'title', 'namespace' );
 				}
 				$query->requireTitle( $titleObj );

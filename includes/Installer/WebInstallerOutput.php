@@ -130,7 +130,9 @@ class WebInstallerOutput {
 			$module->readStyleFiles(
 				$module->getStyleFiles( $rlContext ),
 				$rlContext
-		) );
+			),
+			$this->parent->request
+		);
 
 		return implode( "\n", $styles );
 	}

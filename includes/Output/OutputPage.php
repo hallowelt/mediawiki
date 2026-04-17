@@ -4883,7 +4883,7 @@ class OutputPage extends ContextSource {
 		}
 
 		if ( isset( $options['media'] ) ) {
-			$media = self::transformCssMedia( $options['media'] );
+			$media = self::transformCssMedia( $options['media'], $this->getRequest() );
 			if ( $media === null ) {
 				return '';
 			}
@@ -4994,13 +4994,18 @@ class OutputPage extends ContextSource {
 	 * Transform "media" attribute based on request parameters
 	 *
 	 * @param string $media Current value of the "media" attribute
+	 * @param WebRequest|null $request Null (deprecated since 1.46) falls back to $wgRequest
 	 * @return string|null Modified value of the "media" attribute, or null to disable
 	 * this stylesheet
 	 */
-	public static function transformCssMedia( $media ) {
-		global $wgRequest;
+	public static function transformCssMedia( $media, $request = null ) {
+		if ( $request === null ) {
+			wfDeprecated( __METHOD__ . ' with null $request', '1.46' );
+			global $wgRequest;
+			$request = $wgRequest;
+		}
 
-		if ( $wgRequest->getBool( 'printable' ) ) {
+		if ( $request->getBool( 'printable' ) ) {
 			// When browsing with printable=yes, apply "print" media styles
 			// as if they are screen styles (no media, media="").
 			if ( $media === 'print' ) {

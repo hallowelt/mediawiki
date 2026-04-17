@@ -18,8 +18,8 @@ use UDPTransport;
  * @par Example:
  * @code
  * $wgRCFeeds['rc-to-udp'] = [
- *      'class' => 'UDPRCFeedEngine',
- *      'formatter' => 'JSONRCFeedFormatter',
+ *      'class' => UDPRCFeedEngine::class,
+ *      'formatter' => JSONRCFeedFormatter::class,
  *      'uri' => 'udp://localhost:1336',
  * ];
  * @endcode

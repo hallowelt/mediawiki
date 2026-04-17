@@ -769,7 +769,7 @@ abstract class Module implements LoggerAwareInterface {
 				}
 				// Wrap styles into @media groups as needed and flatten into a numerical array
 				$styles = [
-					'css' => ResourceLoader::makeCombinedStyles( $stylePairs )
+					'css' => ResourceLoader::makeCombinedStyles( $stylePairs, $context->getRequest() )
 				];
 			}
 		}

@@ -353,14 +353,13 @@ class FullSearchResultWidget implements SearchResultWidget {
 			return null;
 		}
 
-		$namespacesWithThumbnails = $this->specialPage->getConfig()->get( MainConfigNames::ThumbnailNamespaces );
-		$showThumbnail = in_array( $title->getNamespace(), $namespacesWithThumbnails );
-		if ( !$showThumbnail ) {
+		$thumbnailNamespaces = $this->specialPage->getConfig()->get( MainConfigNames::ThumbnailNamespaces );
+		if ( !$title->inNamespaces( $thumbnailNamespaces ) ) {
 			return null;
 		}
 
-		$thumbnailName = $thumbnail ? $thumbnail->getName() : null;
-		if ( !$thumbnail || !$thumbnailName ) {
+		$thumbnailName = $thumbnail?->getName();
+		if ( $thumbnailName === null ) {
 			return $this->generateThumbnailPlaceholderHtml();
 		}
 

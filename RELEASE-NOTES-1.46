@@ -1101,6 +1101,8 @@ because of Phabricator reports.
 * RecentChange::newLogEntry, RecentChange::notifyNew and
   RecentChange::notifyEdit, deprecated in 1.45, now emit warnings.
 * Calling SpecialPageFactory::getUsablePages without context was deprecated.
+* OutputPage::transformCssMedia() and ResourceLoader::makeCombinedStyles() now
+  take a $request parameter, and passing null to it will trigger warnings.
 * …
 
 === Other changes in 1.46 ===
