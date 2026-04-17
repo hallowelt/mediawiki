@@ -117,8 +117,6 @@ class ApiMainTest extends ApiTestCase {
 	}
 
 	public function testUselang() {
-		global $wgLang;
-
 		$api = $this->getNonInternalApiMain( [
 			'action' => 'query',
 			'meta' => 'siteinfo',
@@ -129,7 +127,8 @@ class ApiMainTest extends ApiTestCase {
 		$api->execute();
 		ob_end_clean();
 
-		$this->assertSame( 'fr', $wgLang->getCode() );
+		$lang = RequestContext::getMain()->getLanguage();
+		$this->assertSame( 'fr', $lang->getCode() );
 	}
 
 	public function testSuppressedLogin() {

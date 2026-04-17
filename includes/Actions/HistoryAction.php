@@ -19,6 +19,7 @@ use MediaWiki\Logging\LogEventsList;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Pager\HistoryPager;
+use MediaWiki\Parser\Parser;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Utils\MWTimestamp;
@@ -62,7 +63,14 @@ class HistoryAction extends FormlessAction {
 
 	/** @inheritDoc */
 	protected function getPageTitle() {
-		return $this->msg( 'history-title' )->plaintextParams( $this->getTitle()->getPrefixedText() );
+		return $this->msg( 'history-title' )->rawParams(
+			Parser::formatPageTitle(
+				str_replace( '_', ' ', $this->getTitle()->getNsText() ),
+				':',
+				$this->getTitle()->getText(),
+				$this->getTitle()->getPageLanguage()
+			)
+		);
 	}
 
 	/** @inheritDoc */

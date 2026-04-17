@@ -192,10 +192,8 @@ class LogFormatterTest extends MediaWikiLangTestCase {
 	 * @covers \MediaWiki\Logging\LogFormatter::getActionText
 	 */
 	public function testLogParamsTypeNumber() {
-		global $wgLang;
-
 		$params = [ '4:number:number' => 123456789 ];
-		$expected = $wgLang->formatNum( 123456789 );
+		$expected = $this->context->getLanguage()->formatNum( 123456789 );
 
 		$entry = $this->newLogEntry( 'param', $params );
 		$formatter = $this->getServiceContainer()->getLogFormatterFactory()->newFromEntry( $entry );

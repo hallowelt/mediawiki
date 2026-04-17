@@ -924,7 +924,7 @@ class TitleTest extends MediaWikiIntegrationTestCase {
 		# - expected
 		# - Title name
 		# - content language (expected in most cases)
-		# - wgLang (on some specific pages)
+		# - user language (on some specific pages)
 		# - wgDefaultLanguageVariant
 		return [
 			[ 'fr', 'Help:I_need_somebody', 'fr', 'fr', false ],
