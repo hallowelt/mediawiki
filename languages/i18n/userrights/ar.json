@@ -309,6 +309,7 @@
 	"listgrouprights-rights": "الصلاحيات",
 	"listgrouprights-helppage": "Help:صلاحيات المجموعات",
 	"listgrouprights-members": "(قائمة الأعضاء)",
+	"listgrouprights-restricted": "هذه المجموعة لديها [[$1|قيود]]",
 	"listgrouprights-right-display": "<span class=\"listgrouprights-granted\">$1 <code>($2)</code></span>",
 	"listgrouprights-right-revoked": "<span class=\"listgrouprights-revoked\">$1 <code>($2)</code></span>",
 	"listgrouprights-addgroup": "يمكنه إضافة {{PLURAL:$2|المجموعة|المجموعات}}: $1",

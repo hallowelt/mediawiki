@@ -217,6 +217,7 @@
 	"rest-property-desc-revision-url-newer": "إذا كان متاحًا، عنوان URL للحصول على المراجعات التالية",
 	"rest-property-desc-search-excerpt": "مقتطف من محتوى الصفحة المطابق لاستعلام البحث",
 	"rest-property-desc-search-matched-title": "عنوان الصفحة التي تم إعادة التوجيه منها، إذا كان مصطلح البحث يتطابق مع صفحة إعادة التوجيه، وإلا فلا شيء",
+	"rest-property-desc-search-anchor": "قسم من الصفحة المستهدفة، إذا تطابق مصطلح البحث مع إعادة توجيه إلى قسم معين، بتنسيق قابل للقراءة البشرية",
 	"rest-property-desc-search-description": "ملخص قصير لموضوع الصفحة أو لا شيء إذا لم يكن هناك ملخص موجود.",
 	"rest-property-desc-search-thumbnail": "معلومات حول الصورة المصغرة للصفحة، أو لا شيء إذا لم تكن هناك صورة مصغرة موجودة.",
 	"rest-property-desc-html-url": "مسار API لجلب محتوى الصفحة بتنسيق HTML",

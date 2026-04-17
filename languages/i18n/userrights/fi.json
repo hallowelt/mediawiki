@@ -19,7 +19,8 @@
 			"Pyscowicz",
 			"Samoasambia",
 			"Stryn",
-			"Valtlai"
+			"Valtlai",
+			"Wikipeedikko"
 		]
 	},
 	"userrights": "Käyttäjän oikeudet",
@@ -127,6 +128,7 @@
 	"right-editprotected": "Muokata suojattuja sivuja ({{int:restriction-level-sysop}})",
 	"right-editsemiprotected": "Muokata suojattuja sivuja ({{int:restriction-level-autoconfirmed}})",
 	"right-editcontentmodel": "Muokata sivun sisältömallia (content model)",
+	"right-createwithcontentmodel": "Luoda sivuja muilla kuin oletusarvoisilla sisältömalleilla",
 	"right-editinterface": "Muokata käyttöliittymätekstejä",
 	"right-editusercss": "Muokata toisten käyttäjien CSS-tiedostoja",
 	"right-edituserjson": "Muokata toisten käyttäjien JSON-tiedostoja",

@@ -214,6 +214,7 @@
 	"rest-property-desc-revision-url-newer": "Se está dispoñible, o enderezo URL para obter as revisións seguintes",
 	"rest-property-desc-search-excerpt": "Extracto do contido da páxina que coincide coa consulta de busca",
 	"rest-property-desc-search-matched-title": "Título da páxina desde a que se redirixe, se o termo de busca coincidiu cunha páxina de redirección; en caso contrario, «null»",
+	"rest-property-desc-search-anchor": "Sección da páxina de destino, se o termo de busca coincidiu cunha redirección a unha sección específica, en formato lexible para humanos",
 	"rest-property-desc-search-description": "Resumo curto do tema da páxina ou «null» se non existe ningún resumo.",
 	"rest-property-desc-search-thumbnail": "Información sobre a miniatura da páxina ou «null» se non existe ningunha miniatura.",
 	"rest-property-desc-html-url": "Ruta da API para obter o contido da páxina en HTML",
