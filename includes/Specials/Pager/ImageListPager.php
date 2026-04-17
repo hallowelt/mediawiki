@@ -71,9 +71,9 @@ class ImageListPager extends TablePager {
 	];
 
 	private const INDEX_FIELDS_NEW = [
-		'fr_timestamp' => [ 'fr_timestamp', 'file_name' ],
+		'fr_timestamp' => [ 'fr_timestamp', 'fr_id' ],
 		'file_name' => [ 'file_name' ],
-		'fr_size' => [ 'fr_size', 'file_name' ],
+		'fr_size' => [ 'fr_size', 'fr_id' ],
 	];
 
 	public function __construct(
@@ -262,7 +262,9 @@ class ImageListPager extends TablePager {
 		if ( $this->mIncluding ) {
 			return false;
 		}
-		/* For reference, the indices we can use for sorting are:
+
+		/**
+		 * For reference, the indices we can use for sorting are:
 		 * On the image table: img_actor_timestamp, img_size, img_timestamp
 		 * On oldimage: oi_actor_timestamp, oi_name_timestamp
 		 *
@@ -273,9 +275,9 @@ class ImageListPager extends TablePager {
 			if ( $this->mUserName !== null ) {
 				// If we're sorting by user, the index only supports sorting by time.
 				return $field === ( $this->migrationStage & SCHEMA_COMPAT_READ_NEW ? 'fr_timestamp' : 'img_timestamp' );
-			} elseif ( $this->mShowAll ) {
+			} elseif ( $this->mShowAll && ( $this->migrationStage & SCHEMA_COMPAT_READ_OLD ) ) {
 				// no oi_timestamp index, so only alphabetical sorting in this case.
-				return $field === ( $this->migrationStage & SCHEMA_COMPAT_READ_NEW ? 'file_name' : 'img_name' );
+				return $field === 'img_name';
 			}
 		}
 
@@ -291,18 +293,26 @@ class ImageListPager extends TablePager {
 			// the pager class.
 			return $this->getQueryInfoReal( $this->mTableName );
 		}
+
 		$dbr = $this->getDatabase();
 		$tables = [ 'filerevision', 'file', 'actor' ];
 		$fields = [
 			'fr_timestamp',
 			'file_name',
+			'fr_id',
 			'fr_size',
 			'top' => 'CASE WHEN file_latest = fr_id THEN \'yes\' ELSE \'no\' END',
 		];
 		$join_conds = [
-			'filerevision' => [ 'JOIN', 'fr_file=file_id' ],
+			'file' => [ 'JOIN', 'fr_file=file_id' ],
 			'actor' => [ 'JOIN', 'actor_id=fr_actor' ]
 		];
+
+		// Use STRAIGHT_JOIN for file table when sorting by timestamp to ensure we query filerevision
+		// first in order to use the fr_timestamp index (T423654)
+		if ( $this->mSort !== 'file_name' ) {
+			$join_conds['file'][0] = 'STRAIGHT_JOIN';
+		}
 
 		# Description field
 		$commentQuery = $this->commentStore->getJoin( 'fr_description' );
@@ -530,10 +540,11 @@ class ImageListPager extends TablePager {
 	public function getDefaultSort() {
 		if ( $this->mShowAll &&
 			$this->getConfig()->get( MainConfigNames::MiserMode ) &&
-			$this->mUserName === null
+			$this->mUserName === null &&
+			$this->migrationStage & SCHEMA_COMPAT_READ_OLD
 		) {
 			// Unfortunately no index on oi_timestamp.
-			return $this->migrationStage & SCHEMA_COMPAT_READ_NEW ? 'file_name' : 'img_name';
+			return 'img_name';
 		} else {
 			return $this->migrationStage & SCHEMA_COMPAT_READ_NEW ? 'fr_timestamp' : 'img_timestamp';
 		}
