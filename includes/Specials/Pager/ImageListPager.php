@@ -279,7 +279,8 @@ class ImageListPager extends TablePager {
 			}
 		}
 
-		return isset( self::INDEX_FIELDS[$field] );
+		$indexFields = $this->migrationStage & SCHEMA_COMPAT_READ_NEW ? self::INDEX_FIELDS_NEW : self::INDEX_FIELDS;
+		return isset( $indexFields[$field] );
 	}
 
 	/** @inheritDoc */
