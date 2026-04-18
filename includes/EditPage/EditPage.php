@@ -2248,7 +2248,9 @@ class EditPage implements IEditObject {
 			}
 
 			if ( $this->isConflict ) {
-				return EditPageStatus::newGood( self::AS_CONFLICT_DETECTED )->setOK( false );
+				return EditPageStatus::newGood( self::AS_CONFLICT_DETECTED )
+					// This message isn't shown, it's just for some logging code (T423754)
+					->fatal( 'editconflict', $this->getContextTitle()->getPrefixedText() );
 			}
 
 			$pageUpdater = $this->page->newPageUpdater( $pstUser )
