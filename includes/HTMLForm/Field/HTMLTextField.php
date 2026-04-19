@@ -11,8 +11,12 @@ use OOUI\Widget;
  *
  * Besides the parameters recognized by HTMLFormField, the following are
  * recognized:
- *   autocomplete - HTML autocomplete value (a boolean for on/off or a string according to
+ *   autocomplete     -- HTML autocomplete value (a boolean for on/off or a string according to
  *     https://html.spec.whatwg.org/multipage/forms.html#autofill )
+ *   start-icon-class -- (codex-only) custom class to show an icon at the beginning of the input.
+ *                       You will need to add the icon styles and background image.
+ *   end-icon-class   -- (codex-only) custom class to show an icon at the end of the input.
+ *                       You will need to add the icon styles and background image.
  *
  * @stable to extend
  */
@@ -268,10 +272,12 @@ class HTMLTextField extends HTMLFormField {
 
 		$attribs += $this->getAttributes( $allowedParams );
 
+		$extraParams = $this->getAttributes( [ 'start-icon-class', 'end-icon-class' ] );
+
 		// Extract 'type'.
 		$type = $this->getType( $attribs );
 
-		return static::buildCodexComponent( $value, $hasErrors, $type, $this->mName, $attribs );
+		return static::buildCodexComponent( $value, $hasErrors, $type, $this->mName, $attribs, $extraParams );
 	}
 
 	/**
@@ -282,9 +288,10 @@ class HTMLTextField extends HTMLFormField {
 	 * @param string $type The input's type attribute
 	 * @param string $name The input's name attribute
 	 * @param array $inputAttribs Other input attributes
+	 * @param array $extraParams parameters modifying the field but not the <input> element itself, see class-doc
 	 * @return string Raw HTML
 	 */
-	public static function buildCodexComponent( $value, $hasErrors, $type, $name, $inputAttribs ) {
+	public static function buildCodexComponent( $value, $hasErrors, $type, $name, $inputAttribs, $extraParams = [] ) {
 		// Set up classes for the outer <div>.
 		$wrapperClass = [ 'cdx-text-input' ];
 		if ( $hasErrors ) {
@@ -294,7 +301,30 @@ class HTMLTextField extends HTMLFormField {
 		$inputAttribs['class'][] = 'cdx-text-input__input';
 		$inputHtml = Html::input( $name, $value, $type, $inputAttribs );
 
-		return Html::rawElement( 'div', [ 'class' => $wrapperClass ], $inputHtml );
+		$startIconHtml = '';
+		$endIconHtml = '';
+		if ( isset( $extraParams['start-icon-class'] ) ) {
+			$startIconHtml = Html::element( 'span', [ 'class' => [
+				'cdx-text-input__icon',
+				'cdx-text-input__start-icon',
+				$extraParams['start-icon-class'],
+			] ] );
+			$wrapperClass[] = 'cdx-text-input--has-start-icon';
+		}
+		if ( isset( $extraParams['end-icon-class'] ) ) {
+			$endIconHtml = Html::element( 'span', [ 'class' => [
+				'cdx-text-input__icon',
+				'cdx-text-input__end-icon',
+				$extraParams['end-icon-class'],
+			] ] );
+			$wrapperClass[] = 'cdx-text-input--has-end-icon';
+		}
+
+		return Html::rawElement(
+			'div',
+			[ 'class' => $wrapperClass ],
+			$inputHtml . $startIconHtml . $endIconHtml
+		);
 	}
 
 	/**

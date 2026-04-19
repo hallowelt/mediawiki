@@ -94,5 +94,30 @@ class HTMLTextFieldTest extends HTMLFormFieldTestCase {
 				</div>
 			HTML
 		];
+
+		yield 'basic field with start and end icon' => [
+			[
+				'label-message' => 'test-label-key',
+				'start-icon-class' => 'my-field__search-icon',
+				'end-icon-class' => 'my-field__info-icon',
+			],
+			'',
+			<<<HTML
+				<div class="mw-htmlform-field-HTMLTextField cdx-field">
+					<div class="cdx-label">
+						<label class="cdx-label__label" for="mw-input-testfield">
+							<span class="cdx-label__label__text">(test-label-key)</span>
+						</label>
+					</div>
+					<div class="cdx-field__control">
+						<div class="cdx-text-input cdx-text-input--has-start-icon cdx-text-input--has-end-icon">
+							<input id="mw-input-testfield" name="testfield" size="45" class="cdx-text-input__input">
+							<span class="cdx-text-input__icon cdx-text-input__start-icon my-field__search-icon"></span>
+							<span class="cdx-text-input__icon cdx-text-input__end-icon my-field__info-icon"></span>
+						</div>
+					</div>
+				</div>
+			HTML
+		];
 	}
 }
