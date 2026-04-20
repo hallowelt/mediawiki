@@ -53,7 +53,6 @@ abstract class MediaHandler {
 	 * @return MediaHandler|false
 	 */
 	public static function getHandler( $type, ?Language $lang = null ) {
-		$lang ??= RequestContext::getMain()->getLanguage();
 		return MediaWikiServices::getInstance()
 			->getMediaHandlerFactory()->getHandler( $type, $lang );
 	}
@@ -63,7 +62,14 @@ abstract class MediaHandler {
 	 */
 	public function getLanguage(): Language {
 		if ( !$this->lang ) {
-			throw new \RuntimeException( "Need to set language before accessing." );
+			wfDeprecatedMsg(
+				"Accessing the language without explicitly setting it via " .
+				"MediaHandler:setLanguage, MediaHandler::getHandler, or " .
+				"MediaHandlerFactory::getHandler was deprecated in 1.46.",
+				'1.46'
+			);
+			$this->lang = RequestContext::getMain()->getLanguage();
+			// throw new \RuntimeException( "Need to set language before accessing." );
 		}
 		return $this->lang;
 	}
@@ -71,7 +77,7 @@ abstract class MediaHandler {
 	 /**
 	  * Set the language to be used by this media handler for text formatting.
 	  * Must be executed before getLanguage is called, getHandler automatically takes
-	  * care of that.
+	  * care of that if a language is passed.
 	  */
 	public function setLanguage( Language $lang ): void {
 		$this->lang = $lang;

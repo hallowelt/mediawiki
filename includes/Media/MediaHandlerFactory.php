@@ -9,7 +9,6 @@
 
 namespace MediaWiki\Media;
 
-use MediaWiki\Context\RequestContext;
 use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageFactory;
 use Psr\Log\LoggerInterface;
@@ -78,9 +77,6 @@ class MediaHandlerFactory {
 		// phpcs:ignore MediaWiki.Usage.NullableType.ExplicitNullableTypes -- false positive
 		Language|string|null $lang = null
 	) {
-		if ( $lang === null ) {
-			$lang = RequestContext::getMain()->getLanguage();
-		}
 		if ( isset( $this->handlers[$type] ) ) {
 			return $this->handlers[$type];
 		}
@@ -96,10 +92,12 @@ class MediaHandlerFactory {
 				);
 				$handler = false;
 			} else {
-				if ( !$lang instanceof Language ) {
-					$lang = $this->langFactory->getLanguage( $lang );
+				if ( $lang !== null ) {
+					if ( !$lang instanceof Language ) {
+						$lang = $this->langFactory->getLanguage( $lang );
+					}
+					$handler->setLanguage( $lang );
 				}
-				$handler->setLanguage( $lang );
 			}
 		} else {
 			$this->logger->debug(

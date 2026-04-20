@@ -511,7 +511,8 @@ class LocalFileTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testDescriptionText_NonExisting() {
 		$file = ( new LocalRepo( self::getDefaultInfo() ) )->newFile( 'test!' );
-		$this->assertFalse( $file->getDescriptionText() );
+		$lang = MediaWikiServices::getInstance()->getLanguageFactory()->getLanguage( 'en' );
+		$this->assertFalse( $file->getDescriptionText( $lang ) );
 	}
 
 	/**
@@ -525,7 +526,8 @@ class LocalFileTest extends MediaWikiIntegrationTestCase {
 			NS_FILE
 		)->isOK() );
 		$file = ( new LocalRepo( self::getDefaultInfo() ) )->newFile( __METHOD__ );
-		$this->assertStringContainsString( 'TEST CONTENT', $file->getDescriptionText() );
+		$lang = MediaWikiServices::getInstance()->getLanguageFactory()->getLanguage( 'en' );
+		$this->assertStringContainsString( 'TEST CONTENT', $file->getDescriptionText( $lang ) );
 	}
 
 	public static function provideLoadFromDBAndCache() {
