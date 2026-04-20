@@ -22,7 +22,6 @@ use MediaWiki\HTMLForm\HTMLFormField;
 use MediaWiki\HTMLForm\HTMLNestedFilterable;
 use MediaWiki\Language\ILanguageConverter;
 use MediaWiki\Language\Language;
-use MediaWiki\Language\LanguageCode;
 use MediaWiki\Language\LanguageConverter;
 use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Language\LanguageNameUtils;
@@ -614,14 +613,15 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 
 		$options = [];
 		foreach ( $languages as $code => $name ) {
-			$display = LanguageCode::bcp47( $code ) . ' - ' . $name;
-			$options[$display] = $code;
+			$options[$code] = $name;
 		}
+
 		$defaultPreferences['language'] = [
-			'type' => 'select',
+			'type' => 'language',
 			'section' => 'personal/i18n',
-			'options' => $options,
+			'useCodex' => true,
 			'label-message' => 'yourlanguage',
+			'languages' => $options,
 		];
 
 		$neutralGenderMessage = $context->msg( 'gender-notknown' )->escaped() . (
@@ -662,16 +662,16 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 
 					$options = [];
 					foreach ( $variantArray as $code => $name ) {
-						$display = LanguageCode::bcp47( $code ) . ' - ' . $name;
-						$options[$display] = $code;
+						$options[$code] = $name;
 					}
 
 					$defaultPreferences['variant'] = [
 						'label-message' => 'yourvariant',
-						'type' => 'select',
-						'options' => $options,
+						'type' => 'language',
 						'section' => 'personal/i18n',
 						'help-message' => 'prefs-help-variant',
+						'useCodex' => true,
+						'languages' => $options,
 					];
 				} else {
 					$defaultPreferences["variant-$langCode"] = [

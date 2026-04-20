@@ -4,6 +4,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Widget;
 
 use MediaWiki\Html\Html;
+use MediaWiki\Language\LanguageCode;
 
 /**
  * The Language Select Widget is a reusable component in PHP and JS.
@@ -89,7 +90,8 @@ class LanguageSelectWidget {
 			$value = $this->config['value'] ?? null;
 			$selectedValues = is_array( $value ) ? $value : [ $value ];
 			$labelFormat = $this->config['labelFormat'] ?? static function ( string $code, string $name ): string {
-				return $code . ' · ' . $name;
+				$displayCode = LanguageCode::bcp47( $code );
+				return $displayCode . ' · ' . $name;
 			};
 
 			foreach ( $languages as $code => $name ) {
