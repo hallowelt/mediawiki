@@ -11,6 +11,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\Page\LinkBatchFactory;
+use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Skin\Skin;
 use MediaWiki\SpecialPage\QueryPage;
 use MediaWiki\SpecialPage\SpecialPage;
@@ -370,10 +371,15 @@ class SpecialMediaStatistics extends QueryPage {
 		$this->getOutput()->addHTML(
 			Html::element(
 				'h2',
-				[ 'class' => [
-					'mw-mediastats-mediatype',
-					'mw-mediastats-mediatype-' . strtolower( $mediaType )
-				] ],
+				[
+					'id' => Sanitizer::escapeIdForAttribute(
+						'mw-mediastats-mediatype-' . strtolower( $mediaType )
+					),
+					'class' => [
+						'mw-mediastats-mediatype',
+						'mw-mediastats-mediatype-' . strtolower( $mediaType )
+					]
+				],
 				// for grep
 				// mediastatistics-header-unknown, mediastatistics-header-bitmap,
 				// mediastatistics-header-drawing, mediastatistics-header-audio,
