@@ -227,6 +227,7 @@
 	"rest-property-desc-revision-url-newer": "Si disponible, URL pour obtenir la version suivante",
 	"rest-property-desc-search-excerpt": "Extrait du contenu de la page correspondant à la requête de recherche",
 	"rest-property-desc-search-matched-title": "Titre de la page redirigée, si le terme de recherche correspond à une page de redirection, sinon nul",
+	"rest-property-desc-search-anchor": "Section de la page cible, si le terme de recherche correspond à une redirection vers une section spécifique, en format lisible par l'homme",
 	"rest-property-desc-search-description": "Court résumé du sujet de la page ou nul si aucun résumé n’existe.",
 	"rest-property-desc-search-thumbnail": "Informations sur l’image de miniature de la page, ou nul si aucune miniature n’existe.",
 	"rest-property-desc-html-url": "Route API pour récupérer le contenu de la page en HTML",
@@ -307,6 +308,8 @@
 	"rest-requestheader-desc-cookie": "Autoriser les serveurs à stocker des informations d'état sur le navigateur du client, permettant ainsi des fonctionnalités telles que la gestion de session, la personnalisation et le suivi.",
 	"rest-requestheader-desc-authorization": "Fournit des informations d'identification qui authentifient un agent utilisateur avec un serveur, autorisant ainsi l'accès aux ressources protégées.",
 	"rest-endpoint-summ-get-sitemap-index": "Obtenir la liste des pages du plan du site",
+	"rest-endpoint-summ-get-sitemap-page": "Obtenez la liste des emplacements des articles par page",
+	"rest-param-desc-sitemap-index-id": "L'index du plan du site commence à 0. D'autres index disponibles sont spécifiés dans le fichier robots.txt.",
 	"rest-param-desc-sitemap-page-id": "La page d'articles souhaitée.",
 	"rest-param-desc-sitemap-include-namespace": "Identifiants des espaces de noms à inclure dans le plan du site. Si non spécifiés, les identifiants par défaut du site seront utilisés.",
 	"rest-responseheader-desc-contentlanguage": "Informe le client de la ou des langues naturelles du public cible pour le contenu renvoyé."

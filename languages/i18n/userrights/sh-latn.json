@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Aca",
+			"Vlad5250",
 			"Winston Sung"
 		]
 	},
@@ -69,7 +70,7 @@
 	"right-edit": "Uređivanje stranica",
 	"right-createpage": "Pravljenje stranica (izuzev stranica za razgovor)",
 	"right-createtalk": "Pravljenje stranica za razgovor",
-	"right-createaccount": "Pravljenje korisničkog računa",
+	"right-createaccount": "Izrada novih korisničkih računa",
 	"right-autocreateaccount": "Automatska prijava s vanjskim korisničkim računom",
 	"right-minoredit": "Označavanje izmjena kao manje",
 	"right-move": "Premještanje stranica",

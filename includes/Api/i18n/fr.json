@@ -1886,6 +1886,7 @@
 	"apierror-mustbeloggedin-generic": "Vous devez être connecté.",
 	"apierror-mustbeloggedin-linkaccounts": "Vous devez être connecté pour lier des comptes.",
 	"apierror-mustbeloggedin-removeauth": "Vous devez être connecté pour supprimer les données d’authentification.",
+	"apierror-mustbeloggedin-sbom": "Vous devez être connecté pour générer une nomenclature logicielle.",
 	"apierror-mustbeloggedin-uploadstash": "La zone de préparation des téléversements n’est disponible que pour les utilisateurs connectés.",
 	"apierror-mustbeloggedin": "Vous devez être connecté pour $1.",
 	"apierror-mustbeposted": "Le module <kbd>$1</kbd> nécessite une requête POST.",

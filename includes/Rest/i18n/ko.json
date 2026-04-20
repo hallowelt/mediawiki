@@ -130,5 +130,6 @@
 	"rest-schema-desc-bare-page": "내용이 없는 문서",
 	"rest-schema-desc-page-history": "문서 판 역사",
 	"rest-schema-desc-search-results": "검색 결과",
-	"rest-schema-desc-revision-compare": "판 비교"
+	"rest-schema-desc-revision-compare": "판 비교",
+	"rest-property-desc-linterror-type": "린트 오류 유형"
 }
