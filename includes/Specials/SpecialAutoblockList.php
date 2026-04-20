@@ -15,9 +15,9 @@ use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Html\Html;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Page\LinkBatchFactory;
-use MediaWiki\Pager\BlockListPager;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Specials\Pager\BlockListPager;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

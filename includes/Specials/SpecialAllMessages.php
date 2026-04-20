@@ -13,9 +13,9 @@ use MediaWiki\Language\LanguageFactory;
 use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\Language\LocalisationCache;
 use MediaWiki\MainConfigNames;
-use MediaWiki\Pager\AllMessagesTablePager;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Specials\Pager\AllMessagesTablePager;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Specials\Hook;
 
-use MediaWiki\Pager\NewPagesPager;
+use MediaWiki\Specials\Pager\NewPagesPager;
 use stdClass;
 
 /**

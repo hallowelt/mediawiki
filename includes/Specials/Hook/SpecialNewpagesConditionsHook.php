@@ -3,7 +3,7 @@
 namespace MediaWiki\Specials\Hook;
 
 use MediaWiki\Html\FormOptions;
-use MediaWiki\Pager\NewPagesPager;
+use MediaWiki\Specials\Pager\NewPagesPager;
 
 /**
  * This is a hook handler interface, see docs/Hooks.md.

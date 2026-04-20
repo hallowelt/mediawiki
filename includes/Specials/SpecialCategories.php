@@ -8,8 +8,8 @@ namespace MediaWiki\Specials;
 
 use MediaWiki\Html\Html;
 use MediaWiki\Page\LinkBatchFactory;
-use MediaWiki\Pager\CategoryPager;
 use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Specials\Pager\CategoryPager;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

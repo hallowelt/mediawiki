@@ -14,10 +14,10 @@ use MediaWiki\HTMLForm\Field\HTMLSizeFilterField;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\LinkBatchFactory;
-use MediaWiki\Pager\ProtectedPagesPager;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Permissions\RestrictionStore;
 use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Specials\Pager\ProtectedPagesPager;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

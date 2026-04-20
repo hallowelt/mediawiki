@@ -18,12 +18,12 @@ use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Specials\FormFields\Licenses;
+use MediaWiki\Specials\FormFields\UploadSourceField;
 use MediaWiki\Specials\SpecialUpload;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Upload\UploadBase;
 use MediaWiki\Upload\UploadFromUrl;
-use UploadSourceField;
 use Wikimedia\RequestTimeout\TimeoutException;
 
 /**

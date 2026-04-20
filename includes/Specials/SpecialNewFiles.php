@@ -13,10 +13,10 @@ use MediaWiki\Html\Html;
 use MediaWiki\HTMLForm\Field\HTMLUserTextField;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Page\LinkBatchFactory;
-use MediaWiki\Pager\NewFilesPager;
 use MediaWiki\Permissions\GroupPermissionsLookup;
 use MediaWiki\Request\DerivativeRequest;
 use MediaWiki\SpecialPage\IncludableSpecialPage;
+use MediaWiki\Specials\Pager\NewFilesPager;
 use Wikimedia\Mime\MimeAnalyzer;
 use Wikimedia\Rdbms\IConnectionProvider;
 

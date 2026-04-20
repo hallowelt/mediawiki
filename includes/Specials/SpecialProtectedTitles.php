@@ -10,8 +10,8 @@ use MediaWiki\HTMLForm\Field\HTMLSelectNamespace;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\LinkBatchFactory;
-use MediaWiki\Pager\ProtectedTitlesPager;
 use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Specials\Pager\ProtectedTitlesPager;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

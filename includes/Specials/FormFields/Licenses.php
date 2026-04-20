@@ -11,10 +11,10 @@
 
 namespace MediaWiki\Specials\FormFields;
 
-use License;
 use MediaWiki\Html\Html;
 use MediaWiki\HTMLForm\HTMLFormField;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Specials\Helpers\License;
 
 /**
  * A License class for use on Special:Upload
