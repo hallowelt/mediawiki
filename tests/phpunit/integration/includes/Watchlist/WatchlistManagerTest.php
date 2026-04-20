@@ -4,6 +4,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageIdentityValue;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWiki\User\UserIdentityValue;
+use MediaWiki\Watchlist\WatchlistLabel;
 
 /**
  * @covers \MediaWiki\Watchlist\WatchlistManager
@@ -192,6 +193,45 @@ class WatchlistManagerTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStatusNotGood( $actual );
 		$this->assertTrue( $watchlistManager->isWatchedIgnoringRights( $userIdentity, $title ) );
+	}
+
+	/**
+	 * Watchlist labels can be added and removed via `WatchlistManager::setWatch()`.
+	 */
+	public function testSetWatchLabels(): void {
+		$this->overrideConfigValue( MainConfigNames::EnableWatchlistLabels, true );
+
+		$userIdentity = new UserIdentityValue( 100, 'User Name' );
+		$authority = $this->mockUserAuthorityWithPermissions( $userIdentity, [] );
+		$title = PageIdentityValue::localIdentity( 100, NS_MAIN, 'Labelled_page' );
+
+		$services = $this->getServiceContainer();
+		$watchedItemStore = $services->getWatchedItemStore();
+		$watchlistManager = $services->getWatchlistManager();
+		$watchlistLabelStore = $services->getWatchlistLabelStore();
+
+		// Save some labels for testing.
+		$watchlistLabelStore->save( new WatchlistLabel( $userIdentity, 'Test label 1' ) );
+		$watchlistLabelStore->save( new WatchlistLabel( $userIdentity, 'Test label 2' ) );
+		$watchlistLabelStore->save( new WatchlistLabel( $userIdentity, 'Test label 3' ) );
+
+		// Assign two labels.
+		$watchlistManager->setWatch( true, $authority, $title, null, [ 1, 2 ] );
+		$this->assertCount( 2, $watchedItemStore->loadWatchedItem( $userIdentity, $title )->getLabels() );
+
+		// Remove one.
+		$watchlistManager->setWatch( true, $authority, $title, null, [ 2 ] );
+		$this->assertCount( 1, $watchedItemStore->loadWatchedItem( $userIdentity, $title )->getLabels() );
+
+		// Remove all with an empty array.
+		$watchlistManager->setWatch( true, $authority, $title, null, [] );
+		$this->assertCount( 0, $watchedItemStore->loadWatchedItem( $userIdentity, $title )->getLabels() );
+
+		// Re-add one and ensure it's not removed when passing null. T418547.
+		$watchlistManager->setWatch( true, $authority, $title, null, [ 3 ] );
+		$this->assertCount( 1, $watchedItemStore->loadWatchedItem( $userIdentity, $title )->getLabels() );
+		$watchlistManager->setWatch( true, $authority, $title, null, null );
+		$this->assertCount( 1, $watchedItemStore->loadWatchedItem( $userIdentity, $title )->getLabels() );
 	}
 
 }

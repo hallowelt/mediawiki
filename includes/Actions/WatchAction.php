@@ -97,7 +97,7 @@ class WatchAction extends FormAction {
 			$this->getAuthority(),
 			$this->getTitle(),
 			$this->getRequest()->getVal( 'wp' . $this->expiryFormFieldName ),
-			$this->getRequest()->getArray( 'wplabels' )
+			$this->getRequest()->getArray( 'wplabels', [] )
 		);
 
 		return Status::wrap( $result );
