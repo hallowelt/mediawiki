@@ -306,11 +306,16 @@ class ChangesListQueryTest extends \MediaWikiIntegrationTestCase {
 		$d4 = '[0-9]{4}';
 		$d2 = '[0-9]{2}';
 		$tz = "[+\- ]$d2";
-		return preg_replace_callback(
+		$sql = preg_replace_callback(
 			"/'($d4-$d2-$d2 $d2:$d2:$d2$tz)'/",
 			static function ( $m ) {
 				return "'" . ConvertibleTimestamp::convert( TS::MW, $m[1] ) . "'";
 			},
+			$sql
+		);
+		return preg_replace(
+			'/[`"](?:[^`"]*_)?watchlist_label_member[`"]\s+[`"]watchlist_label_member[`"]/',
+			'watchlist_label_member',
 			$sql
 		);
 	}
@@ -707,12 +712,11 @@ class ChangesListQueryTest extends \MediaWikiIntegrationTestCase {
 			],
 			'require watchlist label' => [
 				[ [ 'require', 'watchlistLabel', 1 ] ],
-				array_merge( $defaultInfo, $joinWatchlistLabel, [
-					'conds' => '(wlm_label = 1)',
+				array_merge( $defaultInfo, $joinWatchlist, [
+					'conds' => '(EXISTS(SELECT  1  FROM watchlist_label_member    WHERE (wlm_item=wl_id) AND wlm_label = 1  ))',
 				] ),
 				[ $rcIds['watchlist-label'] ],
 			],
-			// TODO: test multiple labels (need T406676)
 			'exclude watchlist label' => [
 				[ [ 'exclude', 'watchlistLabel', 1 ] ],
 				array_merge( $defaultInfo, $leftJoinWatchlistLabel, [

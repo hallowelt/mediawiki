@@ -3,6 +3,7 @@
 namespace MediaWiki\Tests\Api\Query;
 
 use MediaWiki\CommentStore\CommentStoreComment;
+use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\Permissions\Authority;
@@ -12,6 +13,7 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Tests\Api\ApiTestCase;
 use MediaWiki\Tests\User\TempUser\TempUserTestTrait;
 use MediaWiki\User\User;
+use MediaWiki\Watchlist\WatchlistLabel;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 
@@ -1513,6 +1515,82 @@ class ApiQueryWatchlistIntegrationTest extends ApiTestCase {
 				]
 			],
 			$this->getItemsFromApiResponse( $continuedResult )
+		);
+	}
+
+	public function testLabelsParamFiltersWatchlistByLabelIds() {
+		$this->overrideConfigValue( MainConfigNames::EnableWatchlistLabels, true );
+
+		$user = $this->getLoggedInTestUser();
+		$targetA = self::makeTitle( NS_MAIN, 'ApiQueryWatchlistIntegrationTestPageLabelA' );
+		$targetB = self::makeTitle( NS_MAIN, 'ApiQueryWatchlistIntegrationTestPageLabelB' );
+		$targetC = self::makeTitle( NS_MAIN, 'ApiQueryWatchlistIntegrationTestPageLabelC' );
+
+		$this->doPageEdits(
+			$user,
+			[
+				[
+					'target' => $targetA,
+					'content' => 'Some Content A',
+					'summary' => 'Create page A',
+				],
+				[
+					'target' => $targetB,
+					'content' => 'Some Content B',
+					'summary' => 'Create page B',
+				],
+				[
+					'target' => $targetC,
+					'content' => 'Some Content C',
+					'summary' => 'Create page C',
+				],
+			]
+		);
+		$this->watchPages( $user, [ $targetA, $targetB, $targetC ] );
+
+		$labelStore = $this->getServiceContainer()->getWatchlistLabelStore();
+		$watchedItemStore = $this->getServiceContainer()->getWatchedItemStore();
+		$labelA = new WatchlistLabel( $user, 'Label A' );
+		$labelStore->save( $labelA );
+		$labelB = new WatchlistLabel( $user, 'Label B' );
+		$labelStore->save( $labelB );
+
+		$watchedItemStore->addLabels( $user, [ $targetA ], [ $labelA ] );
+		$watchedItemStore->addLabels( $user, [ $targetB ], [ $labelB ] );
+
+		$resultSingle = $this->doListWatchlistRequest( [
+			'wlprop' => 'title',
+			'wllabels' => (string)$labelA->getId(),
+		] );
+		$resultMultiple = $this->doListWatchlistRequest( [
+			'wlprop' => 'title',
+			'wllabels' => $labelA->getId() . '|' . $labelB->getId(),
+		] );
+
+		$this->assertEquals(
+			[
+				[
+					'type' => 'new',
+					'ns' => $targetA->getNamespace(),
+					'title' => $this->getPrefixedText( $targetA ),
+				],
+			],
+			$this->getItemsFromApiResponse( $resultSingle )
+		);
+		$this->assertEquals(
+			[
+				[
+					'type' => 'new',
+					'ns' => $targetB->getNamespace(),
+					'title' => $this->getPrefixedText( $targetB ),
+				],
+				[
+					'type' => 'new',
+					'ns' => $targetA->getNamespace(),
+					'title' => $this->getPrefixedText( $targetA ),
+				],
+			],
+			$this->getItemsFromApiResponse( $resultMultiple )
 		);
 	}
 

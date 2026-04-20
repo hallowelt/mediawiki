@@ -1508,6 +1508,7 @@
 	"apihelp-query+watchlist-paramvalue-prop-labels": "Adds watchlist labels associated with the entry.",
 	"apihelp-query+watchlist-param-show": "Show only items that meet these criteria. For example, to see only minor edits done by logged-in users, set $1show=minor|!anon.",
 	"apihelp-query+watchlist-param-type": "Which types of changes to show:",
+	"apihelp-query+watchlist-param-labels": "Only list changes with these watchlist label IDs.",
 	"apihelp-query+watchlist-paramvalue-type-edit": "Regular page edits.",
 	"apihelp-query+watchlist-paramvalue-type-external": "External changes.",
 	"apihelp-query+watchlist-paramvalue-type-new": "Page creations.",

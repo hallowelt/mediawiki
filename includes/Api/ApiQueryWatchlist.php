@@ -96,6 +96,8 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 
 		$user = $this->getUser();
 		$wlowner = $this->getWatchlistUser( $params );
+		// Check if watchlist labels are enabled
+		$this->watchlistLabelsEnabled = $this->getConfig()->get( MainConfigNames::EnableWatchlistLabels );
 
 		$query = $this->changesListQueryFactory->newQuery()
 			->caller( __METHOD__ )
@@ -119,9 +121,6 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 			$this->fld_tags = isset( $prop['tags'] );
 			$this->fld_expiry = isset( $prop['expiry'] );
 			$this->fld_labels = isset( $prop['labels'] );
-
-			// Check if watchlist labels are enabled
-			$this->watchlistLabelsEnabled = $this->getConfig()->get( MainConfigNames::EnableWatchlistLabels );
 
 			if ( $this->fld_patrol && !$user->useRCPatrol() && !$user->useNPPatrol() ) {
 				$this->dieWithError( 'apierror-permissiondenied-patrolflag', 'patrol' );
@@ -179,6 +178,10 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 
 		if ( $params['namespace'] !== null ) {
 			$query->requireNamespaces( $params['namespace'] );
+		}
+
+		if ( $params['labels'] !== null && $this->watchlistLabelsEnabled ) {
+			$query->requireWatchlistLabelIds( $params['labels'] );
 		}
 
 		if ( !$params['allrev'] ) {
@@ -654,6 +657,10 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 				ParamValidator::PARAM_ISMULTI => true,
 				ApiBase::PARAM_HELP_MSG_PER_VALUE => [],
 				ParamValidator::PARAM_TYPE => RecentChange::getChangeTypes()
+			],
+			'labels' => [
+				ParamValidator::PARAM_ISMULTI => true,
+				ParamValidator::PARAM_TYPE => 'integer',
 			],
 			'owner' => [
 				ParamValidator::PARAM_TYPE => 'user',

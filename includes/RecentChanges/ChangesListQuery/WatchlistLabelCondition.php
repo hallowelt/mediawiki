@@ -4,6 +4,7 @@ namespace MediaWiki\RecentChanges\ChangesListQuery;
 
 use stdClass;
 use Wikimedia\Rdbms\IReadableDatabase;
+use Wikimedia\Rdbms\RawSQLExpression;
 
 /**
  * Check if a change has a certain watchlist label. Watchlist expiry is not
@@ -50,11 +51,15 @@ class WatchlistLabelCondition extends ChangesListConditionBase {
 			$query->forceEmptySet();
 		} elseif ( $required ) {
 			$query->joinForConds( 'watchlist' )->reorderable();
-			$query->joinForConds( 'watchlist_label_member' )->reorderable();
-			$query->where( $dbr->expr( 'wlm_label', '=', $required ) );
-			if ( count( $required ) > 1 ) {
-				$query->distinct();
-			}
+			// Use a subquery to avoid the need for multiple joins if multiple labels are required.
+			$subquery = $dbr->newSelectQueryBuilder()
+				->select( '1' )
+				->from( 'watchlist_label_member' )
+				->where( [
+					'wlm_item=wl_id',
+					'wlm_label' => $required,
+				] );
+			$query->where( new RawSQLExpression( 'EXISTS(' . $subquery->getSQL() . ')' ) );
 		} elseif ( $excluded ) {
 			$query->joinForConds( 'watchlist' )->weakLeft();
 			$query->joinForConds( 'watchlist_label_member' )->left()
