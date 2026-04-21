@@ -94,12 +94,7 @@ class ContributionsSpecialPage extends IncludableSpecialPage {
 		if ( static::class === self::class ) {
 			wfDeprecated( 'direct instantiation of ' . __CLASS__, '1.46' );
 		}
-		$parentParams = [ $name ];
-		if ( func_num_args() > 11 ) {
-			wfDeprecated( __CLASS__ . ' constructor parameter $restriction', '1.46' );
-			$parentParams[] = $restriction;
-		}
-		parent::__construct( ...$parentParams );
+		parent::__construct( $name, $restriction );
 	}
 
 	/**
