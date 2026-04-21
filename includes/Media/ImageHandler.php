@@ -361,12 +361,14 @@ abstract class ImageHandler extends MediaHandler {
 	 */
 	public function getDimensionsString( $file ) {
 		$pages = $file->pageCount();
+		$lang = $this->getLanguage();
 		if ( $pages > 1 ) {
 			return wfMessage( 'widthheightpage' )
-				->numParams( $file->getWidth(), $file->getHeight(), $pages )->text();
+				->numParams( $file->getWidth(), $file->getHeight(), $pages )
+				->inLanguage( $lang )->text();
 		}
 		return wfMessage( 'widthheight' )
-			->numParams( $file->getWidth(), $file->getHeight() )->text();
+			->numParams( $file->getWidth(), $file->getHeight() )->inLanguage( $lang )->text();
 	}
 
 	/**

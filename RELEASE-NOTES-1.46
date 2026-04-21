@@ -1089,8 +1089,8 @@ because of Phabricator reports.
 * The usage of the SpecialPage constructor parameter $restriction is
   deprecated. Override the method getRestriction() instead.
 * Calling File::getShortDesc, File::getLongDesc, File::getDescriptionText,
-  MediaHandler::getGeneralShortDesc or MediaHandler::getGeneralLongDesc
-  without specifying a language is deprecated.
+  File::getDimensionsString, MediaHandler::getGeneralShortDesc or
+  MediaHandler::getGeneralLongDesc without specifying a language is deprecated.
   Inject the suitable context language, falling back to RequestContext.
 * Calling MediaHandler::getShortDesc and MediaHandler::getLongDesc without
   calling MediaHandler::setLanguage befoe is deprecated.

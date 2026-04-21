@@ -227,7 +227,7 @@ class ImageHistoryList extends ContextSource {
 
 		// Image dimensions + size
 		$row .= Html::openElement( 'td' );
-		$row .= htmlspecialchars( $file->getDimensionsString() );
+		$row .= htmlspecialchars( $file->getDimensionsString( $lang ) );
 		$row .= $this->msg( 'word-separator' )->escaped();
 		$row .= Html::element( 'span', [ 'style' => 'white-space: nowrap;' ],
 			$this->msg( 'parentheses' )->sizeParams( $file->getSize() )->text()

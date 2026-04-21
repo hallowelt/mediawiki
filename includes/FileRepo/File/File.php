@@ -2498,10 +2498,16 @@ abstract class File implements MediaHandlerState {
 	}
 
 	/**
+	 * @param ?Language $lang Language to return the description in (since 1.46)
 	 * @return string plain text
 	 */
-	public function getDimensionsString() {
-		$handler = $this->getHandler();
+	public function getDimensionsString( ?Language $lang = null ) {
+		if ( $lang === null ) {
+			wfDeprecatedMsg( 'Calling File::getDimensionsString without a lang parameter ' .
+				'was deprecated in MediaWiki 1.46', '1.46' );
+		}
+
+		$handler = $this->getHandler( $lang );
 		if ( $handler ) {
 			return $handler->getDimensionsString( $this );
 		} else {

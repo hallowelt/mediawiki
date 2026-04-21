@@ -140,7 +140,7 @@ class UploadStashPager extends TablePager {
 				return $this->msg( 'uploadstash-nothumb' )->escaped();
 			case 'us_size':
 				$file = $this->getCurrentFile();
-				return htmlspecialchars( $file->getDimensionsString() )
+				return htmlspecialchars( $file->getDimensionsString( $this->getLanguage() ) )
 					. $this->msg( 'word-separator' )->escaped()
 					. Html::element( 'span', [ 'style' => 'white-space: nowrap;' ],
 						$this->msg( 'parentheses' )->sizeParams( (int)$value )->text()
