@@ -31,10 +31,12 @@ class UnlistedSpecialPage extends SpecialPage {
 		if ( static::class === self::class ) {
 			wfDeprecated( 'direct instantiation of ' . __CLASS__, '1.46' );
 		}
-		if ( func_num_args() > 2 ) {
-			wfDeprecated( __CLASS__ . ' constructor parameters $function and $file', '1.46' );
+		$parentParams = [ $name ];
+		if ( func_num_args() > 1 ) {
+			wfDeprecated( __CLASS__ . ' constructor parameters $restriction, $function and $file', '1.46' );
+			$parentParams[] = $restriction;
 		}
-		parent::__construct( $name, $restriction );
+		parent::__construct( ...$parentParams );
 	}
 
 	/** @inheritDoc */
