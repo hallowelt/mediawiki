@@ -67,9 +67,6 @@ abstract class HTMLFormFieldTestCase extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * @dataProvider provideInputOOUI
-	 *
-	 * This test hard-codes expected HTML output from OOUI, so is disabled for the upgrade.
-	 * @group Broken
 	 */
 	public function testGetInputOOUI( $params, $value, $expected ) {
 		\OOUI\Theme::setSingleton( new \OOUI\BlankTheme() );
