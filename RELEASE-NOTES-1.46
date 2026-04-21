@@ -1105,6 +1105,8 @@ because of Phabricator reports.
 * Calling SpecialPageFactory::getUsablePages without context was deprecated.
 * OutputPage::transformCssMedia() and ResourceLoader::makeCombinedStyles() now
   take a $request parameter, and passing null to it will trigger warnings.
+* The ConditionalDefaultOptionsAddCondition hook has been deprecated
+  and will now trigger deprecation warnings. There is no replacement.
 * …
 
 === Other changes in 1.46 ===

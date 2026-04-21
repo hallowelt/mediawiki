@@ -8,7 +8,7 @@ namespace MediaWiki\User\Options\Hook;
  * this interface. It runs virtually on any request, although it should run once, performance of
  * the hook run should be taken in account.
  *
- * @stable to implement
+ * @deprecated since 1.46 without replacement
  * @ingroup Hooks
  */
 interface ConditionalDefaultOptionsAddConditionHook {
@@ -19,6 +19,7 @@ interface ConditionalDefaultOptionsAddConditionHook {
 	 * See also Manual:$wgConditionalUserOptions.
 	 *
 	 * @since 1.43
+	 * @deprecated since 1.46 without replacement
 	 *
 	 * @param array<string,callable> &$extraConditions An empty array to add checker functions to
 	 * evaluate conditions set in $wgConditionalUserOptions. The key is the name of the condition
