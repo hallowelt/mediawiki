@@ -1152,7 +1152,7 @@ class ApiParse extends ApiBase {
 				EnumDef::PARAM_DEPRECATED_VALUES => [
 					'headitems' => 'apiwarn-deprecation-parse-headitems',
 					// deprecated since 1.46: T319141
-					'sections' => 'apiwarn-deprecation-parse-sections',
+					'sections' => [ 'apiwarn-deprecation-withreplacement', 'prop=sections', 'prop=tocdata' ],
 				],
 			],
 			'wrapoutputclass' => 'mw-parser-output',

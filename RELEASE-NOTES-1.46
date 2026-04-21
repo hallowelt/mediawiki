@@ -184,7 +184,8 @@ For notes on 1.45.x and older releases, see HISTORY.
 === Action API changes in 1.46 ===
 
 * In the `action=parse` API endpoint, the value `prop=sections` has been
-  deprecated. Use `prop=tocdata` instead (T319141).
+  deprecated. Use `prop=tocdata` instead (T319141).  The `prop=tocdata`
+  schema is documented at [[mw:API:Parsing_wikitext/TOCData]].
 * When specifying the Action API output format as `xml` or `xmlfm`, the
   `xslt` parameter has been removed.  No alternative is provided.
 * (T359634) An SBOM in the CycloneDX 1.6 format can now be generated via the
