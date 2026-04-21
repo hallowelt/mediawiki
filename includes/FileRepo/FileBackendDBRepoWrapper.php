@@ -14,7 +14,7 @@ use MediaWiki\Output\StreamFile;
 use Shellbox\Command\BoxedCommand;
 use StatusValue;
 use Wikimedia\FileBackend\FileBackend;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Rdbms\IDatabase;
 
 /**

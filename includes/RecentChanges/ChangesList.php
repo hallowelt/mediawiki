@@ -24,12 +24,12 @@ use MediaWiki\Logging\LogFormatterFactory;
 use MediaWiki\Logging\LogPage;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Pager\PagerTools;
 use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\RecentChanges\ChangesListQuery\WatchlistLabelCondition;
 use MediaWiki\Revision\MutableRevisionRecord;
 use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\Specials\Pager\PagerTools;
 use MediaWiki\Specials\SpecialWatchlist;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
@@ -40,7 +40,7 @@ use OOUI\IconWidget;
 use RuntimeException;
 use stdClass;
 use Wikimedia\HtmlArmor\HtmlArmor;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Rdbms\IResultWrapper;
 
 /**

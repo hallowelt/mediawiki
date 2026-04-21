@@ -28,7 +28,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Wikimedia\Assert\Assert;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Parsoid\Parsoid;
 use Wikimedia\Rdbms\ChronologyProtector;
 use Wikimedia\Stats\StatsFactory;

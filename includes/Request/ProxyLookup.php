@@ -7,10 +7,10 @@
 
 namespace MediaWiki\Request;
 
-use BagOStuff;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
 use Wikimedia\IPSet;
+use Wikimedia\ObjectCache\BagOStuff;
 
 /**
  * @since 1.28

@@ -2,8 +2,8 @@
 
 namespace MediaWiki\Deferred\LinksUpdate;
 
-use Collation;
 use MediaWiki\Category\Category;
+use MediaWiki\Collation\Collation;
 use MediaWiki\Config\Config;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
@@ -56,7 +56,7 @@ class CategoryLinksTable extends TitleLinksTable {
 	/** @var ILanguageConverter */
 	private $languageConverter;
 
-	/** @var \Collation */
+	/** @var Collation */
 	private $collation;
 
 	/** @var string The collation name for cl_collation */

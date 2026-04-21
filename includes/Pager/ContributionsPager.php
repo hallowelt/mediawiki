@@ -32,7 +32,7 @@ use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserRigorOptions;
 use stdClass;
 use Wikimedia\HtmlArmor\HtmlArmor;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Rdbms\FakeResultWrapper;
 use Wikimedia\Rdbms\IResultWrapper;
 

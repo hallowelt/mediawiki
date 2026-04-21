@@ -12,7 +12,7 @@ namespace MediaWiki\ObjectCache;
 use Exception;
 use InvalidArgumentException;
 use MediaWiki\MediaWikiServices;
-use Profiler;
+use MediaWiki\Profiler\Profiler;
 use stdClass;
 use UnexpectedValueException;
 use Wikimedia\ArrayUtils\ArrayUtils;

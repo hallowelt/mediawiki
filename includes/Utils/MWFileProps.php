@@ -8,8 +8,8 @@
 
 namespace MediaWiki\Utils;
 
-use MediaHandler;
 use MediaWiki\FileRepo\File\File;
+use MediaWiki\Media\MediaHandler;
 use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FSFile\FSFile;
 use Wikimedia\Mime\MimeAnalyzer;

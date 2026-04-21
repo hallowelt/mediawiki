@@ -11,12 +11,12 @@ use MediaWiki\Config\Config;
 use MediaWiki\Content\Renderer\ContentParseParams;
 use MediaWiki\Html\Html;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Page\WikiPage;
 use MediaWiki\Parser\ParserFactory;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\ParserOutputFlags;
 use MediaWiki\ResourceLoader\VueComponentParser;
 use StatusValue;
-use WikiPage;
 
 /**
  * Content handler for Vue pages.

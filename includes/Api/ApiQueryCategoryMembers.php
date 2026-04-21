@@ -8,7 +8,7 @@
 
 namespace MediaWiki\Api;
 
-use Collation;
+use MediaWiki\Collation\Collation;
 use MediaWiki\Collation\CollationFactory;
 use MediaWiki\Deferred\LinksUpdate\CategoryLinksTable;
 use MediaWiki\MainConfigNames;

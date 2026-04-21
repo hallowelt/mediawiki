@@ -7,6 +7,7 @@ use MediaWiki\Auth\AuthManager;
 use MediaWiki\Content\ContentHandler;
 use MediaWiki\Content\JsonContent;
 use MediaWiki\Context\IContextSource;
+use MediaWiki\Diff\TextSlotDiffRenderer;
 use MediaWiki\FileRepo\File\File;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
@@ -196,9 +197,9 @@ class HookRunner implements
 	\MediaWiki\Hook\ImportHandleUnknownUserHook,
 	\MediaWiki\Hook\InitializeArticleMaybeRedirectHook,
 	\MediaWiki\Hook\IsTrustedProxyHook,
-	\MediaWiki\Hook\LinkerMakeExternalImageHook,
-	\MediaWiki\Hook\LinkerMakeExternalLinkHook,
-	\MediaWiki\Hook\LinkerMakeMediaLinkFileHook,
+	\MediaWiki\Linker\Hook\LinkerMakeExternalImageHook,
+	\MediaWiki\Linker\Hook\LinkerMakeExternalLinkHook,
+	\MediaWiki\Linker\Hook\LinkerMakeMediaLinkFileHook,
 	\MediaWiki\Hook\MaintenanceRefreshLinksInitHook,
 	\MediaWiki\Hook\MaintenanceShellStartHook,
 	\MediaWiki\Hook\MaintenanceUpdateAddParamsHook,
@@ -1467,7 +1468,7 @@ class HookRunner implements
 
 	/** @inheritDoc */
 	public function onTextSlotDiffRendererTablePrefix(
-		\TextSlotDiffRenderer $textSlotDiffRenderer,
+		TextSlotDiffRenderer $textSlotDiffRenderer,
 		IContextSource $context,
 		array &$parts
 	) {

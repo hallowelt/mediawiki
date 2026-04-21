@@ -14,7 +14,7 @@ use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleParser;
 use MediaWiki\Title\TitleValue;
 use Psr\Log\LoggerInterface;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

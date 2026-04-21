@@ -25,7 +25,7 @@ use Wikimedia\FileBackend\FileIteration\FSFileBackendFileList;
 use Wikimedia\FileBackend\FileOpHandle\FSFileOpHandle;
 use Wikimedia\FileBackend\FSFile\FSFile;
 use Wikimedia\FileBackend\FSFile\TempFSFile;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 

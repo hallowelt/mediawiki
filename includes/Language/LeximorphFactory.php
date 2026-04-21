@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Wikimedia\Bcp47Code\Bcp47Code;
 use Wikimedia\Leximorph\Manager;
 use Wikimedia\Leximorph\Provider;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 
 /**
  * Create and cache Manager and Provider instances.

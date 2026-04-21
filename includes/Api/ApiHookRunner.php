@@ -50,16 +50,16 @@ class ApiHookRunner implements
 	Hook\ApiValidatePasswordHook,
 	Hook\RequestHasSameOriginSecurityHook,
 	\MediaWiki\Hook\EditFormPreloadTextHook,
-	\MediaWiki\Hook\FileUndeleteCompleteHook,
-	\MediaWiki\Hook\GetLinkColoursHook,
-	\MediaWiki\Hook\ImportSourcesHook,
+	\MediaWiki\Specials\Hook\FileUndeleteCompleteHook,
+	\MediaWiki\Parser\Hook\GetLinkColoursHook,
+	\MediaWiki\Specials\Hook\ImportSourcesHook,
 	\MediaWiki\Output\Hook\LanguageLinksHook,
 	\MediaWiki\Output\Hook\OutputPageBeforeHTMLHook,
 	\MediaWiki\Output\Hook\OutputPageCheckLastModifiedHook,
 	\MediaWiki\Page\Hook\ArticleParserOptionsHook,
 	\MediaWiki\Hook\TempUserCreatedRedirectHook,
-	\MediaWiki\Hook\UserLoginCompleteHook,
-	\MediaWiki\Hook\UserLogoutCompleteHook,
+	\MediaWiki\Specials\Hook\UserLoginCompleteHook,
+	\MediaWiki\Specials\Hook\UserLogoutCompleteHook,
 	\MediaWiki\SpecialPage\Hook\ChangeAuthenticationDataAuditHook
 {
 

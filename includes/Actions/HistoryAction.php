@@ -9,6 +9,7 @@
 
 namespace MediaWiki\Actions;
 
+use MediaWiki\Actions\Pager\HistoryPager;
 use MediaWiki\Cache\HTMLFileCache;
 use MediaWiki\Feed\ChannelFeed;
 use MediaWiki\Feed\FeedItem;
@@ -18,7 +19,6 @@ use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Logging\LogEventsList;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Pager\HistoryPager;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\SpecialPage\SpecialPage;

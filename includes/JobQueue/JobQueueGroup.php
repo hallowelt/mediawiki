@@ -12,7 +12,7 @@ use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Deferred\JobQueueEnqueueUpdate;
 use MediaWiki\JobQueue\Exceptions\JobQueueError;
 use MediaWiki\MediaWikiServices;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\ReadOnlyMode;
 use Wikimedia\Stats\StatsFactory;

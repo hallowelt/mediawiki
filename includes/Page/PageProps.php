@@ -8,7 +8,7 @@ namespace MediaWiki\Page;
 
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleArrayFromResult;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**

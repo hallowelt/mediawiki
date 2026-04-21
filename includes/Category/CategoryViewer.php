@@ -8,8 +8,8 @@
 
 namespace MediaWiki\Category;
 
-use Collation;
 use InvalidArgumentException;
+use MediaWiki\Collation\Collation;
 use MediaWiki\Context\ContextSource;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Debug\DeprecationHelper;

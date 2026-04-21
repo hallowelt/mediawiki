@@ -7,11 +7,11 @@
 
 namespace MediaWiki\RevisionDelete;
 
-use LogEntry;
 use MediaWiki\Cache\HTMLCacheUpdater;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\DomainEvent\DomainEventDispatcher;
 use MediaWiki\HookContainer\HookContainer;
+use MediaWiki\Logging\LogEntry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Revision\RevisionStore;

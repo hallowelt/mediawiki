@@ -13,7 +13,7 @@ use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\MainConfigNames;
 use MediaWiki\WikiMap\WikiMap;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\IConnectionProvider;
 

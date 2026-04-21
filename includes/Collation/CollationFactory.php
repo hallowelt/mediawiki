@@ -7,7 +7,6 @@
 
 namespace MediaWiki\Collation;
 
-use Collation;
 use InvalidArgumentException;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\HookContainer\HookContainer;
@@ -30,26 +29,26 @@ class CollationFactory {
 
 	private const CORE_COLLATIONS = [
 		'uppercase' => [
-			'class' => \UppercaseCollation::class,
+			'class' => UppercaseCollation::class,
 			'services' => [
 				'LanguageFactory',
 			]
 		],
 		'numeric' => [
-			'class' => \NumericUppercaseCollation::class,
+			'class' => NumericUppercaseCollation::class,
 			'services' => [
 				'LanguageFactory',
 				'ContentLanguage',
 			]
 		],
 		'identity' => [
-			'class' => \IdentityCollation::class,
+			'class' => IdentityCollation::class,
 			'services' => [
 				'ContentLanguage',
 			]
 		],
 		'uca-default' => [
-			'class' => \IcuCollation::class,
+			'class' => IcuCollation::class,
 			'services' => [
 				'LanguageFactory',
 			],
@@ -58,7 +57,7 @@ class CollationFactory {
 			]
 		],
 		'uca-default-u-kn' => [
-			'class' => \IcuCollation::class,
+			'class' => IcuCollation::class,
 			'services' => [
 				'LanguageFactory',
 			],
@@ -67,31 +66,31 @@ class CollationFactory {
 			]
 		],
 		'xx-uca-ckb' => [
-			'class' => \CollationCkb::class,
+			'class' => CollationCkb::class,
 			'services' => [
 				'LanguageFactory',
 			]
 		],
 		'uppercase-ab' => [
-			'class' => \AbkhazUppercaseCollation::class,
+			'class' => AbkhazUppercaseCollation::class,
 			'services' => [
 				'LanguageFactory',
 			]
 		],
 		'uppercase-ba' => [
-			'class' => \BashkirUppercaseCollation::class,
+			'class' => BashkirUppercaseCollation::class,
 			'services' => [
 				'LanguageFactory',
 			]
 		],
 		'uppercase-smn' => [
-			'class' => \InariSaamiUppercaseCollation::class,
+			'class' => InariSaamiUppercaseCollation::class,
 			'services' => [
 				'LanguageFactory',
 			]
 		],
 		'uppercase-ckb' => [
-			'class' => \CentralKurdishUppercaseCollation::class,
+			'class' => CentralKurdishUppercaseCollation::class,
 			'services' => [
 				'LanguageFactory',
 			]
@@ -148,7 +147,7 @@ class CollationFactory {
 			] );
 		} elseif ( preg_match( '/^remote-uca-([A-Za-z@;=-]+)$/', $collationName, $match ) ) {
 			return $this->instantiateCollation( [
-				'class' => \RemoteIcuCollation::class,
+				'class' => RemoteIcuCollation::class,
 				'services' => [
 					'ShellboxClientFactory'
 				],

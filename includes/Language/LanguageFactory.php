@@ -14,7 +14,7 @@ use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Title\NamespaceInfo;
 use Wikimedia\Bcp47Code\Bcp47Code;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 
 /**
  * Internationalisation code

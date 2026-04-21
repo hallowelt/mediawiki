@@ -8,12 +8,12 @@
 namespace MediaWiki\RevisionDelete;
 
 use InvalidArgumentException;
-use LogEntry;
 use MediaWiki\Cache\HTMLCacheUpdater;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\DomainEvent\DomainEventDispatcher;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
+use MediaWiki\Logging\LogEntry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\Event\PageHistoryVisibilityChangedEvent;
 use MediaWiki\Page\PageIdentity;

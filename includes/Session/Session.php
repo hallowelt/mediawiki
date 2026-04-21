@@ -12,6 +12,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\User\User;
+use MediaWiki\Utils\MWCryptRand;
 use MediaWiki\Utils\MWRestrictions;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -378,7 +379,7 @@ class Session implements \Countable, \Iterator, \ArrayAccess {
 			$secret = $secrets[$key];
 			$new = ( $this->newTokenSecrets[$key] ?? null ) === $secret;
 		} else {
-			$secret = \MWCryptRand::generateHex( 32 );
+			$secret = MWCryptRand::generateHex( 32 );
 			$secrets[$key] = $secret;
 			$this->set( 'wsTokenSecrets', $secrets );
 			$this->newTokenSecrets[$key] = $secret;
@@ -424,7 +425,7 @@ class Session implements \Countable, \Iterator, \ArrayAccess {
 			?: $mainConfig->get( MainConfigNames::SecretKey );
 		$userSecret = $this->get( 'wsSessionSecret', null );
 		if ( $userSecret === null ) {
-			$userSecret = \MWCryptRand::generateHex( 32 );
+			$userSecret = MWCryptRand::generateHex( 32 );
 			$this->set( 'wsSessionSecret', $userSecret );
 		}
 		$iterations = $this->get( 'wsSessionPbkdf2Iterations', null );

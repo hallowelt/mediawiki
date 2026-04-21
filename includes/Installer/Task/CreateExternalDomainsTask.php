@@ -3,6 +3,7 @@
 namespace MediaWiki\Installer\Task;
 
 use MediaWiki\ExternalStore\ExternalStoreDB;
+use MediaWiki\ExternalStore\ExternalStoreFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Status\Status;
 use Wikimedia\Rdbms\DatabaseDomain;
@@ -17,7 +18,7 @@ class CreateExternalDomainsTask extends Task {
 	/** @var LBFactory */
 	private $lbFactory;
 
-	/** @var \ExternalStoreFactory */
+	/** @var ExternalStoreFactory */
 	private $esFactory;
 
 	/** @inheritDoc */

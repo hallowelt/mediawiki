@@ -6,7 +6,6 @@
 
 namespace MediaWiki\Session;
 
-use IDBAccessObject;
 use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
@@ -25,6 +24,7 @@ use MediaWiki\User\CentralId\CentralIdLookup;
 use MediaWiki\User\User;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserNameUtils;
+use MediaWiki\Utils\MWCryptRand;
 use MediaWiki\Utils\MWTimestamp;
 use MediaWiki\Utils\UrlUtils;
 use Psr\Log\LoggerInterface;
@@ -32,6 +32,7 @@ use Psr\Log\LogLevel;
 use Wikimedia\IPUtils;
 use Wikimedia\ObjectCache\BagOStuff;
 use Wikimedia\ObjectFactory\ObjectFactory;
+use Wikimedia\Rdbms\IDBAccessObject;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 
 /**
@@ -1019,7 +1020,7 @@ class SessionManager implements SessionManagerInterface {
 	 * @return string
 	 */
 	public function generateSessionId() {
-		$id = \Wikimedia\base_convert( \MWCryptRand::generateHex( 40 ), 16, 32, 32 );
+		$id = \Wikimedia\base_convert( MWCryptRand::generateHex( 40 ), 16, 32, 32 );
 		// Cache non-existence to avoid a later fetch
 		$info = new SessionInfo( SessionInfo::MIN_PRIORITY, [ 'id' => $id, 'idIsSafe' => true ] );
 		$this->sessionStore->set( $info, false, 0, BagOStuff::WRITE_CACHE_ONLY );

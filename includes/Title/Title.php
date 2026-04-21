@@ -49,7 +49,7 @@ use stdClass;
 use Stringable;
 use Wikimedia\Assert\Assert;
 use Wikimedia\Assert\PreconditionException;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Parsoid\Core\LinkTarget as ParsoidLinkTarget;
 use Wikimedia\Parsoid\Core\LinkTargetTrait;
 use Wikimedia\Rdbms\DBAccessObjectUtils;

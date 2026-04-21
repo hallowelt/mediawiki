@@ -8,7 +8,7 @@ namespace Wikimedia\LockManager;
 use Exception;
 use InvalidArgumentException;
 use StatusValue;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\ObjectCache\MemcachedBagOStuff;
 use Wikimedia\ObjectCache\MemcachedPhpBagOStuff;
 use Wikimedia\WaitConditionLoop;

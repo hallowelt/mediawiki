@@ -52,6 +52,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MainConfigSchema;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
+use MediaWiki\Profiler\Profiler;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Registration\MissingExtensionException;
 use MediaWiki\Request\HeaderCallback;

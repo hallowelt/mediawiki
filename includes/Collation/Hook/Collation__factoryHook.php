@@ -3,7 +3,7 @@
 namespace MediaWiki\Collation\Hook;
 
 // phpcs:disable Squiz.Classes.ValidClassName.NotCamelCaps
-use Collation;
+use MediaWiki\Collation\Collation;
 
 /**
  * This is a hook handler interface, see docs/Hooks.md.

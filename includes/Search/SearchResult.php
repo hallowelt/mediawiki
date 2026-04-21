@@ -7,7 +7,7 @@
 
 namespace MediaWiki\Search;
 
-use File;
+use MediaWiki\FileRepo\File\File;
 use MediaWiki\Title\Title;
 
 /**

@@ -7,6 +7,7 @@
 namespace MediaWiki\Profiler;
 
 use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\Profiler\Output\ProfilerOutput;
 use MediaWiki\WikiMap\WikiMap;
 use Psr\Log\LoggerInterface;
 use UnexpectedValueException;
@@ -152,7 +153,7 @@ abstract class Profiler {
 	/**
 	 * Get all usable outputs.
 	 *
-	 * @return \ProfilerOutput[]
+	 * @return ProfilerOutput[]
 	 * @since 1.25
 	 */
 	private function getOutputs() {

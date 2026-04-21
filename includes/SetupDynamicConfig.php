@@ -13,6 +13,8 @@ use MediaWiki\Logging\NewUsersLogFormatter;
 use MediaWiki\Logging\PageLangLogFormatter;
 use MediaWiki\MainConfigSchema;
 use MediaWiki\Title\NamespaceInfo;
+use Wikimedia\LockManager\FSLockManager;
+use Wikimedia\LockManager\NullLockManager;
 
 // For backwards compatibility, the value of wgLogos is copied to wgLogo.
 // This is because some extensions/skins may be using $config->get('Logo')

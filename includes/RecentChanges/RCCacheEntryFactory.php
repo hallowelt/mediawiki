@@ -16,7 +16,7 @@ use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ExternalUserNames;
 use Wikimedia\HtmlArmor\HtmlArmor;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 
 /**
  * Create a RCCacheEntry from a RecentChange to use in EnhancedChangesList

@@ -13,7 +13,7 @@ use MediaWiki\Language\LanguageFactory;
 use MediaWiki\Language\LanguageNameUtils;
 use MediaWiki\Language\LocalisationCache;
 use MediaWiki\Language\MessageCache;
-use MediaWiki\Pager\AllMessagesTablePager;
+use MediaWiki\Specials\Pager\AllMessagesTablePager;
 use MediaWiki\Title\Title;
 use Wikimedia\ParamValidator\ParamValidator;
 

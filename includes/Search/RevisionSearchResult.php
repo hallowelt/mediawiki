@@ -2,11 +2,11 @@
 
 namespace MediaWiki\Search;
 
-use IDBAccessObject;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
+use Wikimedia\Rdbms\IDBAccessObject;
 
 /**
  * SearchResult class based on the revision information.

@@ -15,7 +15,6 @@ use Psr\Log\NullLogger;
 use RuntimeException;
 use UnexpectedValueException;
 use Wikimedia\LightweightObjectStore\ExpirationAwareness;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
 use Wikimedia\Stats\StatsFactory;
 use Wikimedia\Telemetry\NoopTracer;
 use Wikimedia\Telemetry\SpanInterface;

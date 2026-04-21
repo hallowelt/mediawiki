@@ -7,7 +7,7 @@ use CallbackFilterIterator;
 use IteratorIterator;
 use MediaWiki\User\Registration\UserRegistrationLookup;
 use MediaWiki\User\UserIdentity;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 

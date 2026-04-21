@@ -18,6 +18,8 @@ use MediaWiki\Settings\DynamicDefaultValues;
 use MediaWiki\Settings\SettingsBuilder;
 use MediaWiki\Settings\Source\ReflectionSchemaSource;
 use MediaWiki\Title\NamespaceInfo;
+use Wikimedia\LockManager\FSLockManager;
+use Wikimedia\LockManager\NullLockManager;
 
 class SetupDynamicConfigTest extends MediaWikiUnitTestCase {
 	/** @var string */

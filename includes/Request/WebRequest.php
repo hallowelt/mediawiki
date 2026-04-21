@@ -11,7 +11,6 @@
 
 namespace MediaWiki\Request;
 
-use HashBagOStuff;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Exception\FatalError;
 use MediaWiki\Exception\MWException;
@@ -25,6 +24,7 @@ use MediaWiki\Session\Session;
 use MediaWiki\Session\SessionId;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\IPUtils;
+use Wikimedia\ObjectCache\HashBagOStuff;
 
 // The point of this class is to be a wrapper around super globals
 // phpcs:disable MediaWiki.Usage.SuperGlobalsUsage.SuperGlobals

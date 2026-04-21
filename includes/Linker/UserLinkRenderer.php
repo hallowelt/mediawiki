@@ -21,7 +21,7 @@ use MediaWiki\User\UserNameUtils;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\HtmlArmor\HtmlArmor;
 use Wikimedia\IPUtils;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 
 /**
  * Service class that renders HTML for user-related links.

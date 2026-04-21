@@ -7,9 +7,9 @@
 
 namespace MediaWiki\RevisionDelete;
 
-use LogEntry;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Deferred\DeferredUpdates;
+use MediaWiki\Logging\LogEntry;
 use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Revision\RevisionRecord;

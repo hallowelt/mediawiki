@@ -13,8 +13,8 @@ use MediaWiki\Page\PageIdentity;
 use MediaWiki\Title\Title;
 use MediaWiki\Utils\MWFileProps;
 use Wikimedia\FileBackend\FileBackend;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
 use Wikimedia\Mime\MimeAnalyzer;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 

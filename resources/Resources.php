@@ -11,6 +11,7 @@ use MediaWiki\Config\Config;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageNameUtils;
+use MediaWiki\Language\MessageLocalizer;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Sanitizer;

@@ -20,7 +20,7 @@ use MediaWiki\Page\PageReference;
 use MediaWiki\Title\Title;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use Wikimedia\MapCacheLRU\MapCacheLRU;
+use Wikimedia\ObjectCache\MapCacheLRU;
 
 /**
  * For observing and detecting parser behaviors, such as duplicate parses
