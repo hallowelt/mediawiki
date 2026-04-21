@@ -1952,7 +1952,7 @@
 	"hidden-category-category-desc": "Questa categoria contiene <code><nowiki>__HIDDENCAT__</nowiki></code> nella sua pagina, il quale impedisce che venga mostrata, in modo predefinito, nel riquadro dei collegamenti alle categorie delle pagine.",
 	"trackingcategories-nodesc": "Nessuna descrizione disponibile.",
 	"trackingcategories-disabled": "La categoria è disabilitata",
-	"mailnologin": "Nessun indirizzo cui inviare il messaggio",
+	"mailnologin": "Nessun indirizzo del mittente",
 	"mailnologintext": "Per inviare messaggi e-mail ad altri utenti è necessario [[Special:UserLogin|accedere al sito]] e aver confermato un indirizzo valido nelle proprie [[Special:Preferences|preferenze]].",
 	"emailuser": "Invia una email all'utente",
 	"emailuser-title-target": "Invia un'email a {{GENDER:$1|questo utente|questa utente|quest'utente}}",

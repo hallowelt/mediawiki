@@ -1830,7 +1830,7 @@
 	"hidden-category-category-desc": "Категоријата содржи <code><nowiki>__HIDDENCAT__</nowiki></code>, што значи дека по основно не се прикажува во страниците.",
 	"trackingcategories-nodesc": "Нема опис.",
 	"trackingcategories-disabled": "Категоријата е оневозможена",
-	"mailnologin": "Нема адреса за праќање",
+	"mailnologin": "Нема адреса на испраќачот",
 	"mailnologintext": "Мора да сте [[Special:UserLogin|најавени]] и да имате потврдена е-поштенска адреса во вашите [[Special:Preferences|нагодувања]] за да може да праќате е-пошта до други корисници.",
 	"emailuser": "Пиши е-пошта на корисникот",
 	"emailuser-title-target": "Составување на е-пошта за {{GENDER:$1|корисникот}}",

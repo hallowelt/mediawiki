@@ -53,6 +53,8 @@
 	"username": "{{GENDER:$1|اسم المستخدم|اسم المستخدمة}}:",
 	"prefs-memberingroups": "{{GENDER:$2|عضو|عضوة}} في {{PLURAL:$1|مجموعة|مجموعة|مجموعتي|مجموعات}}:",
 	"group-membership-link-with-expiry": "$1 (حتى $2)",
+	"prefs-memberingroupsdisabled": "{{GENDER:$2|معاق}} {{PLURAL:$1|مجموعة|مجموعات}}:",
+	"prefs-memberingroupsdisabled-help": "{{GENDER:$2|أنت}} لم تعد تستوفي [[$3|الشروط]] لتكون عضوًا في {{PLURAL:$1|هذه المجموعة|هذه المجموعات}} وبالتالي لا يمكنك استخدام الحقوق الممنوحة من قبل {{PLURAL:$1|هي|هم}}.",
 	"prefs-edits": "عدد التعديلات:",
 	"prefs-registration": "وقت التسجيل:",
 	"yourrealname": "الاسم الحقيقي:",

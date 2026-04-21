@@ -1042,7 +1042,7 @@
 	"apihelp-query+usercontribs-paramvalue-prop-size": "편집의 새로운 크기를 추가합니다.",
 	"apihelp-query+usercontribs-paramvalue-prop-flags": "편집의 플래그를 추가합니다.",
 	"apihelp-query+usercontribs-paramvalue-prop-patrolled": "점검한 편집을 태그합니다.",
-	"apihelp-query+usercontribs-paramvalue-prop-autopatrolled": "자동 순찰된 편집을 태그합니다.",
+	"apihelp-query+usercontribs-paramvalue-prop-autopatrolled": "자동 점검된 편집을 태그합니다.",
 	"apihelp-query+usercontribs-paramvalue-prop-tags": "편집의 태그를 나열합니다.",
 	"apihelp-query+usercontribs-param-tag": "이 태그로 태그된 판만을 나열합니다.",
 	"apihelp-query+usercontribs-param-toponly": "최신 판인 변경사항만 나열합니다.",
