@@ -453,12 +453,27 @@ abstract class ApiBase extends ContextSource {
 	/**
 	 * Indicates whether this module is deprecated.
 	 *
+	 * Consider overriding `::deprecationMsg()` instead to provide
+	 * a reason for the deprecation and a replacement.
+	 *
 	 * @since 1.25
 	 * @stable to override
 	 * @return bool
 	 */
 	public function isDeprecated() {
-		return false;
+		return $this->deprecationMsg() !== null;
+	}
+
+	/**
+	 * Returns a MessageSpecifier describing the deprecation if this module
+	 * is deprecated, or returns null if this module is not deprecated
+	 * or a description is not available.
+	 *
+	 * @since 1.46
+	 * @stable to override
+	 */
+	public function deprecationMsg(): ?MessageSpecifier {
+		return null;
 	}
 
 	/**
@@ -1432,6 +1447,7 @@ abstract class ApiBase extends ContextSource {
 	 *
 	 * @since 1.29
 	 * @param string|array|MessageSpecifier $msg See ApiErrorFormatter::addWarning()
+	 *   Consider passing `$this->deprecationMsg()` here.
 	 * @param string|null $feature See ApiBase::logFeatureUsage()
 	 * @param array|null $data See ApiErrorFormatter::addWarning()
 	 */
@@ -1962,6 +1978,11 @@ abstract class ApiBase extends ContextSource {
 							$summary = $submod->getFinalSummary();
 							$isDeprecated = $submod->isDeprecated();
 							$isInternal = $submod->isInternal();
+							if ( $isDeprecated ) {
+								// Provide a deprecation message if available
+								$isDeprecated = $submod->deprecationMsg() ??
+									$isDeprecated;
+							}
 						}
 					} catch ( ApiUsageException ) {
 						// Ignore
@@ -2014,12 +2035,17 @@ abstract class ApiBase extends ContextSource {
 				foreach ( $values as $value ) {
 					$msg = Message::newFromSpecifier( $valueMsgs[$value] ?? "apihelp-$path-paramvalue-$param-$value" );
 					$m = $this->msg( $msg, [ $prefix, $param, $name, $path, $value ] );
+					$deprecationMsg = $deprecatedValues[$value] ?? false;
+					$deprecationMsg = (
+						is_bool( $deprecationMsg ) || $deprecationMsg instanceof MessageSpecifier
+					) ? $deprecationMsg : ApiMessage::create( $deprecationMsg );
+
 					$m = new ApiHelpParamValueMessage(
 						$value,
 						// @phan-suppress-next-line PhanTypeMismatchArgumentProbablyReal
 						[ $m->getKey(), 'api-help-param-no-description' ],
 						$m->getParams(),
-						isset( $deprecatedValues[$value] )
+						$deprecationMsg
 					);
 					$msgs[$param][] = $m->setContext( $this->getContext() );
 				}

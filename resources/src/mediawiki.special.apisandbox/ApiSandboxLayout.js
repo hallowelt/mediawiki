@@ -478,8 +478,17 @@ ApiSandboxLayout.prototype.loadParamInfo = function () {
 
 			let $desc = Util.parseHTML( pi.description );
 			if ( pi.deprecated !== undefined ) {
-				$desc = $( '<span>' ).addClass( 'apihelp-deprecated' ).text( mw.msg( 'api-help-param-deprecated' ) )
-					.add( document.createTextNode( mw.msg( 'word-separator' ) ) ).add( $desc );
+				let $deprecationMessage =
+					$( '<div>' ).addClass( 'apihelp-deprecated' )
+						.text( mw.msg( 'api-help-param-deprecated' ) );
+				if ( pi.deprecationhelp ) {
+					$deprecationMessage = $deprecationMessage
+						.append( mw.msg( 'word-separator' ) )
+						.append( Util.parseHTML( pi.deprecationhelp ) );
+				}
+				$desc = $deprecationMessage
+					.add( document.createTextNode( mw.msg( 'word-separator' ) ) )
+					.add( $desc );
 			}
 			if ( pi.internal !== undefined ) {
 				$desc = $( '<span>' ).addClass( 'apihelp-internal' ).text( mw.msg( 'api-help-param-internal' ) )

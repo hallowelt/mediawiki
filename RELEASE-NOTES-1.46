@@ -192,6 +192,14 @@ For notes on 1.45.x and older releases, see HISTORY.
 
 === Action API internal changes in 1.46 ===
 
+* Overriding ApiBase::deprecationMsg() instead of ::isDeprecated() allows
+  you to provide a message describing the deprecation and recommended
+  replacement, which will then be visible in [[Special:ApiSandbox]] and
+  other human-readable descriptions of the API.  Using:
+    $this->addDeprecation( $this->deprecationMsg(), ... );
+  in your ::execute() method will then ensure that a consistent message
+  is reported in API results as well.
+  See ApiQueryDeletedrevs.php for an example of this best practice.
 * …
 
 === Languages updated in 1.46 ===

@@ -9,6 +9,7 @@
 namespace MediaWiki\Api;
 
 use MediaWiki\Message\Message;
+use Wikimedia\Message\MessageSpecifier;
 
 /**
  * Message subclass that prepends wikitext for API help.
@@ -30,7 +31,8 @@ class ApiHelpParamValueMessage extends Message {
 	 * @param string $paramValue Parameter value being documented
 	 * @param string $text Message to use.
 	 * @param array $params Parameters for the message.
-	 * @param bool $deprecated Whether the value is deprecated
+	 * @param bool|MessageSpecifier $deprecated Whether the value is deprecated,
+	 *  and an optional message describing the deprecation or replacement.
 	 * @param bool $internal Whether the value is internal
 	 * @since 1.30 Added the `$deprecated` parameter
 	 * @since 1.35 Added the `$internal` parameter
@@ -39,7 +41,7 @@ class ApiHelpParamValueMessage extends Message {
 		protected readonly string $paramValue,
 		$text,
 		$params = [],
-		protected readonly bool $deprecated = false,
+		protected readonly bool|MessageSpecifier $deprecated = false,
 		protected readonly bool $internal = false,
 	) {
 		parent::__construct( $text, $params );
@@ -59,7 +61,16 @@ class ApiHelpParamValueMessage extends Message {
 	 * @return bool
 	 */
 	public function isDeprecated() {
-		return $this->deprecated;
+		return $this->deprecated !== false;
+	}
+
+	/**
+	 * Fetch the deprecation message.
+	 * @since 1.46
+	 */
+	public function deprecationMsg(): ?MessageSpecifier {
+		return $this->deprecated instanceof MessageSpecifier ?
+			$this->deprecated : null;
 	}
 
 	/**
@@ -78,9 +89,17 @@ class ApiHelpParamValueMessage extends Message {
 		if ( $this->message === null ) {
 			$prefix = ";<span dir=\"ltr\" lang=\"en\">{$this->paramValue}</span>:";
 			if ( $this->isDeprecated() ) {
-				$prefix .= '<span class="apihelp-deprecated">' .
-					$this->subMessage( 'api-help-param-deprecated' ) .
-					'</span>' .
+				$deprecationMsg = $this->deprecationMsg();
+				$divspan = $deprecationMsg === null ? 'span' : 'div';
+				$prefix .= "<$divspan class='apihelp-deprecated'>" .
+					$this->subMessage( 'api-help-param-deprecated' );
+				if ( $deprecationMsg !== null ) {
+					$prefix .= $this->subMessage( 'word-separator' ) .
+						$this->subMessage(
+							Message::newFromSpecifier( $deprecationMsg )
+						);
+				}
+				$prefix .= "</$divspan>" .
 					$this->subMessage( 'word-separator' );
 			}
 			if ( $this->isInternal() ) {
@@ -104,8 +123,8 @@ class ApiHelpParamValueMessage extends Message {
 		return $this->message;
 	}
 
-	private function subMessage( string $key ): string {
-		$msg = new Message( $key );
+	private function subMessage( string|Message $key ): string {
+		$msg = $key instanceof Message ? $key : new Message( $key );
 		$msg->isInterface = $this->isInterface;
 		$msg->language = $this->language;
 		$msg->useDatabase = $this->useDatabase;

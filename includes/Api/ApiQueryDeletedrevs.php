@@ -19,6 +19,8 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Storage\NameTableAccessException;
 use MediaWiki\Storage\NameTableStore;
 use MediaWiki\Title\Title;
+use Wikimedia\Message\MessageSpecifier;
+use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\EnumDef;
 use Wikimedia\ParamValidator\TypeDef\IntegerDef;
@@ -52,7 +54,7 @@ class ApiQueryDeletedrevs extends ApiQueryBase {
 		// Before doing anything at all, let's check permissions
 		$this->checkUserRightsAny( 'deletedhistory' );
 
-		$this->addDeprecation( 'apiwarn-deprecation-deletedrevs', 'action=query&list=deletedrevs' );
+		$this->addDeprecation( $this->deprecationMsg(), 'action=query&list=deletedrevs' );
 
 		$user = $this->getUser();
 		$db = $this->getDB();
@@ -476,8 +478,8 @@ class ApiQueryDeletedrevs extends ApiQueryBase {
 	}
 
 	/** @inheritDoc */
-	public function isDeprecated() {
-		return true;
+	public function deprecationMsg(): MessageSpecifier {
+		return new MessageValue( 'apiwarn-deprecation-deletedrevs' );
 	}
 
 	/** @inheritDoc */

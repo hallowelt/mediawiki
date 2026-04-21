@@ -17,6 +17,8 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\Message\Message;
 use MediaWiki\User\BotPassword;
 use MediaWiki\User\UserIdentityUtils;
+use Wikimedia\Message\MessageSpecifier;
+use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 /**
@@ -260,8 +262,11 @@ class ApiLogin extends ApiBase {
 	}
 
 	/** @inheritDoc */
-	public function isDeprecated() {
-		return !$this->getConfig()->get( MainConfigNames::EnableBotPasswords );
+	public function deprecationMsg(): ?MessageSpecifier {
+		if ( $this->getConfig()->get( MainConfigNames::EnableBotPasswords ) ) {
+			return null;
+		}
+		return new MessageValue( 'apiwarn-deprecation-login-nobotpw' );
 	}
 
 	/** @inheritDoc */

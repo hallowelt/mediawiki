@@ -275,6 +275,13 @@ class ApiParamInfo extends ApiBase {
 
 		$this->formatHelpMessages( $ret, 'description', $module->getFinalDescription() );
 
+		$deprecationMsg = $module->deprecationMsg();
+		if ( $deprecationMsg !== null ) {
+			$this->formatHelpMessages( $ret, 'deprecationhelp', [
+				Message::newFromSpecifier( $deprecationMsg )
+			], true );
+		}
+
 		foreach ( $module->getHelpFlags() as $flag ) {
 			$ret[$flag] = true;
 		}
