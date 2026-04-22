@@ -10,7 +10,6 @@ wfLoadExtension( 'BlueSpiceConfigManager' );
 wfLoadExtension( 'BlueSpiceContextMenu' );
 wfLoadExtension( 'BlueSpiceCountThings' );
 wfLoadExtension( 'BlueSpiceCustomMenu' );
-wfLoadExtension( 'BlueSpiceEmoticons' );
 
 wfLoadExtension( 'BlueSpiceExtendedSearch' );
 // Not respected by BlueSpiceExtendedSearch
