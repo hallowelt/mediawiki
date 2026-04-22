@@ -80,11 +80,23 @@ class LocalFileDeleteBatch {
 		$archiveNames = [];
 
 		$dbw = $this->file->repo->getPrimaryDB();
-		$result = $dbw->newSelectQueryBuilder()
-			->select( [ 'oi_archive_name' ] )
-			->from( 'oldimage' )
-			->where( [ 'oi_name' => $this->file->getName() ] )
-			->caller( __METHOD__ )->fetchResultSet();
+		$migrationStage = MediaWikiServices::getInstance()->getMainConfig()->get(
+			MainConfigNames::FileSchemaMigrationStage
+		);
+		if ( $migrationStage && SCHEMA_COMPAT_WRITE_OLD ) {
+			$result = $dbw->newSelectQueryBuilder()
+				->select( [ 'oi_archive_name' ] )
+				->from( 'oldimage' )
+				->where( [ 'oi_name' => $this->file->getName() ] )
+				->caller( __METHOD__ )->fetchResultSet();
+		} else {
+			$result = $dbw->newSelectQueryBuilder()
+				->select( [ 'oi_archive_name' => 'fr_archive_name' ] )
+				->from( 'filerevision' )
+				->join( 'file', null, 'fr_file = file_id' )
+				->where( [ 'file_name' => $this->file->getName(), 'file_deleted' => 0, 'file_latest != fr_id' ] )
+				->caller( __METHOD__ )->fetchResultSet();
+		}
 
 		foreach ( $result as $row ) {
 			$this->addOld( $row->oi_archive_name );
@@ -121,17 +133,37 @@ class LocalFileDeleteBatch {
 		if ( $deleteCurrent ) {
 			$hashes['.'] = $this->file->getSha1();
 		}
+		$migrationStage = MediaWikiServices::getInstance()->getMainConfig()->get(
+			MainConfigNames::FileSchemaMigrationStage
+		);
 
 		if ( count( $oldRels ) ) {
 			$dbw = $this->file->repo->getPrimaryDB();
-			$res = $dbw->newSelectQueryBuilder()
-				->select( [ 'oi_archive_name', 'oi_sha1' ] )
-				->from( 'oldimage' )
-				->where( [
-					'oi_archive_name' => array_map( 'strval', array_keys( $oldRels ) ),
-					'oi_name' => $this->file->getName() // performance
-				] )
-				->caller( __METHOD__ )->fetchResultSet();
+			if ( $migrationStage && SCHEMA_COMPAT_WRITE_OLD ) {
+				$res = $dbw->newSelectQueryBuilder()
+					->select( [ 'oi_archive_name', 'oi_sha1' ] )
+					->from( 'oldimage' )
+					->where( [
+						'oi_archive_name' => array_map( 'strval', array_keys( $oldRels ) ),
+						'oi_name' => $this->file->getName() // performance
+					] )
+					->caller( __METHOD__ )->fetchResultSet();
+			} else {
+				$res = $dbw->newSelectQueryBuilder()
+					->select( [
+						'oi_archive_name' => 'fr_archive_name',
+						'oi_sha1' => 'fr_sha1'
+					] )
+					->from( 'filerevision' )
+					->join( 'file', null, 'fr_file = file_id' )
+					->where( [
+						'fr_archive_name' => array_map( 'strval', array_keys( $oldRels ) ),
+						'file_name' => $this->file->getName(), // performance
+						'file_deleted' => 0,
+						'file_latest != fr_id',
+					] )
+					->caller( __METHOD__ )->fetchResultSet();
+			}
 
 			foreach ( $res as $row ) {
 				if ( $row->oi_archive_name === '' ) {
@@ -147,14 +179,26 @@ class LocalFileDeleteBatch {
 					if ( $props['fileExists'] ) {
 						// Upgrade the oldimage row
 
-						$dbw->newUpdateQueryBuilder()
-							->update( 'oldimage' )
-							->set( [ 'oi_sha1' => $props['sha1'] ] )
-							->where( [
-								'oi_name' => $this->file->getName(),
-								'oi_archive_name' => $row->oi_archive_name,
-							] )
-							->caller( __METHOD__ )->execute();
+						if ( $migrationStage && SCHEMA_COMPAT_WRITE_OLD ) {
+							$dbw->newUpdateQueryBuilder()
+								->update( 'oldimage' )
+								->set( [ 'oi_sha1' => $props['sha1'] ] )
+								->where( [
+									'oi_name' => $this->file->getName(),
+									'oi_archive_name' => $row->oi_archive_name,
+								] )
+								->caller( __METHOD__ )->execute();
+						}
+						if ( $migrationStage && SCHEMA_COMPAT_WRITE_NEW ) {
+							$dbw->newUpdateQueryBuilder()
+								->update( 'filerevision' )
+								->set( [ 'fr_sha1' => $props['sha1'] ] )
+								->where( [
+									'fr_file' => $this->file->getFileIdFromName(),
+									'fr_archive_name' => $row->oi_archive_name,
+								] )
+								->caller( __METHOD__ )->execute();
+						}
 						$hashes[$row->oi_archive_name] = $props['sha1'];
 					} else {
 						$hashes[$row->oi_archive_name] = false;

@@ -108,12 +108,28 @@ class LocalFileMoveBatch {
 		$this->oldCount = 0;
 		$archiveNames = [];
 
-		$result = $this->db->newSelectQueryBuilder()
-			->select( [ 'oi_archive_name', 'oi_deleted' ] )
-			->forUpdate() // ignore snapshot
-			->from( 'oldimage' )
-			->where( [ 'oi_name' => $this->oldName ] )
-			->caller( __METHOD__ )->fetchResultSet();
+		$migrationStage = MediaWikiServices::getInstance()->getMainConfig()->get(
+			MainConfigNames::FileSchemaMigrationStage
+		);
+		if ( $migrationStage && SCHEMA_COMPAT_WRITE_OLD ) {
+			$result = $this->db->newSelectQueryBuilder()
+				->select( [ 'oi_archive_name', 'oi_deleted' ] )
+				->forUpdate() // ignore snapshot
+				->from( 'oldimage' )
+				->where( [ 'oi_name' => $this->oldName ] )
+				->caller( __METHOD__ )->fetchResultSet();
+		} else {
+			$result = $this->db->newSelectQueryBuilder()
+				->select( [
+					'oi_archive_name' => 'fr_archive_name',
+					'oi_deleted' => 'fr_deleted',
+				] )
+				->forUpdate() // ignore snapshot
+				->from( 'filerevision' )
+				->join( 'file', null, 'fr_file = file_id' )
+				->where( [ 'file_name' => $this->oldName, 'file_deleted' => 0, 'file_latest != fr_id' ] )
+				->caller( __METHOD__ )->fetchResultSet();
+		}
 
 		foreach ( $result as $row ) {
 			$archiveNames[] = $row->oi_archive_name;
@@ -322,34 +338,45 @@ class LocalFileMoveBatch {
 		$status = $repo->newGood();
 		$dbw = $this->db;
 
-		// Lock the image row
-		$hasCurrent = $dbw->newSelectQueryBuilder()
-			->from( 'image' )
-			->where( [ 'img_name' => $this->oldName ] )
-			->forUpdate()
-			->caller( __METHOD__ )
-			->fetchRowCount();
+		$migrationStage = MediaWikiServices::getInstance()->getMainConfig()->get(
+			MainConfigNames::FileSchemaMigrationStage
+		);
+		if ( $migrationStage && SCHEMA_COMPAT_WRITE_OLD ) {
+			// Lock the image row
+			$hasCurrent = $dbw->newSelectQueryBuilder()
+				->from( 'image' )
+				->where( [ 'img_name' => $this->oldName ] )
+				->forUpdate()
+				->caller( __METHOD__ )
+				->fetchRowCount();
 
-		// Lock the oldimage rows
-		$oldRowCount = $dbw->newSelectQueryBuilder()
-			->from( 'oldimage' )
-			->where( [ 'oi_name' => $this->oldName ] )
-			->forUpdate()
-			->caller( __METHOD__ )
-			->fetchRowCount();
-
-		if ( $hasCurrent ) {
-			$status->successCount++;
+			// Lock the oldimage rows
+			$oldRowCount = $dbw->newSelectQueryBuilder()
+				->from( 'oldimage' )
+				->where( [ 'oi_name' => $this->oldName ] )
+				->forUpdate()
+				->caller( __METHOD__ )
+				->fetchRowCount();
+			if ( $hasCurrent ) {
+				$status->successCount++;
+			} else {
+				$status->failCount++;
+			}
+			$status->successCount += $oldRowCount;
+			// T36934: oldCount is based on files that actually exist.
+			// There may be more DB rows than such files, in which case $affected
+			// can be greater than $total. We use max() to avoid negatives here.
+			$status->failCount += max( 0, $this->oldCount - $oldRowCount );
+			if ( $status->failCount ) {
+				$status->error( 'imageinvalidfilename' );
+			}
 		} else {
-			$status->failCount++;
-		}
-		$status->successCount += $oldRowCount;
-		// T36934: oldCount is based on files that actually exist.
-		// There may be more DB rows than such files, in which case $affected
-		// can be greater than $total. We use max() to avoid negatives here.
-		$status->failCount += max( 0, $this->oldCount - $oldRowCount );
-		if ( $status->failCount ) {
-			$status->error( 'imageinvalidfilename' );
+			$status->successCount += $this->db->newSelectQueryBuilder()
+				->forUpdate() // ignore snapshot
+				->from( 'filerevision' )
+				->join( 'file', null, 'fr_file = file_id' )
+				->where( [ 'file_name' => $this->oldName, 'file_deleted' => 0 ] )
+				->caller( __METHOD__ )->fetchRowCount();
 		}
 
 		return $status;

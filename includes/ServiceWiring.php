@@ -354,6 +354,12 @@ use Wikimedia\WRStats\WRStatsFactory;
 
 /** @phpcs-require-sorted-array */
 return [
+	///////////////////////////////////////////////////////////////////////////
+	// NOTE: When adding a service here, don't forget to add a getter function
+	// in the MediaWikiServices class. The convenience getter should just call
+	// $this->getService( 'FooBarService' ).
+	///////////////////////////////////////////////////////////////////////////
+
 	'ActionFactory' => static function ( MediaWikiServices $services ): ActionFactory {
 		return new ActionFactory(
 			$services->getMainConfig()->get( MainConfigNames::Actions ),
@@ -3267,12 +3273,6 @@ return [
 			$services->getBlockActionInfo()
 		);
 	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// NOTE: When adding a service here, don't forget to add a getter function
-	// in the MediaWikiServices class. The convenience getter should just call
-	// $this->getService( 'FooBarService' ).
-	///////////////////////////////////////////////////////////////////////////
 
 ];
 

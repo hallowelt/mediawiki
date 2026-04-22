@@ -178,7 +178,7 @@ class EditConstraintFactory {
 	}
 
 	public function newRedirectConstraint(
-		?Title $allowedProblematicRedirectTarget,
+		?LinkTarget $allowedProblematicRedirectTarget,
 		Content $newContent,
 		?Content $originalContent,
 		LinkTarget $title,

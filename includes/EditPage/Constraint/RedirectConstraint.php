@@ -34,7 +34,7 @@ class RedirectConstraint extends EditConstraint {
 	public ?Title $problematicTarget = null;
 
 	public function __construct(
-		private readonly ?Title $allowedProblematicRedirectTarget,
+		private readonly ?LinkTarget $allowedProblematicRedirectTarget,
 		private readonly Content $newContent,
 		private readonly ?Content $originalContent,
 		private readonly LinkTarget $title,
@@ -54,7 +54,8 @@ class RedirectConstraint extends EditConstraint {
 		// - $allowedProblematicRedirect is null (the last save attempt didn't contain a problematic redirect)
 		// - the last save attempt contained a problematic redirect, and the target is not the same as the one in this
 		//   save attempt (T395767, T395768)
-		if ( $newRedirectTarget !== null && !$this->allowedProblematicRedirectTarget?->equals( $newRedirectTarget ) ) {
+		if ( $newRedirectTarget !== null &&
+			!$this->allowedProblematicRedirectTarget?->isSameLinkAs( $newRedirectTarget ) ) {
 			$currentTarget = $this->originalContent !== null
 				? $this->getRedirectTarget( $this->originalContent )
 				: null;
