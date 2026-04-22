@@ -4,10 +4,10 @@ namespace MediaWiki\EditPage\Constraint;
 
 use MediaWiki\EditPage\EditPageStatus;
 use MediaWiki\Page\Article;
+use MediaWiki\Permissions\Authority;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\RevisionStoreRecord;
 use MediaWiki\Title\Title;
-use MediaWiki\User\User;
 use Wikimedia\Message\MessageValue;
 
 /**
@@ -25,7 +25,7 @@ class RevisionDeletedConstraint extends EditConstraint {
 		private readonly int $oldId,
 		private readonly string $section,
 		private readonly Title $title,
-		private readonly User $user,
+		private readonly Authority $authority,
 		private readonly ?MessageValue $warningMessageWrapper = null,
 	) {
 	}
@@ -40,7 +40,7 @@ class RevisionDeletedConstraint extends EditConstraint {
 
 		$revRecord = $this->article->fetchRevisionRecord();
 		if ( $revRecord instanceof RevisionStoreRecord ) {
-			if ( !$revRecord->userCan( RevisionRecord::DELETED_TEXT, $this->user ) ) {
+			if ( !$revRecord->userCan( RevisionRecord::DELETED_TEXT, $this->authority ) ) {
 				return EditPageStatus::newFatal( 'rev-deleted-text-permission', $this->title->getPrefixedURL() )
 					->setValue( self::AS_REVISION_WAS_DELETED );
 			} elseif ( $revRecord->isDeleted( RevisionRecord::DELETED_TEXT ) ) {

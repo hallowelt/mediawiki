@@ -15,7 +15,8 @@ use MediaWiki\Html\Html;
 use MediaWiki\Language\Language;
 use MediaWiki\Message\Message;
 use MediaWiki\Status\Status;
-use MediaWiki\User\User;
+use MediaWiki\User\UserFactory;
+use MediaWiki\User\UserIdentity;
 
 /**
  * Verify `EditFilterMergedContent` hook
@@ -31,21 +32,23 @@ class EditFilterMergedContentHookConstraint extends EditConstraint {
 
 	/**
 	 * @param HookContainer $hookContainer
+	 * @param UserFactory $userFactory
 	 * @param Content $content
 	 * @param IContextSource $hookContext NOTE: This should only be passed to the hook.
 	 * @param string $summary
 	 * @param bool $minorEdit
 	 * @param Language $language
-	 * @param User $hookUser NOTE: This should only be passed to the hook.
+	 * @param UserIdentity $hookUser NOTE: This should only be passed to the hook.
 	 */
 	public function __construct(
 		HookContainer $hookContainer,
+		private readonly UserFactory $userFactory,
 		private readonly Content $content,
 		private readonly IContextSource $hookContext,
 		private readonly string $summary,
 		private readonly bool $minorEdit,
 		private readonly Language $language,
-		private readonly User $hookUser,
+		private readonly UserIdentity $hookUser,
 	) {
 		$this->hookRunner = new HookRunner( $hookContainer );
 	}
@@ -60,7 +63,7 @@ class EditFilterMergedContentHookConstraint extends EditConstraint {
 			// the $status, without changing the hook interface to use the EditPageStatus type.
 			Status::wrap( $status ),
 			$this->summary,
-			$this->hookUser,
+			$this->userFactory->newFromUserIdentity( $this->hookUser ),
 			$this->minorEdit
 		);
 		if ( !$hookResult ) {

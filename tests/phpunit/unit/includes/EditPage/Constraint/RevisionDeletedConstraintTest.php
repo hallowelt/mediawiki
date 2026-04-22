@@ -7,9 +7,9 @@
 use MediaWiki\EditPage\Constraint\EditConstraint;
 use MediaWiki\EditPage\Constraint\RevisionDeletedConstraint;
 use MediaWiki\Page\Article;
+use MediaWiki\Permissions\Authority;
 use MediaWiki\Revision\RevisionStoreRecord;
 use MediaWiki\Title\Title;
-use MediaWiki\User\User;
 
 /**
  * Tests the RevisionDeletedConstraint
@@ -26,7 +26,7 @@ class RevisionDeletedConstraintTest extends MediaWikiUnitTestCase {
 			1,
 			'notnew',
 			$this->createMock( Title::class ),
-			$this->createMock( User::class ),
+			$this->createMock( Authority::class ),
 		);
 		$this->assertConstraintPassed( $constraint );
 	}
@@ -38,7 +38,7 @@ class RevisionDeletedConstraintTest extends MediaWikiUnitTestCase {
 			1,
 			'new',
 			$this->createMock( Title::class ),
-			$this->createMock( User::class ),
+			$this->createMock( Authority::class ),
 		);
 		$this->assertConstraintPassed( $constraint );
 	}
@@ -52,7 +52,7 @@ class RevisionDeletedConstraintTest extends MediaWikiUnitTestCase {
 			1,
 			'notnew',
 			$title,
-			$this->createMock( User::class ),
+			$this->createMock( Authority::class ),
 		);
 		$this->assertConstraintFailed( $constraint, EditConstraint::AS_REVISION_WAS_DELETED );
 	}
@@ -66,7 +66,7 @@ class RevisionDeletedConstraintTest extends MediaWikiUnitTestCase {
 			1,
 			'notnew',
 			$title,
-			$this->createMock( User::class ),
+			$this->createMock( Authority::class ),
 		);
 		$status = $constraint->checkConstraint();
 		$this->assertStatusOK( $status );
@@ -80,7 +80,7 @@ class RevisionDeletedConstraintTest extends MediaWikiUnitTestCase {
 			1,
 			'notnew',
 			$this->createMock( Title::class ),
-			$this->createMock( User::class ),
+			$this->createMock( Authority::class ),
 		);
 		$this->assertConstraintFailed( $constraint, EditConstraint::AS_REVISION_WAS_DELETED );
 	}
@@ -95,7 +95,7 @@ class RevisionDeletedConstraintTest extends MediaWikiUnitTestCase {
 			1,
 			'notnew',
 			$title,
-			$this->createMock( User::class ),
+			$this->createMock( Authority::class ),
 		);
 		$this->assertConstraintFailed( $constraint, EditConstraint::AS_REVISION_MISSING );
 	}

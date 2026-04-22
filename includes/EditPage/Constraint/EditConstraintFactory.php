@@ -20,7 +20,7 @@ use MediaWiki\Page\RedirectLookup;
 use MediaWiki\Permissions\RateLimiter;
 use MediaWiki\Permissions\RateLimitSubject;
 use MediaWiki\Title\Title;
-use MediaWiki\User\User;
+use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\Rdbms\IConnectionProvider;
@@ -70,29 +70,23 @@ class EditConstraintFactory {
 		// AccidentalRecreationConstraint
 		private readonly IConnectionProvider $connectionProvider,
 		private readonly LogFormatterFactory $logFormatterFactory,
+		// EditFilterMergedContentHookConstraint
+		private readonly UserFactory $userFactory,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 	}
 
-	/**
-	 * @param Content $content
-	 * @param IContextSource $context
-	 * @param string $summary
-	 * @param bool $minorEdit
-	 * @param Language $language
-	 * @param User $user
-	 * @return EditFilterMergedContentHookConstraint
-	 */
 	public function newEditFilterMergedContentHookConstraint(
 		Content $content,
 		IContextSource $context,
 		string $summary,
 		bool $minorEdit,
 		Language $language,
-		User $user
+		UserIdentity $user
 	): EditFilterMergedContentHookConstraint {
 		return new EditFilterMergedContentHookConstraint(
 			$this->hookContainer,
+			$this->userFactory,
 			$content,
 			$context,
 			$summary,

@@ -10,7 +10,8 @@ use MediaWiki\EditPage\Constraint\EditConstraint;
 use MediaWiki\EditPage\Constraint\EditFilterMergedContentHookConstraint;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\Language\Language;
-use MediaWiki\User\User;
+use MediaWiki\User\UserFactory;
+use MediaWiki\User\UserIdentity;
 
 /**
  * Tests the EditFilterMergedContentHookConstraint
@@ -41,12 +42,13 @@ class EditFilterMergedContentHookConstraintTest extends MediaWikiIntegrationTest
 			->willReturn( 'en' );
 		$constraint = new EditFilterMergedContentHookConstraint(
 			$hookContainer,
+			$this->createMock( UserFactory::class ),
 			$this->getMockForAbstractClass( Content::class ),
 			$this->createMock( RequestContext::class ),
 			'EditSummaryGoesHere',
 			true, // Minor edit
 			$language,
-			$this->createMock( User::class )
+			$this->createMock( UserIdentity::class )
 		);
 		return $constraint;
 	}

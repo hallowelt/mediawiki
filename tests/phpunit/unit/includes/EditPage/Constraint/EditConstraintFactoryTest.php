@@ -25,6 +25,7 @@ use MediaWiki\Page\RedirectLookup;
 use MediaWiki\Permissions\RateLimiter;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
+use MediaWiki\User\UserFactory;
 use Psr\Log\NullLogger;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\Rdbms\IConnectionProvider;
@@ -58,6 +59,7 @@ class EditConstraintFactoryTest extends MediaWikiUnitTestCase {
 			$this->createMock( RedirectLookup::class ),
 			$this->createMock( IConnectionProvider::class ),
 			$this->createMock( LogFormatterFactory::class ),
+			$this->createMock( UserFactory::class )
 		);
 
 		$user = $this->createMock( User::class );

@@ -3167,6 +3167,9 @@ return [
 			// AccidentalRecreationConstraint
 			$services->getConnectionProvider(),
 			$services->getLogFormatterFactory(),
+
+			// EditFilterMergedContentHookConstraint
+			$services->getUserFactory(),
 		);
 	},
 
