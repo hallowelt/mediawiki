@@ -3254,6 +3254,7 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\Specials\\Helpers\\ImportReporter' => __DIR__ . '/includes/Specials/Helpers/ImportReporter.php',
 	'MediaWiki\\Specials\\Helpers\\License' => __DIR__ . '/includes/Specials/Helpers/License.php',
 	'MediaWiki\\Specials\\Helpers\\LoginHelper' => __DIR__ . '/includes/Specials/Helpers/LoginHelper.php',
+	'MediaWiki\\Specials\\Helpers\\UserRequirementsConditionFormatterTrait' => __DIR__ . '/includes/Specials/Helpers/UserRequirementsConditionFormatterTrait.php',
 	'MediaWiki\\Specials\\Hook\\AncientPagesQueryHook' => __DIR__ . '/includes/Specials/Hook/AncientPagesQueryHook.php',
 	'MediaWiki\\Specials\\Hook\\BeforeWelcomeCreationHook' => __DIR__ . '/includes/Specials/Hook/BeforeWelcomeCreationHook.php',
 	'MediaWiki\\Specials\\Hook\\BlockIpCompleteHook' => __DIR__ . '/includes/Specials/Hook/BlockIpCompleteHook.php',
