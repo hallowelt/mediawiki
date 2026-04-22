@@ -13,6 +13,8 @@ use MediaWiki\User\User;
 /**
  * Send an email notification.
  *
+ * @internal For use by RecentChangeNotifier
+ * @ingroup RecentChanges
  * @ingroup JobQueue
  * @ingroup Mail
  */

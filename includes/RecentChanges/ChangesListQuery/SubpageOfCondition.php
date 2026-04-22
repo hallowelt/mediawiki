@@ -12,7 +12,9 @@ use Wikimedia\Rdbms\RawSQLExpression;
 /**
  * Check if the changed title is a subpage of some specified title.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class SubpageOfCondition extends ChangesListConditionBase {
 	/**

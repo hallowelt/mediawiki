@@ -19,6 +19,7 @@ use Wikimedia\Rdbms\IConnectionProvider;
 
 /**
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class PatrolManager {
 

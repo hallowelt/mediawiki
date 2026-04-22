@@ -7,6 +7,11 @@ use MediaWiki\User\UserIdentityValue;
 use stdClass;
 use Wikimedia\Rdbms\IReadableDatabase;
 
+/**
+ * @internal For use by ChangesListQuery
+ * @since 1.45
+ * @ingroup RecentChanges
+ */
 class UserCondition extends ChangesListConditionBase {
 	/** @inheritDoc */
 	public function validateValue( $value ) {

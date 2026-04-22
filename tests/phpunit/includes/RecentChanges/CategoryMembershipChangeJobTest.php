@@ -1,8 +1,8 @@
 <?php
-namespace MediaWiki\Tests\JobQueue\Jobs;
+namespace MediaWiki\Tests\RecentChanges;
 
-use MediaWiki\JobQueue\Jobs\CategoryMembershipChangeJob;
 use MediaWiki\MainConfigNames;
+use MediaWiki\RecentChanges\CategoryMembershipChangeJob;
 use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
@@ -10,10 +10,8 @@ use MediaWiki\Utils\MWTimestamp;
 use MediaWikiIntegrationTestCase;
 
 /**
- * @covers \MediaWiki\JobQueue\Jobs\CategoryMembershipChangeJob
- *
- * @group JobQueue
  * @group Database
+ * @covers \MediaWiki\RecentChanges\CategoryMembershipChangeJob
  *
  * @license GPL-2.0-or-later
  * @author Addshore
@@ -22,10 +20,7 @@ class CategoryMembershipChangeJobTest extends MediaWikiIntegrationTestCase {
 
 	private const TITLE_STRING = 'UTCatChangeJobPage';
 
-	/**
-	 * @var Title
-	 */
-	private $title;
+	private Title $title;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -40,11 +35,9 @@ class CategoryMembershipChangeJobTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @param string $text new page text
-	 *
-	 * @return int|null
+	 * @param string $text New page content
 	 */
-	private function editPageText( $text ) {
+	private function editPageText( string $text ): ?int {
 		$editResult = $this->editPage(
 			$this->title,
 			$text,
@@ -59,12 +52,7 @@ class CategoryMembershipChangeJobTest extends MediaWikiIntegrationTestCase {
 		return $revisionRecord->getId();
 	}
 
-	/**
-	 * @param int $revId
-	 *
-	 * @return RecentChange|null
-	 */
-	private function getCategorizeRecentChangeForRevId( $revId ) {
+	private function getCategorizeRecentChangeForRevId( int $revId ): ?RecentChange {
 		$rc = $this->getServiceContainer()->getRecentChangeStore()->getRecentChangeByConds(
 			[
 				'rc_source' => RecentChange::SRC_CATEGORIZE,

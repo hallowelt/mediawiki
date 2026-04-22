@@ -17,6 +17,7 @@ use Wikimedia\Rdbms\IDBAccessObject;
 /**
  * Helper class for category membership changes
  *
+ * @internal For use by CategoryMembershipChangeJob
  * @since 1.27
  * @ingroup RecentChanges
  * @author Kai Nissen

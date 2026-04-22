@@ -13,7 +13,9 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
  * Check if a recentchange row is watched by the current watchlist user.
  * Optionally check if the change is a "new" change.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class WatchedCondition extends ChangesListConditionBase {
 	private ?int $userId = null;

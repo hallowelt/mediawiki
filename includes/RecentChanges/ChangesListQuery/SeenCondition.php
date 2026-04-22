@@ -14,7 +14,9 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
 /**
  * Check if the recentchange row has been seen by the current watchlist user.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class SeenCondition extends ChangesListConditionBase {
 	private ?UserIdentity $user = null;

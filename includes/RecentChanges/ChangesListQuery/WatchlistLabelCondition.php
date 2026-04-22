@@ -11,7 +11,9 @@ use Wikimedia\Rdbms\RawSQLExpression;
  * checked here since this filter is typically used in conjunction with
  * WatchedCondition.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.46
+ * @ingroup RecentChanges
  */
 class WatchlistLabelCondition extends ChangesListConditionBase {
 

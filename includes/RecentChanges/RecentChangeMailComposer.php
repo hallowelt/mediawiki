@@ -27,6 +27,7 @@ use MediaWiki\Utils\UrlUtils;
  * This includes watchlist notifications, user_talk notifications.
  *
  * @internal
+ * @ingroup RecentChanges
  */
 class RecentChangeMailComposer {
 

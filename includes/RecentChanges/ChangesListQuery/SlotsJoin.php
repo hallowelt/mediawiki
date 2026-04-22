@@ -13,7 +13,9 @@ namespace MediaWiki\RecentChanges\ChangesListQuery;
  *
  * This could be generalised if there was a need to do so.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class SlotsJoin extends BasicJoin {
 	private ?int $roleId = null;

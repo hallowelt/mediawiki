@@ -5,7 +5,11 @@ namespace MediaWiki\RecentChanges\ChangesListQuery;
 /**
  * The mathematical bits of partitioning a query by timestamp range.
  *
- * Avoid dependencies so that it is easily unit testable.
+ * Avoid dependencies so that this class is easily unit testable.
+ *
+ * @internal For use by ChangesListQuery
+ * @since 1.45
+ * @ingroup RecentChanges
  */
 class TimestampRangePartitioner {
 	/**

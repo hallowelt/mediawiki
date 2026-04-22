@@ -7,7 +7,9 @@ use MediaWiki\User\UserIdentity;
 /**
  * A watchlist join with a settable condition on wl_user
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class WatchlistJoin extends BasicJoin {
 	private ?int $userId = null;

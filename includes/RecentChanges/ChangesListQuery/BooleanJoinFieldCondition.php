@@ -9,7 +9,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
  * A tri-state boolean from a field of a potentially left-joined table.
  * May be either true, false or null.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class BooleanJoinFieldCondition extends ChangesListConditionBase {
 	public function __construct(

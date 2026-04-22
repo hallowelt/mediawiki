@@ -8,7 +8,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
 /**
  * Shared functionality for filter condition modules.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 abstract class ChangesListConditionBase implements ChangesListCondition {
 	/** @var bool */

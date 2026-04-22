@@ -16,7 +16,9 @@ use Wikimedia\Timestamp\ConvertibleTimestamp;
 /**
  * A filter condition module for user experience levels
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class ExperienceCondition extends ChangesListConditionBase {
 	public const CONSTRUCTOR_OPTIONS = [

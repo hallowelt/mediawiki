@@ -8,7 +8,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
 /**
  * A filter condition module which uses equals or not-equals operators
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class FieldEqualityCondition extends ChangesListConditionBase {
 	/**

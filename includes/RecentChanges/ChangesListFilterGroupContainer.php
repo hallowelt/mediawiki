@@ -14,6 +14,7 @@ use Wikimedia\Rdbms\IReadableDatabase;
  * to iterate over all groups. Provides strongly typed accessors.
  *
  * @internal
+ * @ingroup RecentChanges
  */
 class ChangesListFilterGroupContainer implements \IteratorAggregate {
 	/**

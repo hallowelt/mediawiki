@@ -7,7 +7,9 @@ namespace MediaWiki\RecentChanges\ChangesListQuery;
  * dependencies they have on other tables. This is implemented by
  * ChangesListQuery.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 interface JoinDependencyProvider {
 	/**

@@ -11,7 +11,9 @@ use Wikimedia\Rdbms\RawSQLExpression;
 /**
  * A condition matching a set of titles
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class TitleCondition extends ChangesListConditionBase {
 

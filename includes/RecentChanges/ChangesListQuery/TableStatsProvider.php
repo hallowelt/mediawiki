@@ -7,7 +7,9 @@ use Wikimedia\Rdbms\IConnectionProvider;
 /**
  * Cache and provide min/max ID and "size" (ID delta) of a table
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class TableStatsProvider {
 	private ?int $minId;

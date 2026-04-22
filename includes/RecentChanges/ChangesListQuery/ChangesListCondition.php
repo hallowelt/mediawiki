@@ -9,7 +9,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
  * Interface for modules implementing a boolean condition which may match a row
  * in a ChangesListResult.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 interface ChangesListCondition {
 	/**

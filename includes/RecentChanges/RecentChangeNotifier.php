@@ -36,6 +36,7 @@ use UnexpectedValueException;
  * @todo Use UserOptionsLookup and other services, consider converting this to a service
  *
  * @since 1.11.0
+ * @ingroup RecentChanges
  * @ingroup Mail
  */
 class RecentChangeNotifier {

@@ -21,7 +21,6 @@ use MediaWiki\Content\UnknownContentModelException;
 use MediaWiki\Content\UnsupportedContentFormatException;
 use MediaWiki\Context\DerivativeContext;
 use MediaWiki\Context\IContextSource;
-use MediaWiki\Debug\DeprecationHelper;
 use MediaWiki\EditPage\Constraint\AccidentalRecreationConstraint;
 use MediaWiki\EditPage\Constraint\AuthorizationConstraint;
 use MediaWiki\EditPage\Constraint\ChangeTagsConstraint;
@@ -139,7 +138,6 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
  */
 #[\AllowDynamicProperties]
 class EditPage implements IEditObject {
-	use DeprecationHelper;
 	use ProtectedHookAccessorTrait;
 
 	/**
@@ -186,12 +184,6 @@ class EditPage implements IEditObject {
 
 	/** @var null|Title */
 	private $mContextTitle = null;
-
-	/**
-	 * @deprecated since 1.38 for public usage; no replacement
-	 * @var string
-	 */
-	private $action = 'submit';
 
 	/** Whether an edit conflict needs to be resolved. Detected based on whether
 	 * $editRevId is different than the latest revision. When a conflict has successfully
@@ -285,12 +277,6 @@ class EditPage implements IEditObject {
 	 * Page content input field.
 	 */
 	public string $textbox1 = '';
-
-	/**
-	 * @deprecated since 1.44
-	 * @var string
-	 */
-	private $textbox2 = '';
 
 	public string $summary = '';
 
@@ -498,9 +484,6 @@ class EditPage implements IEditObject {
 		$this->pageEditingHelper = $services->getService( '_PageEditingHelper' );
 		$this->userIdentityUtils = $services->getUserIdentityUtils();
 		$this->userEditTracker = $services->getUserEditTracker();
-
-		$this->deprecatePublicProperty( 'textbox2', '1.44', __CLASS__ );
-		$this->deprecatePublicProperty( 'action', '1.38', __CLASS__ );
 	}
 
 	/**
@@ -3096,7 +3079,6 @@ class EditPage implements IEditObject {
 			$editConflictHelper->setContentFormat( $this->contentFormat );
 			$out->addHTML( $editConflictHelper->getEditFormHtmlBeforeContent() );
 
-			$this->textbox2 = $this->textbox1;
 			$this->textbox1 = $currentText;
 		}
 
@@ -3855,7 +3837,7 @@ class EditPage implements IEditObject {
 			// Considered safe in all contexts
 			'uselang', 'useskin', 'useformat', 'variant', 'debug', 'safemode'
 		];
-		$formParams = [ 'action' => $this->action ];
+		$formParams = [ 'action' => 'submit' ];
 		foreach ( $params as $arg => $val ) {
 			if ( in_array( $arg, $allowedFormParams, true ) ) {
 				$formParams[$arg] = $val;
@@ -4535,8 +4517,6 @@ class EditPage implements IEditObject {
 	 * @param string|array|false $match Text (or array of texts) which triggered one or more filters
 	 */
 	public function spamPageWithContent( $match = false ) {
-		$this->textbox2 = $this->textbox1;
-
 		$out = $this->context->getOutput();
 		$out->prepareErrorPage();
 		$out->setPageTitleMsg( $this->context->msg( 'spamprotectiontitle' ) );
@@ -4562,7 +4542,7 @@ class EditPage implements IEditObject {
 		$this->showDiff();
 
 		$out->wrapWikiMsg( '<h2>$1</h2>', "yourtext" );
-		$this->showTextbox( $this->textbox2, 'wpTextbox2', [ 'tabindex' => 6, 'readonly' ] );
+		$this->showTextbox( $this->textbox1, 'wpTextbox2', [ 'tabindex' => 6, 'readonly' ] );
 
 		$out->addReturnTo( $this->getContextTitle(), [ 'action' => 'edit' ] );
 	}

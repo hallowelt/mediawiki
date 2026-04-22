@@ -10,7 +10,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
 /**
  * Shared code between the named and experience filter conditions
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class NamedConditionHelper {
 	public function __construct(

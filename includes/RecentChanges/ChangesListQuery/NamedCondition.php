@@ -10,7 +10,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
  * A filter module which checks if the change actor is registered and "named",
  * i.e. not temporary.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class NamedCondition extends ChangesListConditionBase {
 	private NamedConditionHelper $namedConditionHelper;

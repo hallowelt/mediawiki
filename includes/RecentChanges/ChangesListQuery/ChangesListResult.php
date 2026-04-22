@@ -9,7 +9,10 @@ use Wikimedia\Rdbms\IResultWrapper;
 
 /**
  * The result of ChangesListQuery execution
+ *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class ChangesListResult implements Countable {
 	/**

@@ -254,9 +254,26 @@ abstract class Handler {
 	/**
 	 * Returns the path this handler is bound to relative to the module prefix.
 	 * Includes path variables.
+	 *
+	 * This does not prepend a leading slash for module-based handlers.
 	 */
 	public function getPath(): string {
 		return $this->path;
+	}
+
+	/**
+	 * Returns the path this handler is bound to relative to the base router prefix.
+	 * Includes path variables and leading slash for module-based handlers.
+	 *
+	 * @since 1.46
+	 */
+	public function getRoutePath(): string {
+		$prefix = $this->getModulePathPrefix();
+		if ( $prefix !== '' ) {
+			$prefix = "/$prefix";
+		}
+
+		return $prefix . $this->path;
 	}
 
 	/**
@@ -276,6 +293,12 @@ abstract class Handler {
 		return $matches[1] ?? [];
 	}
 
+	/**
+	 * Get the Router of the Module that this handler belongs to.
+	 *
+	 * @note This method forces component coupling and its usage is discouraged (T411521)
+	 * @todo Replace this with a method to expose a narrower interface (T411521)
+	 */
 	protected function getRouter(): Router {
 		return $this->module->getRouter();
 	}
@@ -283,9 +306,25 @@ abstract class Handler {
 	/**
 	 * Get the Module this handler belongs to.
 	 * Will fail hard if called before initContext().
+	 *
+	 * @note This method forces component coupling and its usage is discouraged (T411521)
+	 * @todo Replace this with methods exposing narrower interfaces (T411521)
 	 */
 	protected function getModule(): Module {
 		return $this->module;
+	}
+
+	/**
+	 * Get the path prefix of the Module this handler belongs to.
+	 *
+	 * This does not prepend a leading slash for module-based handlers.
+	 *
+	 * @return string
+	 * @since 1.46
+	 */
+	protected function getModulePathPrefix(): string {
+		// @todo Use an injected module path prefix string (T411521)
+		return $this->module->getPathPrefix();
 	}
 
 	/**
@@ -300,7 +339,8 @@ abstract class Handler {
 	 * @return string
 	 */
 	protected function getRouteUrl( $pathParams = [], $queryParams = [] ): string {
-		$path = $this->getPath();
+		$path = $this->getRoutePath();
+		// @todo: use a narrower route interface to the URL instead of Router (T411521)
 		return $this->getRouter()->getRouteUrl( $path, $pathParams, $queryParams );
 	}
 

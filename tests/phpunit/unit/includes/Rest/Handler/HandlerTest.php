@@ -79,42 +79,63 @@ class HandlerTest extends MediaWikiUnitTestCase {
 	public static function provideGetRouteUrl() {
 		yield 'empty' => [
 			'/test',
+			'',
 			[],
 			[],
 			'/test'
 		];
+		yield 'empty with module' => [
+			'/test',
+			'cattio/v1',
+			[],
+			[],
+			'/cattio/v1/test'
+		];
 		yield 'path params' => [
 			'/test/{foo}/{bar}',
+			'',
 			[ 'foo' => 'Kittens', 'bar' => 'mew' ],
 			[],
 			'/test/Kittens/mew'
 		];
+		yield 'path params with module' => [
+			'/test/{foo}/{bar}',
+			'cattio/v1',
+			[ 'foo' => 'Kittens', 'bar' => 'mew' ],
+			[],
+			'/cattio/v1/test/Kittens/mew'
+		];
 		yield 'missing path params' => [
 			'/test/{foo}/{bar}',
+			'',
 			[ 'bar' => 'mew' ],
 			[],
 			'/test/{foo}/mew'
 		];
 		yield 'path param encoding' => [
 			'/test/{foo}',
+			'',
 			[ 'foo' => 'ä/+/&/?/{}/#/%' ],
 			[],
 			'/test/%C3%A4%2F%2B%2F%26%2F%3F%2F%7B%7D%2F%23%2F%25'
 		];
 		yield 'recursive path params' => [
 			'/test/{foo}/{bar}',
+			'',
 			[ 'foo' => '{bar}', 'bar' => 'mew' ],
 			[],
 			'/test/%7Bbar%7D/mew'
 		];
 		yield 'query params' => [
 			'/test',
+			'',
 			[],
 			[ 'foo' => 'Kittens', 'bar' => 'mew' ],
 			'/test?foo=Kittens&bar=mew'
 		];
 		yield 'query param encoding' => [
 			'/test',
+			'',
 			[],
 			[ 'foo' => 'ä/+/&/?/{}/#/%' ],
 			'/test?foo=%C3%A4%2F%2B%2F%26%2F%3F%2F%7B%7D%2F%23%2F%25'
@@ -125,24 +146,88 @@ class HandlerTest extends MediaWikiUnitTestCase {
 	 * @dataProvider provideGetRouteUrl
 	 *
 	 * @param string $path
+	 * @param string $pathPrefix
 	 * @param string[] $pathParams
 	 * @param string[] $queryParams
 	 * @param string $expected
 	 */
-	public function testGetRouteUrl( $path, $pathParams, $queryParams, $expected ) {
-		$handler = $this->newHandler();
+	public function testGetRouteUrl( $path, $pathPrefix, $pathParams, $queryParams, $expected ) {
 		$request = new RequestData();
-		$this->initHandler( $handler, $request, [ 'path' => $path ] );
+		$router = $this->newRouter();
+		$module = $this->newModule( [ 'router' => $router, 'pathPrefix' => $pathPrefix ] );
+		$handler = $this->newHandler();
+		$this->initHandler( $handler, $request, [ 'path' => $path ], [], null, null, $module );
 		$handler = TestingAccessWrapper::newFromObject( $handler );
 		$url = $handler->getRouteUrl( $pathParams, $queryParams );
 		$this->assertStringEndsWith( $expected, $url );
 	}
 
 	public function testGetPath() {
+		$router = $this->newRouter();
+
 		$handler = $this->newHandler();
 		$request = new RequestData();
 		$this->initHandler( $handler, $request, [ 'path' => 'just/some/path' ] );
 		$this->assertSame( 'just/some/path', $handler->getPath() );
+
+		$request = new RequestData();
+		$handler = $this->newHandler();
+		$module = $this->newModule( [ 'router' => $router, 'pathPrefix' => '' ] );
+		$this->initHandler(
+			$handler,
+			$request,
+			[ 'path' => '/meow/v5/just/some/path' ],
+			[],
+			null,
+			null,
+			$module
+		);
+		$this->assertSame( '/meow/v5/just/some/path', $handler->getRoutePath() );
+
+		$handler = $this->newHandler();
+		$module = $this->newModule( [ 'router' => $router, 'pathPrefix' => 'meow/v6' ] );
+		$this->initHandler(
+			$handler,
+			 $request,
+			 [ 'path' => 'just/some/path' ],
+			 [],
+			 null,
+			 null,
+			 $module
+		);
+		$this->assertSame( 'just/some/path', $handler->getPath() );
+	}
+
+	public function testGetRoutePath() {
+		$router = $this->newRouter();
+
+		$request = new RequestData();
+		$handler = $this->newHandler();
+		$module = $this->newModule( [ 'router' => $router, 'pathPrefix' => '' ] );
+		$this->initHandler(
+			$handler,
+			$request,
+			[ 'path' => '/meow/v5/just/some/path' ],
+			[],
+			null,
+			null,
+			$module
+		);
+		$this->assertSame( '/meow/v5/just/some/path', $handler->getRoutePath() );
+
+		$request = new RequestData();
+		$handler = $this->newHandler();
+		$module = $this->newModule( [ 'router' => $router, 'pathPrefix' => 'meow/v6' ] );
+		$this->initHandler(
+			$handler,
+			$request,
+			[ 'path' => '/just/some/path' ],
+			[],
+			null,
+			null,
+			$module
+		);
+		$this->assertSame( '/meow/v6/just/some/path', $handler->getRoutePath() );
 	}
 
 	public function testSupportedPathparams() {

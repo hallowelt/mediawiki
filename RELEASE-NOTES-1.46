@@ -243,6 +243,9 @@ because of Phabricator reports.
   1.45, has been removed. The associated constants, which were used as
   parameters to that method, like WatchedItemQueryService::FILTER_MINOR, have
   also been removed.
+* The CategoryMembershipChangeJob global namespace alias for the internal
+  MediaWiki\RecentChanges\CategoryMembershipChangeJob class,
+  deprecated since 1.44, has been removed.
 * The following methods of SpecialUserRights, deprecated in 1.45, have been
   removed: userCanChangeRights, expiryToTimestamp, doSaveUserGroups,
   fetchUser, changeableGroups. Callers should now use the equivalent methods
@@ -353,10 +356,14 @@ because of Phabricator reports.
   Instead, use Codex modules.
 * The mediawiki.ui.radio module, deprecated in 1.41 and unused, was removed.
   Instead, use Codex modules.
+* The globally available 'mediawiki.ui/mixins.buttons.less', deprecated in 1.34,
+  was removed as generally available mixin.
 * Less mixin 'mediawiki.mixins.animation.less', deprecated in 1.39, was removed.
   Use standard CSS animation and transform instead.
 * The $wgUser variable, deprecated in 1.36, was removed. You can instead use
   RequestContext::getMain()->getUser(), or another available ContextSource.
+* EditPage::$action, deprecated in 1.38, was removed.
+* EditPage::$textbox2, deprecated in 1.44, was removed.
 * …
 
 === Deprecations in 1.46 ===

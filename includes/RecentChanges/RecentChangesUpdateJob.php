@@ -20,6 +20,7 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
 /**
  * Purge expired rows from the recentchanges table.
  *
+ * @internal For use by RecentChangeStore
  * @since 1.25
  * @ingroup RecentChanges
  * @ingroup JobQueue

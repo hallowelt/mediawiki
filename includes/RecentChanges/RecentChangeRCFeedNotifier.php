@@ -14,6 +14,7 @@ use MediaWiki\RCFeed\RCFeed;
 
 /**
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class RecentChangeRCFeedNotifier {
 

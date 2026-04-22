@@ -16,7 +16,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
  * This class works with either integer or string types, taking advantage of
  * the fact that DB results are conventionally cast to strings.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class EnumFieldCondition extends ChangesListConditionBase {
 	/**

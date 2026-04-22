@@ -7,7 +7,9 @@ use Wikimedia\Rdbms\IReadableDatabase;
 /**
  * A filter module which builds conditions for a boolean field.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class BooleanFieldCondition extends ChangesListConditionBase {
 	/**

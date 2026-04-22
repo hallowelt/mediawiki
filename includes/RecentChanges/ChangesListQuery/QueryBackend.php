@@ -9,7 +9,9 @@ use Wikimedia\Rdbms\IExpression;
  * these methods during query preparation to register their fields, conditions
  * and joins.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 interface QueryBackend {
 	/** The naive density of a RecentChangesLinked query */

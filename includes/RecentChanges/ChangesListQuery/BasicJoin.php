@@ -8,7 +8,9 @@ use Wikimedia\Rdbms\SelectQueryBuilder;
 /**
  * A simple join with a fixed join condition
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class BasicJoin implements ChangesListJoinModule {
 	/** @var ChangesListJoinBuilder[] */

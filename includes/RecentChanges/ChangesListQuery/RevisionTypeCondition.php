@@ -6,6 +6,11 @@ use stdClass;
 use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\RawSQLValue;
 
+/**
+ * @internal For use by ChangesListQuery
+ * @since 1.45
+ * @ingroup RecentChanges
+ */
 class RevisionTypeCondition extends ChangesListConditionBase {
 
 	private const TYPES = [ 'none', 'old', 'latest' ];

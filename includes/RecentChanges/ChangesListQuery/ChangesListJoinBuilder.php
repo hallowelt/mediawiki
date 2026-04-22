@@ -10,7 +10,9 @@ use Wikimedia\Rdbms\SelectQueryBuilder;
 /**
  * An object encapsulating a single instance of a join on a table.
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class ChangesListJoinBuilder {
 	private const VAGUE = 'vague';

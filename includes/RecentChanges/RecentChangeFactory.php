@@ -14,6 +14,7 @@ use stdClass;
 
 /**
  * @since 1.45
+ * @ingroup RecentChanges
  */
 interface RecentChangeFactory {
 

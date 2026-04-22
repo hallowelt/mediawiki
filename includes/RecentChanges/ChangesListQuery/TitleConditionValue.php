@@ -8,7 +8,9 @@ use MediaWiki\Page\PageReference;
 /**
  * A simple value class and helpers for a namespace/dbkey pair
  *
- * @internal Helper for ChangesListQuery modules
+ * @internal For use by ChangesListQuery
+ * @since 1.45
+ * @ingroup RecentChanges
  */
 class TitleConditionValue implements \Stringable {
 	/**

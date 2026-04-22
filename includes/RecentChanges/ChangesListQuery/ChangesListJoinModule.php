@@ -7,7 +7,9 @@ use Wikimedia\Rdbms\SelectQueryBuilder;
 /**
  * A module encapsulating join conditions for a ChangesListQuery join
  *
+ * @internal For use by ChangesListQuery
  * @since 1.45
+ * @ingroup RecentChanges
  */
 interface ChangesListJoinModule {
 	/**

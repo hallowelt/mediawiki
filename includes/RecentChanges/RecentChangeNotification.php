@@ -16,6 +16,7 @@ use MediaWiki\User\UserIdentity;
  *
  * @newable
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class RecentChangeNotification extends WikiNotification {
 

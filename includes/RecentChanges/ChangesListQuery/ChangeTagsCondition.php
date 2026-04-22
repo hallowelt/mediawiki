@@ -7,6 +7,11 @@ use Psr\Log\LoggerInterface;
 use stdClass;
 use Wikimedia\Rdbms\IReadableDatabase;
 
+/**
+ * @internal For use by ChangesListQuery
+ * @since 1.45
+ * @ingroup RecentChanges
+ */
 class ChangeTagsCondition extends ChangesListConditionBase {
 	private float|int $denseRcSizeThreshold = 10000;
 

@@ -38,10 +38,12 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
 use function array_key_exists;
 
 /**
- * Build and execute a query on the recentchanges table, optionally with joins
- * and conditions.
+ * Build and execute a query on the recentchanges table with optional joins and conditions.
+ *
+ * Obtain instance via `MediaWikiServices::getChangesListQueryFactory()->newQuery()`
  *
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	public const CONSTRUCTOR_OPTIONS = [
@@ -162,6 +164,9 @@ class ChangesListQuery implements QueryBackend, JoinDependencyProvider {
 	/** @var callable[] */
 	private $sqbMutators = [];
 
+	/**
+	 * @internal For use by ChangesListQueryFactory
+	 */
 	public function __construct(
 		private ServiceOptions $config,
 		private RecentChangeLookup $recentChangeLookup,

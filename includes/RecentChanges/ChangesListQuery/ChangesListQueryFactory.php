@@ -14,12 +14,20 @@ use Psr\Log\LoggerInterface;
 use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Stats\StatsFactory;
 
-/** @since 1.45 */
+/**
+ * Use via MediaWikiServices::getChangesListQueryFactory
+ *
+ * @since 1.45
+ * @ingroup RecentChanges
+ */
 class ChangesListQueryFactory {
 	public const CONSTRUCTOR_OPTIONS = ChangesListQuery::CONSTRUCTOR_OPTIONS;
 
 	private TableStatsProvider $rcStats;
 
+	/**
+	 * @internal For use by ServiceWiring
+	 */
 	public function __construct(
 		private ServiceOptions $config,
 		private RecentChangeLookup $recentChangeLookup,

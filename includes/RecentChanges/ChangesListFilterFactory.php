@@ -5,6 +5,10 @@ namespace MediaWiki\RecentChanges;
 use InvalidArgumentException;
 use UnexpectedValueException;
 
+/**
+ * @since 1.45
+ * @ingroup RecentChanges
+ */
 class ChangesListFilterFactory {
 	private ?string $showHidePrefix;
 

@@ -2219,7 +2219,7 @@ return [
 				'refreshLinksDynamic' => 'MediaWiki\\JobQueue\\Jobs\\RefreshLinksJob',
 				'activityUpdateJob' => 'MediaWiki\\Watchlist\\ActivityUpdateJob',
 				'categoryMembershipChange' => [
-					'class' => 'MediaWiki\\JobQueue\\Jobs\\CategoryMembershipChangeJob',
+					'class' => 'MediaWiki\\RecentChanges\\CategoryMembershipChangeJob',
 					'services' => [
 						'RecentChangeFactory',
 					],

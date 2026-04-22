@@ -8,6 +8,7 @@ namespace MediaWiki\RecentChanges;
 
 /**
  * @since 1.45
+ * @ingroup RecentChanges
  */
 interface RecentChangeLookup {
 	/**

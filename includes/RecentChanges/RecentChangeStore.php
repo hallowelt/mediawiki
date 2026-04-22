@@ -34,6 +34,7 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
 
 /**
  * @since 1.45
+ * @ingroup RecentChanges
  */
 class RecentChangeStore implements RecentChangeFactory, RecentChangeLookup {
 
