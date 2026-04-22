@@ -104,6 +104,10 @@ class ModuleManager {
 				// Support hacks like Wikibase.ci.php
 				$file = substr_replace( $file, $this->extensionDirectory,
 					0, strlen( 'extensions' ) );
+			} elseif ( !str_starts_with( $file, '/' )
+				&& !( wfIsWindows() && preg_match( '!^[a-zA-Z]:[/\\\\]!', $file ) )
+			) {
+				$file = MW_INSTALL_PATH . '/' . $file;
 			}
 		}
 
