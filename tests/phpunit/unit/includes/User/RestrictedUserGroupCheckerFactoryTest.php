@@ -43,4 +43,14 @@ class RestrictedUserGroupCheckerFactoryTest extends MediaWikiUnitTestCase {
 
 		$this->assertNotSame( $checker1, $checker2 );
 	}
+
+	public function testCheckerIsCachedPerWikiAndScope() {
+		$factory = $this->createFactory();
+		$checker1 = $factory->getRestrictedUserGroupChecker( 'wiki1', 'local' );
+		$checker2 = $factory->getRestrictedUserGroupChecker( 'wiki1', 'local' );
+		$checker3 = $factory->getRestrictedUserGroupChecker( 'wiki1', 'remote' );
+
+		$this->assertSame( $checker1, $checker2 );
+		$this->assertNotSame( $checker3, $checker2 );
+	}
 }

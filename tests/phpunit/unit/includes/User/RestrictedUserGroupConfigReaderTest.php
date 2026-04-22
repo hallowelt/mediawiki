@@ -70,6 +70,77 @@ class RestrictedUserGroupConfigReaderTest extends MediaWikiUnitTestCase {
 		$this->assertEquals( [], $restrictedGroups['interface-admin']->getUpdaterConditions() );
 	}
 
+	/** @dataProvider provideGetConfig_scope */
+	public function testGetConfig_scope(
+		array $localRestrictions,
+		string $scope,
+		array $expectedGroupNames
+	) {
+		$configReader = $this->setupConfigReader( [ '__local' => $localRestrictions ] );
+		$result = $configReader->getConfig( false, $scope );
+		$this->assertSame( $expectedGroupNames, array_keys( $result ) );
+	}
+
+	public static function provideGetConfig_scope(): iterable {
+		yield 'No scope in spec - included for any scope' => [
+			'localRestrictions' => [
+				'sysop' => [
+					'memberConditions' => [ 'COND' ],
+				],
+			],
+			'scope' => 'remote',
+			'expectedGroupNames' => [ 'sysop' ],
+		];
+		yield 'scope=[remote] - excluded for local scope' => [
+			'localRestrictions' => [
+				'sysop' => [
+					'memberConditions' => [ 'COND' ],
+					'scope' => [ 'remote' ],
+				],
+			],
+			'scope' => RestrictedUserGroupConfigReader::SCOPE_LOCAL,
+			'expectedGroupNames' => [],
+		];
+		yield 'scope=[local] - included for local scope' => [
+			'localRestrictions' => [
+				'sysop' => [
+					'memberConditions' => [ 'COND' ],
+					'scope' => [ RestrictedUserGroupConfigReader::SCOPE_LOCAL ],
+				],
+				'bureaucrat' => [
+					'scope' => [ 'remote' ],
+				],
+				'interface-admin' => [],
+			],
+			'scope' => RestrictedUserGroupConfigReader::SCOPE_LOCAL,
+			'expectedGroupNames' => [ 'sysop', 'interface-admin' ],
+		];
+		yield 'scope=[local, remote] - included for both' => [
+			'localRestrictions' => [
+				'sysop' => [
+					'memberConditions' => [ 'COND' ],
+					'scope' => [ RestrictedUserGroupConfigReader::SCOPE_LOCAL, 'remote' ],
+				],
+			],
+			'scope' => 'remote',
+			'expectedGroupNames' => [ 'sysop' ],
+		];
+	}
+
+	public function testGetConfig_defaultScopeIsLocal() {
+		$configReader = $this->setupConfigReader( [ '__local' => [
+			'sysop' => [
+				'scope' => [ RestrictedUserGroupConfigReader::SCOPE_LOCAL ],
+			],
+			'bureaucrat' => [
+				'scope' => [ 'remote' ],
+			],
+		] ] );
+
+		$result = $configReader->getConfig();
+		$this->assertSame( [ 'sysop' ], array_keys( $result ) );
+	}
+
 	public function testGetConfig_remote() {
 		$configReader = $this->setupConfigReader( [
 			'__local' => [

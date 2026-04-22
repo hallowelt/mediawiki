@@ -22,13 +22,19 @@ class RestrictedUserGroupCheckerFactory {
 	}
 
 	/**
-	 * Creates an instance of RestrictedUserGroupChecker for the specified wiki.
+	 * Creates an instance of RestrictedUserGroupChecker for the specified wiki and scope.
 	 * @param false|string $wiki Wiki ID for which the checker should be created. `false` means the current wiki.
+	 * @param string $scope The scope for which the checker should be created.
+	 *   Only restrictions relevant for this scope will be considered.
+	 *   Defaults to {@see RestrictedUserGroupConfigReader::SCOPE_LOCAL}.
 	 */
-	public function getRestrictedUserGroupChecker( false|string $wiki = false ): RestrictedUserGroupChecker {
-		$key = (string)$wiki;
+	public function getRestrictedUserGroupChecker(
+		false|string $wiki = false,
+		string $scope = RestrictedUserGroupConfigReader::SCOPE_LOCAL
+	): RestrictedUserGroupChecker {
+		$key = $wiki . ':' . $scope;
 		if ( !isset( $this->instances[$key] ) ) {
-			$config = $this->configReader->getConfig( $wiki );
+			$config = $this->configReader->getConfig( $wiki, $scope );
 			$this->instances[$key] = new RestrictedUserGroupChecker(
 				$config,
 				$this->userRequirementsConditionChecker,
