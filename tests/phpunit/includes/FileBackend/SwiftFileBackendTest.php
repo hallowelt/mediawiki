@@ -288,12 +288,11 @@ class SwiftFileBackendTest extends MediaWikiIntegrationTestCase {
 			] )
 		);
 
-		// Assert that the TelemetryHeadersInterface was forwarded to the inner MultiHttpClient
 		$httpClient = TestingAccessWrapper::newFromObject( $backend->http );
 		$this->assertSame(
 			$telemetry,
 			$httpClient->telemetry,
-			'TelemetryHeadersInterface passed to SwiftFileBackend must be forwarded to MultiHttpClient'
+			'TelemetryHeadersInterface passed to MultiHttpClient'
 		);
 	}
 
