@@ -2330,14 +2330,24 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * When defined, is an array of image widths used as buckets for thumbnail generation.
+	 * An array of image widths used as reference buckets for thumbnail generation.
 	 *
-	 * The goal is to save resources by generating thumbnails based on reference buckets instead of
-	 * always using the original. This will incur a speed gain but cause a quality loss.
+	 * Speed up thumbnail generation and save server-side CPU/memory resources by
+	 * generating thumbnails based on reference buckets, instead of always re-scaling
+	 * the original. This performance gain comes at a small loss in quality.
 	 *
-	 * The buckets generation is chained, with each bucket generated based on the above bucket
-	 * when possible. File handlers have to opt into using that feature. For now only BitmapHandler
-	 * supports it.
+	 * If more than one bucket is set, the buckets are chained, with smaller buckets
+	 * generated from a higher bucket when possible. It is recommended that buckets
+	 * are whole multiples of each other (e.g. pick powers-of-2 like 256px/1024px,
+	 * or starting elsewhere such as 320px/1280px) to minimize loss of sharpness
+	 * through chaining (T69525).
+	 *
+	 * This feature is opt-in per media handler. By default, only JpegHandler enables this.
+	 *
+	 * @see MediaWiki\Media\MediaHandler::supportsBucketing
+	 * @see MediaWiki\FileRepo\File\File::getThumbnailBucket
+	 * @see $wgThumbnailMinimumBucketDistance
+	 * @since 1.24
 	 */
 	public const ThumbnailBuckets = [
 		'default' => null,
@@ -2345,19 +2355,24 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * When using thumbnail buckets as defined above, this sets the minimum distance to the bucket
-	 * above the requested size. The distance represents how many extra pixels of width the bucket
-	 * needs in order to be used as the reference for a given thumbnail. For example, with the
-	 * following buckets:
+	 * Minimum distance between requested width and a reference bucket.
 	 *
-	 * $wgThumbnailBuckets = [ 128, 256, 512 ];
+	 * When $wgThumbnailBuckets is enabled, this distance represents how many extra pixels of
+	 * width the bucket needs to qualify for use as a reference for a given thumbnail. This
+	 * distance minimizes loss of sharpness due to insufficient pixels to inform resizing.
 	 *
-	 * and a distance of 50:
+	 * For example, with the following buckets:
+	 *
+	 * $wgThumbnailBuckets = [ 320, 1280, 2560 ];
+	 *
+	 * It is recommended to generate a 300px thumbnail from the 1280px bucket and not
+	 * the 320px bucket. This is achieved by setting a distance of 50:
 	 *
 	 * $wgThumbnailMinimumBucketDistance = 50;
 	 *
-	 * If we want to render a thumbnail of width 220px, the 512px bucket will be used,
-	 * because 220 + 50 = 270 and the closest bucket bigger than 270px is 512.
+	 * @see $wgThumbnailBuckets
+	 * @see MediaWiki\FileRepo\File\File::getThumbnailBucket
+	 * @since 1.24
 	 */
 	public const ThumbnailMinimumBucketDistance = [
 		'default' => 50,
