@@ -11,6 +11,7 @@ use MediaWiki\Content\ContentHandler;
 use MediaWiki\Content\IContentHandlerFactory;
 use MediaWiki\Content\UnknownContentModelException;
 use MediaWiki\Html\Html;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
@@ -45,12 +46,15 @@ class TextConflictHelper {
 	 */
 	protected $storedversion = '';
 
+	private readonly TextboxBuilder $textboxBuilder;
+
 	/**
 	 * @param Title $title
 	 * @param OutputPage $out
 	 * @param IBufferingStatsdDataFactory|StatsFactory $stats
 	 * @param string $submitLabel Message key for the label of the submit button
 	 * @param IContentHandlerFactory $contentHandlerFactory Required param with legacy support
+	 * @param TextboxBuilder|null $textboxBuilder
 	 *
 	 * @throws UnknownContentModelException
 	 */
@@ -59,13 +63,16 @@ class TextConflictHelper {
 		protected readonly OutputPage $out,
 		protected readonly IBufferingStatsdDataFactory|StatsFactory $stats,
 		protected readonly string $submitLabel,
-		private readonly IContentHandlerFactory $contentHandlerFactory
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+		?TextboxBuilder $textboxBuilder = null,
 	) {
 		$this->contentModel = $title->getContentModel();
 
 		$this->contentFormat = $this->contentHandlerFactory
 			->getContentHandler( $this->contentModel )
 			->getDefaultFormat();
+
+		$this->textboxBuilder = $textboxBuilder ?? MediaWikiServices::getInstance()->getTextboxBuilder();
 	}
 
 	/**
@@ -200,8 +207,7 @@ class TextConflictHelper {
 	 * @return string HTML
 	 */
 	public function getEditConflictMainTextBox( array $customAttribs = [] ) {
-		$builder = new TextboxBuilder();
-		$classes = $builder->getTextboxProtectionCSSClasses( $this->title );
+		$classes = $this->textboxBuilder->getTextboxProtectionCSSClasses( $this->title );
 
 		$attribs = [
 			'aria-label' => $this->out->msg( 'edit-textarea-aria-label' )->text(),
@@ -212,7 +218,7 @@ class TextConflictHelper {
 			Html::addClass( $attribs['class'], $class );
 		}
 
-		$attribs = $builder->buildTextboxAttribs(
+		$attribs = $this->textboxBuilder->buildTextboxAttribs(
 			'wpTextbox1',
 			$attribs,
 			$this->out->getUser(),
@@ -221,7 +227,7 @@ class TextConflictHelper {
 
 		return Html::textarea(
 			'wpTextbox1',
-			$builder->addNewLineAtEnd( $this->storedversion ),
+			$this->textboxBuilder->addNewLineAtEnd( $this->storedversion ),
 			$attribs
 		);
 	}
@@ -266,8 +272,7 @@ class TextConflictHelper {
 
 		$this->out->wrapWikiMsg( '<h2>$1</h2>', "yourtext" );
 
-		$builder = new TextboxBuilder();
-		$attribs = $builder->buildTextboxAttribs(
+		$attribs = $this->textboxBuilder->buildTextboxAttribs(
 			'wpTextbox2',
 			[ 'tabindex' => 6, 'readonly' ],
 			$this->out->getUser(),
@@ -275,7 +280,7 @@ class TextConflictHelper {
 		);
 
 		$this->out->addHTML(
-			Html::textarea( 'wpTextbox2', $builder->addNewLineAtEnd( $this->yourtext ), $attribs )
+			Html::textarea( 'wpTextbox2', $this->textboxBuilder->addNewLineAtEnd( $this->yourtext ), $attribs )
 		);
 	}
 

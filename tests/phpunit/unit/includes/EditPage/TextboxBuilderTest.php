@@ -8,6 +8,9 @@
 namespace MediaWiki\Tests\Unit\EditPage;
 
 use MediaWiki\EditPage\TextboxBuilder;
+use MediaWiki\Permissions\PermissionManager;
+use MediaWiki\Permissions\RestrictionStore;
+use MediaWiki\User\Options\UserOptionsLookup;
 use MediaWikiUnitTestCase;
 
 /**
@@ -28,7 +31,11 @@ class TextboxBuilderTest extends MediaWikiUnitTestCase {
 	 * @dataProvider provideAddNewLineAtEnd
 	 */
 	public function testAddNewLineAtEnd( $input, $expected ) {
-		$builder = new TextboxBuilder();
+		$builder = new TextboxBuilder(
+			$this->createMock( PermissionManager::class ),
+			$this->createMock( RestrictionStore::class ),
+			$this->createMock( UserOptionsLookup::class ),
+		);
 		$this->assertSame( $expected, $builder->addNewLineAtEnd( $input ) );
 	}
 
@@ -71,7 +78,11 @@ class TextboxBuilderTest extends MediaWikiUnitTestCase {
 	 * @dataProvider provideMergeClassesIntoAttributes
 	 */
 	public function testMergeClassesIntoAttributes( $inputClasses, $inputAttributes, $expected ) {
-		$builder = new TextboxBuilder();
+		$builder = new TextboxBuilder(
+			$this->createMock( PermissionManager::class ),
+			$this->createMock( RestrictionStore::class ),
+			$this->createMock( UserOptionsLookup::class ),
+		);
 		$this->assertSame(
 			$expected,
 			$builder->mergeClassesIntoAttributes( $inputClasses, $inputAttributes )

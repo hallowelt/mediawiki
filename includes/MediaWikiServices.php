@@ -54,6 +54,7 @@ use MediaWiki\Edit\ParsoidOutputStash;
 use MediaWiki\EditPage\IntroMessageBuilder;
 use MediaWiki\EditPage\PreloadedContentBuilder;
 use MediaWiki\EditPage\SpamChecker;
+use MediaWiki\EditPage\TextboxBuilder;
 use MediaWiki\Export\WikiExporterFactory;
 use MediaWiki\ExternalStore\ExternalStoreAccess;
 use MediaWiki\ExternalStore\ExternalStoreFactory;
@@ -2197,6 +2198,13 @@ class MediaWikiServices extends ServiceContainer {
 	 */
 	public function getTempUserDetailsLookup(): TempUserDetailsLookup {
 		return $this->getService( 'TempUserDetailsLookup' );
+	}
+
+	/**
+	 * @since 1.46
+	 */
+	public function getTextboxBuilder(): TextboxBuilder {
+		return $this->getService( 'TextboxBuilder' );
 	}
 
 	/**

@@ -10,17 +10,38 @@ use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Parser\Sanitizer;
+use MediaWiki\Permissions\PermissionManager;
+use MediaWiki\Permissions\RestrictionStore;
 use MediaWiki\Title\Title;
+use MediaWiki\User\Options\UserOptionsLookup;
 use MediaWiki\User\UserIdentity;
 
 /**
  * Helps EditPage build textboxes
  *
- * @newable
  * @since 1.31
  * @author Kunal Mehta <legoktm@debian.org>
  */
 class TextboxBuilder {
+
+	private readonly PermissionManager $permissionManager;
+	private readonly RestrictionStore $restrictionStore;
+	private readonly UserOptionsLookup $userOptionsLookup;
+
+	/**
+	 * @param PermissionManager|null $permissionManager Passing null is deprecated since 1.46
+	 * @param RestrictionStore|null $restrictionStore Passing null is deprecated since 1.46
+	 * @param UserOptionsLookup|null $userOptionsLookup Passing null is deprecated since 1.46
+	 */
+	public function __construct(
+		?PermissionManager $permissionManager = null,
+		?RestrictionStore $restrictionStore = null,
+		?UserOptionsLookup $userOptionsLookup = null,
+	) {
+		$this->permissionManager = $permissionManager ?? MediaWikiServices::getInstance()->getPermissionManager();
+		$this->restrictionStore = $restrictionStore ?? MediaWikiServices::getInstance()->getRestrictionStore();
+		$this->userOptionsLookup = $userOptionsLookup ?? MediaWikiServices::getInstance()->getUserOptionsLookup();
+	}
 
 	/**
 	 * @param string $wikitext
@@ -60,20 +81,18 @@ class TextboxBuilder {
 	 */
 	public function getTextboxProtectionCSSClasses( PageIdentity $page ) {
 		$classes = []; // Textarea CSS
-		$services = MediaWikiServices::getInstance();
-		if ( $services->getRestrictionStore()->isProtected( $page, 'edit' ) &&
-			$services->getPermissionManager()
-				->getNamespaceRestrictionLevels( $page->getNamespace() ) !== [ '' ]
+		if ( $this->restrictionStore->isProtected( $page, 'edit' ) &&
+			$this->permissionManager->getNamespaceRestrictionLevels( $page->getNamespace() ) !== [ '' ]
 		) {
 			# Is the title semi-protected?
-			if ( $services->getRestrictionStore()->isSemiProtected( $page ) ) {
+			if ( $this->restrictionStore->isSemiProtected( $page ) ) {
 				$classes[] = 'mw-textarea-sprotected';
 			} else {
 				# Then it must be protected based on static groups (regular)
 				$classes[] = 'mw-textarea-protected';
 			}
 			# Is the title cascade-protected?
-			if ( $services->getRestrictionStore()->isCascadeProtected( $page ) ) {
+			if ( $this->restrictionStore->isCascadeProtected( $page ) ) {
 				$classes[] = 'mw-textarea-cprotected';
 			}
 		}
@@ -102,8 +121,7 @@ class TextboxBuilder {
 		// * mw-editfont-monospace
 		// * mw-editfont-sans-serif
 		// * mw-editfont-serif
-		$userOptionsLookup = MediaWikiServices::getInstance()->getUserOptionsLookup();
-		$class = 'mw-editfont-' . $userOptionsLookup->getOption( $user, 'editfont' );
+		$class = 'mw-editfont-' . $this->userOptionsLookup->getOption( $user, 'editfont' );
 		Html::addClass( $attribs['class'], $class );
 
 		$title = Title::newFromPageIdentity( $page );

@@ -7,7 +7,6 @@
 
 namespace MediaWiki\Tests\EditPage;
 
-use MediaWiki\EditPage\TextboxBuilder;
 use MediaWiki\Language\Language;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageIdentityValue;
@@ -81,7 +80,7 @@ class TextboxBuilderTest extends MediaWikiIntegrationTestCase {
 
 		$this->setService( 'RestrictionStore', $mockRestrictionStore );
 
-		$builder = new TextboxBuilder();
+		$builder = $this->getServiceContainer()->getTextboxBuilder();
 		$this->assertSame( $expected, $builder->getTextboxProtectionCSSClasses( $pageIdValue ) );
 	}
 
@@ -99,7 +98,7 @@ class TextboxBuilderTest extends MediaWikiIntegrationTestCase {
 		$title = $this->createMock( Title::class );
 		$title->method( 'getPageLanguage' )->willReturn( $enLanguage );
 
-		$builder = new TextboxBuilder();
+		$builder = $this->getServiceContainer()->getTextboxBuilder();
 		$attribs = $builder->buildTextboxAttribs(
 			'mw-textbox1',
 			[ 'class' => 'foo bar', 'data-foo' => '123', 'rows' => 30 ],

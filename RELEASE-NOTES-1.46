@@ -1123,6 +1123,9 @@ because of Phabricator reports.
   take a $request parameter, and passing null to it will trigger warnings.
 * The ConditionalDefaultOptionsAddCondition hook has been deprecated
   and will now trigger deprecation warnings. There is no replacement.
+* TextboxBuilder is no longer newable, and passing null to either of the three
+  constructor parameters has been deprecated. Use the service instead to get an
+  instance of the class.
 * …
 
 === Other changes in 1.46 ===

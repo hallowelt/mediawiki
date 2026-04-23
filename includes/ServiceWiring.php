@@ -90,6 +90,7 @@ use MediaWiki\EditPage\IntroMessageBuilder;
 use MediaWiki\EditPage\PageEditingHelper;
 use MediaWiki\EditPage\PreloadedContentBuilder;
 use MediaWiki\EditPage\SpamChecker;
+use MediaWiki\EditPage\TextboxBuilder;
 use MediaWiki\Export\WikiExporterFactory;
 use MediaWiki\ExternalStore\ExternalStoreAccess;
 use MediaWiki\ExternalStore\ExternalStoreFactory;
@@ -2683,6 +2684,14 @@ return [
 		return new TempUserDetailsLookup(
 			$services->getTempUserConfig(),
 			$services->getUserRegistrationLookup()
+		);
+	},
+
+	'TextboxBuilder' => static function ( MediaWikiServices $services ): TextboxBuilder {
+		return new TextboxBuilder(
+			$services->getPermissionManager(),
+			$services->getRestrictionStore(),
+			$services->getUserOptionsLookup(),
 		);
 	},
 

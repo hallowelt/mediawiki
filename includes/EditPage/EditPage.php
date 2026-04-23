@@ -412,6 +412,7 @@ class EditPage implements IEditObject {
 	private PageEditingHelper $pageEditingHelper;
 	private UserIdentityUtils $userIdentityUtils;
 	private UserEditTracker $userEditTracker;
+	private TextboxBuilder $textboxBuilder;
 
 	/** @var User|null */
 	private $placeholderTempUser;
@@ -484,6 +485,7 @@ class EditPage implements IEditObject {
 		$this->pageEditingHelper = $services->getService( '_PageEditingHelper' );
 		$this->userIdentityUtils = $services->getUserIdentityUtils();
 		$this->userEditTracker = $services->getUserEditTracker();
+		$this->textboxBuilder = $services->getTextboxBuilder();
 	}
 
 	/**
@@ -3418,8 +3420,7 @@ class EditPage implements IEditObject {
 	}
 
 	private function showTextbox1(): void {
-		$builder = new TextboxBuilder();
-		$classes = $builder->getTextboxProtectionCSSClasses( $this->getTitle() );
+		$classes = $this->textboxBuilder->getTextboxProtectionCSSClasses( $this->getTitle() );
 
 		# Is an old revision being edited?
 		if ( $this->isOldRev ) {
@@ -3440,8 +3441,7 @@ class EditPage implements IEditObject {
 	}
 
 	protected function showTextbox( string $text, string $name, array $customAttribs = [] ) {
-		$builder = new TextboxBuilder();
-		$attribs = $builder->buildTextboxAttribs(
+		$attribs = $this->textboxBuilder->buildTextboxAttribs(
 			$name,
 			$customAttribs,
 			$this->context->getUser(),
@@ -3449,7 +3449,7 @@ class EditPage implements IEditObject {
 		);
 
 		$this->context->getOutput()->addHTML(
-			Html::textarea( $name, $builder->addNewLineAtEnd( $text ), $attribs )
+			Html::textarea( $name, $this->textboxBuilder->addNewLineAtEnd( $text ), $attribs )
 		);
 	}
 
