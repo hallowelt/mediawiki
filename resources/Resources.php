@@ -2800,7 +2800,9 @@ return [
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.special.createaccount",
 		'packageFiles' => [
 			'signup.js',
-			'HtmlformChecker.js'
+			'HtmlformChecker.js',
+			'username-policy-popover.js',
+			'UsernamePolicyPopover.vue',
 		],
 		'messages' => [
 			'createacct-emailrequired',
@@ -2812,6 +2814,8 @@ return [
 			'mediawiki.api',
 			'mediawiki.jqueryMsg',
 			'mediawiki.util',
+			'vue',
+			'@wikimedia/codex',
 		],
 	],
 	'mediawiki.special.userlogin.signup.styles' => [

@@ -158,10 +158,15 @@ class ModuleSpecHandler extends SimpleHandler {
 	private function getComponentsSpec(): array {
 		$components = [];
 
+		// Resolve x-i18n-message references
+		$resolvedComponents = $this->getJsonLocalizer()->localizeJson(
+			ResponseFactory::getResponseComponents()
+		);
+
 		// XXX: also collect reusable components from handler specs (but how to avoid name collisions?).
 		$componentsSources = [
 			[ 'schemas' => Validator::getParameterTypeSchemas() ],
-			ResponseFactory::getResponseComponents()
+			$resolvedComponents
 		];
 
 		// 2D merge

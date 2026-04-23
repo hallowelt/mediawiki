@@ -1,7 +1,10 @@
-/*!
+/**
  * JavaScript for signup form.
+ *
+ * @module mediawiki.special.createaccount
  */
 const HtmlformChecker = require( './HtmlformChecker.js' );
+const mountUsernamePolicyPopover = require( './username-policy-popover.js' );
 
 // When sending password by email, hide the password input fields.
 $( () => {
@@ -124,3 +127,31 @@ mw.hook( 'htmlform.enhance' ).add( ( $root ) => {
 	const passwordChecker = new HtmlformChecker( $passwordInput, checkPassword );
 	passwordChecker.attach( $usernameInput.add( $emailInput ).add( $realNameInput ) );
 } );
+
+/**
+ * Minerva: wire “Choose carefully” (username policy popover).
+ *
+ * @memberof module:mediawiki.special.createaccount
+ */
+function bootstrapUsernamePolicyPopover() {
+	if ( mw.config.get( 'skin' ) !== 'minerva' ) {
+		return;
+	}
+	const chooseCarefullyLink = document.querySelector(
+		'a.mw-createaccount-username-policy-choose-carefully'
+	);
+	if ( !chooseCarefullyLink ) {
+		return;
+	}
+	chooseCarefullyLink.removeAttribute( 'target' );
+	chooseCarefullyLink.setAttribute( 'href', '#' );
+
+	function onChooseCarefullyClick( ev ) {
+		ev.preventDefault();
+		chooseCarefullyLink.removeEventListener( 'click', onChooseCarefullyClick, true );
+		mountUsernamePolicyPopover( chooseCarefullyLink, { openOnMount: true } );
+	}
+	chooseCarefullyLink.addEventListener( 'click', onChooseCarefullyClick, true );
+}
+
+$( bootstrapUsernamePolicyPopover );

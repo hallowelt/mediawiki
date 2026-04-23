@@ -442,6 +442,7 @@ class HookRunner implements
 	\MediaWiki\SpecialPage\Hook\ChangeAuthenticationDataAuditHook,
 	\MediaWiki\SpecialPage\Hook\ChangesListSpecialPageQueryHook,
 	\MediaWiki\SpecialPage\Hook\ChangesListSpecialPageStructuredFiltersHook,
+	\MediaWiki\SpecialPage\Hook\CreateAccountShouldShowUsernamePolicyPopoverHook,
 	\MediaWiki\SpecialPage\Hook\RedirectSpecialArticleRedirectParamsHook,
 	\MediaWiki\SpecialPage\Hook\SpecialPage_initListHook,
 	\MediaWiki\SpecialPage\Hook\SpecialPageAfterExecuteHook,
@@ -2741,6 +2742,14 @@ class HookRunner implements
 		return $this->container->run(
 			'LoginFormValidErrorMessages',
 			[ &$messages ]
+		);
+	}
+
+	/** @inheritDoc */
+	public function onCreateAccountShouldShowUsernamePolicyPopover( $specialPage, &$show ) {
+		return $this->container->run(
+			'CreateAccountShouldShowUsernamePolicyPopover',
+			[ $specialPage, &$show ]
 		);
 	}
 

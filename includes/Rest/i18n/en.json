@@ -310,5 +310,10 @@
 	"rest-responseheader-desc-contenttype": "Indicates the original media type of a resource before any content encoding is applied.",
 	"rest-responseheader-desc-link": "Provides a means for serializing one or more links in HTTP headers. This allows the server to point a client to another resource containing metadata about the requested resource.",
 	"rest-responseheader-desc-expires": "Contains the date and time after which the response is considered expired in the context of HTTP caching.",
-	"rest-responseheader-desc-location": "Indicates a target URL for two primary purposes: redirection and identifying the location of a newly created resource."
+	"rest-responseheader-desc-location": "Indicates a target URL for two primary purposes: redirection and identifying the location of a newly created resource.",
+	"rest-openapispec-genericerrorresponse-desc": "Generic error response. The message will provide more details about the error.",
+	"rest-openapispec-genericerrorresponse-property-desc-httpCode": "The HTTP status code of the error response.",
+	"rest-openapispec-genericerrorresponse-property-desc-httpMessage": "The HTTP status message of the error response.",
+	"rest-openapispec-genericerrorresponse-property-desc-message": "A human-readable error message, useful when no message translations are available",
+	"rest-openapispec-genericerrorresponse-property-desc-messageTranslations": "A map of language codes to human-readable error messages, for clients that can use them."
 }

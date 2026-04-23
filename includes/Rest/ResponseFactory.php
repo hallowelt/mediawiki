@@ -420,27 +420,39 @@ class ResponseFactory {
 			],
 			'schemas' => [
 				'GenericErrorResponseModel' => [
-					'description' => 'Generic error response body',
+					'x-i18n-description' => 'rest-openapispec-genericerrorresponse-desc',
 					'required' => [ 'httpCode' ],
 					'properties' => [
 						'httpCode' => [
-							'type' => 'integer'
+							'type' => 'integer',
+							'x-i18n-description' => 'rest-openapispec-genericerrorresponse-property-desc-httpCode',
+							'example' => 500
 						],
 						'httpMessage' => [
-							'type' => 'string'
+							'type' => 'string',
+							'x-i18n-description' => 'rest-openapispec-genericerrorresponse-property-desc-httpMessage',
+							'example' => 'Internal Server Error'
 						],
 						'message' => [
-							'type' => 'string'
+							'type' => 'string',
+							'x-i18n-description' => 'rest-openapispec-genericerrorresponse-property-desc-message',
+							'example' => 'An unexpected error occurred'
 						],
 						'messageTranslations' => [
 							'type' => 'object',
 							'additionalProperties' => [
 								'type' => 'string'
+							],
+							// phpcs:ignore -- ignore the line being too long, for readability of the i18n key
+							'x-i18n-description' => 'rest-openapispec-genericerrorresponse-property-desc-messageTranslations',
+							'example' => [
+								'en' => 'An unexpected error occurred',
+								'es' => 'Ocurrió un error inesperado'
 							]
 						],
 					]
 				]
-			],
+			]
 		];
 	}
 
