@@ -576,13 +576,17 @@ abstract class UploadBase {
 	 *
 	 * This should not assume that mTempPath is set.
 	 *
-	 * @param User|null $user Accepted since 1.35
+	 * @param User|null $user Accepted since 1.35; not passing the parameter or
+	 *  passing null to it is deprecated since 1.46
 	 *
 	 * @return mixed[] Array of warnings
 	 */
 	public function checkWarnings( $user = null ) {
 		if ( $user === null ) {
-			// TODO check uses and hard deprecate
+			wfDeprecatedMsg(
+				'Calling UploadBase::checkWarnings without a user was deprecated in 1.46',
+				'1.46'
+			);
 			$user = RequestContext::getMain()->getUser();
 		}
 

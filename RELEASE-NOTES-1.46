@@ -1121,6 +1121,8 @@ because of Phabricator reports.
 * RecentChange::newLogEntry, RecentChange::notifyNew and
   RecentChange::notifyEdit, deprecated in 1.45, now emit warnings.
 * Calling SpecialPageFactory::getUsablePages without context was deprecated.
+* Calling UploadBase::checkWarnings without a user parameter is deprecated
+  and emits warnings.
 * OutputPage::transformCssMedia() and ResourceLoader::makeCombinedStyles() now
   take a $request parameter, and passing null to it will trigger warnings.
 * The ConditionalDefaultOptionsAddCondition hook has been deprecated
