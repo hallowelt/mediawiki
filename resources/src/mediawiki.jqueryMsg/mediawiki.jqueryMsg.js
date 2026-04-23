@@ -291,7 +291,7 @@ function Parser( options ) {
 	this.settings.onlyCurlyBraceTransform = ( this.settings.format === 'text' || this.settings.format === 'escaped' );
 	this.astCache = {};
 
-	this.emitter = new HtmlEmitter( this.settings.language, this.settings.magic );
+	this.emitter = new HtmlEmitter( this.settings.language, this.settings.magic, this.settings.messages );
 }
 
 Parser.prototype = {
@@ -913,8 +913,9 @@ Parser.prototype = {
  * @class
  * @param {mw.language} language
  * @param {Object.<string,string>} [magic]
+ * @param {mw.Map} [messages]
  */
-function HtmlEmitter( language, magic ) {
+function HtmlEmitter( language, magic, messages ) {
 	this.language = language;
 	for ( const key in ( magic || {} ) ) {
 		const val = magic[ key ];
@@ -922,6 +923,8 @@ function HtmlEmitter( language, magic ) {
 			return val;
 		};
 	}
+
+	this.map = messages || mw.messages;
 
 	/**
 	 * (We put this method definition here, and not in prototype, to make sure it's not overwritten by any magic.)
@@ -1373,7 +1376,7 @@ HtmlEmitter.prototype = {
 	 */
 	int: function ( nodes ) {
 		const msg = textify( nodes[ 0 ] );
-		return getMessageFunction()( mwString.lcFirst( msg ) );
+		return getMessageFunction( { messages: this.map } )( mwString.lcFirst( msg ) );
 	},
 
 	/**
@@ -1565,7 +1568,7 @@ mw.Message.prototype.parseDom = ( function () {
  * @return {boolean}
  */
 mw.Message.prototype.isParseable = function () {
-	const parser = new Parser();
+	const parser = new Parser( { messages: this.map } );
 	try {
 		parser.parse( this.key, this.parameters );
 		return true;
