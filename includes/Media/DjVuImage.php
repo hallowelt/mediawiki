@@ -346,6 +346,7 @@ class DjVuImage {
 		}
 
 		# Text layer
+		$json['text'] = [];
 		if ( $txt !== null ) {
 			# Strip some control characters
 			# Ignore carriage returns
@@ -366,9 +367,11 @@ class DjVuImage {
 EOR;
 			$matches = [];
 			preg_match_all( $reg, $txt, $matches );
-			$json['text'] = array_map( $this->pageTextCallback( ... ), $matches[1] );
-		} else {
-			$json['text'] = [];
+			$textEntries = array_filter(
+				array_map( $this->pageTextCallback( ... ), $matches[1] ),
+				static fn ( string $t ) => $t !== ''
+			);
+			$json['text'] = $textEntries;
 		}
 
 		return $json;
