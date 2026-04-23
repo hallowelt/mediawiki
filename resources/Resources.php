@@ -160,11 +160,13 @@ return [
 			],
 		],
 		'codexComponents' => [
+			'CdxField',
 			'CdxLookup',
 			'CdxMultiselectLookup'
 		],
 		'messages' => [
-			'languageselector-no-results'
+			'languageselector-no-results',
+			'languageselector-invalid-input'
 		],
 		'dependencies' => [
 			'vue'

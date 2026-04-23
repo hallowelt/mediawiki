@@ -51,6 +51,7 @@ use StatusValue;
 use Wikimedia\HtmlArmor\HtmlArmor;
 use Wikimedia\IPUtils;
 use Wikimedia\NonSerializable\NonSerializableTrait;
+use Wikimedia\Parsoid\Parsoid;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**
@@ -1587,6 +1588,15 @@ class Article implements Page {
 		$services = MediaWikiServices::getInstance();
 
 		$contextUser = $context->getUser();
+
+		# Indicate to client-side JS (Visual Editor in particular) whether
+		# Parsoid would be used to render this article if created
+		if ( $this->getParserOptions()->getUseParsoid() ) {
+			$outputPage->addJsConfigVars(
+				'wgParsoidHtmlVersion',
+				Parsoid::defaultHTMLVersion()
+			);
+		}
 
 		# Show info in user (talk) namespace. Does the user exist? Are they blocked?
 		if ( $title->getNamespace() === NS_USER

@@ -774,8 +774,6 @@ class ApiParse extends ApiBase {
 	 * @return array [ ParserOptions, ScopedCallback, bool $suppressCache ]
 	 */
 	private function makeParserOptions( WikiPage $pageObj, array $params ) {
-		$popts = $pageObj->makeParserOptions( $this->getContext() );
-		$popts->setRenderReason( 'api-parse' );
 		if ( $params['usearticle'] ) {
 			# T349037: The ArticleParserOptions hook should be broadened to take
 			# a WikiPage (aka $pageObj) instead of an Article.  But for now
@@ -783,8 +781,12 @@ class ApiParse extends ApiBase {
 			$article = Article::newFromWikiPage( $pageObj, $this->getContext() );
 			# Allow extensions to vary parser options used for article rendering,
 			# in the same way Article does
-			$this->getHookRunner()->onArticleParserOptions( $article, $popts );
+			$popts = $article->getParserOptions();
+		} else {
+			$popts = $pageObj->makeParserOptions( $this->getContext() );
 		}
+		// Overwrite render reason
+		$popts->setRenderReason( 'api-parse' );
 		return $this->tweakParserOptions( $popts, $pageObj->getTitle(), $params );
 	}
 

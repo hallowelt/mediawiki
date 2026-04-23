@@ -1,33 +1,36 @@
 <template>
-	<cdx-lookup
-		v-model:input-value="inputValue"
-		:selected="selection.value"
-		:menu-items="menuItems"
-		:menu-config="menuConfig"
-		:id="inputId"
-		@update:input-value="onUpdateInputValue"
-		@update:selected="onUpdateSelected"
-	>
-		<template #menu-item="{ menuItem }">
-			<slot
-				name="menu-item"
-				:menu-item="menuItem"
-				:language-code="menuItem.value"
-				:language-name="menuItem.label">
-				{{ menuItem.label }}
-			</slot>
-		</template>
-		<template #no-results>
-			<slot name="no-results" :search-query="searchQuery">
-				{{ $i18n( 'languageselector-no-results' ).text() }}
-			</slot>
-		</template>
-	</cdx-lookup>
+	<cdx-field :status="status" :messages="statusMessages">
+		<cdx-lookup
+			v-model:input-value="inputValue"
+			:selected="selection.value"
+			:menu-items="menuItems"
+			:menu-config="menuConfig"
+			:id="inputId"
+			@update:input-value="onUpdateInputValue"
+			@update:selected="onUpdateSelected"
+			@blur="onBlur"
+		>
+			<template #menu-item="{ menuItem }">
+				<slot
+					name="menu-item"
+					:menu-item="menuItem"
+					:language-code="menuItem.value"
+					:language-name="menuItem.label">
+					{{ menuItem.label }}
+				</slot>
+			</template>
+			<template #no-results>
+				<slot name="no-results" :search-query="searchQuery">
+					{{ $i18n( 'languageselector-no-results' ).text() }}
+				</slot>
+			</template>
+		</cdx-lookup>
+	</cdx-field>
 </template>
 
 <script>
-const { defineComponent, ref, toRefs, watch } = require( 'vue' );
-const { CdxLookup } = require( './codex.js' );
+const { defineComponent, ref, toRefs, watch, computed } = require( 'vue' );
+const { CdxField, CdxLookup } = require( './codex.js' );
 const useLanguageSelector = require( './useLanguageSelector.js' );
 const { computeMenuItems } = require( './menuHelper.js' );
 
@@ -35,6 +38,7 @@ const { computeMenuItems } = require( './menuHelper.js' );
 module.exports = exports = defineComponent( {
 	name: 'LookupLanguageSelector',
 	components: {
+		CdxField,
 		CdxLookup
 	},
 	props: {
@@ -81,6 +85,11 @@ module.exports = exports = defineComponent( {
 		const inputValue = ref( selection.value && selection.value.label || '' );
 		const menuItems = ref( computeMenuItems( languages.value ) );
 
+		const status = ref( 'default' );
+		const statusMessages = computed( () => ( {
+			warning: mw.msg( 'languageselector-invalid-input', inputValue.value.slice( 0, 30 ) ) // Limit returned input to 30 bytes
+		} ) );
+
 		const onUpdateInputValue = ( val ) => {
 			if ( val === '' ) {
 				menuItems.value = computeMenuItems( languages.value );
@@ -101,6 +110,19 @@ module.exports = exports = defineComponent( {
 			}
 		};
 
+		const onBlur = () => {
+			status.value = 'default';
+			if ( inputValue.value.length > 0 && selection.value.value === null ) {
+				if ( menuItems.value.length ) {
+					// Select the first item from the menu
+					onUpdateSelected( menuItems.value[ 0 ].value );
+					status.value = 'default';
+				} else {
+					status.value = 'warning';
+				}
+			}
+		};
+
 		watch( searchResults, () => {
 			if ( inputValue.value === '' ) {
 				menuItems.value = computeMenuItems( languages.value );
@@ -111,9 +133,12 @@ module.exports = exports = defineComponent( {
 
 		return {
 			inputValue,
+			status,
+			statusMessages,
 			searchQuery,
 			selection,
 			menuItems,
+			onBlur,
 			onUpdateInputValue,
 			onUpdateSelected
 		};

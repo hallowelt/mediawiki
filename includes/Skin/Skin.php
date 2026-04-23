@@ -1105,6 +1105,17 @@ abstract class Skin extends ContextSource {
 			$options['oldid'] = intval( $out->getRevisionId() );
 		}
 
+		# preserve variant/uselang options from the current URL
+		$request = $this->getRequest();
+		$variant = $request->getText( 'variant' );
+		if ( $variant ) {
+			$options['variant'] = $variant;
+		}
+		$uselang = $request->getVal( 'uselang' );
+		if ( $uselang ) {
+			$options['uselang'] = $uselang;
+		}
+
 		return $options;
 	}
 

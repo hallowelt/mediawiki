@@ -4253,5 +4253,6 @@
 	"table-of-contents-show-button-aria-label": "ARIA label for the table of contents show toggle button",
 	"table-of-contents-hide-button-aria-label": "ARIA label for the table of contents hide toggle button",
 	"diff-usergroups": "The text for displaying user groups on diff view.\n\nParameters:\n* $1 - number of user groups",
-	"languageselector-no-results": "Error displayed when no results are found in the language selector."
+	"languageselector-no-results": "Error displayed when no results are found in the language selector.",
+	"languageselector-invalid-input": "Error displayed when the input in the language selector doesn't match any language, and the field is no longer focused.\n\nParameters:\n* $1 - the user input"
 }
