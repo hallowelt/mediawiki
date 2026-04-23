@@ -3117,8 +3117,6 @@ class OutputPage extends ContextSource {
 			// E.g. HTTP headers, or query parameter tokens, OAuth, etc.
 			} elseif ( $this->getRequest()->getSession()->isPersistent() ) {
 				$privateReason = 'session';
-			} elseif ( $this->isPrintable() ) {
-				$privateReason = 'printable';
 			} elseif ( $this->mCdnMaxage == 0 ) {
 				$privateReason = 'no-maxage';
 			} elseif ( $this->haveCacheVaryCookies() ) {
