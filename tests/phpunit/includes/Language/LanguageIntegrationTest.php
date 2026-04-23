@@ -2331,7 +2331,7 @@ class LanguageIntegrationTest extends LanguageClassesTestCase {
 	 * @todo This really belongs in the cldr extension's tests.
 	 */
 	public function testCldr() {
-		$this->markTestSkippedIfExtensionNotLoaded( 'CLDR' );
+		$this->markTestSkippedIfExtensionNotLoaded( 'cldr' );
 
 		$languageNameUtils = $this->getServiceContainer()->getLanguageNameUtils();
 
