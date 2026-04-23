@@ -1940,7 +1940,6 @@
 	"apiwarn-deprecation-missingparam": "Perque <var>$1</var> non ha essite specificate, un formato ancian ha essite usate pro le sortita. Iste formato es obsolescente, e in le futuro le nove formato sempre essera usate.",
 	"apiwarn-deprecation-parameter": "Le parametro <var>$1</var> ha essite declarate obsolescente.",
 	"apiwarn-deprecation-parse-headitems": "<kbd>prop=headitems</kbd> es obsolescente desde MediaWiki 1.28. Usa <kbd>prop=headhtml</kbd> pro crear nove documentos HTML, o <kbd>prop=modules|jsconfigvars</kbd> pro actualisar un documento al latere del cliente.",
-	"apiwarn-deprecation-parse-sections": "<kbd>prop=sections</kbd> ha essite declarate obsolescente a partir de MediaWiki 1.46. Usa <kbd>prop=tocdata</kbd> in su loco.",
 	"apiwarn-deprecation-post-without-content-type": "Un requesta POST ha essite facite sin capite <code>Content-Type</code>. Isto non functiona consistentemente.",
 	"apiwarn-deprecation-purge-get": "Le uso de <kbd>action=purge</kbd> per medio de GET es obsolescente. Usa POST in su loco.",
 	"apiwarn-deprecation-withreplacement": "<kbd>$1</kbd> ha essite declarate obsolescente. Per favor usa <kbd>$2</kbd> in su loco.",

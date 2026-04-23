@@ -11,7 +11,8 @@
 			"Vago",
 			"Vugar 1981",
 			"Wertuose",
-			"Şeyx Şamil"
+			"Şeyx Şamil",
+			"Əkrəm"
 		]
 	},
 	"userrights": "İstifadəçi hüquqları",
@@ -118,6 +119,7 @@
 	"right-editprotected": "\"{{int:restriction-level-sysop}}\" mühafizə səviyyəsindəki səhifələri redaktə etmək",
 	"right-editsemiprotected": "\"{{int:restriction-level-autoconfirmed}}\" mühafizə səviyyəsindəki səhifələri redaktə etmək",
 	"right-editcontentmodel": "Səhifənin məzmun modelini dəyişmək",
+	"right-createwithcontentmodel": "Defolt olmayan məzmun modellərinə malik səhifələr yaratmaq",
 	"right-editinterface": "İstifadəçi interfeysini dəyişmək",
 	"right-editusercss": "Digər istifadəçilərin CSS faylını redaktə etmək",
 	"right-edituserjson": "Digər istifadəçilərin JSON faylını redaktə etmək",
@@ -244,6 +246,7 @@
 	"action-viewmyprivateinfo": "şəxsi məlumatlarınıza baxmaq",
 	"action-editmyprivateinfo": "şəxsi məlumatlarınızı redaktə etmək",
 	"action-editcontentmodel": "səhifənin məzmun modelini dəyişdirmək",
+	"action-createwithcontentmodel": "defolt olmayan məzmun modellərinə malik səhifələr yaratmaq",
 	"action-managechangetags": "teqlər yaratmaq və (de)aktivləşdirmək",
 	"action-applychangetags": "dəyişikliklərinizlə birlikdə teqlər tətbiq etmək",
 	"action-changetags": "fərdi düzəlişlərə və jurnal qeydlərinə ixtiyari teqlər əlavə etmək və silmək",

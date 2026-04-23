@@ -1937,7 +1937,6 @@
 	"apiwarn-deprecation-missingparam": "Fordi <var>$1</var> ikke ble angitt ble et kompatibilitetsformat brukt for resultatet. Dette formatet er foreldet, og i framtida vil det nye formatet alltid brukes.",
 	"apiwarn-deprecation-parameter": "Parameteren <var>$1</var> har blitt foreldet.",
 	"apiwarn-deprecation-parse-headitems": "<kbd>prop=headitems</kbd> er foreldet siden MediaWiki 1.28. Bruk <kbd>prop=headhtml</kbd> når du oppretter nye HTML-dokumenter, eller <kbd>prop=modules|jsonconfigvars</kbd> når du oppdaterer et dokument på klientsiden.",
-	"apiwarn-deprecation-parse-sections": "<kbd>prop=sections</kbd> er avleggs siden MediaWiki 1.46. Bruk <kbd>prop=tocdata</kbd> i stedet.",
 	"apiwarn-deprecation-post-without-content-type": "En POST-forespørsel ble gjort uten en <code>Content-Type</code>-header. Dette virker ikke ordentlig.",
 	"apiwarn-deprecation-purge-get": "Bruk av <kbd>action=purge</kbd> via GET er foreldet. Bruk POST i stedet.",
 	"apiwarn-deprecation-withreplacement": "<kbd>$1</kbd> har blitt foreldet. Bruk <kbd>$2</kbd> i stedet.",

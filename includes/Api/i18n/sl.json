@@ -1940,7 +1940,6 @@
 	"apiwarn-deprecation-missingparam": "Ker <var>$1</var> ni bilo določeno, je bila za izhod uporabljena starejša oblika zapisa. Ta oblika zapisa je zastarela in v prihodnje bo vedno uporabljena nova oblika zapisa.",
 	"apiwarn-deprecation-parameter": "Parameter <var>$1</var> je bil opuščen.",
 	"apiwarn-deprecation-parse-headitems": "<kbd>prop=headitems</kbd> je od različice MediaWiki 1.28 opuščen. Ko ustvarjate nove dokumente HTLM,  uporabite <kbd>prop=headhtml</kbd> ali pri posodabljanju dokumenta na strani odjemalca <kbd>prop=modules|jsconfigvars</kbd>.",
-	"apiwarn-deprecation-parse-sections": "<kbd>prop=sections</kbd> je od MediaWiki 1.46 opuščeno. Namesto tega uporabite <kbd>prop=tocdata</kbd>.",
 	"apiwarn-deprecation-post-without-content-type": "Zahtevek POST je bil narejen brez glave <code>Content-Type</code>. To ne deluje zanesljivo.",
 	"apiwarn-deprecation-purge-get": "Uporaba <kbd>action=purge</kbd> z GET je opuščena. Namesto tega uporabite POST.",
 	"apiwarn-deprecation-withreplacement": "<kbd>$1</kbd> je opuščeno. Namesto tega uporabite <kbd>$2</kbd>.",

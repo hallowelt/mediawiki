@@ -1934,7 +1934,6 @@
 	"apiwarn-deprecation-missingparam": "Dæto che <var>$1</var> o no l'é specificòu, inte l'output l'é stæto dêuviòu 'n formâto legacy. Quésto formâto o l'é deprecòu e into futûro o nêuvo formâto o saiâ de lóngo dêuviòu.",
 	"apiwarn-deprecation-parameter": "O paràmetro <var>$1</var> o l'é stæto deprecòu.",
 	"apiwarn-deprecation-parse-headitems": "<kbd>prop=headitems</kbd> o l'é deprecòu da MediaWiki 1.28. Dêuviâ <kbd>prop=headhtml</kbd> quànde se crêan di nêuvi papê HTML ò <kbd>prop=modules|jsconfigvars</kbd> quànde se càregan di papê da-o lâto de l'uténte.",
-	"apiwarn-deprecation-parse-sections": "<kbd>prop=sections</kbd> o l'é sconpasòu da-o MediaWiki 1.46. Dêuviâ in càngio <kbd>prop=tocdata</kbd>.",
 	"apiwarn-deprecation-post-without-content-type": "'Na domànda POST o l'é stæta efetoâ sénsa 'n'intestaçión <code>Content-Type</code>. Quésto o no fonçiónn-a inte 'n mòddo afidàbile.",
 	"apiwarn-deprecation-purge-get": "L'ûzo de <kbd>action=purge</kbd> con GET o l'é deprecòu. Dêuviâ pe cóntra POST.",
 	"apiwarn-deprecation-withreplacement": "<kbd>$1</kbd> o l'é stæto deprecòu. Dêuviâ pe cóntra <kbd>$2</kbd>.",

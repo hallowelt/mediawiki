@@ -415,7 +415,7 @@
 	"apihelp-parse-paramvalue-prop-images": "Gibt die Bilder im geparsten Wikitext zurück.",
 	"apihelp-parse-paramvalue-prop-externallinks": "Gibt die externen Links im geparsten Wikitext zurück.",
 	"apihelp-parse-paramvalue-prop-sections": "Gibt die Abschnitte im geparsten Wikitext zurück.",
-	"apihelp-parse-paramvalue-prop-tocdata": "Gibt die Inhaltsverzeichnisinformationen im geparsten Wikitext an.",
+	"apihelp-parse-paramvalue-prop-tocdata": "Gibt die Inhaltsverzeichnisinformationen im geparsten Wikitext an. Siehe [[mw:API:Parsing_wikitext/TOCData]] für das Schema.",
 	"apihelp-parse-paramvalue-prop-revid": "Ergänzt die Versionskennung der geparsten Seite.",
 	"apihelp-parse-paramvalue-prop-displaytitle": "Ergänzt den Titel des geparsten Wikitextes.",
 	"apihelp-parse-paramvalue-prop-subtitle": "Fügt den Seiten-Untertitel für die geparste Seite hinzu.",

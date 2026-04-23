@@ -48,12 +48,12 @@
 	"friday": "freidağ",
 	"saturday": "sóóterdağ",
 	"sunday": "söndağ",
-	"mon": "móón",
-	"tue": "ding",
-	"wed": "mid",
-	"thu": "dönner",
+	"mon": "móó",
+	"tue": "di",
+	"wed": "mi",
+	"thu": "dö",
 	"fri": "frei",
-	"sat": "sóóter",
+	"sat": "sóó",
 	"sun": "sön",
 	"duration-days": "$1 {{PLURAL:$1|dağ|dóógen}}"
 }

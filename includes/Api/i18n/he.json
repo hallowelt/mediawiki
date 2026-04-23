@@ -1960,7 +1960,6 @@
 	"apiwarn-deprecation-missingparam": "מכיוון שלא צוין <var>$1</var>, ישמש תסדיר ישן לפלט. התסדיר הזה מוכרז בתור מיושן, ובעתיד ישמש רק התסדיר החדש.",
 	"apiwarn-deprecation-parameter": "הפרמטר <var>$1</var> מיושן.",
 	"apiwarn-deprecation-parse-headitems": "<kbd>prop=headitems</kbd> מיושן מאז מדיה־ויקי 1.28. יש להשתמש ב־<kbd>prop=headhtml</kbd> בעת יצירת מסמכי HTML חדשים, או ב־<kbd>prop=modules|jsconfigvars</kbd> בעת עדכון מסמך בצד הלקוח.",
-	"apiwarn-deprecation-parse-sections": "<kbd>prop=sections</kbd> מיושן מאז מדיה־ויקי 1.46. יש להשתמש במקום זאת ב־<kbd>prop=tocdata</kbd>.",
 	"apiwarn-deprecation-post-without-content-type": "בקשת POST נעשתה ללא כותר <code>Content-Type</code>. זה לא עובד באופן מהימן.",
 	"apiwarn-deprecation-purge-get": "שימוש ב־<kbd>action=purge</kbd> דרך GET מיושן. יש להשתמש ב־POST במקום זה.",
 	"apiwarn-deprecation-withreplacement": "<kbd>$1</kbd> מיושן. יש להשתמש ב־<kbd>$2</kbd> במקום זה.",
