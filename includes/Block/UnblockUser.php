@@ -114,7 +114,7 @@ class UnblockUser {
 		}
 
 		$basePermissionCheckResult = $this->blockPermissionChecker->checkBasePermissions(
-			$this->block instanceof DatabaseBlock && $this->block->getHideName()
+			$this->block instanceof DatabaseBlock && $this->block->getHideBlock()
 		);
 
 		if ( $basePermissionCheckResult !== true ) {

@@ -18,6 +18,7 @@ use MediaWiki\Permissions\UltimateAuthority;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\SpecialPage\SpecialPageFactory;
 use MediaWiki\Specials\Pager\BlockListPager;
+use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWiki\Utils\MWTimestamp;
 use MediaWikiIntegrationTestCase;
 use Wikimedia\Rdbms\FakeResultWrapper;
@@ -31,6 +32,7 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
  * @covers \MediaWiki\Specials\Pager\BlockListPager
  */
 class BlockListPagerTest extends MediaWikiIntegrationTestCase {
+	use MockAuthorityTrait;
 
 	/** @var BlockActionInfo */
 	private $blockActionInfo;
@@ -249,6 +251,62 @@ class BlockListPagerTest extends MediaWikiIntegrationTestCase {
 			. wfMessage( 'blanknamespace' )->text()
 			. '</a></li></ul></li></ul></li></ul>',
 			$formatted
+		);
+	}
+
+	public function testFormatParamsForHideNameBlock(): void {
+		$hiddenUser = $this->getMutableTestUser()->getUserIdentity();
+
+		$blockStore = $this->getServiceContainer()->getDatabaseBlockStore();
+		$block = $blockStore->insertBlockWithParams( [
+			'targetUser' => $hiddenUser,
+			'by' => $this->mockRegisteredUltimateAuthority()->getUser(),
+			'expiry' => 'infinity',
+			'hideName' => true,
+		] );
+
+		$blockQuery = $blockStore->getQueryInfo();
+		$row = $this->getDb()->newSelectQueryBuilder()
+			->queryInfo( $blockQuery )
+			->where( [
+				'bl_id' => $block->getId(),
+			] )
+			->caller( __METHOD__ )
+			->fetchRow();
+
+		$this->testFormatValue(
+			'params',
+			'<ul><li>username hidden</li><li>editing (sitewide)</li>' .
+				'<li>autoblock disabled</li><li>cannot edit own talk page</li></ul>',
+			$row
+		);
+	}
+
+	public function testFormatParamsForHideBlock(): void {
+		$hiddenUser = $this->getMutableTestUser()->getUserIdentity();
+
+		$blockStore = $this->getServiceContainer()->getDatabaseBlockStore();
+		$block = $blockStore->insertBlockWithParams( [
+			'targetUser' => $hiddenUser,
+			'by' => $this->mockRegisteredUltimateAuthority()->getUser(),
+			'expiry' => 'infinity',
+			'hideBlock' => true,
+		] );
+
+		$blockQuery = $blockStore->getQueryInfo();
+		$row = $this->getDb()->newSelectQueryBuilder()
+			->queryInfo( $blockQuery )
+			->where( [
+				'bl_id' => $block->getId(),
+			] )
+			->caller( __METHOD__ )
+			->fetchRow();
+
+		$this->testFormatValue(
+			'params',
+			'<ul><li>block hidden</li><li>editing (sitewide)</li>' .
+			'<li>autoblock disabled</li><li>cannot edit own talk page</li></ul>',
+			$row
 		);
 	}
 

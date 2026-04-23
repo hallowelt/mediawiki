@@ -250,6 +250,32 @@ class SpecialBlockTest extends SpecialPageTestBase {
 		$this->assertSame( 'infinite', $fields['Expiry']['default'] );
 	}
 
+	public function testMaybeAlterFormDefaultsWhenBlockHiddenFromViewingUser(): void {
+		$this->overrideConfigValues( [
+			MainConfigNames::BlockAllowsUTEdit => true,
+			MainConfigNames::UseCodexSpecialBlock => false,
+			MainConfigNames::EnableMultiBlocks => false,
+		] );
+
+		$block = $this->blockStore->insertBlockWithParams( [
+			'targetUser' => $this->getTestUser()->getUser(),
+			'by' => $this->getTestSysop()->getUser(),
+			'expiry' => 'infinity',
+			'hideBlock' => true,
+		] );
+
+		// Refresh the block from the database.
+		$block = $this->blockStore->newFromTarget( $block->getTargetUserIdentity() );
+
+		$page = $this->newSpecialPage();
+
+		$wrappedPage = TestingAccessWrapper::newFromObject( $page );
+		$wrappedPage->target = $block->getTarget();
+		$fields = $wrappedPage->getFormFields();
+
+		$this->assertSame( '', $fields['Reason']['default'] );
+	}
+
 	public function testMaybeAlterFormDefaultsPartial() {
 		$this->overrideConfigValues( [
 			MainConfigNames::UseCodexSpecialBlock => false,

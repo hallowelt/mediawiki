@@ -222,10 +222,9 @@ class ActiveUsersPager extends UsersPager {
 		// Although the first query already hits the block table for un-privileged, this
 		// is done in two queries to avoid huge quicksorts and to make COUNT(*) correct.
 		$dbr = $this->getDatabase();
-		$res = $dbr->newSelectQueryBuilder()
+		$blockedUsers = $dbr->newSelectQueryBuilder()
 			->select( [
 				'bt_user',
-				'deleted' => 'MAX(bl_deleted)',
 				'sitewide' => 'MAX(bl_sitewide)'
 			] )
 			->from( 'block_target' )
@@ -235,11 +234,26 @@ class ActiveUsersPager extends UsersPager {
 				$dbr->expr( 'bl_expiry', '>=', $dbr->timestamp() ),
 			] )
 			->groupBy( [ 'bt_user' ] )
-			->caller( __METHOD__ )->fetchResultSet();
+			->caller( __METHOD__ )
+			->fetchResultSet();
+
+		$hiddenUsers = $dbr->newSelectQueryBuilder()
+			->select( 'bt_user' )
+			->from( 'block_target' )
+			->join( 'block', null, 'bl_target=bt_id' )
+			->where( [
+				'bt_user' => $uids,
+				'bl_deleted' => 1,
+				$dbr->expr( 'bl_expiry', '>=', $dbr->timestamp() ),
+			] )
+			->groupBy( 'bt_user' )
+			->caller( __METHOD__ )
+			->fetchFieldValues();
+
 		$this->blockStatusByUid = [];
-		foreach ( $res as $row ) {
+		foreach ( $blockedUsers as $row ) {
 			$this->blockStatusByUid[$row->bt_user] = [
-				'deleted' => $row->deleted,
+				'deleted' => in_array( $row->bt_user, $hiddenUsers, true ),
 				'sitewide' => $row->sitewide,
 			];
 		}

@@ -46,6 +46,8 @@ abstract class AbstractBlock implements Block {
 	/** @var bool */
 	protected $hideName = false;
 
+	protected bool $hideBlock = false;
+
 	/** @var bool */
 	protected $isHardblock;
 
@@ -70,6 +72,7 @@ abstract class AbstractBlock implements Block {
 	 *    in any format supported by wfTimestamp()
 	 *  - decodedTimestamp: (string) The timestamp in MW 14-character format
 	 *  - hideName: (bool) Hide the target user name
+	 *  - hideBlock: (bool) Hide the block (since 1.47)
 	 *  - anonOnly: (bool) Used if the target is an IP address. The block only
 	 *    applies to anon and temporary users using this IP address, and not to
 	 *    logged-in users.
@@ -80,6 +83,7 @@ abstract class AbstractBlock implements Block {
 			'reason'          => '',
 			'timestamp'       => '',
 			'hideName'        => false,
+			'hideBlock'       => false,
 			'anonOnly'        => false,
 		];
 
@@ -106,6 +110,7 @@ abstract class AbstractBlock implements Block {
 			$this->setTimestamp( wfTimestamp( TS::MW, $options['timestamp'] ) );
 		}
 		$this->setHideName( (bool)$options['hideName'] );
+		$this->setHideBlock( (bool)$options['hideBlock'] );
 		$this->isHardblock( !$options['anonOnly'] );
 	}
 
@@ -163,13 +168,34 @@ abstract class AbstractBlock implements Block {
 	}
 
 	/**
-	 * Set whether the block hides the target's username
+	 * Set whether the block hides the target's username.
+	 * If you only want to hide the block, then use {@link self::setHideBlock} instead.
 	 *
 	 * @since 1.33
 	 * @param bool $hideName The block hides the username
 	 */
 	public function setHideName( $hideName ) {
 		$this->hideName = $hideName;
+	}
+
+	/**
+	 * Set whether the block is hidden. This is different to
+	 * {@link self::setHideName} which hides the target of the block everywhere.
+	 *
+	 * @since 1.46
+	 */
+	public function setHideBlock( bool $hideBlock ): void {
+		$this->hideBlock = $hideBlock;
+	}
+
+	/**
+	 * Get whether the block is hidden. This always returns true
+	 * if {@link self::getHideName} returns `true`.
+	 *
+	 * @since 1.46
+	 */
+	public function getHideBlock(): bool {
+		return $this->hideBlock || $this->hideName;
 	}
 
 	/**

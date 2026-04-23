@@ -54,6 +54,7 @@ class CompositeBlockTest extends MediaWikiLangTestCase {
 		] );
 
 		$this->assertSame( $expected[ 'hideName' ], $block->getHideName() );
+		$this->assertSame( $expected[ 'hideBlock' ], $block->getHideBlock() );
 		$this->assertSame( $expected[ 'sitewide' ], $block->isSitewide() );
 		$this->assertSame( $expected[ 'blockEmail' ], $block->isEmailBlocked() );
 		$this->assertSame( $expected[ 'allowUsertalk' ], $block->isUsertalkEditAllowed() );
@@ -76,6 +77,7 @@ class CompositeBlockTest extends MediaWikiLangTestCase {
 				],
 				[
 					'hideName' => false,
+					'hideBlock' => false,
 					'sitewide' => true,
 					'blockEmail' => true,
 					'allowUsertalk' => false,
@@ -94,6 +96,7 @@ class CompositeBlockTest extends MediaWikiLangTestCase {
 				],
 				[
 					'hideName' => false,
+					'hideBlock' => false,
 					'sitewide' => true,
 					'blockEmail' => true,
 					'allowUsertalk' => false,
@@ -113,6 +116,30 @@ class CompositeBlockTest extends MediaWikiLangTestCase {
 				],
 				[
 					'hideName' => true,
+					'hideBlock' => true,
+					'sitewide' => true,
+					'blockEmail' => true,
+					'allowUsertalk' => false,
+				],
+			],
+			'Unhidden block and hidden block' => [
+				[
+					new DatabaseBlock( [
+						'hideBlock' => true,
+						'sitewide' => true,
+						'blockEmail' => true,
+						'allowUsertalk' => false,
+					] ),
+					new SystemBlock( [
+						'hideBlock' => false,
+						'sitewide' => false,
+						'blockEmail' => false,
+						'allowUsertalk' => false,
+					] ),
+				],
+				[
+					'hideName' => false,
+					'hideBlock' => true,
 					'sitewide' => true,
 					'blockEmail' => true,
 					'allowUsertalk' => false,
@@ -133,6 +160,7 @@ class CompositeBlockTest extends MediaWikiLangTestCase {
 				],
 				[
 					'hideName' => false,
+					'hideBlock' => false,
 					'sitewide' => false,
 					'blockEmail' => false,
 					'allowUsertalk' => true,

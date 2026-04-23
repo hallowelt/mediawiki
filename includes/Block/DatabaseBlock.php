@@ -141,6 +141,7 @@ class DatabaseBlock extends AbstractBlock {
 			&& $this->getExpiry() == $block->getExpiry()
 			&& $this->isAutoblocking() == $block->isAutoblocking()
 			&& $this->getHideName() == $block->getHideName()
+			&& $this->getHideBlock() == $block->getHideBlock()
 			&& $this->isEmailBlocked() == $block->isEmailBlocked()
 			&& $this->isUsertalkEditAllowed() == $block->isUsertalkEditAllowed()
 			&& $this->getReasonComment()->text == $block->getReasonComment()->text

@@ -434,7 +434,8 @@ class DatabaseBlockStore {
 			'wiki' => $this->wikiId,
 			'timestamp' => $row->bl_timestamp,
 			'auto' => (bool)$row->bt_auto,
-			'hideName' => (bool)$row->bl_deleted,
+			'hideName' => (int)$row->bl_deleted === 1,
+			'hideBlock' => (bool)$row->bl_deleted,
 			'id' => (int)$row->bl_id,
 			// Blocks with no parent ID should have bl_parent_block_id as null,
 			// don't save that as 0 though, see T282890
@@ -1357,7 +1358,7 @@ class DatabaseBlockStore {
 			'bl_create_account'   => $block->isCreateAccountBlocked(),
 			'bl_enable_autoblock' => $block->isAutoblocking(),
 			'bl_expiry'           => $expiry,
-			'bl_deleted'          => intval( $block->getHideName() ), // typecast required for SQLite
+			'bl_deleted'          => $this->getDeletedColumnValue( $block ),
 			'bl_block_email'      => $block->isEmailBlocked(),
 			'bl_allow_usertalk'   => $block->isUsertalkEditAllowed(),
 			'bl_parent_block_id'  => $block->getParentBlockId(),
@@ -1392,7 +1393,7 @@ class DatabaseBlockStore {
 		$blockArray = [
 			'bl_by_actor'       => $blockerActor,
 			'bl_create_account' => $block->isCreateAccountBlocked(),
-			'bl_deleted'        => (int)$block->getHideName(), // typecast required for SQLite
+			'bl_deleted'        => $this->getDeletedColumnValue( $block ),
 			'bl_allow_usertalk' => $block->isUsertalkEditAllowed(),
 			'bl_sitewide'       => $block->isSitewide(),
 		];
@@ -1416,6 +1417,18 @@ class DatabaseBlockStore {
 
 		$combinedArray = $blockArray + $commentArray;
 		return $combinedArray;
+	}
+
+	/**
+	 * Given a {@link DatabaseBlock}, return the value for the `bl_deleted` column matching the block settings
+	 */
+	private function getDeletedColumnValue( DatabaseBlock $block ): int {
+		if ( $block->getHideName() ) {
+			return 1;
+		} elseif ( $block->getHideBlock() ) {
+			return 2;
+		}
+		return 0;
 	}
 
 	/**
@@ -1572,6 +1585,7 @@ class DatabaseBlockStore {
 			'createAccount' => $parentBlock->isCreateAccountBlocked(),
 			// Continue suppressing the name if needed
 			'hideName' => $parentBlock->getHideName(),
+			'hideBlock' => $parentBlock->getHideBlock(),
 			'allowUsertalk' => $parentBlock->isUsertalkEditAllowed(),
 			'parentBlockId' => $parentBlock->getId( $this->wikiId ),
 			'sitewide' => $parentBlock->isSitewide(),

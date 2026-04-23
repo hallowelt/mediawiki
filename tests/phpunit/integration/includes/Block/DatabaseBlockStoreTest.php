@@ -242,6 +242,59 @@ class DatabaseBlockStoreTest extends MediaWikiIntegrationTestCase {
 		$this->assertEquals( $block->getTargetUserIdentity()->getId(), $badActor->getId() );
 	}
 
+	/** @dataProvider provideNewFromRowSetsHideUserAndHideBlock */
+	public function testNewFromRowSetsHideUserAndHideBlock( array $blockParams, bool $hideUser, bool $hideBlock ): void {
+		$badActor = $this->getTestUser()->getUser();
+		$sysop = $this->getTestSysop()->getUser();
+
+		$blockStore = $this->getServiceContainer()->getDatabaseBlockStore();
+		$block = $blockStore->insertBlockWithParams( array_merge( [
+			'targetUser' => $badActor,
+			'by' => $sysop,
+			'expiry' => 'infinity',
+		], $blockParams ) );
+
+		$blockQuery = $blockStore->getQueryInfo();
+		$row = $this->getDb()->newSelectQueryBuilder()
+			->queryInfo( $blockQuery )
+			->where( [
+				'bl_id' => $block->getId(),
+			] )
+			->caller( __METHOD__ )
+			->fetchRow();
+
+		$block = $blockStore->newFromRow( $this->getDb(), $row );
+
+		$this->assertInstanceOf( DatabaseBlock::class, $block );
+		$this->assertSame( $hideUser, $block->getHideName() );
+		$this->assertSame( $hideBlock, $block->getHideBlock() );
+	}
+
+	public static function provideNewFromRowSetsHideUserAndHideBlock(): array {
+		return [
+			'hideName and hideBlock both false' => [
+				'blockParams' => [ 'hideName' => false, 'hideBlock' => false ],
+				'hideUser' => false,
+				'hideBlock' => false,
+			],
+			'hideName true, hideBlock false' => [
+				'blockParams' => [ 'hideName' => true, 'hideBlock' => false ],
+				'hideUser' => true,
+				'hideBlock' => true,
+			],
+			'hideName false, hideBlock true' => [
+				'blockParams' => [ 'hideName' => false, 'hideBlock' => true ],
+				'hideUser' => false,
+				'hideBlock' => true,
+			],
+			'hideName and hideBlock both true' => [
+				'blockParams' => [ 'hideName' => true, 'hideBlock' => true ],
+				'hideUser' => true,
+				'hideBlock' => true,
+			],
+		];
+	}
+
 	public function testGetQueryInfo() {
 		// We don't list all of the fields that should be included, because that just
 		// duplicates the function itself. Instead, check the structure and the field

@@ -292,7 +292,8 @@ class ApiQueryBlocks extends ApiQueryBase {
 				$block['nocreate'] = (bool)$row->bl_create_account;
 				$block['autoblock'] = (bool)$row->bl_enable_autoblock;
 				$block['noemail'] = (bool)$row->bl_block_email;
-				$block['hidden'] = (bool)$row->bl_deleted;
+				$block['hidden'] = intval( $row->bl_deleted ) === 1;
+				$block['block-hidden'] = (bool)$row->bl_deleted;
 				$block['allowusertalk'] = (bool)$row->bl_allow_usertalk;
 				$block['partial'] = !(bool)$row->bl_sitewide;
 			}

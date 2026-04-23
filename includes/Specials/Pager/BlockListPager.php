@@ -117,6 +117,7 @@ class BlockListPager extends TablePager {
 				'blocklist-editing-sitewide',
 				'blocklist-hidden-param',
 				'blocklist-hidden-placeholder',
+				'blocklist-block-hidden',
 			];
 
 			foreach ( $keys as $key ) {
@@ -188,8 +189,10 @@ class BlockListPager extends TablePager {
 			case 'params':
 				$properties = [];
 
-				if ( $row->bl_deleted ) {
-					$properties[] = htmlspecialchars( $this->messages['blocklist-hidden-param' ] );
+				if ( intval( $row->bl_deleted ) === 1 ) {
+					$properties[] = htmlspecialchars( $this->messages['blocklist-hidden-param'] );
+				} elseif ( intval( $row->bl_deleted ) === 2 ) {
+					$properties[] = htmlspecialchars( $this->messages['blocklist-block-hidden'] );
 				}
 				if ( $row->bl_sitewide ) {
 					$properties[] = htmlspecialchars( $this->messages['blocklist-editing-sitewide'] );
