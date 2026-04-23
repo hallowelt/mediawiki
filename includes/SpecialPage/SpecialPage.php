@@ -211,8 +211,9 @@ class SpecialPage implements MessageLocalizer {
 		if ( static::class === self::class ) {
 			wfDeprecated( 'direct instantiation of ' . __CLASS__, '1.46' );
 		}
-		if ( func_num_args() > 2 ) {
-			wfDeprecated( __CLASS__ . ' constructor parameters $listed, $function, $file and $includable', '1.46' );
+		if ( func_num_args() > 1 ) {
+			wfDeprecated( __CLASS__ . ' constructor parameters $restriction, ' .
+				'$listed, $function, $file and $includable', '1.46' );
 		}
 		$this->mName = $name;
 		$this->mRestriction = $restriction;
