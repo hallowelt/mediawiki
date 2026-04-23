@@ -364,6 +364,8 @@ because of Phabricator reports.
   RequestContext::getMain()->getUser(), or another available ContextSource.
 * EditPage::$action, deprecated in 1.38, was removed.
 * EditPage::$textbox2, deprecated in 1.44, was removed.
+* TextConflictHelper::incrementStatsByUserEdits(), deprecated in 1.42, was
+  removed.
 * …
 
 === Deprecations in 1.46 ===
