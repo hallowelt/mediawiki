@@ -139,7 +139,6 @@ class SpecialMediaStatistics extends QueryPage {
 				],
 				'options' => [
 					'GROUP BY' => [
-						'file_type',
 						'ft_media_type',
 						'ft_major_mime',
 						'ft_minor_mime'
@@ -164,7 +163,7 @@ class SpecialMediaStatistics extends QueryPage {
 		if ( $this->migrationStage & SCHEMA_COMPAT_READ_OLD ) {
 			return [ 'img_media_type', 'count(*)', 'img_major_mime', 'img_minor_mime' ];
 		} else {
-			return [ 'file_type', 'count(*)', 'ft_media_type', 'ft_major_mime', 'ft_minor_mime' ];
+			return [ 'ft_media_type', 'count(*)', 'ft_major_mime', 'ft_minor_mime' ];
 		}
 	}
 
