@@ -46,12 +46,16 @@
     "file": "floating-ui.dom.js",
     "name": "floating-ui.dom"
   },
-  "_unwrapElement.js": {
-    "file": "unwrapElement.js",
-    "name": "unwrapElement",
+  "_floating-ui.vue.js": {
+    "file": "floating-ui.vue.js",
+    "name": "floating-ui.vue",
     "imports": [
       "_floating-ui.dom.js"
     ]
+  },
+  "_unwrapElement.js": {
+    "file": "unwrapElement.js",
+    "name": "unwrapElement"
   },
   "_useButtonGroupKeyboardNav.js": {
     "file": "useButtonGroupKeyboardNav.js",
@@ -86,6 +90,13 @@
   "_useOptionalModelWrapper.js": {
     "file": "useOptionalModelWrapper.js",
     "name": "useOptionalModelWrapper"
+  },
+  "_useScrollLock.js": {
+    "file": "useScrollLock.js",
+    "name": "useScrollLock",
+    "imports": [
+      "_unwrapElement.js"
+    ]
   },
   "_useSlotContents.js": {
     "file": "useSlotContents.js",
@@ -224,6 +235,7 @@
       "_Icon.js",
       "_useI18nWithOverride.js",
       "src/composables/useResizeObserver.ts",
+      "_useScrollLock.js",
       "__plugin-vue_export-helper.js"
     ],
     "css": [
@@ -415,10 +427,13 @@
     "src": "src/components/popover/Popover.vue",
     "isEntry": true,
     "imports": [
-      "_unwrapElement.js",
+      "_floating-ui.vue.js",
       "_Icon.js",
       "src/components/button/Button.vue",
       "_useI18nWithOverride.js",
+      "src/composables/useResizeObserver.ts",
+      "_useScrollLock.js",
+      "_unwrapElement.js",
       "_constants.js",
       "_floating-ui.dom.js",
       "__plugin-vue_export-helper.js"
@@ -680,6 +695,7 @@
     "src": "src/components/toggle-button/ToggleButton.vue",
     "isEntry": true,
     "imports": [
+      "_constants.js",
       "_useIconOnlyButton.js",
       "__plugin-vue_export-helper.js"
     ],
@@ -772,6 +788,7 @@
     "src": "src/composables/useFloatingMenu.ts",
     "isEntry": true,
     "imports": [
+      "_floating-ui.vue.js",
       "_unwrapElement.js",
       "_floating-ui.dom.js"
     ]
