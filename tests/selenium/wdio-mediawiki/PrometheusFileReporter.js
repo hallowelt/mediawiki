@@ -212,10 +212,19 @@ function writeAllProjectMetrics( metricsDir, fileName ) {
 		}
 	}
 
+	const seen = new Set();
+	const uniqueTests = tests.filter( ( test ) => {
+		if ( seen.has( test.name ) ) {
+			return false;
+		}
+		seen.add( test.name );
+		return true;
+	} );
+
 	const lines = [];
 	const labels = projectMetrics.labels;
 
-	const flakyTestsInRun = tests.filter( ( test ) => test.failed > 0 && test.retries > 0 ).length;
+	const flakyTestsInRun = uniqueTests.filter( ( test ) => test.failed > 0 && test.retries > 0 ).length;
 
 	// Add Project metrics
 	lines.push( '# HELP wdio_project_duration_seconds Total duration of all test suites per project' );
@@ -263,7 +272,7 @@ function writeAllProjectMetrics( metricsDir, fileName ) {
 	// Add test metrics
 
 	let addMetaData = true;
-	for ( const test of tests ) {
+	for ( const test of uniqueTests ) {
 		const testLabels = { ...labels, test: test.name };
 
 		if ( addMetaData ) {
