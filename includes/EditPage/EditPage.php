@@ -4381,15 +4381,18 @@ class EditPage implements IEditObject {
 			'placeholder' => $this->context->msg( 'watchlistlabels-editpage-placeholder' )->text(),
 		] );
 
+		$helpMsg = $this->context->msg( 'watchlistlabels-editpage-help' );
+		$help = null;
+		if ( !$helpMsg->isDisabled() ) {
+			$help = new OOUI\HtmlSnippet( $helpMsg->parse() );
+		}
 		return new FieldLayout(
 			$widget,
 			[
 				'label' => new OOUI\HtmlSnippet(
 					$this->context->msg( 'watchlistlabels-editpage-label' )->parse()
 				),
-				'help' => new OOUI\HtmlSnippet(
-					$this->context->msg( 'watchlistlabels-editpage-help' )->parse()
-				),
+				'help' => $help,
 				'helpInline' => true,
 				'align' => 'top',
 				'id' => 'mw-editpage-watchlist-labels',
