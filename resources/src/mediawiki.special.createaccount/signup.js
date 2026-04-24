@@ -4,6 +4,7 @@
  * @module mediawiki.special.createaccount
  */
 const HtmlformChecker = require( './HtmlformChecker.js' );
+const HtmlformCheckerV2 = require( './HtmlformCheckerV2.js' );
 const mountUsernamePolicyPopover = require( './username-policy-popover.js' );
 
 // When sending password by email, hide the password input fields.
@@ -63,10 +64,18 @@ mw.hook( 'htmlform.enhance' ).add( ( $root ) => {
 
 				if ( resp.query.users.length !== 1 || userinfo.invalid ) {
 					mw.track( 'specialCreateAccount.validationErrors', [ 'no_user_name' ] );
-					return { valid: false, messages: [ mw.message( 'noname' ).parseDom() ] };
+					return {
+						valid: false,
+						messages: [ mw.message( 'noname' ).parseDom() ],
+						type: 'error'
+					};
 				} else if ( userinfo.userid !== undefined ) {
 					mw.track( 'specialCreateAccount.validationErrors', [ 'user_exists' ] );
-					return { valid: false, messages: [ mw.message( 'userexists' ).parseDom() ] };
+					return {
+						valid: false,
+						messages: [ mw.message( 'userexists' ).parseDom() ],
+						type: 'warning'
+					};
 				} else if ( !userinfo.cancreate ) {
 					const canCreateError = userinfo.cancreateerror || [];
 					mw.track(
@@ -75,14 +84,21 @@ mw.hook( 'htmlform.enhance' ).add( ( $root ) => {
 					);
 					return {
 						valid: false,
-						messages: canCreateError.map( ( m ) => m.html )
+						messages: canCreateError.map( ( m ) => m.html ),
+						type: 'error'
 					};
 				} else if ( userinfo.name !== username ) {
-					return { valid: true, messages: [
-						mw.message( 'createacct-normalization', username, userinfo.name ).parseDom()
-					] };
+					return {
+						valid: true,
+						messages: [ mw.message( 'createacct-normalization', username, userinfo.name ).parseDom() ],
+						type: 'success'
+					};
 				} else {
-					return { valid: true, messages: [] };
+					return {
+						valid: true,
+						messages: [ mw.message( 'available-username' ).parseDom() ],
+						type: 'success'
+					};
 				}
 			} );
 	}
@@ -108,6 +124,7 @@ mw.hook( 'htmlform.enhance' ).add( ( $root ) => {
 			.then( ( resp ) => {
 				const pwinfo = resp.validatepassword || {};
 				const validityMessages = pwinfo.validitymessages || [];
+				const valid = pwinfo.validity === 'Good';
 
 				mw.track(
 					'specialCreateAccount.validationErrors',
@@ -115,17 +132,43 @@ mw.hook( 'htmlform.enhance' ).add( ( $root ) => {
 				);
 
 				return {
-					valid: pwinfo.validity === 'Good',
-					messages: validityMessages.map( ( m ) => m.html )
+					valid,
+					messages: validityMessages.map( ( m ) => m.html ),
+					type: valid ? 'success' : 'warning'
 				};
 			} );
 	}
 
-	const usernameChecker = new HtmlformChecker( $usernameInput, checkUsername );
-	usernameChecker.attach();
+	function attachCheckers( CheckerFn ) {
+		const usernameChecker = new CheckerFn( $usernameInput, checkUsername, { feedback: true } );
+		usernameChecker.attach();
 
-	const passwordChecker = new HtmlformChecker( $passwordInput, checkPassword );
-	passwordChecker.attach( $usernameInput.add( $emailInput ).add( $realNameInput ) );
+		const passwordChecker = new CheckerFn( $passwordInput, checkPassword );
+		passwordChecker.attach( $usernameInput.add( $emailInput ).add( $realNameInput ) );
+	}
+
+	const experimentPromise = mw.loader.using( [
+		'ext.testKitchen'
+	] )
+		.then( () => mw.testKitchen.getExperiment( 'we-1-8-account-creation-form-v2' ) )
+		.catch( ( error ) => {
+			mw.log( 'Error loading ext.testKitchen module:', error );
+			return null;
+		} );
+
+	if ( mw.config.get( 'skin' ) === 'minerva' ) {
+		experimentPromise.then( ( experiment ) => {
+			if ( !( experiment && experiment.isAssignedGroup( 'treatment' ) ) ) {
+				attachCheckers( HtmlformChecker );
+				return;
+			}
+			attachCheckers( HtmlformCheckerV2 );
+		} );
+	} else {
+		// Experiment is just for Minerva, skip enrollment checks
+		attachCheckers( HtmlformChecker );
+	}
+
 } );
 
 /**

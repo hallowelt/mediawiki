@@ -210,7 +210,7 @@ trait FileBackendGroupTestTrait {
 
 		$this->assertEquals( [
 			'mimeCallback' => $obj->guessMimeInternal( ... ),
-			'obResetFunc' => 'wfResetOutputBuffers',
+			'obResetFunc' => wfResetOutputBuffers( ... ),
 			'streamMimeFunc' => StreamFile::contentTypeFromPath( ... ),
 			'tmpFileFactory' => $this->tmpFileFactory,
 			'statusWrapper' => Status::wrap( ... ),

@@ -26,7 +26,7 @@ class HTMLRestrictionsFieldTest extends MediaWikiIntegrationTestCase {
 
 	public function testConstruct() {
 		$htmlForm = $this->createMock( HTMLForm::class );
-		$htmlForm->method( 'msg' )->willReturnCallback( 'wfMessage' );
+		$htmlForm->method( 'msg' )->willReturnCallback( wfMessage( ... ) );
 		$languageMock = $this->createMock( Language::class );
 		$languageMock->method( 'getCode' )->willReturn( 'en' );
 		$titleMock = $this->createMock( Title::class );

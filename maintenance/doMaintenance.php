@@ -63,7 +63,7 @@ if ( !defined( 'MW_FINAL_SETUP_CALLBACK' ) ) {
 		$runner->setup( $settingsBuilder );
 	}
 
-	define( 'MW_FINAL_SETUP_CALLBACK', 'wfMaintenanceSetup' );
+	define( 'MW_FINAL_SETUP_CALLBACK', wfMaintenanceSetup( ... ) );
 }
 
 // Initialize MediaWiki (load settings, initialized session,

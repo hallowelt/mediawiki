@@ -237,19 +237,19 @@ class CoreParserFunctions {
 		switch ( $magicWords->matchStartToEnd( $arg ?? '' ) ) {
 			// Encode as though it's a wiki page, '_' for ' '.
 			case 'url_wiki':
-				$func = 'wfUrlencode';
+				$func = wfUrlencode( ... );
 				$s = str_replace( ' ', '_', $s );
 				break;
 
 			// Encode for an HTTP Path, '%20' for ' '.
 			case 'url_path':
-				$func = 'rawurlencode';
+				$func = rawurlencode( ... );
 				break;
 
 			// Encode for HTTP query, '+' for ' '.
 			case 'url_query':
 			default:
-				$func = 'urlencode';
+				$func = urlencode( ... );
 		}
 		// See T105242, where the choice to kill markers and various
 		// other options were discussed.

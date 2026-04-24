@@ -228,7 +228,7 @@ class FileBackendGroup {
 			// Default backend parameters
 			[
 				'mimeCallback' => $this->guessMimeInternal( ... ),
-				'obResetFunc' => 'wfResetOutputBuffers',
+				'obResetFunc' => wfResetOutputBuffers( ... ),
 				'asyncHandler' => DeferredUpdates::addCallableUpdate( ... ),
 				'streamMimeFunc' => StreamFile::contentTypeFromPath( ... ),
 				'tmpFileFactory' => $this->tmpFileFactory,

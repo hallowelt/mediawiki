@@ -2415,6 +2415,8 @@
 	"remove-blocklink": "remove block",
 	"manage-blocklink": "manage blocks",
 	"empty-username": "(no username available)",
+	"available-username": "Username available",
+	"available-username-check-feedback": "Checking availability",
 	"blocklist-hidden-placeholder": "(username hidden)",
 	"blocklist-hidden-param": "username hidden",
 	"blocklist-block-hidden": "block hidden",

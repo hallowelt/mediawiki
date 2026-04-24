@@ -985,6 +985,7 @@ return [
 			'CdxLabel',
 			'CdxButton',
 			'CdxCheckbox',
+			'CdxProgressIndicator',
 			'CdxRadio',
 			'CdxSelect',
 			'CdxTextArea',
@@ -2801,6 +2802,7 @@ return [
 		'packageFiles' => [
 			'signup.js',
 			'HtmlformChecker.js',
+			'HtmlformCheckerV2.js',
 			'username-policy-popover.js',
 			'UsernamePolicyPopover.vue',
 		],
@@ -2809,6 +2811,8 @@ return [
 			'noname',
 			'userexists',
 			'createacct-normalization',
+			'available-username',
+			'available-username-check-feedback',
 		],
 		'dependencies' => [
 			'mediawiki.api',
