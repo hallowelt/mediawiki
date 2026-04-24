@@ -344,6 +344,9 @@ class DataAccess extends IDataAccess {
 			if ( !$result ) {
 				wfDeprecated( "Parsoid does not support modifying link html", "1.46" );
 			}
+			$this->hookRunner->onLinkerMakeExternalLinkWithContext(
+				$href, $linkText, $attribs, 'text', $contextTitle
+			);
 			// Allow either array or string form for $attribs, but normalize
 			// to a single string.
 			$class = Html::expandClassList( $attribs['class'] ?? '' );

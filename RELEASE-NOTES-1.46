@@ -108,6 +108,9 @@ For notes on 1.45.x and older releases, see HISTORY.
 * mw.message( ... ).parseDom() is now part of mediawiki.base and will return a
   jQuery object wrapping a text node with the unparsed message contents if
   mediawiki.jqueryMsg is not loaded.
+* The LinkerMakeExternalLinkWithContext hook has been added as an improved and
+  slightly modernized version of the LinkerMakeExternalLink hook.  Developers
+  are encouraged to migrate to the new hook.
 * …
 
 === External library changes in 1.46 ===

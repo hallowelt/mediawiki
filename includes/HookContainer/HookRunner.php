@@ -35,6 +35,7 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 use StatusValue;
 use Wikimedia\Message\MessageSpecifier;
+use Wikimedia\Parsoid\Core\LinkTarget as ParsoidLinkTarget;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 
 /**
@@ -197,9 +198,6 @@ class HookRunner implements
 	\MediaWiki\Hook\ImportHandleUnknownUserHook,
 	\MediaWiki\Hook\InitializeArticleMaybeRedirectHook,
 	\MediaWiki\Hook\IsTrustedProxyHook,
-	\MediaWiki\Linker\Hook\LinkerMakeExternalImageHook,
-	\MediaWiki\Linker\Hook\LinkerMakeExternalLinkHook,
-	\MediaWiki\Linker\Hook\LinkerMakeMediaLinkFileHook,
 	\MediaWiki\Hook\MaintenanceRefreshLinksInitHook,
 	\MediaWiki\Hook\MaintenanceShellStartHook,
 	\MediaWiki\Hook\MaintenanceUpdateAddParamsHook,
@@ -263,6 +261,10 @@ class HookRunner implements
 	\MediaWiki\Linker\Hook\HtmlPageLinkRendererBeginHook,
 	\MediaWiki\Linker\Hook\HtmlPageLinkRendererEndHook,
 	\MediaWiki\Linker\Hook\LinkerGenerateRollbackLinkHook,
+	\MediaWiki\Linker\Hook\LinkerMakeExternalImageHook,
+	\MediaWiki\Linker\Hook\LinkerMakeExternalLinkHook,
+	\MediaWiki\Linker\Hook\LinkerMakeExternalLinkWithContextHook,
+	\MediaWiki\Linker\Hook\LinkerMakeMediaLinkFileHook,
 	\MediaWiki\Linker\Hook\UserLinkRendererUserLinkPostRenderHook,
 	\MediaWiki\Logging\Hook\LogEventsListGetExtraInputsHook,
 	\MediaWiki\Logging\Hook\LogEventsListLineEndingHook,
@@ -2611,6 +2613,17 @@ class HookRunner implements
 		return $this->container->run(
 			'LinkerMakeExternalLink',
 			[ &$url, &$text, &$link, &$attribs, $linkType ]
+		);
+	}
+
+	/** @inheritDoc */
+	public function onLinkerMakeExternalLinkWithContext(
+		?string &$url, string &$text, array &$attribs,
+		string $linkType, ParsoidLinkTarget $contextTitle
+	) {
+		return $this->container->run(
+			'LinkerMakeExternalLinkWithContext',
+			[ &$url, &$text, &$attribs, $linkType, $contextTitle ]
 		);
 	}
 

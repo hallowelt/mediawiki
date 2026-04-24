@@ -397,6 +397,7 @@ class LinkRenderer {
 	public function makeExternalLink(
 		string $url, $text, $title, $linktype = '', $attribs = []
 	) {
+		$originalUrl = $url;
 		$attribs['class'] ??= [];
 		Html::addClass( $attribs['class'], 'external' );
 		if ( $linktype ) {
@@ -427,7 +428,25 @@ class LinkRenderer {
 				. "with url {$url} and text {$text} to {$link}" );
 			return $link;
 		}
-		$attribs['href'] = $url;
+		// Make a valid LinkTarget from the $title
+		$contextTitle = ( $title === null ) ?
+			// Missing context title from the caller.
+			new TitleValue( NS_SPECIAL, 'Badtitle/LinkRenderer' ) :
+			// Cast to LinkTarget
+			( $title instanceof LinkTarget ? $title : TitleValue::newFromPage( $title ) );
+		$this->hookRunner->onLinkerMakeExternalLinkWithContext(
+			$url, $text, $attribs, $linktype, $contextTitle
+		);
+		// For compatibility with Parsoid, record the original URL for blocked
+		// or redirected URLs. (T420043)
+		if ( $url !== $originalUrl ) {
+			$attribs['data-mw-original-href'] = $originalUrl;
+		}
+		if ( $url === null ) {
+			unset( $attribs['href'] );
+		} else {
+			$attribs['href'] = $url;
+		}
 		return Html::rawElement( 'a', $attribs, $text );
 	}
 

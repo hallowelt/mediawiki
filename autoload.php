@@ -2172,6 +2172,7 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\Linker\\Hook\\LinkerGenerateRollbackLinkHook' => __DIR__ . '/includes/Linker/Hook/LinkerGenerateRollbackLinkHook.php',
 	'MediaWiki\\Linker\\Hook\\LinkerMakeExternalImageHook' => __DIR__ . '/includes/Linker/Hook/LinkerMakeExternalImageHook.php',
 	'MediaWiki\\Linker\\Hook\\LinkerMakeExternalLinkHook' => __DIR__ . '/includes/Linker/Hook/LinkerMakeExternalLinkHook.php',
+	'MediaWiki\\Linker\\Hook\\LinkerMakeExternalLinkWithContextHook' => __DIR__ . '/includes/Linker/Hook/LinkerMakeExternalLinkWithContextHook.php',
 	'MediaWiki\\Linker\\Hook\\LinkerMakeMediaLinkFileHook' => __DIR__ . '/includes/Linker/Hook/LinkerMakeMediaLinkFileHook.php',
 	'MediaWiki\\Linker\\Hook\\UserLinkRendererUserLinkPostRenderHook' => __DIR__ . '/includes/Linker/Hook/UserLinkRendererUserLinkPostRenderHook.php',
 	'MediaWiki\\Linker\\LinkRenderer' => __DIR__ . '/includes/Linker/LinkRenderer.php',
