@@ -496,6 +496,9 @@
 	"createacct-error": "Fehler beim Erstellen des Benutzerkontos",
 	"createaccounterror": "Benutzerkonto konnte nicht erstellt werden: $1",
 	"createacct-popup-redirect-notice": "{{#FORMAL:Du wirst|Sie werden}} nach der Kontoerstellung weitergeleitet …",
+	"createacct-username-policy-popover-title": "Benutzernamenrichtlinie",
+	"createacct-username-policy-popover-trigger-link": "{{#FORMAL:Wähle|Wählen Sie}} sorgfältig",
+	"createacct-username-policy-popover-trigger-line": "$1 — so wird die Gemeinschaft {{#FORMAL:dich|Sie}} kennen.",
 	"nocookieslogin": "{{SITENAME}} verwendet Cookies zur Anmeldung der Benutzer. {{#FORMAL:Du hast|Sie haben}} Cookies deaktiviert, bitte {{#FORMAL:aktiviere|aktivieren Sie}} diese und {{#FORMAL:versuche|versuchen Sie}} es erneut.",
 	"nocookiesfornew": "Das Benutzerkonto wurde nicht erstellt, da die Datenherkunft nicht ermittelt werden konnte.\nBitte {{#FORMAL:stelle|stellen Sie}} sicher, dass {{#FORMAL:du|Sie}} Cookies aktiviert {{#FORMAL:hast|haben}}. {{#FORMAL:Aktualisiere|Aktualisieren Sie}} diese Seite danach erneut und {{#FORMAL:versuche|versuchen Sie}} es noch einmal.",
 	"createacct-loginerror": "Das Benutzerkonto wurde erfolgreich erstellt, doch {{#FORMAL:du konntest|Sie konnten}} nicht automatisch angemeldet werden. Bitte {{#FORMAL:fahre|fahren Sie}} mit der [[Special:UserLogin|manuellen Anmeldung]] fort.",
@@ -2527,6 +2530,7 @@
 	"empty-username": "(kein Benutzername verfügbar)",
 	"blocklist-hidden-placeholder": "(Benutzername versteckt)",
 	"blocklist-hidden-param": "Benutzername versteckt",
+	"blocklist-block-hidden": "versteckte Sperre",
 	"contribslink": "Beiträge",
 	"emaillink": "E-Mail senden",
 	"autoblocker": "Automatisch gesperrt, weil deine IP-Adresse kürzlich von „[[User:$1|$1]]“ verwendet wurde.\nDer angegebene Grund für die Sperrung von $1 ist: „$2“",
@@ -4029,5 +4033,6 @@
 	"table-of-contents-show-button-aria-label": "Inhaltsverzeichnis anzeigen",
 	"table-of-contents-hide-button-aria-label": "Inhaltsverzeichnis ausblenden",
 	"diff-usergroups": "$1 {{PLURAL:$1|Benutzergruppe|Benutzergruppen}}",
-	"languageselector-no-results": "Keine Ergebnisse gefunden."
+	"languageselector-no-results": "Keine Ergebnisse gefunden.",
+	"languageselector-invalid-input": "„$1“ ist keine gültige Sprache."
 }

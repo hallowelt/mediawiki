@@ -455,6 +455,9 @@
 	"createacct-error": "Virhe tunnuksen luomisessa",
 	"createaccounterror": "Tunnuksen luonti ei onnistunut: $1",
 	"createacct-popup-redirect-notice": "Sinut uudelleenohjataan tunnuksen luomisen jälkeen...",
+	"createacct-username-policy-popover-title": "Käyttäjänimikäytäntö",
+	"createacct-username-policy-popover-trigger-link": "Valitse huolella",
+	"createacct-username-policy-popover-trigger-line": "$1 – yhteisö tulee tuntemaan sinut valitsemallasi nimellä.",
 	"nocookieslogin": "{{SITENAME}} käyttää evästeitä sisäänkirjautumisen yhteydessä. Selaimesi ei salli evästeitä. Ota ne käyttöön, ja yritä uudelleen.",
 	"nocookiesfornew": "Käyttäjätunnusta ei luotu, koska sen lähdettä ei kyetty varmistamaan.\nVarmista, että selaimessasi on käytössä evästeet, päivitä tämä sivu ja yritä uudelleen.",
 	"createacct-loginerror": "Tunnus luotiin onnistuneesti, mutta automaattista sisäänkirjautumista ei voitu tehdä. Siirry [[Special:UserLogin|manuaaliseen kirjautumiseen]].",
@@ -2478,6 +2481,7 @@
 	"empty-username": "(käyttäjää ei saatavissa)",
 	"blocklist-hidden-placeholder": "käyttäjänimi piilotettu",
 	"blocklist-hidden-param": "käyttäjänimi piilotettu",
+	"blocklist-block-hidden": "esto piilotettu",
 	"contribslink": "muokkaukset",
 	"emaillink": "lähetä sähköpostia",
 	"autoblocker": "Olet automaattisesti estetty, koska jaat IP-osoitteen käyttäjän [[User:$1|$1]] kanssa. \nKäyttäjän $1 saaman eston syy on: \"$2\"",
@@ -4000,5 +4004,6 @@
 	"table-of-contents-show-button-aria-label": "Näytä sisällysluettelo",
 	"table-of-contents-hide-button-aria-label": "Piilota sisällysluettelo",
 	"diff-usergroups": "$1 {{PLURAL:$1| käyttäjäryhmä|käyttäjäryhmää}}",
-	"languageselector-no-results": "Tuloksia ei löytynyt."
+	"languageselector-no-results": "Tuloksia ei löytynyt.",
+	"languageselector-invalid-input": "”$1” ei ole kelvollinen kieli."
 }

@@ -2510,6 +2510,7 @@
 	"empty-username": "(geen gebruikersnaam beschikbaar)",
 	"blocklist-hidden-placeholder": "(gebruikersnaam verborgen)",
 	"blocklist-hidden-param": "gebruikersnaam verborgen",
+	"blocklist-block-hidden": "blokkade verborgen",
 	"contribslink": "bijdragen",
 	"emaillink": "e-mail verzenden",
 	"autoblocker": "Automatisch geblokkeerd omdat uw IP-adres onlangs gebruikt is door \"[[User:$1|$1]]\".\nDe reden voor blokkade van $1 is: \"$2\"",
@@ -4005,5 +4006,6 @@
 	"table-of-contents-show-button-aria-label": "Inhoudsopgave weergeven",
 	"table-of-contents-hide-button-aria-label": "Inhoudsopgave verbergen",
 	"diff-usergroups": "$1 {{PLURAL:$1|gebruikersgroep|gebruikersgroepen}}",
-	"languageselector-no-results": "Geen resultaten gevonden."
+	"languageselector-no-results": "Geen resultaten gevonden.",
+	"languageselector-invalid-input": "“$1” is geen juiste taal."
 }

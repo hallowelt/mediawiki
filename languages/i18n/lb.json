@@ -3533,5 +3533,6 @@
 	"table-of-contents-show-button-aria-label": "Inhaltsverzeechnes weisen",
 	"table-of-contents-hide-button-aria-label": "Inhaltsverzeechnes verstoppen",
 	"diff-usergroups": "$1 {{PLURAL:$1|Benotzergrupp|Benotzergruppen}}",
-	"languageselector-no-results": "Kee Resultat fonnt."
+	"languageselector-no-results": "Kee Resultat fonnt.",
+	"languageselector-invalid-input": "„$1“ ass keng gülteg Sprooch."
 }

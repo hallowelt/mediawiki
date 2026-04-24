@@ -2363,6 +2363,7 @@
 	"empty-username": "(корисничко име није доступно)",
 	"blocklist-hidden-placeholder": "(корисничко име је сакривено)",
 	"blocklist-hidden-param": "корисничко име је сакривено",
+	"blocklist-block-hidden": "блокада скривена",
 	"contribslink": "доприноси",
 	"emaillink": "пошаљи имејл",
 	"autoblocker": "Аутоматски сте блокирани јер делите IP адресу с корисником/цом [[User:$1|$1]].\nРазлог блокирања $1 је „$2”",
@@ -3848,5 +3849,6 @@
 	"table-of-contents-show-button-aria-label": "Прикажи табелу са садржајем",
 	"table-of-contents-hide-button-aria-label": "Сакриј табелу са садржајем",
 	"diff-usergroups": "$1 {{PLURAL:$1|корисничка група|корисничке групе}}",
-	"languageselector-no-results": "Нема резултата."
+	"languageselector-no-results": "Нема резултата.",
+	"languageselector-invalid-input": "„$1” није важећи језик."
 }

@@ -2431,6 +2431,7 @@
 	"empty-username": "(tiada nama pengguna tersedia)",
 	"blocklist-hidden-placeholder": "(nama pengguna disorok)",
 	"blocklist-hidden-param": "nama pengguna disorok",
+	"blocklist-block-hidden": "sekatan tersembunyi",
 	"contribslink": "sumb.",
 	"emaillink": "hantar e-mel",
 	"autoblocker": "Disekat secara automatik kerana alamat IP anda baru digunakan oleh \"[[User:$1|$1]]\". Sebab yang diberikan ialah: \"$2\"",
@@ -3926,5 +3927,6 @@
 	"table-of-contents-show-button-aria-label": "Tunjukkan jadual kandungan",
 	"table-of-contents-hide-button-aria-label": "Sembunyikan jadual kandungan",
 	"diff-usergroups": "$1 {{PLURAL:$1|kumpulan pengguna}}",
-	"languageselector-no-results": "Tiada hasil ditemui."
+	"languageselector-no-results": "Tiada hasil ditemui.",
+	"languageselector-invalid-input": "\"$1\" bukannya bahasa yang sah."
 }

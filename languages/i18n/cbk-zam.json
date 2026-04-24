@@ -504,7 +504,7 @@
 	"last": "ant",
 	"page_first": "primero",
 	"page_last": "ultimo",
-	"histlegend": "Seleccion de diferencias: Marca con el buton de radio del revision para compara y pichi enter o el buton abajo.<br />\nLeyenda: <strong>({{int:curr}})</strong> maga diferencias tiene revision mas reciente de todo, <strong>({{int:last}})</strong> = maga diferencias tiene revision mas daan de todo, <strong>{{int:minoreditletter}}</strong> = editacion diutay.",
+	"histlegend": "Seleccion de dif: Marca maga botones correspondiente na mga revision para compara y pichi enter o el boton abajo.<br />\nLeyenda: <strong>({{int:curr}})</strong> maga diferencias tiene revision de con todo reciente, <strong>({{int:last}})</strong> = maga diferencias tiene revision de con todo daan, <strong>{{int:minoreditletter}}</strong> = editacion diutay.",
 	"history-fieldset-title": "Hace sala maga revision",
 	"histfirst": "maga primero",
 	"histlast": "maga reciente",

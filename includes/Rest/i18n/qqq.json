@@ -321,5 +321,4 @@
 	"rest-openapispec-genericerrorresponse-property-desc-httpMessage": "Description of the HTTP status message property in the generic error response.",
 	"rest-openapispec-genericerrorresponse-property-desc-message": "Description of the human-readable error message property in the generic error response.",
 	"rest-openapispec-genericerrorresponse-property-desc-messageTranslations": "Description of the map of language codes to human-readable error messages property in the generic error response."
-
 }
