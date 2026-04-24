@@ -111,17 +111,35 @@ class LocalFileRestoreBatch {
 
 		$status = $this->file->repo->newGood();
 
-		$queryBuilder = $dbw->newSelectQueryBuilder()
-			->select( '1' )
-			->from( 'image' )
-			->where( [ 'img_name' => $this->file->getName() ] );
-		// The acquireFileLock() should already prevent changes, but this still may need
-		// to bypass any transaction snapshot. However, if we started the
-		// trx (which we probably did) then snapshot is post-lock and up-to-date.
-		if ( !$ownTrx ) {
-			$queryBuilder->lockInShareMode();
+		$migrationStage = MediaWikiServices::getInstance()->getMainConfig()->get(
+			MainConfigNames::FileSchemaMigrationStage
+		);
+
+		if ( $migrationStage & SCHEMA_COMPAT_WRITE_OLD ) {
+			$queryBuilder = $dbw->newSelectQueryBuilder()
+				->select( '1' )
+				->from( 'image' )
+				->where( [ 'img_name' => $this->file->getName() ] );
+			// The acquireFileLock() should already prevent changes, but this still may need
+			// to bypass any transaction snapshot. However, if we started the
+			// trx (which we probably did) then snapshot is post-lock and up-to-date.
+			if ( !$ownTrx ) {
+				$queryBuilder->lockInShareMode();
+			}
+			$exists = (bool)$queryBuilder->caller( __METHOD__ )->fetchField();
+		} else {
+			$queryBuilder = $dbw->newSelectQueryBuilder()
+				->select( '1' )
+				->from( 'file' )
+				->where( [ 'file_name' => $this->file->getName(), 'file_deleted' => 0 ] );
+			// The acquireFileLock() should already prevent changes, but this still may need
+			// to bypass any transaction snapshot. However, if we started the
+			// trx (which we probably did) then snapshot is post-lock and up-to-date.
+			if ( !$ownTrx ) {
+				$queryBuilder->lockInShareMode();
+			}
+			$exists = (bool)$queryBuilder->caller( __METHOD__ )->fetchField();
 		}
-		$exists = (bool)$queryBuilder->caller( __METHOD__ )->fetchField();
 
 		// Fetch all or selected archived revisions for the file,
 		// sorted from the most recent to the oldest.

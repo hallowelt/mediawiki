@@ -1930,32 +1930,73 @@ class LocalFile extends File {
 
 		$actorId = $actorNormalizaton->acquireActorId( $performer->getUser(), $dbw );
 		$this->user = $performer->getUser();
-
-		# Test to see if the row exists using INSERT IGNORE
-		# This avoids race conditions by locking the row until the commit, and also
-		# doesn't deadlock. SELECT FOR UPDATE causes a deadlock for every race condition.
 		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
-		$commentFields = $commentStore->insert( $dbw, 'img_description', $comment );
-		$actorFields = [ 'img_actor' => $actorId ];
-		$dbw->newInsertQueryBuilder()
-			->insertInto( 'image' )
-			->ignore()
-			->row( [
-				'img_name' => $this->getName(),
-				'img_size' => $this->size,
-				'img_width' => intval( $this->width ),
-				'img_height' => intval( $this->height ),
-				'img_bits' => $this->bits,
-				'img_media_type' => $this->media_type,
-				'img_major_mime' => $this->major_mime,
-				'img_minor_mime' => $this->minor_mime,
-				'img_timestamp' => $dbw->timestamp( $timestamp ),
-				'img_metadata' => $this->getMetadataForDb( $dbw ),
-				'img_sha1' => $this->sha1
-			] + $commentFields + $actorFields )
-			->caller( __METHOD__ )->execute();
-		$reupload = ( $dbw->affectedRows() == 0 );
 
+		if ( $this->migrationStage & SCHEMA_COMPAT_WRITE_OLD ) {
+			// Test to see if the row exists using INSERT IGNORE
+			// This avoids race conditions by locking the row until the commit, and also
+			// doesn't deadlock. SELECT FOR UPDATE causes a deadlock for every race condition.
+			$commentFields = $commentStore->insert( $dbw, 'img_description', $comment );
+			$actorFields = [ 'img_actor' => $actorId ];
+			$dbw->newInsertQueryBuilder()
+				->insertInto( 'image' )
+				->ignore()
+				->row( [
+						'img_name' => $this->getName(),
+						'img_size' => $this->size,
+						'img_width' => intval( $this->width ),
+						'img_height' => intval( $this->height ),
+						'img_bits' => $this->bits,
+						'img_media_type' => $this->media_type,
+						'img_major_mime' => $this->major_mime,
+						'img_minor_mime' => $this->minor_mime,
+						'img_timestamp' => $dbw->timestamp( $timestamp ),
+						'img_metadata' => $this->getMetadataForDb( $dbw ),
+						'img_sha1' => $this->sha1
+					] + $commentFields + $actorFields )
+				->caller( __METHOD__ )->execute();
+			$reupload = ( $dbw->affectedRows() == 0 );
+		} else {
+			$reupload = $this->getFileIdFromName();
+		}
+
+		if ( $reupload ) {
+			if ( $this->migrationStage & SCHEMA_COMPAT_WRITE_OLD ) {
+				$row = $dbw->newSelectQueryBuilder()
+					->select( [ 'img_timestamp', 'img_sha1' ] )
+					->from( 'image' )
+					->where( [ 'img_name' => $this->getName() ] )
+					->caller( __METHOD__ )->fetchRow();
+			} else {
+				$row = $dbw->newSelectQueryBuilder()
+					->select( [
+						'img_timestamp' => 'fr_timestamp',
+						'img_sha1' => 'fr_sha1',
+					] )
+					->from( 'file' )
+					->join( 'filerevision', null, 'file_latest = fr_id' )
+					->where( [ 'file_id' => $this->getFileIdFromName() ] )
+					->caller( __METHOD__ )->fetchRow();
+			}
+
+			if ( $row && $row->img_sha1 === $this->sha1 ) {
+				$dbw->endAtomic( __METHOD__ );
+				wfDebug( __METHOD__ . ": File " . $this->getRel() . " already exists!" );
+				$title = Title::newFromText( $this->getName(), NS_FILE );
+				return Status::newFatal( 'fileexists-no-change', $title->getPrefixedText() );
+			}
+			if ( $allowTimeKludge ) {
+				# Use LOCK IN SHARE MODE to ignore any transaction snapshotting
+				$lUnixtime = $row ? (int)wfTimestamp( TS::UNIX, $row->img_timestamp ) : false;
+				# Avoid a timestamp that is not newer than the last version
+				# TODO: the image/oldimage tables should be like page/revision with an ID field
+				if ( $lUnixtime && (int)wfTimestamp( TS::UNIX, $timestamp ) <= $lUnixtime ) {
+					sleep( 1 ); // fast enough re-uploads would go far in the future otherwise
+					$timestamp = $dbw->timestamp( $lUnixtime + 1 );
+					$this->timestamp = wfTimestamp( TS::MW, $timestamp ); // DB -> TS::MW
+				}
+			}
+		}
 		$latestFileRevId = null;
 		if ( $this->migrationStage & SCHEMA_COMPAT_WRITE_NEW ) {
 			if ( $reupload ) {
@@ -1991,49 +2032,6 @@ class LocalFile extends File {
 		}
 
 		if ( $reupload ) {
-			$row = $dbw->newSelectQueryBuilder()
-				->select( [ 'img_timestamp', 'img_sha1' ] )
-				->from( 'image' )
-				->where( [ 'img_name' => $this->getName() ] )
-				->caller( __METHOD__ )->fetchRow();
-
-			if ( $row && $row->img_sha1 === $this->sha1 ) {
-				$dbw->endAtomic( __METHOD__ );
-				wfDebug( __METHOD__ . ": File " . $this->getRel() . " already exists!" );
-				$title = Title::newFromText( $this->getName(), NS_FILE );
-				return Status::newFatal( 'fileexists-no-change', $title->getPrefixedText() );
-			}
-
-			if ( $allowTimeKludge ) {
-				# Use LOCK IN SHARE MODE to ignore any transaction snapshotting
-				$lUnixtime = $row ? (int)wfTimestamp( TS::UNIX, $row->img_timestamp ) : false;
-				# Avoid a timestamp that is not newer than the last version
-				# TODO: the image/oldimage tables should be like page/revision with an ID field
-				if ( $lUnixtime && (int)wfTimestamp( TS::UNIX, $timestamp ) <= $lUnixtime ) {
-					sleep( 1 ); // fast enough re-uploads would go far in the future otherwise
-					$timestamp = $dbw->timestamp( $lUnixtime + 1 );
-					$this->timestamp = wfTimestamp( TS::MW, $timestamp ); // DB -> TS::MW
-				}
-			}
-
-			$tables = [ 'image' ];
-			$fields = [
-				'oi_name' => 'img_name',
-				'oi_archive_name' => $dbw->addQuotes( $oldver ),
-				'oi_size' => 'img_size',
-				'oi_width' => 'img_width',
-				'oi_height' => 'img_height',
-				'oi_bits' => 'img_bits',
-				'oi_description_id' => 'img_description_id',
-				'oi_timestamp' => 'img_timestamp',
-				'oi_metadata' => 'img_metadata',
-				'oi_media_type' => 'img_media_type',
-				'oi_major_mime' => 'img_major_mime',
-				'oi_minor_mime' => 'img_minor_mime',
-				'oi_sha1' => 'img_sha1',
-				'oi_actor' => 'img_actor',
-			];
-
 			if ( ( $this->migrationStage & SCHEMA_COMPAT_WRITE_NEW ) && $latestFileRevId && $oldver ) {
 				$dbw->newUpdateQueryBuilder()
 					->update( 'filerevision' )
@@ -2043,6 +2041,23 @@ class LocalFile extends File {
 			}
 
 			if ( $this->migrationStage & SCHEMA_COMPAT_WRITE_OLD ) {
+				$tables = [ 'image' ];
+				$fields = [
+					'oi_name' => 'img_name',
+					'oi_archive_name' => $dbw->addQuotes( $oldver ),
+					'oi_size' => 'img_size',
+					'oi_width' => 'img_width',
+					'oi_height' => 'img_height',
+					'oi_bits' => 'img_bits',
+					'oi_description_id' => 'img_description_id',
+					'oi_timestamp' => 'img_timestamp',
+					'oi_metadata' => 'img_metadata',
+					'oi_media_type' => 'img_media_type',
+					'oi_major_mime' => 'img_major_mime',
+					'oi_minor_mime' => 'img_minor_mime',
+					'oi_sha1' => 'img_sha1',
+					'oi_actor' => 'img_actor',
+				];
 				$joins = [];
 				// (T36993) Note: $oldver can be empty here, if the previous
 				// version of the file was broken. Allow registration of the new
@@ -2053,7 +2068,9 @@ class LocalFile extends File {
 				$dbw->insertSelect( 'oldimage', $tables, $fields,
 					[ 'img_name' => $this->getName() ], __METHOD__, [], [], $joins );
 
-				# Update the current image row
+				// Update the current image row
+				$commentFields = $commentStore->insert( $dbw, 'img_description', $comment );
+				$actorFields = [ 'img_actor' => $actorId ];
 				$dbw->newUpdateQueryBuilder()
 					->update( 'image' )
 					->set( [
