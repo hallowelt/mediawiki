@@ -1151,6 +1151,27 @@ French spacing and spans
 «<span typeof="mw:DisplaySpace"> </span>Test<span typeof="mw:DisplaySpace"> </span>»<span data-parsoid='{"stx":"html"}'>123</span></p>
 !! end
 
+# Parsoid differs from core here, but this is expected to be resolved
+# by a core-side patch.
+!! test
+T378404: Don't armor inward-pointing French quotes
+!! wikitext
+French: These « quotes » should be protected.
+
+Croatian: These »quotes« shouldn't be armored.
+
+Test accented characters: »čć« »žđ« »šç«
+!! html/php
+<p>French: These «&#160;quotes&#160;» should be protected.
+</p><p>Croatian: These »quotes« shouldn't be armored.
+</p><p>Test accented characters: »čć« »žđ« »šç«
+</p>
+!! html/parsoid
+<p>French: These «<span typeof="mw:DisplaySpace"> </span>quotes<span typeof="mw:DisplaySpace"> </span>» should be protected.</p>
+<p>Croatian: These »quotes« shouldn't be armored.</p>
+<p>Test accented characters: »čć« »žđ« »šç«</p>
+!! end
+
 !! test
 post-expand include size being exceeded
 !! options
@@ -1558,7 +1579,7 @@ Parsoid: pipe in transclusion parameter
 <p><a rel="nofollow" class="external free" href="http://foo.com/a%7Cb">http://foo.com/a%7Cb</a>
 </p>
 !! html/parsoid
-<p><a rel="mw:ExtLink nofollow" href="http://foo.com/a%7Cb" about="#mwt1" typeof="mw:Transclusion" class="external free" data-mw='{"parts":[{"template":{"target":{"wt":"1x","href":"./Template:1x"},"params":{"1":{"wt":"http://foo.com/a&amp;#124;b"}},"i":0}}]}'>http://foo.com/a%7Cb</a></p>
+<p><a rel="mw:ExtLink nofollow" href="http://foo.com/a%7Cb" about="#mwt1" typeof="mw:Transclusion" class="external free" data-mw='{"parts":[{"template":{"target":{"wt":"1x","href":"./Template:1x"},"params":{"1":{"wt":"http://foo.com/a&amp;#124;b"}},"i":0}}]}'>http://foo.com/a|b</a></p>
 !! end
 
 !! test
@@ -11156,7 +11177,7 @@ Handling of &#x0A; in URLs
 !! html/php
 <ul><li><a rel="nofollow" class="external free" href="irc://%0Aa">irc://%0Aa</a></li></ul>
 !! html/parsoid
-<ul><li><a rel="mw:ExtLink nofollow" href="irc://%0Aa" class="external free" data-parsoid='{"stx":"url","a":{"href":"irc://%0Aa"},"sa":{"href":"irc://&amp;#x0A;a"}}'>irc://%0Aa</a></li></ul>
+<ul><li><a rel="mw:ExtLink nofollow" href="irc://%0Aa" class="external free" data-parsoid='{"stx":"url","a":{"href":"irc://%0Aa"},"sa":{"href":"irc://&amp;#x0A;a"}}'>irc://a</a></li></ul>
 !! end
 
 !! test

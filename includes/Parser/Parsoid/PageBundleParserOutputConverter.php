@@ -4,10 +4,12 @@ declare( strict_types = 1 );
 namespace MediaWiki\Parser\Parsoid;
 
 use MediaWiki\Language\LanguageCode;
+use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\ContentHolder;
 use MediaWiki\Parser\ParserOutput;
 use Wikimedia\Parsoid\Core\BasePageBundle;
 use Wikimedia\Parsoid\Core\HtmlPageBundle;
+use Wikimedia\Parsoid\Core\LinkTarget as ParsoidLinkTarget;
 
 /**
  * Provides methods for conversion between HtmlPageBundle and ParserOutput
@@ -41,11 +43,16 @@ final class PageBundleParserOutputConverter {
 	 * @param HtmlPageBundle $pageBundle
 	 * @param ?ParserOutput $originalParserOutput Any non-parsoid metadata
 	 *  from $originalParserOutput will be copied into the new ParserOutput object.
+	 * @param ParsoidLinkTarget|PageReference|null $title The given title will
+	 *  be copied into the new ParserOutput object.
 	 *
 	 * @return ParserOutput
 	 */
 	public static function parserOutputFromPageBundle(
-		HtmlPageBundle $pageBundle, ?ParserOutput $originalParserOutput = null
+		HtmlPageBundle $pageBundle,
+		?ParserOutput $originalParserOutput = null,
+		// phpcs:ignore MediaWiki.Usage.NullableType.ExplicitNullableTypes
+		ParsoidLinkTarget|PageReference|null $title = null
 	): ParserOutput {
 		$parserOutput = new ParserOutput();
 		$parserOutput->setContentHolder(
@@ -57,6 +64,9 @@ final class PageBundleParserOutputConverter {
 			// $originalParserOutput->getContentHolder() to
 			// $parserOutput->getContentHolder()
 			$originalParserOutput->collectMetadata( $parserOutput );
+		}
+		if ( $title !== null ) {
+			$parserOutput->setTitle( $title );
 		}
 		if ( isset( $pageBundle->headers['content-language'] ) ) {
 			$lang = LanguageCode::normalizeNonstandardCodeAndWarn(
@@ -76,6 +86,7 @@ final class PageBundleParserOutputConverter {
 	 * @deprecated Use ::htmlPageBundleFromParserOutput
 	 */
 	public static function pageBundleFromParserOutput( ParserOutput $parserOutput ): HtmlPageBundle {
+		wfDeprecated( __METHOD__, '1.46' );
 		return self::htmlPageBundleFromParserOutput( $parserOutput );
 	}
 

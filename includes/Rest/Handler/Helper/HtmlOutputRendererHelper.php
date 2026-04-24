@@ -481,7 +481,7 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 			$stashSuccess = $this->parsoidOutputStash->set(
 				$parsoidStashKey,
 				new SelserContext(
-					PageBundleParserOutputConverter::pageBundleFromParserOutput( $parserOutput ),
+					PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput ),
 					$parsoidStashKey->getRevisionID(),
 					$isFakeRevision ? $this->revisionOrId->getContent( SlotRecord::MAIN ) : null
 				)
@@ -759,7 +759,7 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 	public function getPageBundle(): HtmlPageBundle {
 		// XXX: converting between HtmlPageBundle and ParserOutput is inefficient!
 		$parserOutput = $this->getParserOutput();
-		$pb = PageBundleParserOutputConverter::pageBundleFromParserOutput( $parserOutput );
+		$pb = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput );
 
 		// Check if variant conversion has to be performed
 		// NOTE: Variant conversion is performed on the fly, and kept outside the stash.

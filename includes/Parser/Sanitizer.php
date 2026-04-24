@@ -880,7 +880,8 @@ class Sanitizer {
 			# only if it isn't followed by a word character.
 			'/ (?=[?:;!%»›](?!\w))/u' => "$space",
 			# French spaces, Guillemet-right
-			'/([«‹]) /u' => "\\1$space",
+			# only if it isn't preceded by a word character.
+			'/(?<!\w)([«‹]) /u' => "\\1$space",
 		];
 		return preg_replace( array_keys( $fixtags ), array_values( $fixtags ), $text );
 	}

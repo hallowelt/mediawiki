@@ -44,8 +44,10 @@ class DefaultOutputPipelineFactoryTest extends MediaWikiLangTestCase {
 
 		$po = new ParserOutput( $text );
 		if ( $isParsoidContent ) {
-			$po = PageBundleParserOutputConverter::parserOutputFromPageBundle( new HtmlPageBundle( $text ) );
-			$po->setTitle( Title::newFromText( 'Test page' ) );
+			$po = PageBundleParserOutputConverter::parserOutputFromPageBundle(
+				new HtmlPageBundle( $text ),
+				title: Title::newFromText( 'Test page' ),
+			);
 			$po->setLanguage( new Bcp47CodeValue( 'en' ) );
 				global $IP;
 				$msgDirs = [];

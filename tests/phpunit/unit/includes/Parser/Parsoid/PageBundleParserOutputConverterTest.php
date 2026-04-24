@@ -6,6 +6,7 @@ namespace MediaWiki\Tests\Parser\Parsoid;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\ParserOutputFlags;
 use MediaWiki\Parser\Parsoid\PageBundleParserOutputConverter;
+use MediaWiki\Title\TitleValue;
 use MediaWikiUnitTestCase;
 use Wikimedia\Bcp47Code\Bcp47CodeValue;
 use Wikimedia\Parsoid\Core\HtmlPageBundle;
@@ -33,6 +34,7 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 		$original->recordOption( 'test1' );
 		$original->recordOption( 'test2' );
 		$original->setLanguage( new Bcp47CodeValue( 'fr' ) );
+		$original->setTitle( new TitleValue( NS_MAIN, 'Test_Page' ) );
 
 		// This should preserve the metadata.
 		$output = PageBundleParserOutputConverter::parserOutputFromPageBundle( $pageBundle, $original );
@@ -47,6 +49,8 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 		$this->assertSame( true, $output->getOutputFlag( ParserOutputFlags::NO_GALLERY ) );
 		$this->assertSame( '', $output->getPageProperty( 'forcetoc' ) );
 		$this->assertSame( [ 'test1', 'test2' ], $output->getUsedOptions() );
+		$this->assertSame( NS_MAIN, $output->getTitle()->getNamespace() );
+		$this->assertSame( 'Test_Page', $output->getTitle()->getDBkey() );
 
 		// Some meta-data can be overridden
 		if ( isset( $pageBundle->headers['content-language'] ) ) {
@@ -105,7 +109,7 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 
 	public static function providePageBundleFromParserOutput() {
 		yield 'should convert ParsoidOutput containing data-parsoid and data-mw' => [
-			self::getParsoidOutput(
+			self::getParserOutput(
 				new HtmlPageBundle(
 					html: 'hello world',
 					parsoid: [ 'ids' => '1.22' ],
@@ -117,23 +121,34 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 		];
 
 		yield 'should convert ParsoidOutput that does not contain data-parsoid or data-mw' => [
-			self::getParsoidOutput(
+			self::getParserOutput(
 				HtmlPageBundle::newEmpty( html: 'hello world' )
 			)
 		];
 	}
 
 	public function testLanguageTransfer() {
-		$parserOutput = self::getParsoidOutput( HtmlPageBundle::newEmpty( '' ) );
+		$parserOutput = self::getParserOutput( HtmlPageBundle::newEmpty( '' ) );
 		$parserOutput->setLanguage( new Bcp47CodeValue( 'de' ) );
 		$pb = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput );
 		$this->assertIsString( $pb->headers['content-language'] );
 		$this->assertEquals( 'de', $pb->headers['content-language'] );
 	}
 
-	private static function getParsoidOutput(
-		HtmlPageBundle $pb
+	public function testTitleTransfer() {
+		$parserOutput = self::getParserOutput(
+			HtmlPageBundle::newEmpty( 'abc' ),
+			new TitleValue( NS_MAIN, 'My_Title' )
+		);
+		$this->assertEquals( NS_MAIN, $parserOutput->getTitle()->getNamespace() );
+		$this->assertEquals( 'My_Title', $parserOutput->getTitle()->getDBkey() );
+	}
+
+	private static function getParserOutput(
+		HtmlPageBundle $pb, $title = null
 	): ParserOutput {
-		return PageBundleParserOutputConverter::parserOutputFromPageBundle( $pb );
+		return PageBundleParserOutputConverter::parserOutputFromPageBundle(
+			$pb, title: $title
+		);
 	}
 }

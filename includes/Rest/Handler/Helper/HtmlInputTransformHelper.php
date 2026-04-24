@@ -524,7 +524,7 @@ class HtmlInputTransformHelper {
 		}
 
 		if ( $originalRendering instanceof ParserOutput ) {
-			$originalRendering = PageBundleParserOutputConverter::pageBundleFromParserOutput( $originalRendering );
+			$originalRendering = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $originalRendering );
 
 			// NOTE: Use the default if we got a ParserOutput object.
 			//       Don't apply the default if we got passed a HtmlPageBundle,
@@ -738,7 +738,7 @@ class HtmlInputTransformHelper {
 				$counter->setLabels( $labels )
 					->increment();
 
-				$pb = PageBundleParserOutputConverter::pageBundleFromParserOutput( $parserOutput );
+				$pb = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput );
 				return new SelserContext( $pb, $renderID->getRevisionID() );
 			} catch ( HttpException ) {
 				$labels[ 'status' ] = 'failed-fallback_not_found';

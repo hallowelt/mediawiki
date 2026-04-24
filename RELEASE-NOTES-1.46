@@ -1003,6 +1003,8 @@ because of Phabricator reports.
   deprecated in 1.34.
 * Parser::setCacheTime() now requires its argument to be a non-null string;
   passing other values triggers a deprecation warning.
+* PageBundleParserOutputConverter::pageBundleFromParserOutput() has been
+  deprecated with warnings. Use ::htmlPageBundleFromParserOutput() instead.
 * CoreTagHooks has been deprecated; use the ParserCoreTagHooks service
   instead.  Its static methods were previously marked @internal but will
   now trigger deprecation warnings as well.

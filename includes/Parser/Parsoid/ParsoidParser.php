@@ -117,7 +117,7 @@ class ParsoidParser /* eventually this will extend \Parser */ {
 				$previousOutput->getLanguage()
 			);
 			$oldPageBundle =
-				PageBundleParserOutputConverter::pageBundleFromParserOutput(
+				PageBundleParserOutputConverter::htmlPageBundleFromParserOutput(
 					$previousOutput
 				);
 		}
@@ -149,11 +149,9 @@ class ParsoidParser /* eventually this will extend \Parser */ {
 			$headers,
 			$parserOutput );
 
-		$parserOutput = PageBundleParserOutputConverter::parserOutputFromPageBundle( $pageBundle, $parserOutput );
-
-		// Record the page title in dbkey form so that post-cache transforms
-		// have access to the title.
-		$parserOutput->setTitle( $pageConfig->getLinkTarget() );
+		$parserOutput = PageBundleParserOutputConverter::parserOutputFromPageBundle(
+			$pageBundle, $parserOutput, title: $pageConfig->getLinkTarget()
+		);
 
 		// Register a watcher again because the $parserOutput arg
 		// and $parserOutput return value above are different objects!

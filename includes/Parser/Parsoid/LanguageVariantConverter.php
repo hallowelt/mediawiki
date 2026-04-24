@@ -172,10 +172,12 @@ class LanguageVariantConverter {
 		Bcp47Code $targetVariant,
 		?Bcp47Code $sourceVariant = null
 	): ParserOutput {
-		$pageBundle = PageBundleParserOutputConverter::pageBundleFromParserOutput( $parserOutput );
+		$pageBundle = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput );
 		$modifiedPageBundle = $this->convertPageBundleVariant( $pageBundle, $targetVariant, $sourceVariant );
 
-		return PageBundleParserOutputConverter::parserOutputFromPageBundle( $modifiedPageBundle, $parserOutput );
+		return PageBundleParserOutputConverter::parserOutputFromPageBundle(
+			$modifiedPageBundle, $parserOutput, title: $this->pageIdentity
+		);
 	}
 
 	/**
