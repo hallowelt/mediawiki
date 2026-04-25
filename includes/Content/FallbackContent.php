@@ -20,17 +20,15 @@ namespace MediaWiki\Content;
  */
 class FallbackContent extends AbstractContent {
 
-	/** @var string */
-	private $data;
-
 	/**
 	 * @param string $data
 	 * @param string $model_id The model ID to handle
 	 */
-	public function __construct( $data, $model_id ) {
+	public function __construct(
+		private readonly string $data,
+		string $model_id,
+	) {
 		parent::__construct( $model_id );
-
-		$this->data = $data;
 	}
 
 	/** @inheritDoc */

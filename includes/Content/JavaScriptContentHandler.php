@@ -28,20 +28,16 @@ use MediaWiki\User\Options\UserOptionsLookup;
  */
 class JavaScriptContentHandler extends CodeContentHandler {
 
-	private array $textModelsToParse;
-	private ParserFactory $parserFactory;
-	private UserOptionsLookup $userOptionsLookup;
+	private readonly array $textModelsToParse;
 
 	public function __construct(
 		string $modelId,
 		Config $config,
-		ParserFactory $parserFactory,
-		UserOptionsLookup $userOptionsLookup
+		private readonly ParserFactory $parserFactory,
+		private readonly UserOptionsLookup $userOptionsLookup,
 	) {
 		parent::__construct( $modelId, [ CONTENT_FORMAT_JAVASCRIPT ] );
 		$this->textModelsToParse = $config->get( MainConfigNames::TextModelsToParse ) ?? [];
-		$this->parserFactory = $parserFactory;
-		$this->userOptionsLookup = $userOptionsLookup;
 	}
 
 	/**

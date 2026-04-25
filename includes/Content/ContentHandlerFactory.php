@@ -20,17 +20,10 @@ use Wikimedia\ObjectFactory\ObjectFactory;
 final class ContentHandlerFactory implements IContentHandlerFactory {
 
 	/**
-	 * @var string[]|callable[]
-	 */
-	private $handlerSpecs;
-
-	/**
 	 * @var ContentHandler[] Registry of ContentHandler instances by model id
 	 */
 	private $handlersByModel = [];
-	private ObjectFactory $objectFactory;
-	private HookRunner $hookRunner;
-	private LoggerInterface $logger;
+	private readonly HookRunner $hookRunner;
 
 	/**
 	 * @since 1.35
@@ -44,15 +37,12 @@ final class ContentHandlerFactory implements IContentHandlerFactory {
 	 * @param LoggerInterface $logger
 	 */
 	public function __construct(
-		array $handlerSpecs,
-		ObjectFactory $objectFactory,
+		private array $handlerSpecs,
+		private readonly ObjectFactory $objectFactory,
 		HookContainer $hookContainer,
-		LoggerInterface $logger
+		private readonly LoggerInterface $logger,
 	) {
-		$this->handlerSpecs = $handlerSpecs;
-		$this->objectFactory = $objectFactory;
 		$this->hookRunner = new HookRunner( $hookContainer );
-		$this->logger = $logger;
 	}
 
 	/**

@@ -19,7 +19,7 @@ use Wikimedia\JsonCodec\JsonClassCodec;
 class ContentJsonCodec implements JsonClassCodec {
 
 	public function __construct(
-		private IContentHandlerFactory $contentHandlerFactory
+		private readonly IContentHandlerFactory $contentHandlerFactory,
 	) {
 	}
 

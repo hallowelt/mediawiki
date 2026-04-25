@@ -33,33 +33,18 @@ use Wikimedia\UUID\GlobalIdGenerator;
  */
 class WikitextContentHandler extends TextContentHandler {
 
-	private TitleFactory $titleFactory;
-	private ParserFactory $parserFactory;
-	private GlobalIdGenerator $globalIdGenerator;
-	private LanguageNameUtils $languageNameUtils;
-	private LinkRenderer $linkRenderer;
-	private MagicWordFactory $magicWordFactory;
-	private ParsoidParserFactory $parsoidParserFactory;
-
 	public function __construct(
 		string $modelId,
-		TitleFactory $titleFactory,
-		ParserFactory $parserFactory,
-		GlobalIdGenerator $globalIdGenerator,
-		LanguageNameUtils $languageNameUtils,
-		LinkRenderer $linkRenderer,
-		MagicWordFactory $magicWordFactory,
-		ParsoidParserFactory $parsoidParserFactory
+		private readonly TitleFactory $titleFactory,
+		private readonly ParserFactory $parserFactory,
+		private readonly GlobalIdGenerator $globalIdGenerator,
+		private readonly LanguageNameUtils $languageNameUtils,
+		private readonly LinkRenderer $linkRenderer,
+		private readonly MagicWordFactory $magicWordFactory,
+		private ParsoidParserFactory $parsoidParserFactory,
 	) {
 		// $modelId should always be CONTENT_MODEL_WIKITEXT
 		parent::__construct( $modelId, [ CONTENT_FORMAT_WIKITEXT ] );
-		$this->titleFactory = $titleFactory;
-		$this->parserFactory = $parserFactory;
-		$this->globalIdGenerator = $globalIdGenerator;
-		$this->languageNameUtils = $languageNameUtils;
-		$this->linkRenderer = $linkRenderer;
-		$this->magicWordFactory = $magicWordFactory;
-		$this->parsoidParserFactory = $parsoidParserFactory;
 	}
 
 	/**

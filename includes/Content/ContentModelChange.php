@@ -31,16 +31,8 @@ use MediaWiki\User\UserFactory;
  * @author DannyS712
  */
 class ContentModelChange {
-	private IContentHandlerFactory $contentHandlerFactory;
-	private HookRunner $hookRunner;
-	private RevisionLookup $revLookup;
-	private UserFactory $userFactory;
-	private LogFormatterFactory $logFormatterFactory;
-	/** @var Authority making the change */
-	private Authority $performer;
-	private WikiPage $page;
-	private PageIdentity $pageIdentity;
-	private string $newModel;
+	private readonly HookRunner $hookRunner;
+	private readonly WikiPage $page;
 	/** @var string[] tags to add */
 	private array $tags;
 	private Content $newContent;
@@ -55,26 +47,19 @@ class ContentModelChange {
 	 * @internal Create via the ContentModelChangeFactory service.
 	 */
 	public function __construct(
-		IContentHandlerFactory $contentHandlerFactory,
+		private readonly IContentHandlerFactory $contentHandlerFactory,
 		HookContainer $hookContainer,
-		RevisionLookup $revLookup,
-		UserFactory $userFactory,
+		private readonly RevisionLookup $revLookup,
+		private readonly UserFactory $userFactory,
 		WikiPageFactory $wikiPageFactory,
-		LogFormatterFactory $logFormatterFactory,
-		Authority $performer,
-		PageIdentity $page,
-		string $newModel
+		private readonly LogFormatterFactory $logFormatterFactory,
+		private readonly Authority $performer,
+		private readonly PageIdentity $pageIdentity,
+		private readonly string $newModel,
 	) {
-		$this->contentHandlerFactory = $contentHandlerFactory;
 		$this->hookRunner = new HookRunner( $hookContainer );
-		$this->revLookup = $revLookup;
-		$this->userFactory = $userFactory;
-		$this->logFormatterFactory = $logFormatterFactory;
 
-		$this->performer = $performer;
-		$this->page = $wikiPageFactory->newFromTitle( $page );
-		$this->pageIdentity = $page;
-		$this->newModel = $newModel;
+		$this->page = $wikiPageFactory->newFromTitle( $pageIdentity );
 
 		// SpecialChangeContentModel doesn't support tags
 		// api can specify tags via ::setTags, which also checks if user can add

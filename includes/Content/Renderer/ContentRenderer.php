@@ -15,15 +15,10 @@ use Wikimedia\UUID\GlobalIdGenerator;
  * @since 1.38
  */
 class ContentRenderer {
-	private IContentHandlerFactory $contentHandlerFactory;
-	private GlobalIdGenerator $globalIdGenerator;
-
 	public function __construct(
-		IContentHandlerFactory $contentHandlerFactory,
-		GlobalIdGenerator $globalIdGenerator
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+		private readonly GlobalIdGenerator $globalIdGenerator,
 	) {
-		$this->contentHandlerFactory = $contentHandlerFactory;
-		$this->globalIdGenerator = $globalIdGenerator;
 	}
 
 	/**

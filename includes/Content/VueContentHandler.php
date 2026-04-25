@@ -26,7 +26,7 @@ use StatusValue;
  */
 class VueContentHandler extends CodeContentHandler {
 
-	private array $textModelsToParse;
+	private readonly array $textModelsToParse;
 
 	private ?VueComponentParser $vueComponentParser = null;
 

@@ -16,7 +16,6 @@ class WikiTextStructure {
 	private ?string $allText = null;
 	/** @var string[] */
 	private array $auxText = [];
-	private ParserOutput $parserOutput;
 
 	/**
 	 * Selectors to elements that are excluded entirely from search
@@ -58,8 +57,9 @@ class WikiTextStructure {
 		'.searchaux',
 	];
 
-	public function __construct( ParserOutput $parserOutput ) {
-		$this->parserOutput = $parserOutput;
+	public function __construct(
+		private readonly ParserOutput $parserOutput,
+	) {
 	}
 
 	/**

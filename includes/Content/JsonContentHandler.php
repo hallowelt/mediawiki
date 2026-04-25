@@ -27,8 +27,8 @@ use StatusValue;
  */
 class JsonContentHandler extends CodeContentHandler {
 
-	private ParsoidParserFactory $parsoidParserFactory;
-	private TitleFactory $titleFactory;
+	private readonly ParsoidParserFactory $parsoidParserFactory;
+	private readonly TitleFactory $titleFactory;
 	private const WIKITEXT_SIZE_BYTES = 200000; // 200 KB
 
 	/**

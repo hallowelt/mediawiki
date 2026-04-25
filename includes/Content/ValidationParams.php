@@ -8,14 +8,11 @@ use MediaWiki\Page\PageIdentity;
  * An object to hold validation params.
  */
 class ValidationParams {
-	private PageIdentity $pageIdentity;
-	private int $flags;
-	private int $parentRevId;
-
-	public function __construct( PageIdentity $pageIdentity, int $flags, int $parentRevId = -1 ) {
-		$this->pageIdentity = $pageIdentity;
-		$this->flags = $flags;
-		$this->parentRevId = $parentRevId;
+	public function __construct(
+		private readonly PageIdentity $pageIdentity,
+		private readonly int $flags,
+		private readonly int $parentRevId = -1,
+	) {
 	}
 
 	public function getPageIdentity(): PageIdentity {

@@ -14,18 +14,16 @@ use Exception;
  * @since 1.27
  */
 class UnknownContentModelException extends Exception {
-	/** @var string The name of the unknown content model */
-	private $modelId;
-
 	/**
 	 * @stable to call
-	 * @param string $modelId
+	 * @param string $modelId The name of the unknown content model
 	 */
-	public function __construct( $modelId ) {
+	public function __construct(
+		private readonly string $modelId,
+	) {
 		parent::__construct( "The content model '$modelId' is not registered on this wiki.\n" .
 			'See https://www.mediawiki.org/wiki/Content_handlers to find out which extensions ' .
 			'handle this content model.' );
-		$this->modelId = $modelId;
 	}
 
 	/** @return string */

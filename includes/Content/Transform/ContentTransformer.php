@@ -13,10 +13,9 @@ use MediaWiki\User\UserIdentity;
  * @since 1.37
  */
 class ContentTransformer {
-	private IContentHandlerFactory $contentHandlerFactory;
-
-	public function __construct( IContentHandlerFactory $contentHandlerFactory ) {
-		$this->contentHandlerFactory = $contentHandlerFactory;
+	public function __construct(
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+	) {
 	}
 
 	/**
