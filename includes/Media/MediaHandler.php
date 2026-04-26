@@ -1049,6 +1049,25 @@ abstract class MediaHandler {
 	}
 
 	/**
+	 * On supporting image formats, determine if the image is mirrored
+	 *
+	 * This information is only useful when manipulating the original file;
+	 * the width and height we normally work with is logical, and will match
+	 * any produced output views.
+	 *
+	 * For files we don't know, we return ''.
+	 *
+	 * @stable to override
+	 *
+	 * @param File $file
+	 * @return string 'vertical' or 'horizontal' or ''
+	 * @since 1.46
+	 */
+	public function getMirrored( $file ): string {
+		return '';
+	}
+
+	/**
 	 * Log an error that occurred in an external process
 	 *
 	 * Moved from BitmapHandler to MediaHandler with MediaWiki 1.23

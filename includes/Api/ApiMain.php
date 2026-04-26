@@ -524,19 +524,6 @@ class ApiMain extends ApiBase {
 		],
 	];
 
-	/**
-	 * List of user roles that are specifically relevant to the API.
-	 * [ 'right' => [ 'msg'    => 'Some message with a $1',
-	 *                'params' => [ $someVarToSubst ] ],
-	 * ];
-	 */
-	private const RIGHTS_MAP = [
-		'apihighlimits' => [
-			'msg' => 'api-help-right-apihighlimits',
-			'params' => [ ApiBase::LIMIT_SML2, ApiBase::LIMIT_BIG2 ]
-		]
-	];
-
 	/** @var ApiFormatBase|null */
 	private $mPrinter;
 
@@ -2392,7 +2379,7 @@ class ApiMain extends ApiBase {
 		return [
 			'action=help'
 				=> 'apihelp-help-example-main',
-			'action=help&recursivesubmodules=1'
+			'action=help&recursivesubmodules=1&toc'
 				=> 'apihelp-help-example-recursive',
 		];
 	}
@@ -2402,134 +2389,188 @@ class ApiMain extends ApiBase {
 	 * @phan-param array{nolead?:bool,headerlevel?:int,tocnumber?:int[]} $options
 	 */
 	public function modifyHelp( array &$help, array $options, array &$tocData ) {
-		// Wish PHP had an "array_insert_before". Instead, we have to manually
-		// reindex the array to get 'permissions' in the right place.
-		$oldHelp = $help;
-		$help = [];
-		foreach ( $oldHelp as $k => $v ) {
-			if ( $k === 'submodules' ) {
-				$help['permissions'] = '';
-			}
-			$help[$k] = $v;
+		if ( !empty( $options['nolead'] ) ) {
+			return;
 		}
-		$help['datatypes'] = '';
-		$help['templatedparams'] = '';
-		$help['credits'] = '';
 
-		// Fill 'permissions'
-		$help['permissions'] .= Html::openElement( 'div',
-			[ 'class' => [ 'apihelp-block', 'apihelp-permissions' ] ] );
-		$m = $this->msg( 'api-help-permissions' );
-		if ( !$m->isDisabled() ) {
-			$help['permissions'] .= Html::rawElement( 'div', [ 'class' => 'apihelp-block-head' ],
-				$m->numParams( count( self::RIGHTS_MAP ) )->parse()
+		$helpBefore = [];
+		$helpAfter = [];
+		$tocDataBefore = [];
+
+		// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Must set when nolead is not set
+		$level = $options['headerlevel'];
+		// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Must set when nolead is not set
+		$tocnumber = &$options['tocnumber'];
+		$tocnumberBefore = 0;
+
+		$header = $this->msg( 'api-help-general-header' )->parse();
+		$headline = Html::rawElement(
+			'h' . min( 6, $level - 1 ),
+			[ 'class' => 'apihelp-header', 'id' => 'main/general' ],
+			$header
+		);
+		$helpBefore['general'] = $headline;
+		$helpBefore['general'] .= $this->msg( 'api-help-general' )->parseAsBlock();
+		if ( !isset( $tocData['main/general'] ) ) {
+			$anchor = 'main/general';
+			$tocDataBefore['main/general'] = new SectionMetadata(
+				tocLevel: count( $tocnumber ) - 1,
+				hLevel: $level - 1,
+				line: $header,
+				number: '0',
+				index: '',
+				anchor: $anchor,
+				linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
+			);
+			// FIXME: I don't love numbering the sections from 0, but counting is hard.
+			// Someone should rewrite this code so that the numbers are assigned automatically.
+		}
+		$header = $this->msg( 'api-help-methods-header' )->parse();
+		$headline = Html::rawElement(
+			'h' . min( 6, $level ),
+			[ 'class' => 'apihelp-header', 'id' => 'main/methods' ],
+			$header
+		);
+		$helpBefore['methods'] = $headline;
+		$helpBefore['methods'] .= $this->msg( 'api-help-methods' )->parseAsBlock();
+		if ( !isset( $tocData['main/methods'] ) ) {
+			$tocnumberBefore++;
+			$anchor = 'main/methods';
+			$tocDataBefore['main/methods'] = new SectionMetadata(
+				tocLevel: count( $tocnumber ),
+				hLevel: $level,
+				line: $header,
+				number: '0.' . $tocnumberBefore,
+				index: '',
+				anchor: $anchor,
+				linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
 			);
 		}
-		$help['permissions'] .= Html::openElement( 'dl' );
+
+		$header = $this->msg( 'api-help-datatypes-header' )->parse();
+		$headline = Html::rawElement(
+			'h' . min( 6, $level ),
+			[ 'class' => 'apihelp-header', 'id' => 'main/datatypes' ],
+			$header
+		);
+		$helpBefore['datatypes'] = $headline;
+		$helpBefore['datatypes'] .= $this->msg( 'api-help-datatypes-top' )->parseAsBlock();
+		$helpBefore['datatypes'] .= '<dl>';
+		foreach ( $this->getParamValidator()->knownTypes() as $type ) {
+			$m = $this->msg( "api-help-datatype-$type" );
+			if ( !$m->isDisabled() ) {
+				$helpBefore['datatypes'] .= Html::element( 'dt', [ 'id' => "main/datatype/$type" ], $type );
+				$helpBefore['datatypes'] .= Html::rawElement( 'dd', [], $m->parseAsBlock() );
+			}
+		}
+		$helpBefore['datatypes'] .= '</dl>';
+		if ( !isset( $tocData['main/datatypes'] ) ) {
+			$tocnumberBefore++;
+			$anchor = 'main/datatypes';
+			$tocDataBefore['main/datatypes'] = new SectionMetadata(
+				tocLevel: count( $tocnumber ),
+				hLevel: $level,
+				line: $header,
+				number: '0.' . $tocnumberBefore,
+				index: '',
+				anchor: $anchor,
+				linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
+			);
+		}
+
+		$header = $this->msg( 'api-help-limits-header' )->parse();
+		$headline = Html::rawElement(
+			'h' . min( 6, $level ),
+			[ 'class' => 'apihelp-header', 'id' => 'main/limits' ],
+			$header
+		);
+		$helpBefore['limits'] = $headline;
+		$helpBefore['limits'] .= $this->msg( 'api-help-limits' )
+			->numParams( ApiBase::LIMIT_SML1, ApiBase::LIMIT_BIG1, ApiBase::LIMIT_SML1 )
+			->parseAsBlock();
+
 		// TODO inject stuff, see T265644
 		$groupPermissionsLookup = MediaWikiServices::getInstance()->getGroupPermissionsLookup();
-		foreach ( self::RIGHTS_MAP as $right => $rightMsg ) {
-			$help['permissions'] .= Html::element( 'dt', [], $right );
 
-			$rightMsg = $this->msg( $rightMsg['msg'], $rightMsg['params'] )->parse();
-			$help['permissions'] .= Html::rawElement( 'dd', [], $rightMsg );
+		$groups = $groupPermissionsLookup->getGroupsWithPermission( 'apihighlimits' );
+		if ( $groups ) {
+			$groupDescs = array_map( $this->getLanguage()->getGroupName( ... ), $groups );
 
-			$groups = array_map( static function ( $group ) {
-				return $group == '*' ? 'all' : $group;
-			}, $groupPermissionsLookup->getGroupsWithPermission( $right ) );
+			$helpBefore['limits'] .= $this->msg( 'api-help-limits-apihighlimits' )
+				->numParams( ApiBase::LIMIT_SML2, ApiBase::LIMIT_BIG2, ApiBase::LIMIT_SML2 )
+				->params( Message::listParam( $groupDescs ) )->parseAsBlock();
+		}
 
-			$help['permissions'] .= Html::rawElement( 'dd', [],
-				$this->msg( 'api-help-permissions-granted-to' )
-					->numParams( count( $groups ) )
-					->params( Message::listParam( $groups ) )
-					->parse()
+		if ( !isset( $tocData['main/limits'] ) ) {
+			$tocnumberBefore++;
+			$anchor = 'main/limits';
+			$tocDataBefore['main/limits'] = new SectionMetadata(
+				tocLevel: count( $tocnumber ),
+				hLevel: $level,
+				line: $header,
+				number: '0.' . $tocnumberBefore,
+				index: '',
+				anchor: $anchor,
+				linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
 			);
 		}
-		$help['permissions'] .= Html::closeElement( 'dl' );
-		$help['permissions'] .= Html::closeElement( 'div' );
 
-		// Fill 'datatypes', 'templatedparams', and 'credits', if applicable
-		if ( empty( $options['nolead'] ) ) {
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Must set when nolead is not set
-			$level = $options['headerlevel'];
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset Must set when nolead is not set
-			$tocnumber = &$options['tocnumber'];
-
-			$header = $this->msg( 'api-help-datatypes-header' )->parse();
-			$headline = Html::rawElement(
-				'h' . min( 6, $level ),
-				[ 'class' => 'apihelp-header', 'id' => 'main/datatypes' ],
-				$header
+		$header = $this->msg( 'api-help-templatedparams-header' )->parse();
+		$headline = Html::rawElement(
+			'h' . min( 6, $level ),
+			[ 'class' => 'apihelp-header', 'id' => 'main/templatedparams' ],
+			$header
+		);
+		$helpBefore['templatedparams'] = $headline;
+		$helpBefore['templatedparams'] .= $this->msg( 'api-help-templatedparams' )->parseAsBlock();
+		if ( !isset( $tocData['main/templatedparams'] ) ) {
+			$tocnumberBefore++;
+			$anchor = 'main/templatedparams';
+			$tocDataBefore['main/templatedparams'] = new SectionMetadata(
+				tocLevel: count( $tocnumber ),
+				hLevel: $level,
+				line: $header,
+				number: '0.' . $tocnumberBefore,
+				index: '',
+				anchor: $anchor,
+				linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
 			);
-			$help['datatypes'] .= $headline;
-			$help['datatypes'] .= $this->msg( 'api-help-datatypes-top' )->parseAsBlock();
-			$help['datatypes'] .= '<dl>';
-			foreach ( $this->getParamValidator()->knownTypes() as $type ) {
-				$m = $this->msg( "api-help-datatype-$type" );
-				if ( !$m->isDisabled() ) {
-					$help['datatypes'] .= Html::element( 'dt', [ 'id' => "main/datatype/$type" ], $type );
-					$help['datatypes'] .= Html::rawElement( 'dd', [], $m->parseAsBlock() );
-				}
-			}
-			$help['datatypes'] .= '</dl>';
-			if ( !isset( $tocData['main/datatypes'] ) ) {
-				$tocnumber[$level]++;
-				$anchor = 'main/datatypes';
-				$tocData['main/datatypes'] = new SectionMetadata(
-					tocLevel: count( $tocnumber ),
-					hLevel: $level,
-					line: $header,
-					number: implode( '.', $tocnumber ),
-					index: '',
-					anchor: $anchor,
-					linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
-				);
-			}
-
-			$header = $this->msg( 'api-help-templatedparams-header' )->parse();
-			$headline = Html::rawElement(
-				'h' . min( 6, $level ),
-				[ 'class' => 'apihelp-header', 'id' => 'main/templatedparams' ],
-				$header
-			);
-			$help['templatedparams'] .= $headline;
-			$help['templatedparams'] .= $this->msg( 'api-help-templatedparams' )->parseAsBlock();
-			if ( !isset( $tocData['main/templatedparams'] ) ) {
-				$tocnumber[$level]++;
-				$anchor = 'main/templatedparams';
-				$tocData['main/templatedparams'] = new SectionMetadata(
-					tocLevel: count( $tocnumber ),
-					hLevel: $level,
-					line: $header,
-					number: implode( '.', $tocnumber ),
-					index: '',
-					anchor: $anchor,
-					linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
-				);
-			}
-
-			$header = $this->msg( 'api-credits-header' )->parse();
-			$headline = Html::rawElement(
-				'h' . min( 6, $level ),
-				[ 'class' => 'apihelp-header', 'id' => 'main/credits' ],
-				$header
-			);
-			$help['credits'] .= $headline;
-			$help['credits'] .= $this->msg( 'api-credits' )->useDatabase( false )->parseAsBlock();
-			if ( !isset( $tocData['main/credits'] ) ) {
-				$tocnumber[$level]++;
-				$anchor = 'main/credits';
-				$tocData['main/credits'] = new SectionMetadata(
-					tocLevel: count( $tocnumber ),
-					hLevel: $level,
-					line: $header,
-					number: implode( '.', $tocnumber ),
-					index: '',
-					anchor: $anchor,
-					linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
-				);
-			}
 		}
+
+		$header = $this->msg( 'api-credits-header' )->parse();
+		$headline = Html::rawElement(
+			'h' . min( 6, $level - 1 ),
+			[ 'class' => 'apihelp-header', 'id' => 'main/credits' ],
+			$header
+		);
+		$helpAfter['credits'] = $headline;
+		$helpAfter['credits'] .= $this->msg( 'api-credits' )->useDatabase( false )->parseAsBlock();
+		if ( !isset( $tocData['main/credits'] ) ) {
+			$tocnumber[$level - 1]++;
+			$tocnumber[$level] = 0;
+			$anchor = 'main/credits';
+			$tocData['main/credits'] = new SectionMetadata(
+				tocLevel: count( $tocnumber ) - 1,
+				hLevel: $level - 1,
+				line: $header,
+				number: implode( '.', array_slice( $tocnumber, 0, -1 ) ),
+				index: '',
+				anchor: $anchor,
+				linkAnchor: Sanitizer::escapeIdForLink( $anchor ),
+			);
+			// FIXME: The number of the next TOC item after "Credits" will be off by one.
+			// Since "Credits" is usually the last section, we don't really mind.
+			// Someone should rewrite this code so that the numbers are assigned automatically.
+		}
+
+		$help = [
+			Html::openElement( 'div', [ 'class' => 'apihelp-general' ] ),
+			...$helpBefore,
+			Html::closeElement( 'div' ),
+			...$help,
+			...$helpAfter,
+		];
+		$tocData = [ ...$tocDataBefore, ...$tocData ];
 	}
 
 	/** @var bool|null */

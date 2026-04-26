@@ -27,6 +27,7 @@ class ExifRotationTest extends MediaWikiMediaTestCase {
 		$this->overrideConfigValues( [
 			MainConfigNames::ShowEXIF => true,
 			MainConfigNames::EnableAutoRotation => true,
+			MainConfigNames::ThumbnailSteps => [],
 		] );
 	}
 
@@ -145,7 +146,37 @@ class ExifRotationTest extends MediaWikiMediaTestCase {
 					'80px' => [ 80, 107 ],
 					'60px' => [ 60, 80 ],
 				]
-			]
+			],
+			[
+				// Orientation 2: horizontal mirror, no rotation — logical size matches stored size
+				'orient_2.jpg',
+				'image/jpeg',
+				[
+					'width' => 300,
+					'height' => 400,
+				],
+				[
+					'150x200px' => [ 150, 200 ],
+					'9999x200px' => [ 150, 200 ],
+					'150px' => [ 150, 200 ],
+					'100px' => [ 100, 133 ],
+				]
+			],
+			[
+				// Orientation 4: vertical mirror, no rotation — logical size matches stored size
+				'orient_4.jpg',
+				'image/jpeg',
+				[
+					'width' => 300,
+					'height' => 400,
+				],
+				[
+					'150x200px' => [ 150, 200 ],
+					'9999x200px' => [ 150, 200 ],
+					'150px' => [ 150, 200 ],
+					'100px' => [ 100, 133 ],
+				]
+			],
 		];
 	}
 
@@ -256,7 +287,37 @@ class ExifRotationTest extends MediaWikiMediaTestCase {
 					'80px' => [ 80, 60 ],
 					'60px' => [ 60, 45 ],
 				]
-			]
+			],
+			[
+				// Orientation 2: no rotation, so stored size equals logical size with or without auto-rotate
+				'orient_2.jpg',
+				'image/jpeg',
+				[
+					'width' => 300,
+					'height' => 400,
+				],
+				[
+					'150x200px' => [ 150, 200 ],
+					'9999x200px' => [ 150, 200 ],
+					'150px' => [ 150, 200 ],
+					'100px' => [ 100, 133 ],
+				]
+			],
+			[
+				// Orientation 4: no rotation, so stored size equals logical size with or without auto-rotate
+				'orient_4.jpg',
+				'image/jpeg',
+				[
+					'width' => 300,
+					'height' => 400,
+				],
+				[
+					'150x200px' => [ 150, 200 ],
+					'9999x200px' => [ 150, 200 ],
+					'150px' => [ 150, 200 ],
+					'100px' => [ 100, 133 ],
+				]
+			],
 		];
 	}
 

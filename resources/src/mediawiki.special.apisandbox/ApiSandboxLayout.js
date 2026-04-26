@@ -570,6 +570,17 @@ ApiSandboxLayout.prototype.loadParamInfo = function () {
 
 			this.$element.empty();
 
+			if ( this.apiModule === 'main' ) {
+				this.$element.append( new OO.ui.FieldLayout(
+					new OO.ui.Widget( {} ).toggle( false ),
+					{
+						align: 'top',
+						classes: [ 'mw-apisandbox-api-help-general' ],
+						label: new OO.ui.HtmlSnippet( require( './parsedMessages.json' )[ 'api-help-general' ] )
+					}
+				).$element );
+			}
+
 			this.itemsFieldset = new OO.ui.FieldsetLayout( {
 				label: this.displayText
 			} );

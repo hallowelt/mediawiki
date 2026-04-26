@@ -257,8 +257,8 @@
 
 			this.preprocessParameters( parameters, this.defaults.useUS );
 
-			// Add the 'action' query parameter to the request URI, and not just POST request body,
-			// for ease of use in debugging, analytics, or request filtering. (T421288)
+			// Add the 'action' query parameter to the request URL, and not just POST request body,
+			// for ease of use in debugging, analytics, and request routing or filtering. (T421288)
 			if ( ajaxOptions.type === 'POST' && parameters.action !== undefined ) {
 				ajaxOptions.url += ( ajaxOptions.url.includes( '?' ) ? '&' : '?' ) +
 					'action=' + encodeURIComponent( parameters.action );

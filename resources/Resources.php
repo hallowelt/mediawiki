@@ -2165,6 +2165,25 @@ return [
 			'TextParamMixin.js',
 			'Util.js',
 			'UtilMixin.js',
+			[
+				'name' => 'parsedMessages.json',
+				'callback' => static function ( MessageLocalizer $messageLocalizer ) {
+					return [
+						'api-help-general' => $messageLocalizer->msg( 'api-help-general' )->parseAsBlock(),
+					];
+				},
+				// Use versionCallback to avoid calling the parser from version invalidation code.
+				'versionCallback' => static function ( MessageLocalizer $messageLocalizer ) {
+					return [
+						'api-help-general' => [
+							// Include the text of the message, in case the canonical translation changes
+							$messageLocalizer->msg( 'api-help-general' )->plain(),
+							// Include the page touched time, in case the on-wiki override is invalidated
+							Title::makeTitle( NS_MEDIAWIKI, 'Api-help-general' )->getTouched(),
+						],
+					];
+				},
+			]
 		],
 		'dependencies' => [
 			'mediawiki.api',

@@ -199,6 +199,18 @@ class ExifBitmapHandler extends BitmapHandler {
 	}
 
 	/**
+	 * @inheritDoc
+	 */
+	public function getMirrored( $file ): string {
+		if ( !$this->autoRotateEnabled() ) {
+			return '';
+		}
+
+		$orientation = $file->getMetadataItem( 'Orientation' );
+		return $this->getMirroringForExifFromOrientation( $orientation );
+	}
+
+	/**
 	 * Given a chunk of serialized Exif metadata, return the orientation as
 	 * degrees of rotation.
 	 *
@@ -212,14 +224,40 @@ class ExifBitmapHandler extends BitmapHandler {
 		}
 		# See http://sylvana.net/jpegcrop/exif_orientation.html
 		switch ( $orientation ) {
+			case 7:
 			case 8:
 				return 90;
 			case 3:
 				return 180;
+			case 5:
 			case 6:
 				return 270;
 			default:
 				return 0;
+		}
+	}
+
+	/**
+	 * Given a chunk of serialized Exif metadata, return the axis to
+	 * mirror the image on
+	 *
+	 * @param int|null $orientation
+	 * @return string either empty string, 'horizontal', 'vertical'
+	 */
+	protected function getMirroringForExifFromOrientation( $orientation ) {
+		if ( $orientation === null ) {
+			return '';
+		}
+		# See http://sylvana.net/jpegcrop/exif_orientation.html
+		switch ( $orientation ) {
+			case 2:
+			case 5:
+			case 7:
+				return 'horizontal';
+			case 4:
+				return 'vertical';
+			default:
+				return '';
 		}
 	}
 }

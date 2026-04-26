@@ -242,6 +242,12 @@ class BitmapHandler extends TransformationalImageHandler {
 
 		$rotation = isset( $params['disableRotation'] ) ? 0 : $this->getRotation( $image );
 		[ $width, $height ] = $this->extractPreRotationDimensions( $params, $rotation );
+		$mirroring = isset( $params['disableRotation'] ) ? null : $this->getMirrored( $image );
+		$mirrored = match ( $mirroring ) {
+			'horizontal' => [ '-flop' ],
+			'vertical' => [ '-flip' ],
+			default => [],
+		};
 
 		$cmd = Shell::escape( ...array_merge(
 			[ $imageMagickConvertCommand ],
@@ -265,6 +271,7 @@ class BitmapHandler extends TransformationalImageHandler {
 			[ '-depth', 8 ],
 			$sharpen,
 			[ '-rotate', "-$rotation" ],
+			$mirrored,
 			$subsampling,
 			$animation_post,
 			[ $this->escapeMagickOutput( $params['dstPath'] ) ] ) );
@@ -355,6 +362,17 @@ class BitmapHandler extends TransformationalImageHandler {
 
 			if ( $rotation && !$im->rotateImage( new ImagickPixel( 'white' ), 360 - $rotation ) ) {
 				return $this->getMediaTransformError( $params, "Error rotating $rotation degrees" );
+			}
+
+			if ( !isset( $params['disableRotation'] ) ) {
+				switch ( $this->getMirrored( $image ) ) {
+					case 'horizontal':
+						$im->flopImage();
+						break;
+					case 'vertical':
+						$im->flipImage();
+						break;
+				}
 			}
 
 			if ( $this->isAnimatedImage( $image ) ) {
@@ -492,8 +510,19 @@ class BitmapHandler extends TransformationalImageHandler {
 				imagesx( $src_image ), imagesy( $src_image ) );
 		}
 
-		if ( $rotation % 360 !== 0 && $rotation % 90 === 0 ) {
+		if ( $rotation % 360 !== 0 ) {
 			$dst_image = imagerotate( $dst_image, $rotation, 0 );
+		}
+
+		if ( !isset( $params['disableRotation'] ) ) {
+			switch ( $this->getMirrored( $image ) ) {
+				case 'horizontal':
+					imageflip( $dst_image, IMG_FLIP_HORIZONTAL );
+					break;
+				case 'vertical':
+					imageflip( $dst_image, IMG_FLIP_VERTICAL );
+					break;
+			}
 		}
 
 		imagesavealpha( $dst_image, true );

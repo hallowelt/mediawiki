@@ -117,7 +117,7 @@ class ApiHelp extends ApiBase {
 	 *  - submodules: (bool) Include help for submodules of the current module
 	 *  - recursivesubmodules: (bool) Include help for submodules recursively
 	 *  - helptitle: (string) Title to link for additional modules' help. Should contain $1.
-	 *  - toc: (bool) Include a table of contents
+	 *  - toc: (bool) Include a table of contents (always included on landing page)
 	 *
 	 * @param IContextSource $context
 	 * @param ApiBase[]|ApiBase $modules
@@ -161,8 +161,19 @@ class ApiHelp extends ApiBase {
 			$cacheKey = null;
 		}
 
+		// If no parameters were passed (not even action=help), display the TOC.
+		// It's a special case for the landing page because it's much nicer with a TOC.
+		if ( !$context->getRequest()->getValues() ) {
+			$options['toc'] = true;
+		}
 		$options['recursivesubmodules'] = !empty( $options['recursivesubmodules'] );
 		$options['submodules'] = $options['recursivesubmodules'] || !empty( $options['submodules'] );
+		$haveModules = [];
+		$html = self::getHelpInternal( $context, $modules, $options, $haveModules );
+
+		if ( !empty( $options['toc'] ) && $haveModules ) {
+			$out->addTOCPlaceholder( new TOCData( ...array_values( $haveModules ) ) );
+		}
 
 		// Prepend lead
 		if ( empty( $options['nolead'] ) ) {
@@ -172,11 +183,6 @@ class ApiHelp extends ApiBase {
 			}
 		}
 
-		$haveModules = [];
-		$html = self::getHelpInternal( $context, $modules, $options, $haveModules );
-		if ( !empty( $options['toc'] ) && $haveModules ) {
-			$out->addTOCPlaceholder( new TOCData( ...array_values( $haveModules ) ) );
-		}
 		$out->addHTML( $html );
 
 		$helptitle = $options['helptitle'] ?? null;
@@ -727,7 +733,7 @@ class ApiHelp extends ApiBase {
 				=> 'apihelp-help-example-main',
 			'action=help&modules=query&submodules=1'
 				=> 'apihelp-help-example-submodules',
-			'action=help&recursivesubmodules=1'
+			'action=help&recursivesubmodules=1&toc'
 				=> 'apihelp-help-example-recursive',
 			'action=help&modules=help'
 				=> 'apihelp-help-example-help',

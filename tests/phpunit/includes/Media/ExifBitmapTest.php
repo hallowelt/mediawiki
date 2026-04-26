@@ -23,6 +23,34 @@ class ExifBitmapTest extends MediaWikiMediaTestCase {
 		$this->handler = new ExifBitmapHandler;
 	}
 
+	public static function provideGetMirrored() {
+		return [
+			'orientation 1 — normal' => [ 1, '' ],
+			'orientation 2 — horizontal mirror' => [ 2, 'horizontal' ],
+			'orientation 3 — 180° rotation' => [ 3, '' ],
+			'orientation 4 — vertical mirror' => [ 4, 'vertical' ],
+			'orientation 5 — 90° CW + horizontal mirror' => [ 5, 'horizontal' ],
+			'orientation 6 — 90° CCW' => [ 6, '' ],
+			'orientation 7 — 90° CCW + horizontal mirror' => [ 7, 'horizontal' ],
+			'orientation 8 — 90° CW' => [ 8, '' ],
+			'null orientation' => [ null, '' ],
+		];
+	}
+
+	/** @dataProvider provideGetMirrored */
+	public function testGetMirrored( $orientation, $expected ) {
+		$serialized = serialize( [ 'Orientation' => $orientation, 'MEDIAWIKI_EXIF_VERSION' => 2 ] );
+		$file = $this->getMockFileWithMetadata( $serialized );
+		$this->assertSame( $expected, $this->handler->getMirrored( $file ) );
+	}
+
+	public function testGetMirroredAutoRotateDisabled() {
+		$this->overrideConfigValue( MainConfigNames::EnableAutoRotation, false );
+		$serialized = serialize( [ 'Orientation' => 2, 'MEDIAWIKI_EXIF_VERSION' => 2 ] );
+		$file = $this->getMockFileWithMetadata( $serialized );
+		$this->assertSame( '', $this->handler->getMirrored( $file ) );
+	}
+
 	public static function provideIsFileMetadataValid() {
 		return [
 			'old broken' => [
