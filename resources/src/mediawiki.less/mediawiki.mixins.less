@@ -12,14 +12,12 @@
 
 .hyphens( @value: auto ) {
 	& when ( @value = auto ) {
-		// Legacy `word-wrap`; Edge 12+, Firefox 3.5+, Chrome 4+, Safari 3.1+,
-		//   Opera 11.5+, iOS 3.2+, Android 2.1+
-		// `overflow-wrap` is W3 standard, but it doesn't seem as if browser vendors
-		//   will abandon `word-wrap` (it has wider support), therefore no duplication.
-		word-wrap: break-word;
+		// Support (`break-word`/`normal`): Firefox 49+, Chrome 23+, Edge 18+, Safari 6.1+, iOS 7+,
+		// Android 4.4+, Opera 12.1+
+		overflow-wrap: break-word;
 	}
 	& when ( @value = none ) {
-		word-wrap: normal;
+		overflow-wrap: normal;
 	}
 
 	// CSS3 hyphenation
