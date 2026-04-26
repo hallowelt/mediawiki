@@ -135,6 +135,8 @@ class ConverterRule {
 			$f = StringUtils::explode( ';', substr( $text, 0, $sepPos ) );
 			foreach ( $f as $ff ) {
 				$ff = trim( $ff );
+				// Allow variants to be specified as BCP-47
+				$ff = $this->mConverter->validateVariant( $ff ) ?? $ff;
 				if ( isset( $validFlags[$ff] ) ) {
 					$flags[$validFlags[$ff]] = true;
 				}
@@ -576,7 +578,8 @@ class ConverterRule {
 		Assert::invariant( $dmv !== null, "Element must have data-mw-variant" );
 		if ( $dmv->filter ) {
 			// Check if the current variant is in the filter
-			if ( in_array( $variant, $dmv->filter->langs, true ) ) {
+			$langs = array_map( fn ( $code )=>$this->mConverter->validateVariant( $code ), $dmv->filter->langs );
+			if ( in_array( $variant, $langs, true ) ) {
 				$this->mRuleDisplay = DOMDataUtils::cloneDocumentFragment(
 					$dmv->filter->text
 				);
@@ -589,7 +592,7 @@ class ConverterRule {
 				$this->mConverter->getVariantFallbacks( $variant );
 			if ( is_array( $variantFallbacks ) ) {
 				foreach ( $variantFallbacks as $variantFallback ) {
-					if ( in_array( $variantFallback, $dmv->filter->langs, true ) ) {
+					if ( in_array( $variantFallback, $langs, true ) ) {
 						// convert to fallback language
 						$this->mRuleDisplay = DOMDataUtils::cloneDocumentFragment(
 							$dmv->filter->text

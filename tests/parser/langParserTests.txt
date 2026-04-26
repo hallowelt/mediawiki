@@ -515,6 +515,21 @@ language=zh htmlVariantLanguage=zh-Hant-TW
 !! end
 
 !! test
+Filter rules with BCP 47 codes
+!! options
+language=zh htmlVariantLanguage=zh-Hant-TW
+!! wikitext
+-{zh-Hant-TW;|-{zh-tw:Taiwan;zh-hk:Hong Kong;zh-cn:China}-}-
+!! html/php
+<p>Taiwan
+</p>
+!! html/parsoid
+<p><span data-mw-variant='{"filter":{"l":["zh-Hant-TW"],"t":"&lt;span typeof=\"mw:LanguageVariant\" data-mw-variant=&apos;{\"twoway\":[{\"l\":\"zh-tw\",\"t\":\"Taiwan\"},{\"l\":\"zh-hk\",\"t\":\"Hong Kong\"},{\"l\":\"zh-cn\",\"t\":\"China\"}]}&apos;>&lt;/span>"}}' typeof="mw:LanguageVariant"></span></p>
+!! html/parsoid+langconv
+<p><span data-mw-variant='{"filter":{"l":["zh-Hant-TW"],"t":"&lt;span typeof=\"mw:LanguageVariant\" data-mw-variant=&apos;{\"twoway\":[{\"l\":\"zh-tw\",\"t\":\"Taiwan\"},{\"l\":\"zh-hk\",\"t\":\"Hong Kong\"},{\"l\":\"zh-cn\",\"t\":\"China\"}]}&apos;>&lt;/span>"}}' typeof="mw:LanguageVariant"><span data-mw-variant='{"twoway":[{"l":"zh-tw","t":"Taiwan"},{"l":"zh-hk","t":"Hong Kong"},{"l":"zh-cn","t":"China"}]}' typeof="mw:LanguageVariant">Taiwan</span></span></p>
+!! end
+
+!! test
 html2wt support for edited wildcard rule (strip trailing semi where needed)
 !! options
 language=zh htmlVariantLanguage=zh-Hant-TW
