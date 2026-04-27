@@ -434,6 +434,9 @@
 	"createacct-error": "Chyba při zakládání účtu",
 	"createaccounterror": "Nepodařilo se vytvořit uživatelský účet: $1",
 	"createacct-popup-redirect-notice": "Po vytvoření účtu budete přesměrováni…",
+	"createacct-username-policy-popover-title": "Pravidla pro uživatelská jména",
+	"createacct-username-policy-popover-trigger-link": "Vybírejte pečlivě",
+	"createacct-username-policy-popover-trigger-line": "$1 – takhle vás bude komunita znát.",
 	"nocookieslogin": "{{SITENAME}} používá cookies k přihlášení uživatelů. Vy máte cookies vypnuty. Prosím zapněte je a zkuste znovu.",
 	"nocookiesfornew": "Uživatelský účet nebyl založen, neboť jsme nebyli schopni potvrdit jeho původ.\nUjistěte se, že máte povoleny cookies, obnovte tuto stránku a zkuste to znovu.",
 	"createacct-loginerror": "Účet byl úspěšně vytvořen, ale nemohli jste být automaticky přihlášeni. Pokračujte prosím na [[Special:UserLogin|ruční přihlášení]].",
@@ -2464,8 +2467,11 @@
 	"remove-blocklink": "odblokovat",
 	"manage-blocklink": "spravovat blokování",
 	"empty-username": "(uživatelské jméno není dostupné)",
+	"available-username": "Uživatelské jméno je dostupné",
+	"available-username-check-feedback": "Ověřování dostupnosti",
 	"blocklist-hidden-placeholder": "(uživatelské jméno skryto)",
 	"blocklist-hidden-param": "uživatelské jméno skryto",
+	"blocklist-block-hidden": "skryté zablokování",
 	"contribslink": "příspěvky",
 	"emaillink": "poslat e-mail",
 	"autoblocker": "Automatické zablokování kvůli tomu, že vaši IP adresu nedávno používal uživatel „[[User:$1|$1]]“.\nDůvod zablokování uživatele $1: \"$2\"",
@@ -3961,5 +3967,6 @@
 	"table-of-contents-show-button-aria-label": "Zobrazit obsah",
 	"table-of-contents-hide-button-aria-label": "Skrýt obsah",
 	"diff-usergroups": "$1 {{PLURAL:$1|uživatelské skupiny|uživatelské skupiny|uživatelských skupin}}",
-	"languageselector-no-results": "Nenalezeny žádné výsledky."
+	"languageselector-no-results": "Nenalezeny žádné výsledky.",
+	"languageselector-invalid-input": "„$1“ není platný jazyk."
 }

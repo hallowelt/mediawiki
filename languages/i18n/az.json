@@ -410,6 +410,9 @@
 	"createacct-error": "Hesab yaratma xətası",
 	"createaccounterror": "Bu istifadəçi adını yaratmaq mümkün olmadı: $1",
 	"createacct-popup-redirect-notice": "Hesab yaratdıqdan sonra yönləndiriləcəksiniz...",
+	"createacct-username-policy-popover-title": "İstifadəçi adı siyasəti",
+	"createacct-username-policy-popover-trigger-link": "Diqqətlə seçin",
+	"createacct-username-policy-popover-trigger-line": "$1 — icma sizi bu cür tanıyacaq.",
 	"nocookieslogin": "{{SITENAME}} istifadəçilərin daxil ola bilməsi üçün kukilərdən istifadə edir. Siz kukilərin qəbuluna qadağa qoymusunuz. Lütfən, onların qəbuluna icazə verin və bir daha daxil olmağa cəhd edin.",
 	"nocookiesfornew": "İstifadəçinin hesabı yaradılmayıb, ona görə də biz onun mənbəsini təsdiqləyə bilmədik.\nKukilərin istifadəsinə icazə verildiyinə əmin olduqdan sonra səhifəni yeniləyib bir daha sınayın.",
 	"createacct-loginerror": "Hesab müvəffəqiyyətlə yaradılıb, lakin avtomatik olaraq daxil olma mümkün olmadə. Zəhmət olmasa, [[Special:UserLogin|daxil olma]] səhifəsinə keçin.",
@@ -793,7 +796,7 @@
 	"history-feed-description": "Vikidə bu səhifənin dəyişikliklər tarixçəsi",
 	"history-feed-item-nocomment": "$1 $2-də",
 	"history-feed-empty": "Axtardığınız səhifə mövcud deyil.\nÇox guman ki, bu səhifə silinib və ya onun adı dəyişdirilib.\nVikidə buna bənzər səhifələri [[Special:Search|axtarmağa]] cəhd edin.",
-	"history-edit-tags": "Seçilmiş versiyaların teqlərini dəyiş",
+	"history-edit-tags": "Seçilən versiyaların teqlərini dəyiş",
 	"history-empty": "Uyğun redaktə tapılmadı.",
 	"rev-deleted-comment": "(redaktə xülasəsi silinib)",
 	"rev-deleted-user": "(İstifadəçi adı silindi)",
@@ -2441,8 +2444,11 @@
 	"remove-blocklink": "blok ləğv et",
 	"manage-blocklink": "blokları idarə et",
 	"empty-username": "(istifadəçi adı yoxdur)",
+	"available-username": "İstifadəçi adı mövcuddur.",
+	"available-username-check-feedback": "Mövcudluğu yoxlanılır",
 	"blocklist-hidden-placeholder": "(istifadəçi adı gizlədilib)",
 	"blocklist-hidden-param": "istifadəçi adı gizlədilib",
+	"blocklist-block-hidden": "blok gizlədilib",
 	"contribslink": "töhfələr",
 	"emaillink": "e-məktub göndər",
 	"autoblocker": "Avtomatik olaraq bloklanmısınız. Çünki qısa müddət əvvəl sizin IP-ünvanınız \"[[User:$1|$1]]\" tərəfindən istifadə edilmişdir.\n$1 adlı istifadəçinin bloklanma səbəbi: \"$2\"",
@@ -3936,5 +3942,6 @@
 	"table-of-contents-show-button-aria-label": "Mündəricatı göstər",
 	"table-of-contents-hide-button-aria-label": "Mündəricatı gizlət",
 	"diff-usergroups": "$1 {{PLURAL:$1|istifadəçi qrupu}}",
-	"languageselector-no-results": "Heç bir nəticə tapılmadı."
+	"languageselector-no-results": "Heç bir nəticə tapılmadı.",
+	"languageselector-invalid-input": "\"$1\" etibarlı dil deyil."
 }

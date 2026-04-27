@@ -399,6 +399,12 @@
 	"createacct-error": "Erro ao crear a conta",
 	"createaccounterror": "Non se puido crear a conta: $1",
 	"createacct-popup-redirect-notice": "Redirixirémoste cando crees unha conta...",
+	"createacct-username-policy-popover-title": "Política de nomes de usuario",
+	"createacct-username-policy-popover-trigger-link": "Escolle con coidado",
+	"createacct-username-policy-popover-trigger-line": "$1: así é como te coñecerá a comunidade.",
+	"createacct-username-policy-popover-bullet1": "Non empregues nomes [[wikipedia:Wikipedia:Username policy#Disruptive_or_offensive_usernames|ofensivos]], [[wikipedia:Wikipedia:Username policy#Misleading_usernames|enganosos]] ou [[wikipedia:Wikipedia:Username policy#Promotional_usernames|promocionais]].",
+	"createacct-username-policy-popover-bullet2": "O teu nome de usuario debe representarte como individuo, [[wikipedia:Wikipedia:Username policy#Usernames_implying_shared_use|non como unha organización]].",
+	"createacct-username-policy-popover-bullet3": "Ten en conta os '''riscos de privacidade''' antes de usar o teu [[wikipedia:Wikipedia:Username policy#Real_names|nome real]].",
 	"nocookieslogin": "{{SITENAME}} usa cookies para rexistrar os usuario, mais ti tes as cookies deshabilitadas.\nPor favor, habilítaas e téntao de novo.",
 	"nocookiesfornew": "Non se creou a conta de usuario porque non puidemos confirmar a orixe.\nAsegúrate de que tes as cookies habilitadas, actualiza a páxina e téntao de novo.",
 	"createacct-loginerror": "A conta creouse correctamente, pero non te puideches conectar de xeito automático. Vai ao [[Special:UserLogin|acceso manual]].",
@@ -2429,8 +2435,11 @@
 	"remove-blocklink": "quitar o bloqueo",
 	"manage-blocklink": "xestionar os bloqueos",
 	"empty-username": "(nome de usuario non dispoñible)",
+	"available-username": "O nome de usuario está dispoñible",
+	"available-username-check-feedback": "Comprobando a dispoñibilidade",
 	"blocklist-hidden-placeholder": "(nome de usuario agochado)",
 	"blocklist-hidden-param": "nome de usuario agochado",
+	"blocklist-block-hidden": "bloqueo agochado",
 	"contribslink": "contribucións",
 	"emaillink": "enviar un correo",
 	"autoblocker": "Recibiches un bloqueo automático porque «[[User:$1|$1]]» utilizou recentemente o teu mesmo enderezo IP.\nO motivo do bloqueo de $1 é: «$2»",
@@ -3950,5 +3959,6 @@
 	"table-of-contents-show-button-aria-label": "Amosar a táboa de contidos",
 	"table-of-contents-hide-button-aria-label": "Agochar a táboa de contidos",
 	"diff-usergroups": "$1 {{PLURAL:$1|grupo|grupos}} de usuario",
-	"languageselector-no-results": "Non se atopou ningún resultado."
+	"languageselector-no-results": "Non se atopou ningún resultado.",
+	"languageselector-invalid-input": "«$1» non é unha lingua válida."
 }

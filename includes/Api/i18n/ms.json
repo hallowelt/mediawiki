@@ -115,8 +115,6 @@
 	"api-help-param-default-empty": "Asal: <span class=\"apihelp-empty\">(kosong)</span>",
 	"api-help-param-no-description": "<span class=\"apihelp-empty\">(tiada keterangan)</span>",
 	"api-help-examples": "{{PLURAL:$1|Contoh|Contoh-contoh}}:",
-	"api-help-permissions": "{{PLURAL:$1|Keizinan}}:",
-	"api-help-permissions-granted-to": "{{PLURAL:$1|Diberikan kepada}}: $2",
 	"apierror-cantblock": "Anda tidak mempunyai kebenaran untuk menyekat pengguna.",
 	"apierror-filedoesnotexist": "Fail tidak wujud.",
 	"apierror-invaliduser": "Nama pengguna tidak sah \"$1\".",

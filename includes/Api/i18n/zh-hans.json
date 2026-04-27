@@ -76,7 +76,6 @@
 			"铁桶"
 		]
 	},
-	"apihelp-main-extended-description": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:Special:MyLanguage/API:Main_page|文档]]\n* [[mw:Special:MyLanguage/API:Etiquette|礼仪和使用指引]]\n* [[mw:Special:MyLanguage/API:FAQ|常见问题]]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api.lists.wikimedia.org/ 邮件列表]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/ API公告]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R 程序错误与功能请求]\n</div>\n<strong>状态：</strong>MediaWiki API已是成熟稳定的接口，且会得到积极的支持和改进。尽管我们尽力避免，但偶尔也需要作出重大更新；请订阅[https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ mediawiki-api-announce 邮件列表]以便获得更新通知。\n\n<strong>错误请求：</strong>当API收到错误请求时，HTTP header将会返回一个包含\"MediaWiki-API-Error\"的值，随后header的值与错误代码将会返回并设置为相同的值。详细信息请参阅[[mw:Special:MyLanguage/API:Errors_and_warnings|API:错误与警告]]。\n\n<p class=\"mw-apisandbox-link\"><strong>测试：</strong>要简化测试API请求的过程，请参见[[Special:ApiSandbox]]。</p>",
 	"apihelp-main-param-action": "要执行的操作。",
 	"apihelp-main-param-format": "输出的格式。",
 	"apihelp-main-param-maxlag": "最大延迟可被用于MediaWiki安装于数据库复制集中。要保存导致更多网站复制延迟的操作，此参数可使客户端等待直到复制延迟少于指定值时。万一发生过多延迟，错误代码<samp>maxlag</samp>会返回消息，例如<samp>等待$host中：延迟$lag秒</samp>。<br />参见[[mw:Special:MyLanguage/Manual:Maxlag_parameter|手册:Maxlag参数]]以获取更多信息。",
@@ -1726,6 +1725,7 @@
 	"api-help-param-templated": "这是一个[[Special:ApiHelp/main#main/templatedparams|模板参数]]。当做出请求时，$2。",
 	"api-help-param-templated-var-first": "参数名中的<var>&#x7B;$1&#x7D;</var>应替换为<var>$2</var>的值",
 	"api-help-param-templated-var": "<var>&#x7B;$1&#x7D;</var>与<var>$2</var>的值",
+	"api-help-general": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:Special:MyLanguage/API:Main_page|文档]]\n* [[mw:Special:MyLanguage/API:Etiquette|礼仪和使用指引]]\n* [[mw:Special:MyLanguage/API:FAQ|常见问题]]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api.lists.wikimedia.org/ 邮件列表]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/ API公告]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R 程序错误与功能请求]\n</div>\n<strong>状态：</strong>MediaWiki API已是成熟稳定的接口，且会得到积极的支持和改进。尽管我们尽力避免，但偶尔也需要作出重大更新；请订阅[https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ mediawiki-api-announce 邮件列表]以便获得更新通知。\n\n<strong>错误请求：</strong>当API收到错误请求时，HTTP header将会返回一个包含\"MediaWiki-API-Error\"的值，随后header的值与错误代码将会返回并设置为相同的值。详细信息请参阅[[mw:Special:MyLanguage/API:Errors_and_warnings|API:错误与警告]]。\n\n<p class=\"mw-apisandbox-link\"><strong>测试：</strong>要简化测试API请求的过程，请参见[[Special:ApiSandbox]]。</p>",
 	"api-help-datatypes-header": "数据类型",
 	"api-help-datatypes-top": "MediaWiki的输入应该是NFC规范化的UTF-8。MediaWiki可能会尝试转换其他输入，但这可能会导致某些操作（例如带有MD5检查的[[Special:ApiHelp/edit|编辑]]）失败。\n\n采用多个值的参数通常与使用管道字符分隔的值一起提交，例如<kbd>param=value1|value2</kbd>或<kbd>param=value1%7Cvalue2</kbd>。如果值必须包含竖线字符，请使用U+001F（单元分隔符）作为分隔符 ''并且'' 用U+001F作为该值的前缀，例如<kbd>param=%1Fvalue1%1Fvalue2</kbd>。\n\nAPI请求中的一些参数类型需要进一步说明：",
 	"api-help-datatype-boolean": "布尔参数的工作方式类似于HTML复选框：如果指定了参数，无论值如何，它都被认为是true。对于假值，完全省略参数。",
@@ -1751,9 +1751,6 @@
 	"api-help-param-continue": "当更多结果可用时，使用这个继续。[[mw:Special:MyLanguage/API:Continue|可在 mediawiki.org 获取]]更多有关如何继续查询的详细信息。",
 	"api-help-param-no-description": "<span class=\"apihelp-empty\">（没有说明）</span>",
 	"api-help-examples": "{{PLURAL:$1|例子}}：",
-	"api-help-permissions": "{{PLURAL:$1|权限}}：",
-	"api-help-permissions-granted-to": "{{PLURAL:$1|授予}}：$2",
-	"api-help-right-apihighlimits": "在API查询中使用更高的上限（慢查询：$1；快查询：$2）。慢查询的限制也适用于多值参数。",
 	"api-help-open-in-apisandbox": "<small>[在沙盒中打开]</small>",
 	"api-help-authmanager-general-usage": "使用此模块的一般程序是：\n# 通过<kbd>amirequestsfor=$4</kbd>取得来自<kbd>[[Special:ApiHelp/query+authmanagerinfo|action=query&meta=authmanagerinfo]]</kbd>的可用字段，和来自<kbd>[[Special:ApiHelp/query+tokens|action=query&meta=tokens]]</kbd>的<kbd>$5</kbd>令牌。\n# 向用户显示字段，并获得其提交的内容。\n# 发送（POST）至此模块，提供<var>$1returnurl</var>及任何相关字段。\n# 在响应中检查<samp>status</samp>。\n#* 如果您收到了<samp>PASS</samp>（成功）或<samp>FAIL</samp>（失败），则认为操作结束。成功与否如上句所示。\n#* 如果您收到了<samp>UI</samp>，向用户显示新字段，并再次获取其提交的内容。然后再次使用<var>$1continue</var>，向本模块提交相关字段，并重复第四步。\n#* 如果您收到了<samp>REDIRECT</samp>，将用户指向<samp>redirecttarget</samp>中的目标，等待其返回<var>$1returnurl</var>。然后再次使用<var>$1continue</var>，向本模块提交返回URL中提供的一切字段，并重复第四步。\n#* 如果您收到了<samp>RESTART</samp>，这意味着身份验证正常运作，但我们没有链接的用户账户。您可以将此看做<samp>UI</samp>或<samp>FAIL</samp>。",
 	"api-help-authmanagerhelper-requests": "只使用这些身份验证请求，通过返回自<kbd>[[Special:ApiHelp/query+authmanagerinfo|action=query&meta=authmanagerinfo]]</kbd>的<samp>id</samp>与<kbd>amirequestsfor=$1</kbd>，或来自此模块之前的响应。",

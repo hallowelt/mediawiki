@@ -92,8 +92,6 @@
 	"api-help-param-token": "Маркер „$1“, получен от [[Special:ApiHelp/query+tokens|action=query&#38;meta=tokens]]",
 	"api-help-param-token-webui": "За съвместимост, се приема и маркерът, който се използва в уеб-интерфейса.",
 	"api-help-examples": "{{PLURAL:$1|Пример|Примери}}:",
-	"api-help-permissions": "{{PLURAL:$1|Право|Права}}:",
-	"api-help-right-apihighlimits": "Употреба на по-големи ограничения за приложни заявки (бавни заявки: $1; бързи заявки: $2). Ограниченията за бавните заявки се прилагат и за параметри с повече от една стойност.",
 	"apierror-cantimport": "Нямате разрешение да внасяте страници.",
 	"apierror-copyuploadbaddomain": "Качването чрез URL не е позволено от този домейн.",
 	"apierror-copyuploadbadurl": "Качването не е позволено от този URL.",

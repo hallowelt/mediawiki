@@ -2479,6 +2479,8 @@
 	"remove-blocklink": "poista esto",
 	"manage-blocklink": "hallitse estoja",
 	"empty-username": "(käyttäjää ei saatavissa)",
+	"available-username": "Käyttäjänimi saatavilla",
+	"available-username-check-feedback": "Tarkistetaan saatavuutta",
 	"blocklist-hidden-placeholder": "käyttäjänimi piilotettu",
 	"blocklist-hidden-param": "käyttäjänimi piilotettu",
 	"blocklist-block-hidden": "esto piilotettu",

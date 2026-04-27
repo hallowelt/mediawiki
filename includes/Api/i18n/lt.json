@@ -394,8 +394,6 @@
 	"api-help-param-default-empty": "Numatytasis: <span class=\"apihelp-empty\">(tuščia)</span>",
 	"api-help-param-no-description": "<span class=\"apihelp-empty\">(nėra aprašymo)</span>",
 	"api-help-examples": "{{PLURAL:$1|Pavyzdys|Pavyzdžiai}}:",
-	"api-help-permissions": "{{PLURAL:$1|Leidimas|Leidimai}}:",
-	"api-help-permissions-granted-to": "{{PLURAL:$1|Suteikta}}: $2",
 	"apierror-articleexists": "Puslapis, kurį bandėte sukurti, jau yra sukurtas.",
 	"apierror-autoblocked": "Jūsų IP adresas buvo automatiškai užblokuotas, nes jis buvo naudojamas užblokuoto vartotojo.",
 	"apierror-badgenerator-unknown": "Nežinomas <kbd>generator=$1</kbd>.",

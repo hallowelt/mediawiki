@@ -111,8 +111,6 @@
 	"api-help-param-disabled-in-miser-mode": "Онемогућено због [[mw:Special:MyLanguage/Manual:$wgMiserMode|режима штедње]].",
 	"api-help-param-limited-in-miser-mode": "<strong>Напомена:</strong> Због [[mw:Special:MyLanguage/Manual:$wgMiserMode|режима штедње]], коришћење овога може да резултује враћањем мање од <var>$1limit</var> резултата пре наставка; у екстремним случајевима, нула резултата такође може да буде враћено.",
 	"api-help-examples": "{{PLURAL:$1|Пример|Примери}}:",
-	"api-help-permissions": "{{PLURAL:$1|Дозвола|Дозволе}}:",
-	"api-help-permissions-granted-to": "{{PLURAL:$1|Додељено}}: $2",
 	"apierror-alreadyregistered": "Већ имате кориснички налог.",
 	"apierror-articleexists": "Страница коју сте покушали направити већ је направљена.",
 	"apierror-badtoken": "Невалидан CSRF токен.",

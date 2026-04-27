@@ -2540,6 +2540,8 @@
 	"remove-blocklink": "rimuovi blocco",
 	"manage-blocklink": "gestisci blocchi",
 	"empty-username": "(nessun nome utente disponibile)",
+	"available-username": "Nome utente disponibile",
+	"available-username-check-feedback": "Verifica disponibilità",
 	"blocklist-hidden-placeholder": "(nome utente nascosto)",
 	"blocklist-hidden-param": "nome utente nascosto",
 	"contribslink": "contributi",

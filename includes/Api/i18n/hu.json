@@ -12,7 +12,6 @@
 			"Wolf Rex"
 		]
 	},
-	"apihelp-main-extended-description": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:Special:MyLanguage/API:Main_page|Dokumentáció]]\n* [[mw:Special:MyLanguage/API:Etiquette|Etikett és használati útmutatók]]\n* [[mw:Special:MyLanguage/API:FAQ|GYIK]]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api.lists.wikimedia.org/ Levelezőlista]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/ API-bejelentések]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R Hibabejelentések és kérések]\n</div>\n<strong>Állapot:</strong> A MediaWiki API egy érett és stabil interfész, ami aktív támogatásban és fejlesztésben részesül. Bár próbáljuk elkerülni, de néha szükség van visszafelé nem kompatibilis változtatásokra; iratkozz fel a [https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ mediawiki-api-announce levelezőlistára] a frissítések követéséhez.\n\n<strong>Hibás kérések:</strong> Ha az API hibás kérést kap, egy HTTP-fejlécet küld vissza „MediaWiki-API-Error” kulccsal, és a fejléc értéke és a visszaküldött hibakód ugyanarra az értékre lesz állítva. További információért lásd: [[mw:Special:MyLanguage/API:Errors_and_warnings|API: Hibák és figyelmeztetések]].\n\n<p class=\"mw-apisandbox-link\"><strong>Tesztelés:</strong> Az API-kérések könnyebb teszteléséhez használható az [[Special:ApiSandbox|API-homokozó]].</p>",
 	"apihelp-main-param-action": "Milyen műveletet hajtson végre.",
 	"apihelp-main-param-format": "A kimenet formátuma.",
 	"apihelp-main-param-smaxage": "Az <code>s-maxage</code> gyorsítótár-vezérlő HTTP-fejléc beállítása ennyi másodpercre. A hibák soha nincsenek gyorsítótárazva.",
@@ -1177,6 +1176,7 @@
 	"api-help-parameters": "{{PLURAL:$1|Jellemző paraméter|Jellemző paraméterek}}:",
 	"api-help-param-deprecated": "Elavult.",
 	"api-help-param-internal": "Belső.",
+	"api-help-general": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:Special:MyLanguage/API:Main_page|Dokumentáció]]\n* [[mw:Special:MyLanguage/API:Etiquette|Etikett és használati útmutatók]]\n* [[mw:Special:MyLanguage/API:FAQ|GYIK]]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api.lists.wikimedia.org/ Levelezőlista]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/ API-bejelentések]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R Hibabejelentések és kérések]\n</div>\n<strong>Állapot:</strong> A MediaWiki API egy érett és stabil interfész, ami aktív támogatásban és fejlesztésben részesül. Bár próbáljuk elkerülni, de néha szükség van visszafelé nem kompatibilis változtatásokra; iratkozz fel a [https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ mediawiki-api-announce levelezőlistára] a frissítések követéséhez.\n\n<strong>Hibás kérések:</strong> Ha az API hibás kérést kap, egy HTTP-fejlécet küld vissza „MediaWiki-API-Error” kulccsal, és a fejléc értéke és a visszaküldött hibakód ugyanarra az értékre lesz állítva. További információért lásd: [[mw:Special:MyLanguage/API:Errors_and_warnings|API: Hibák és figyelmeztetések]].\n\n<p class=\"mw-apisandbox-link\"><strong>Tesztelés:</strong> Az API-kérések könnyebb teszteléséhez használható az [[Special:ApiSandbox|API-homokozó]].</p>",
 	"api-help-datatypes-header": "Adattípusok",
 	"api-help-datatype-boolean": "A logikai paraméterek a HTML jelölőnégyzeteihez hasonlóan működnek: ha a paraméter meg van adva, az igazat jelent, függetlenül a paraméter értékétől. Hamis értékhez hagyd el a paramétert teljesen.",
 	"api-help-param-type-limit": "Típus: egész vagy <kbd>max</kbd>",
@@ -1194,9 +1194,6 @@
 	"api-help-param-continue": "Ha további eredmények érhetők el, használd ezt a folytatáshoz. További részletekért lásd: [[mw:Special:MyLanguage/API:Continue|lekérdezések folytatása (mediawiki.org)]].",
 	"api-help-param-no-description": "<span class=\"apihelp-empty\">(nincs leírás)</span>",
 	"api-help-examples": "{{PLURAL:$1|Példa|Példák}}:",
-	"api-help-permissions": "{{PLURAL:$1|Jogosultság|Jogosultságok}}:",
-	"api-help-permissions-granted-to": "Megadva a következő {{PLURAL:$1|csoportnak|csoportoknak}}: $2",
-	"api-help-right-apihighlimits": "Magasabb limitek használata API-lekérdezésekben (lassú lekérdezések: $1, gyors lekérdezések: $2). A lassú lekérdezések limitje a több értékű paraméterekre is vonatkozik.",
 	"api-help-open-in-apisandbox": "<small>[megnyitás a homokozóban]</small>",
 	"apierror-allimages-redirect": "Használd a <kbd>gaifilterredir=nonredirects</kbd> paramétert a <var>redirects</var> helyett, ha az <kbd>allimages</kbd> modult generátorként használod.",
 	"apierror-allpages-generator-redirects": "Használd a <kbd>gapfilterredir=nonredirects</kbd> paramétert a <var>redirects</var> helyett, ha az <kbd>allpages</kbd> modult generátorként használod.",

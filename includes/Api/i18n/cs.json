@@ -21,7 +21,6 @@
 			"YjM"
 		]
 	},
-	"apihelp-main-extended-description": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:Special:MyLanguage/API:Main_page|Dokumentace]]\n* [[mw:Special:MyLanguage/API:Etiquette|Etiketa & pokyny k používání]]\n* [[mw:Special:MyLanguage/API:FAQ|Otázky a odpovědi]]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api.lists.wikimedia.org/ E-mailová konference]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/ Oznámení k API]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R Chyby a požadavky]\n</div>\n<strong>Stav:</strong> Všechny funkce uvedené na této stránce by měly fungovat, ale API se stále aktivně vyvíjí a může se kdykoli změnit. Upozornění na změny získáte přihlášením se k [https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ e-mailové konferenci mediawiki-api-announce].\n\n<strong>Chybné požadavky:</strong> Pokud jsou do API zaslány chybné požadavky, bude vrácena HTTP hlavička s klíčem „MediaWiki-API-Error“ a hodnota této hlavičky a chybový kód budou nastaveny na stejnou hodnotu. Více informací najdete [[mw:Special:MyLanguage/API:Errors_and_warnings|v dokumentaci]].\n\n<p class=\"mw-apisandbox-link\"><strong>Testování:</strong> Pro jednoduché testování požadavků na API zkuste [[Special:ApiSandbox]].</p>",
 	"apihelp-main-param-action": "Která akce se má provést.",
 	"apihelp-main-param-format": "Formát výstupu.",
 	"apihelp-main-param-maxlag": "Maximální zpoždění lze použít, když je MediaWiki nainstalováno na cluster s replikovanou databází. Abyste se vyhnuli zhoršování už tak špatného replikačního zpoždění, můžete tímto parametrem nechat klienta čekat, dokud replikační zpoždění neklesne pod uvedenou hodnotu. V případě příliš vysokého zpoždění se vrátí chybový kód „<samp>maxlag</samp>“ s hlášením typu „<samp>Waiting for $host: $lag seconds lagged</samp>“.<br />Více informací najdete v [[mw:Special:MyLanguage/Manual:Maxlag_parameter|příručce]].",
@@ -265,6 +264,7 @@
 	"api-help-license-unknown": "Licence: <span class=\"apihelp-unknown\">neznámá</span>",
 	"api-help-parameters": "{{PLURAL:$1|Parametr|Parametry}}:",
 	"api-help-param-deprecated": "Zastaralý.",
+	"api-help-general": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:Special:MyLanguage/API:Main_page|Dokumentace]]\n* [[mw:Special:MyLanguage/API:Etiquette|Etiketa & pokyny k používání]]\n* [[mw:Special:MyLanguage/API:FAQ|Otázky a odpovědi]]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api.lists.wikimedia.org/ E-mailová konference]\n* [https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/ Oznámení k API]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R Chyby a požadavky]\n</div>\n<strong>Stav:</strong> Všechny funkce uvedené na této stránce by měly fungovat, ale API se stále aktivně vyvíjí a může se kdykoli změnit. Upozornění na změny získáte přihlášením se k [https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ e-mailové konferenci mediawiki-api-announce].\n\n<strong>Chybné požadavky:</strong> Pokud jsou do API zaslány chybné požadavky, bude vrácena HTTP hlavička s klíčem „MediaWiki-API-Error“ a hodnota této hlavičky a chybový kód budou nastaveny na stejnou hodnotu. Více informací najdete [[mw:Special:MyLanguage/API:Errors_and_warnings|v dokumentaci]].\n\n<p class=\"mw-apisandbox-link\"><strong>Testování:</strong> Pro jednoduché testování požadavků na API zkuste [[Special:ApiSandbox]].</p>",
 	"api-help-datatypes-header": "Datové typy",
 	"api-help-templatedparams-header": "Šablonované parametry",
 	"api-help-templatedparams": "Šablonované parametry umožňují situace, kdy modul API potřebuje hodnotu pro každou hodnotu nějakého jiného parametru. Pokud by například existoval modul API pro získání ovoce, mohl by mít parametr <var>ovoce</var>, kterým se určí požadované druhy ovoce, a šablonovaný parametr <var>{ovoce}-počet</var>, kterým se určí požadované počty jednotlivých druhů. Klient API, který by chtěl 1 jablko, 5 banánů a 20 jahod, by mohl vytvořit požadavek <kbd>ovoce=jablka|banány|jahody&jablka-počet=1&banány-počet=5&jahody-počet=20</kbd>.",
@@ -274,9 +274,6 @@
 	"api-help-param-token": "Token typu „$1“ získaný pomocí [[Special:ApiHelp/query+tokens|action=query&meta=tokens]].",
 	"api-help-param-no-description": "<span class=\"apihelp-empty\">(bez popisu)</span>",
 	"api-help-examples": "{{PLURAL:$1|Příklad|Příklady}}:",
-	"api-help-permissions": "{{PLURAL:$1|Oprávnění}}:",
-	"api-help-permissions-granted-to": "Uděleno {{PLURAL:$1|skupině|skupinám}}: $2",
-	"api-help-right-apihighlimits": "Používání vyšších limitů v API dotazech (pomalé dotazy: $1, rychlé dotazy: $2). Limity pro pomalé dotazy se vztahují i na vícehodnotové parametry.",
 	"api-help-open-in-apisandbox": "<small>[otevřít v pískovišti]</small>",
 	"apierror-assertnameduserfailed": "Již nejste přihlášen jako „$1“, takže akci nelze dokončit.",
 	"apierror-blocked": "Byla vám zablokována možnost editace.",

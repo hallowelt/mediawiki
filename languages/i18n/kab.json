@@ -1425,6 +1425,7 @@
 	"sessionfailure": "Yella ugul akk d takmect inek;\nAxdam-agi yebṭel axaṭer waqila yella wemdan nniḍen i yeddem isem n wemseqdac inek.\nG leɛnayek wekki ɣef taqeffalt \"Back/Précédent\" n browser/explorateur inek, umbeɛd wekki ɣef \"Actualiser/reload\" akk ad tɛerḍeḍ tikelt nniḍen.",
 	"changecontentmodel-title-label": "Azwel n usebter",
 	"changecontentmodel-reason-label": "Taɣẓint :",
+	"changecontentmodel-create-submit": "Snulfu-d",
 	"protectlogpage": "Aɣmis n wemḥay",
 	"protectlogtext": "Atan umuɣ n ibeddilen n immestan n isebtar.\nZeṛ [[Special:ProtectedPages|umuɣ n isebtar yettwaḥerzen]] i umuɣ n immestan timiranin.",
 	"protect-title": "Beddel aswir n usegdel i \"$1\"",

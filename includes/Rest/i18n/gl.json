@@ -310,5 +310,10 @@
 	"rest-responseheader-desc-contenttype": "Indica o tipo multimedia orixinal dun recurso antes de aplicar calquera codificación de contido.",
 	"rest-responseheader-desc-link": "Ofrece un medio para serializar unha ou máis ligazóns nas cabeceiras HTTP. Isto permite que o servidor apunte un cliente a outro recurso que conteña metadatos sobre o recurso solicitado.",
 	"rest-responseheader-desc-expires": "Contén a data e a hora despois das cales a resposta se considera que caducou no contexto do almacenamento en caché HTTP.",
-	"rest-responseheader-desc-location": "Indica un enderezo URL de destino para dous propósitos principais: redirección e identificación da localización dun recurso creado recentemente."
+	"rest-responseheader-desc-location": "Indica un enderezo URL de destino para dous propósitos principais: redirección e identificación da localización dun recurso creado recentemente.",
+	"rest-openapispec-genericerrorresponse-desc": "Resposta xenérica de erro. A mensaxe proporcionará máis detalles sobre o erro.",
+	"rest-openapispec-genericerrorresponse-property-desc-httpCode": "O código de estado HTTP da resposta de erro.",
+	"rest-openapispec-genericerrorresponse-property-desc-httpMessage": "A mensaxe de estado HTTP da resposta de erro.",
+	"rest-openapispec-genericerrorresponse-property-desc-message": "Unha mensaxe de erro lexible para humanos, útil cando non están dispoñibles as traducións de mensaxes",
+	"rest-openapispec-genericerrorresponse-property-desc-messageTranslations": "Un mapa de códigos de lingua con mensaxes de erro lexibles para humanos, para que os clientes os poidan usar."
 }

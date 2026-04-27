@@ -7,7 +7,6 @@
 			"Vlad5250"
 		]
 	},
-	"apihelp-main-extended-description": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:API:Main_page|Документација]]\n* [[mw:API:FAQ|ЧПП]]\n* [https://lists.wikimedia.org/mailman/listinfo/mediawiki-api Поштенски список]\n* [https://lists.wikimedia.org/mailman/listinfo/mediawiki-api-announce Соопштенија за Извршникот]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R Грешки и барања]\n</div>\n<strong>Статус:</strong> Сите ставки на страницава би требало да работат, но Извршникот сепак е во активна разработка, што значи дека може да се смени во секое време. Објавите за измени можете да ги дознавате ако се пријавите на [https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ поштенскиот список „the mediawiki-api-announce“].\n\n<strong>Погрешни барања:</strong> Кога Извршникот ќе добие погрешни барања, ќе се испрати HTTP-заглавие со клучот „MediaWiki-API-Error“ и потоа на вредностите на заглавието и шифрата на грешката што ќе се појават ќе им биде зададена истата вредност. Повеќе информации ќе најдете на [[mw:API:Errors_and_warnings|Извршник: Грешки и предупредувања]].",
 	"apihelp-main-param-action": "Кое дејство да се изврши.",
 	"apihelp-main-param-format": "Формат на изводот.",
 	"apihelp-main-param-maxlag": "Најголемиот допуштен заостаток може да се користи кога МедијаВики е воспоставен на грозд умножен од базата. За да спречите дополнителни заостатоци од дејства, овој параметар му наложува на клиентот да почека додека заостатокот не се намали под укажаната вредност. Во случај на преголем заостаток, системт ја дава грешката со код <samp>maxlag</samp> со порака од обликот <samp>Го чекам $host: има заостаток од $lag секунди</samp>.<br />Погл. [[mw:Manual:Maxlag_parameter|Прирачник: Параметар Maxlag]] за повеќе информации.",
@@ -573,6 +572,7 @@
 	"api-help-parameters": "{{PLURAL:$1|Параметар|Параметри}}:",
 	"api-help-param-deprecated": "Застарен.",
 	"api-help-param-internal": "Внатрешен.",
+	"api-help-general": "<div class=\"hlist plainlinks api-main-links\">\n* [[mw:API:Main_page|Документација]]\n* [[mw:API:FAQ|ЧПП]]\n* [https://lists.wikimedia.org/mailman/listinfo/mediawiki-api Поштенски список]\n* [https://lists.wikimedia.org/mailman/listinfo/mediawiki-api-announce Соопштенија за Извршникот]\n* [https://phabricator.wikimedia.org/maniphest/query/GebfyV4uCaLd/#R Грешки и барања]\n</div>\n<strong>Статус:</strong> Сите ставки на страницава би требало да работат, но Извршникот сепак е во активна разработка, што значи дека може да се смени во секое време. Објавите за измени можете да ги дознавате ако се пријавите на [https://lists.wikimedia.org/hyperkitty/list/mediawiki-api-announce@lists.wikimedia.org/ поштенскиот список „the mediawiki-api-announce“].\n\n<strong>Погрешни барања:</strong> Кога Извршникот ќе добие погрешни барања, ќе се испрати HTTP-заглавие со клучот „MediaWiki-API-Error“ и потоа на вредностите на заглавието и шифрата на грешката што ќе се појават ќе им биде зададена истата вредност. Повеќе информации ќе најдете на [[mw:API:Errors_and_warnings|Извршник: Грешки и предупредувања]].",
 	"api-help-datatypes-header": "Типови на податоци",
 	"api-help-param-type-limit": "Тип: цел број или <kbd>max</kbd>",
 	"api-help-param-type-timestamp": "Тип: {{PLURAL:$1|1=време и датум|2=список на времиња и датуми}} ([[Special:ApiHelp/main#main/datatype/timestamp|допуштени формати]])",
@@ -587,9 +587,6 @@
 	"api-help-param-continue": "Кога ќе има повеќе расположливи ставки, послужете се со ова за да продолжите. Поподробни информации за тоа како да продолжите со барањата [[mw:Special:MyLanguage/API:Continue|ќе најдете на mediawiki.org]].",
 	"api-help-param-no-description": "<span class=\"apihelp-empty\">(нема опис)</span>",
 	"api-help-examples": "{{PLURAL:$1|Пример|Примери}}:",
-	"api-help-permissions": "{{PLURAL:$1|Дозвола|Дозволи}}:",
-	"api-help-permissions-granted-to": "{{PLURAL:$1|Доделена на}}: $2",
-	"api-help-right-apihighlimits": "Употреба на повисоки ограничувања за приложни барања (бавни барања: $1; брзи барања: $2). Ограничувањата за бавни барања важат и за повеќевредносни параметри.",
 	"apierror-badgenerator-unknown": "Непознат <kbd>generator=$1</kbd>.",
 	"apierror-badip": "Параметарот на IP не е важечки.",
 	"apierror-badquery": "Неважечко барање.",

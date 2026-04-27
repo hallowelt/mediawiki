@@ -222,7 +222,5 @@
 	"api-help-param-multi-separate": "Phân tách các giá trị bằng <kbd>|</kbd>.",
 	"api-help-param-default-empty": "Mặc định: <span class=\"apihelp-empty\">(trống)</span>",
 	"api-help-examples": "{{PLURAL:$1|Ví dụ|Các ví dụ}}:",
-	"api-help-permissions": "{{PLURAL:$1|Quyền hạn|Các quyền hạn}}:",
-	"api-help-permissions-granted-to": "{{PLURAL:$1|Cấp cho}}: $2",
 	"api-credits-header": "Ghi công"
 }

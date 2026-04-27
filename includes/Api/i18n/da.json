@@ -122,7 +122,6 @@
 	"api-help-license-noname": "Licens: [[$1|Se link]]",
 	"api-help-datatypes-header": "Datatyper",
 	"api-help-examples": "{{PLURAL:$1|Eksempel|Eksempler}}:",
-	"api-help-permissions": "{{PLURAL:$1|Tilladelse|Tilladelser}}:",
 	"apierror-badquery": "Ugyldig forespørgsel.",
 	"apierror-blocked-partial": "Du er blevet blokeret fra at redigere denne side.",
 	"apierror-cannotviewtitle": "DU har ikke tilladelse til at se $1.",

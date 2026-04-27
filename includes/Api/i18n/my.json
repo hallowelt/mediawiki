@@ -53,7 +53,6 @@
 	"api-help-parameters": "{{PLURAL:$1|အထူး ပါရာမီတာ|အထူး ပါရာမီတာများ}}:",
 	"api-help-datatypes-header": "ဒေတာ အမျိုးစားများ",
 	"api-help-examples": "{{PLURAL:$1|နမူနာ|နမူနာများ}}:",
-	"api-help-permissions": "{{PLURAL:$1|ခွင့်ပြုချက်|ခွင့်ပြုချက်များ}}:",
 	"apierror-assertnameduserfailed": "သင်သည် အသုံးပြုသူ \"$1\" အဖြစ် အကောင့်ဝင်ထားခြင်း မရှိတော့သဖြင့် လုပ်ဆောင်ချက်သည် ပြီးပြည့်စုံမှု မရှိပါ။",
 	"apierror-filedoesnotexist": "ဖိုင် မရှိပါ။",
 	"apierror-missingtitle-byname": "စာမျက်နှာ $1 မတည်ရှိပါ။"
