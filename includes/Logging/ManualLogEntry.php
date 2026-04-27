@@ -459,15 +459,16 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 
 			DeferredUpdates::addCallableUpdate(
 				function () use ( $newId, $to, $canAddTags, $rc ) {
+					$services = MediaWikiServices::getInstance();
 					if ( $to === 'rc' || $to === 'rcandudp' ) {
 						// save RC, passing tags so they are applied there
 						$rc->addTags( $this->getTags() );
-						$rc->save( $rc::SEND_NONE );
+						$services->getRecentChangeFactory()->insertRecentChange( $rc, $rc::SEND_NONE );
 					} else {
 						$tags = $this->getTags();
 						if ( $tags && $canAddTags ) {
 							$revId = $this->getAssociatedRevId();
-							MediaWikiServices::getInstance()->getChangeTagsStore()->addTags(
+							$services->getChangeTagsStore()->addTags(
 								$tags,
 								null,
 								$revId > 0 ? $revId : null,
@@ -477,7 +478,7 @@ class ManualLogEntry extends LogEntryBase implements Taggable {
 					}
 
 					if ( $to === 'udp' || $to === 'rcandudp' ) {
-						$rc->notifyRCFeeds();
+						$services->getRecentChangeRCFeedNotifier()->notifyRCFeeds( $rc );
 					}
 				},
 				DeferredUpdates::POSTSEND,

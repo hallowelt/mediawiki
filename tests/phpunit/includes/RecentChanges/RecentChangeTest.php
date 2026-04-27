@@ -113,10 +113,13 @@ class RecentChangeTest extends MediaWikiIntegrationTestCase {
 		$rc->setExtra( [
 			'pageStatus' => 'changed'
 		] );
-		$rc->save();
+		$rcFactory = $this->getServiceContainer()->getRecentChangeFactory();
+		$rcFactory->insertRecentChange( $rc );
 		$id = $rc->getAttribute( 'rc_id' );
 
-		$rc = RecentChange::newFromId( $id );
+		$rc = $this->getServiceContainer()
+			->getRecentChangeLookup()
+			->getRecentChangeById( $id );
 
 		$actualAttribs = array_intersect_key( $rc->getAttributes(), $attribs );
 		$this->assertArrayEquals( $attribs, $actualAttribs, false, true );

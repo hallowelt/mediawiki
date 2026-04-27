@@ -29,11 +29,14 @@ class ImportTemporaryUserIntegrationTest extends MediaWikiIntegrationTestCase {
 		$this->importTestData();
 		$this->runJobs();
 
-		$rc = RecentChange::newFromConds( [
-			'rc_namespace' => NS_CATEGORY,
-			'rc_title' => 'Test',
-			'rc_source' => RecentChange::SRC_CATEGORIZE
-		], __METHOD__ );
+		$rc = $this->getServiceContainer()->getRecentChangeLookup()->getRecentChangeByConds(
+			[
+				'rc_namespace' => NS_CATEGORY,
+				'rc_title' => 'Test',
+				'rc_source' => RecentChange::SRC_CATEGORIZE
+			],
+			__METHOD__
+		);
 
 		$this->assertSame( '192.0.2.14', $rc->getPerformerIdentity()->getName() );
 		$this->assertSame( $referenceTime, $rc->getAttribute( 'rc_timestamp' ) );

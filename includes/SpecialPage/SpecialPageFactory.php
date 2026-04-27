@@ -745,6 +745,7 @@ class SpecialPageFactory {
 				'RowCommentFormatter',
 				'ChangeTagsStore',
 				'TempUserConfig',
+				'RecentChangeFactory',
 			]
 		],
 		'Recentchanges' => [

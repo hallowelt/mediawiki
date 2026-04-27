@@ -1172,7 +1172,8 @@ class ApiQueryWatchlistIntegrationTest extends ApiTestCase {
 		);
 
 		$rc = $this->getExternalRC( $subjectTarget );
-		$rc->save();
+		$rcFactory = $this->getServiceContainer()->getRecentChangeFactory();
+		$rcFactory->insertRecentChange( $rc );
 
 		$this->watchPages( $user, [ $subjectTarget, $talkTarget ] );
 

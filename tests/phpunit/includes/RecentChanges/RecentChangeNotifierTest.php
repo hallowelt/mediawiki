@@ -1,7 +1,6 @@
 <?php
 
 use MediaWiki\MainConfigNames;
-use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\RecentChanges\RecentChangeNotifier;
 use MediaWiki\Title\Title;
 
@@ -45,7 +44,8 @@ class RecentChangeNotifierTest extends MediaWikiIntegrationTestCase {
 			'rc_last_oldid' => false,
 			'rc_user' => $alice->getId(),
 		];
-		$rc = @RecentChange::newFromRow( $row );
+		$rcFactory = $this->getServiceContainer()->getRecentChangeFactory();
+		$rc = @$rcFactory->newRecentChangeFromRow( $row );
 
 		$sent = $this->recentChangeNotifier->notifyOnPageChange( $rc );
 		static::assertTrue( $sent );

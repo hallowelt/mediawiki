@@ -428,7 +428,7 @@ class EnhancedChangesListTest extends MediaWikiLangTestCase {
 			'rc_user' => $this->getTestUser()->getUser()->getId(),
 			'we_expiry' => '20200101000000',
 		];
-		$rc = RecentChange::newFromRow( $row );
+		$rc = $this->getServiceContainer()->getRecentChangeFactory()->newRecentChangeFromRow( $row );
 
 		// Make sure it doesn't output anything for a past expiry.
 		$html1 = $enhancedChangesList->getWatchlistExpiry( $rc );

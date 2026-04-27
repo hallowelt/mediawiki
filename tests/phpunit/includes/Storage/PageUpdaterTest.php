@@ -99,7 +99,13 @@ class PageUpdaterTest extends MediaWikiIntegrationTestCase {
 			->caller( __METHOD__ )
 			->fetchRow();
 
-		return $row ? RecentChange::newFromRow( $row ) : null;
+		if ( $row ) {
+			return $this->getServiceContainer()
+				->getRecentChangeFactory()
+				->newRecentChangeFromRow( $row );
+		} else {
+			return null;
+		}
 	}
 
 	/**

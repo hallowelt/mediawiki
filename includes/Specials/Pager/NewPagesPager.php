@@ -24,6 +24,7 @@ use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Permissions\GroupPermissionsLookup;
 use MediaWiki\RecentChanges\ChangesList;
 use MediaWiki\RecentChanges\RecentChange;
+use MediaWiki\RecentChanges\RecentChangeFactory;
 use MediaWiki\Revision\MutableRevisionRecord;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\NamespaceInfo;
@@ -62,6 +63,7 @@ class NewPagesPager extends ReverseChronologicalPager {
 		private readonly RowCommentFormatter $rowCommentFormatter,
 		private readonly IContentHandlerFactory $contentHandlerFactory,
 		private readonly TempUserConfig $tempUserConfig,
+		private readonly RecentChangeFactory $rcFactory,
 		protected readonly FormOptions $opts,
 	) {
 		parent::__construct( $context, $linkRenderer );
@@ -236,7 +238,7 @@ class NewPagesPager extends ReverseChronologicalPager {
 		);
 
 		$ulink = Linker::revUserTools( $revRecord );
-		$rc = RecentChange::newFromRow( $row );
+		$rc = $this->rcFactory->newRecentChangeFromRow( $row );
 		if ( ChangesList::userCan( $rc, RevisionRecord::DELETED_COMMENT, $this->getAuthority() ) ) {
 			$comment = $this->formattedComments[$rc->mAttribs['rc_id']];
 		} else {

@@ -726,7 +726,8 @@ class ApiQueryRecentChangesIntegrationTest extends ApiTestCase {
 		$this->doPageEdit( $user, $subjectTarget, 'Create the page' );
 		$this->doPageEdit( $user, $talkTarget, 'Create Talk page' );
 		$rc = $this->getExternalRC( $subjectTarget );
-		$rc->save();
+		$rcFactory = $this->getServiceContainer()->getRecentChangeFactory();
+		$rcFactory->insertRecentChange( $rc );
 
 		$result = $this->doListRecentChangesRequest( [ 'rcprop' => 'title', 'rctype' => 'external' ] );
 

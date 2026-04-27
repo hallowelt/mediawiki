@@ -17,6 +17,7 @@ use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\Permissions\GroupPermissionsLookup;
+use MediaWiki\RecentChanges\RecentChangeFactory;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\SpecialPage\IncludableSpecialPage;
@@ -55,7 +56,8 @@ class SpecialNewPages extends IncludableSpecialPage {
 		private readonly UserOptionsLookup $userOptionsLookup,
 		private readonly RowCommentFormatter $rowCommentFormatter,
 		private readonly ChangeTagsStore $changeTagsStore,
-		private readonly TempUserConfig $tempUserConfig
+		private readonly TempUserConfig $tempUserConfig,
+		private readonly RecentChangeFactory $rcFactory,
 	) {
 		parent::__construct( 'Newpages' );
 	}
@@ -357,6 +359,7 @@ class SpecialNewPages extends IncludableSpecialPage {
 			$this->rowCommentFormatter,
 			$this->contentHandlerFactory,
 			$this->tempUserConfig,
+			$this->rcFactory,
 			$this->opts,
 		);
 	}
