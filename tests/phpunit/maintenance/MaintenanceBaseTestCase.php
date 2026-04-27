@@ -63,7 +63,16 @@ abstract class MaintenanceBaseTestCase extends MediaWikiIntegrationTestCase {
 	 * @return Maintenance The Maintenance instance to test.
 	 */
 	protected function createMaintenance() {
-		$className = $this->getMaintenanceClass();
+		return $this->createMaintenanceInternal( $this->getMaintenanceClass() );
+	}
+
+	/**
+	 * Called by setUp to initialize $this->maintenance.
+	 *
+	 * @param class-string $className
+	 * @return Maintenance The Maintenance instance to test.
+	 */
+	protected function createMaintenanceInternal( string $className ) {
 		$obj = new $className();
 
 		// We use TestingAccessWrapper in order to access protected internals
