@@ -233,10 +233,10 @@ class ConverterRule {
 				$v = trim( $u[1] );
 				$vv = $this->mConverter->validateVariant( $v );
 				// if $from is empty, strtr() could return a wrong result.
-				if ( array_key_exists( $vv, $unidtable )
+				if ( $vv && array_key_exists( $vv, $unidtable )
 					&& !is_array( $unidtable[$vv] )
 					&& $from !== ''
-					&& $vv ) {
+				) {
 					$unidtable[$vv] = [ $from => $to ];
 				} elseif ( $from !== '' && $vv ) {
 					$unidtable[$vv][$from] = $to;
@@ -493,6 +493,9 @@ class ConverterRule {
 					}
 				}
 			}
+			// If no variant matched, fallback to displaying the filter rule
+			// contents as literal text instead.
+			// T424275: should probably display an error message instead
 			$this->mFlags = $flags = [ 'R' => true ];
 		}
 
@@ -606,6 +609,7 @@ class ConverterRule {
 				}
 			}
 			// No matching variant; fallback to displaying the empty string.
+			// T424275: should probably display an error message instead
 			$this->mRuleDisplay = '';
 			$this->mFlags['R'] = true;
 		}
