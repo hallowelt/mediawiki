@@ -2192,3 +2192,24 @@ parsoid=wt2html,wt2wt,html2html
 !! html/parsoid+langconv
 <p><span data-mw-variant='{"disabled":{"t":" &lt;a rel=\"mw:ExtLink nofollow\" href=\"http://www.paris.fr\" class=\"external text\">&lt;span typeof=\"mw:LanguageVariant\" data-mw-variant=&apos;{\"disabled\":{\"t\":\"paris.fr\"}}&apos;>&lt;/span>&lt;/a> "}}' typeof="mw:LanguageVariant"><a class="external text" href="http://www.paris.fr" rel="mw:ExtLink nofollow"><span data-mw-variant='{"disabled":{"t":"paris.fr"}}' typeof="mw:LanguageVariant">paris.fr</span></a></span></p>
 !! end
+
+!! test
+T424401: Don't convert inside <nowiki>
+!! options
+language=sr htmlVariantLanguage=sr-Cyrl
+parsoid=wt2html,wt2wt,html2html
+!! wikitext
+This <nowiki>is Latin</nowiki>.
+
+Even if the <nowiki>nowiki -{contains}- lc markup</nowiki>.
+!! html/php
+<p>Тхис is Latin.
+</p><p>Евен иф тхе nowiki -&#123;contains&#125;- lc markup.
+</p>
+!! html/parsoid
+<p>This <span typeof="mw:Nowiki">is Latin</span>.</p>
+<p>Even if the <span typeof="mw:Nowiki">nowiki -{contains}- lc markup</span>.</p>
+!! html/parsoid+langconv
+<p>Тхис <span typeof="mw:Nowiki">is Latin</span>.</p>
+<p>Евен иф тхе <span typeof="mw:Nowiki">nowiki -{contains}- lc markup</span>.</p>
+!! end

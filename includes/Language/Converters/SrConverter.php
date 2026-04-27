@@ -74,6 +74,11 @@ class SrConverter extends LanguageConverterSpecific {
 		];
 	}
 
+	/**
+	 * @deprecated since 1.46. These options ('letter' and 'word') do
+	 * not appear to correspond to working flags in the current version
+	 * of MediaWiki.
+	 */
 	protected function getAdditionalFlags(): array {
 		return [
 			'S' => 'S',

@@ -193,6 +193,8 @@ abstract class LanguageConverter implements ILanguageConverter {
 	/**
 	 * Provides additional flags for converter. By default, it returns empty array and
 	 * typically should be overridden by implementation of converter.
+	 * @deprecated since 1.46. Unused except by SrConverter, which uses this
+	 *  to define non-functional flags.
 	 */
 	protected function getAdditionalFlags(): array {
 		return [];

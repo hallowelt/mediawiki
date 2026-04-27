@@ -1135,6 +1135,8 @@ because of Phabricator reports.
 * TextboxBuilder is no longer newable, and passing null to either of the three
   constructor parameters has been deprecated. Use the service instead to get an
   instance of the class.
+* LanguageConverter::getAdditionalFlags() has been deprecated, as it appears
+  to be unused and non-functional.
 * …
 
 === Other changes in 1.46 ===

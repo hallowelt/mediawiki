@@ -258,7 +258,9 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 			}
 		}
 		// Handle skipped nodes
-		if ( self::$skipTags[DOMUtils::nodeName( $el )] ?? false ) {
+		if ( DOMUtils::hasTypeOf( $el, 'mw:Nowiki' ) ) {
+			return $el->nextSibling;
+		} elseif ( self::$skipTags[DOMUtils::nodeName( $el )] ?? false ) {
 			// don't convert the contents of this node unless it contains
 			// -{ (this is emergent behavior inherited from the legacy
 			// implementation)
