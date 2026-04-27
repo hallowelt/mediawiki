@@ -534,23 +534,9 @@ abstract class SearchEngine {
 	 * @return SearchSuggestionSet
 	 */
 	protected function completionSearchBackend( $search ) {
-		$results = [];
-
 		$search = trim( $search );
-
-		if ( !in_array( NS_SPECIAL, $this->namespaces ) && // We do not run hook on Special: search
-			!$this->getHookRunner()->onPrefixSearchBackend(
-				$this->namespaces, $search, $this->limit, $results, $this->offset )
-		) {
-			// False means hook worked.
-			// FIXME: Yes, the API is weird. That's why it is going to be deprecated.
-
-			return SearchSuggestionSet::fromStrings( $results );
-		} else {
-			// Hook did not do the job, use default simple search
-			$results = $this->simplePrefixSearch( $search );
-			return SearchSuggestionSet::fromTitles( $results );
-		}
+		$results = $this->simplePrefixSearch( $search );
+		return SearchSuggestionSet::fromTitles( $results );
 	}
 
 	/**

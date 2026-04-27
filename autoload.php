@@ -3012,7 +3012,6 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\Search\\Entity\\SearchResultThumbnail' => __DIR__ . '/includes/Search/Entity/SearchResultThumbnail.php',
 	'MediaWiki\\Search\\FauxSearchResult' => __DIR__ . '/includes/Search/FauxSearchResult.php',
 	'MediaWiki\\Search\\FauxSearchResultSet' => __DIR__ . '/includes/Search/FauxSearchResultSet.php',
-	'MediaWiki\\Search\\Hook\\PrefixSearchBackendHook' => __DIR__ . '/includes/Search/Hook/PrefixSearchBackendHook.php',
 	'MediaWiki\\Search\\Hook\\PrefixSearchExtractNamespaceHook' => __DIR__ . '/includes/Search/Hook/PrefixSearchExtractNamespaceHook.php',
 	'MediaWiki\\Search\\Hook\\SearchAfterNoDirectMatchHook' => __DIR__ . '/includes/Search/Hook/SearchAfterNoDirectMatchHook.php',
 	'MediaWiki\\Search\\Hook\\SearchGetNearMatchBeforeHook' => __DIR__ . '/includes/Search/Hook/SearchGetNearMatchBeforeHook.php',

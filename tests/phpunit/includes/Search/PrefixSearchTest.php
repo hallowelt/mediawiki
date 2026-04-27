@@ -64,20 +64,6 @@ class PrefixSearchTest extends MediaWikiLangTestCase {
 		] );
 	}
 
-	protected function searchProvision( ?array $results = null ) {
-		if ( $results === null ) {
-			$this->overrideConfigValue( MainConfigNames::Hooks, [] );
-		} else {
-			$this->setTemporaryHook(
-				'PrefixSearchBackend',
-				static function ( $namespaces, $search, $limit, &$srchres ) use ( $results ) {
-					$srchres = $results;
-					return false;
-				}
-			);
-		}
-	}
-
 	public static function provideSearch() {
 		return [
 			[ [
@@ -191,7 +177,7 @@ class PrefixSearchTest extends MediaWikiLangTestCase {
 	 * @covers \MediaWiki\Search\PrefixSearch::searchBackend
 	 */
 	public function testSearch( array $case ) {
-		$this->searchProvision( null );
+		$this->overrideConfigValue( MainConfigNames::Hooks, [] );
 
 		$namespaces = $case['namespaces'] ?? [];
 
@@ -210,7 +196,7 @@ class PrefixSearchTest extends MediaWikiLangTestCase {
 	 * @covers \MediaWiki\Search\PrefixSearch::searchBackend
 	 */
 	public function testSearchWithOffset( array $case ) {
-		$this->searchProvision( null );
+		$this->overrideConfigValue( MainConfigNames::Hooks, [] );
 
 		$namespaces = $case['namespaces'] ?? [];
 
@@ -231,129 +217,4 @@ class PrefixSearchTest extends MediaWikiLangTestCase {
 		);
 	}
 
-	public static function provideSearchBackend() {
-		return [
-			[ [
-				'Simple case',
-				'provision' => [
-					'Bar',
-					'Barcelona',
-					'Barbara',
-				],
-				'query' => 'Bar',
-				'results' => [
-					'Bar',
-					'Barcelona',
-					'Barbara',
-				],
-			] ],
-			[ [
-				'Exact match not on top (T72958)',
-				'provision' => [
-					'Barcelona',
-					'Bar',
-					'Barbara',
-				],
-				'query' => 'Bar',
-				'results' => [
-					'Bar',
-					'Barcelona',
-					'Barbara',
-				],
-			] ],
-			[ [
-				'Exact match missing (T72958)',
-				'provision' => [
-					'Barcelona',
-					'Barbara',
-					'Bart',
-				],
-				'query' => 'Bar',
-				'results' => [
-					'Bar',
-					'Barcelona',
-					'Barbara',
-				],
-			] ],
-			[ [
-				'Exact match missing and not existing',
-				'provision' => [
-					'Exile',
-					'Exist',
-					'External',
-				],
-				'query' => 'Ex',
-				'results' => [
-					'Exile',
-					'Exist',
-					'External',
-				],
-			] ],
-			[ [
-				"Exact match shouldn't override already found match if " .
-					"exact is redirect and found isn't",
-				'provision' => [
-					// Target of the exact match is low in the list
-					'Redirect Test Worse Result',
-					'Redirect Test',
-				],
-				'query' => 'redirect test',
-				'results' => [
-					// Redirect target is pulled up and exact match isn't added
-					'Redirect Test',
-					'Redirect Test Worse Result',
-				],
-			] ],
-			[ [
-				"Exact match should override already found match if " .
-					"both exact match and found match are redirect",
-				'provision' => [
-					// Another redirect to the same target as the exact match
-					// is low in the list
-					'Redirect Test2 Worse Result',
-					'Redirect test2',
-				],
-				'query' => 'redirect TEST2',
-				'results' => [
-					// Found redirect is pulled to the top and exact match isn't
-					// added
-					'Redirect TEST2',
-					'Redirect Test2 Worse Result',
-				],
-			] ],
-			[ [
-				"Exact match should override any already found matches that " .
-					"are redirects to it",
-				'provision' => [
-					// Another redirect to the same target as the exact match
-					// is low in the list
-					'Redirect Test Worse Result',
-					'Redirect test',
-				],
-				'query' => 'Redirect Test',
-				'results' => [
-					// Found redirect is pulled to the top and exact match isn't
-					// added
-					'Redirect Test',
-					'Redirect Test Worse Result',
-				],
-			] ],
-		];
-	}
-
-	/**
-	 * @dataProvider provideSearchBackend
-	 * @covers \MediaWiki\Search\PrefixSearch::searchBackend
-	 */
-	public function testSearchBackend( array $case ) {
-		$this->filterDeprecated( '/Use of PrefixSearchBackend hook/' );
-		$this->searchProvision( $case['provision'] );
-		$searcher = new StringPrefixSearch;
-		$results = $searcher->search( $case['query'], 3 );
-		$this->assertEquals(
-			$case['results'],
-			$results,
-			$case[0]
-		);
-	}
 }

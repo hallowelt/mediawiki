@@ -66,20 +66,6 @@ class SearchEnginePrefixTest extends MediaWikiLangTestCase {
 		$this->search->setNamespaces( [] );
 	}
 
-	protected function searchProvision( ?array $results = null ) {
-		if ( $results === null ) {
-			$this->overrideConfigValue( MainConfigNames::Hooks, [] );
-		} else {
-			$this->setTemporaryHook(
-				'PrefixSearchBackend',
-				static function ( $namespaces, $search, $limit, &$srchres ) use ( $results ) {
-					$srchres = $results;
-					return false;
-				}
-			);
-		}
-	}
-
 	public static function provideSearch() {
 		return [
 			[ [

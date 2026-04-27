@@ -473,7 +473,6 @@
 					if ( code === 'badtoken' ) {
 						this.badToken( tokenType );
 						// Try again, once
-						params.token = undefined;
 						return this.getToken( tokenType, assertParams ).then( ( t ) => {
 							params.token = t;
 							return this.post( params, ajaxOptions );

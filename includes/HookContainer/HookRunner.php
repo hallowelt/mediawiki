@@ -405,7 +405,6 @@ class HookRunner implements
 	\MediaWiki\Revision\Hook\ContentHandlerDefaultModelForHook,
 	\MediaWiki\Revision\Hook\RevisionRecordInsertedHook,
 	\MediaWiki\RevisionDelete\Hook\ArticleRevisionVisibilitySetHook,
-	\MediaWiki\Search\Hook\PrefixSearchBackendHook,
 	\MediaWiki\Search\Hook\PrefixSearchExtractNamespaceHook,
 	\MediaWiki\Search\Hook\SearchableNamespacesHook,
 	\MediaWiki\Search\Hook\SearchAfterNoDirectMatchHook,
@@ -3532,16 +3531,6 @@ class HookRunner implements
 		return $this->container->run(
 			'PreferencesGetLegend',
 			[ $form, $key, &$legend ]
-		);
-	}
-
-	/** @inheritDoc */
-	public function onPrefixSearchBackend( $ns, $search, $limit, &$results,
-		$offset
-	) {
-		return $this->container->run(
-			'PrefixSearchBackend',
-			[ $ns, $search, $limit, &$results, $offset ]
 		);
 	}
 

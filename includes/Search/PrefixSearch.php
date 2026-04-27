@@ -8,7 +8,6 @@
 
 namespace MediaWiki\Search;
 
-use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleParser;
@@ -116,28 +115,7 @@ abstract class PrefixSearch {
 				return $this->titles( $this->specialSearch( $search, $limit, $offset ) );
 			}
 		}
-		$srchres = [];
-		if ( ( new HookRunner( MediaWikiServices::getInstance()->getHookContainer() ) )->onPrefixSearchBackend(
-			$namespaces, $search, $limit, $srchres, $offset )
-		) {
-			return $this->titles( $this->defaultSearchBackend( $namespaces, $search, $limit, $offset ) );
-		}
-		return $this->strings(
-			$this->handleResultFromHook( $srchres, $namespaces, $search, $limit, $offset ) );
-	}
-
-	private function handleResultFromHook(
-		array $srchres, array $namespaces, string $search, int $limit, int $offset
-	): array {
-		if ( $offset === 0 ) {
-			// Only perform exact db match if offset === 0
-			// This is still far from perfect but at least we avoid returning the
-			// same title again and again when the user is scrolling with a query
-			// that matches a title in the db.
-			$rescorer = new SearchExactMatchRescorer();
-			$srchres = $rescorer->rescore( $search, $namespaces, $srchres, $limit );
-		}
-		return $srchres;
+		return $this->titles( $this->defaultSearchBackend( $namespaces, $search, $limit, $offset ) );
 	}
 
 	/**
@@ -226,7 +204,6 @@ abstract class PrefixSearch {
 	}
 
 	/**
-	 * Unless overridden by PrefixSearchBackend hook...
 	 * This is case-sensitive (First character may
 	 * be automatically capitalized by Title::secureAndSpit()
 	 * later on depending on $wgCapitalLinks)
