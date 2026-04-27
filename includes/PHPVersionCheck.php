@@ -65,7 +65,7 @@ class PHPVersionCheck {
 	 */
 	function checkRequiredPHPVersion() {
 		// NOTE: Keep this in sync with composer.json and ScopeStructureTest.php
-		$minimumVersion = '8.2.0';
+		$minimumVersion = '8.3.0';
 
 		/**
 		 * This is a list of known-bad ranges of PHP versions. Syntax is like SemVer – either:

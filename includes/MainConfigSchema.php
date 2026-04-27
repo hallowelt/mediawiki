@@ -6389,6 +6389,20 @@ class MainConfigSchema {
 	];
 
 	/**
+	 * Namespaces to have auto-summary disabled for edits.
+	 * See Language.php for a list of namespaces.
+	 *
+	 * For example, namespaces with limited access can be added to avoid page contents
+	 * being leaked in edit summaries.
+	 *
+	 * @since 1.45
+	 */
+	public const NamespacesWithoutAutoSummaries = [
+		'default' => [],
+		'type' => 'list',
+	];
+
+	/**
 	 * Array of namespaces which can be deemed to contain valid "content", as far
 	 * as the site statistics are concerned. Useful if additional namespaces also
 	 * contain "content" which should be considered when generating a count of the

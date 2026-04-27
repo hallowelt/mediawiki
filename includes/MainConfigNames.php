@@ -2235,6 +2235,12 @@ class MainConfigNames {
 	public const NamespacesWithSubpages = 'NamespacesWithSubpages';
 
 	/**
+	 * Name constant for the NamespacesWithoutAutoSummaries setting, for use with Config::get()
+	 * @see MainConfigSchema::NamespacesWithoutAutoSummaries
+	 */
+	public const NamespacesWithoutAutoSummaries = 'NamespacesWithoutAutoSummaries';
+
+	/**
 	 * Name constant for the ContentNamespaces setting, for use with Config::get()
 	 * @see MainConfigSchema::ContentNamespaces
 	 */

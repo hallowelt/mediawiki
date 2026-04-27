@@ -1194,12 +1194,16 @@ function wfRecursiveRemoveDir( $dir ) {
 }
 
 /**
+ * @deprecated since 1.46; use round() and format the number as
+ *  appropriate for the language, for example using
+ *  `wfMessage( 'percent' )->numParams( round( $x, 2 ) )->text()`
  * @param float|int $nr The number to format
  * @param int $acc The number of digits after the decimal point, default 2
  * @param bool $round Whether or not to round the value, default true
  * @return string
  */
 function wfPercent( $nr, int $acc = 2, bool $round = true ) {
+	wfDeprecated( __FUNCTION__, '1.46' );
 	$accForFormat = $acc >= 0 ? $acc : 0;
 	$ret = sprintf( "%.{$accForFormat}f", $nr );
 	return $round ? round( (float)$ret, $acc ) . '%' : "$ret%";

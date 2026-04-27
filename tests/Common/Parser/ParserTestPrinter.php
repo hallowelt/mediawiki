@@ -314,8 +314,8 @@ class ParserTestPrinter extends TestRecorder {
 	 * @return bool True if and only if all tests passed
 	 */
 	private function reportPercentage( $success, $total ) {
-		$ratio = wfPercent( 100 * $success / $total );
-		self::print( $this->term->color( 1 ) . "Passed $success of $total tests ($ratio)" );
+		$ratio = round( 100 * $success / $total, 2 );
+		self::print( $this->term->color( 1 ) . "Passed $success of $total tests ($ratio%)" );
 		if ( $this->skipped ) {
 			self::print( ", skipped {$this->skipped}" );
 		}

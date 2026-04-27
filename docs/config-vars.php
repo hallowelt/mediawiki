@@ -2220,6 +2220,12 @@ $wgCapitalLinkOverrides = null;
 $wgNamespacesWithSubpages = null;
 
 /**
+ * Config variable stub for the NamespacesWithoutAutoSummaries setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::NamespacesWithoutAutoSummaries
+ */
+$wgNamespacesWithoutAutoSummaries = null;
+
+/**
  * Config variable stub for the ContentNamespaces setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::ContentNamespaces
  */

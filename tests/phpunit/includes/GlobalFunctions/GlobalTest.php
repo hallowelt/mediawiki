@@ -224,6 +224,7 @@ class GlobalTest extends MediaWikiIntegrationTestCase {
 		int $accuracy = 2,
 		bool $round = true
 	) {
+		$this->hideDeprecated( 'wfPercent' );
 		$this->assertSame( $expected, wfPercent( $input, $accuracy, $round ) );
 	}
 

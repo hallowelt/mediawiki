@@ -4055,6 +4055,15 @@ config-schema:
         description: |-
             Which namespaces should support subpages?
             See Language.php for a list of namespaces.
+    NamespacesWithoutAutoSummaries:
+        default: []
+        type: array
+        description: |-
+            Namespaces to have auto-summary disabled for edits.
+            See Language.php for a list of namespaces.
+            For example, namespaces with limited access can be added to avoid page contents
+            being leaked in edit summaries.
+            @since 1.45
     ContentNamespaces:
         default:
             - 0

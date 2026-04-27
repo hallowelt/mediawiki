@@ -286,7 +286,7 @@ class CommentParser {
 	 * the link class does not depend on whether the link is known.
 	 *
 	 * @param LinkTarget $target
-	 * @param string $text
+	 * @param string $html
 	 * @param string|false|null $wikiId Id of the wiki to link to (if not the local wiki),
 	 *  as used by WikiMap.
 	 * @param LinkTarget $contextTitle
@@ -294,7 +294,7 @@ class CommentParser {
 	 * @return string HTML link
 	 */
 	private function makeSectionLink(
-		LinkTarget $target, $text, $wikiId, LinkTarget $contextTitle
+		LinkTarget $target, $html, $wikiId, LinkTarget $contextTitle
 	) {
 		if ( $wikiId !== null && $wikiId !== false && !$target->isExternal() ) {
 			return $this->linkRenderer->makeExternalLink(
@@ -306,11 +306,18 @@ class CommentParser {
 						':' . $target->getDBkey(),
 					$target->getFragment()
 				),
-				new HtmlArmor( $text ), // Already escaped
+				new HtmlArmor( $html ), // Already escaped
 				$contextTitle
 			);
+		} elseif ( !$target->hasFragment() && $target->getText() === '' && $target->getNamespace() === NS_MAIN ) {
+			// Special case for edits to the zeroth section (T412472) when linking within the same page.
+			// All of the LinkTarget classes treat this as a link to the main page.
+			// We want to link to the top of the current page.
+			return Html::rawElement( 'a', [
+				'href' => '#',
+			], $html );
 		}
-		return $this->linkRenderer->makePreloadedLink( $target, new HtmlArmor( $text ), '' );
+		return $this->linkRenderer->makePreloadedLink( $target, new HtmlArmor( $html ), '' );
 	}
 
 	/**

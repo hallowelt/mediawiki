@@ -49,6 +49,7 @@ class PageUpdaterFactory {
 		MainConfigNames::UseRCPatrol,
 		MainConfigNames::ParsoidCacheConfig,
 		MainConfigNames::PageCreationLog,
+		MainConfigNames::NamespacesWithoutAutoSummaries,
 	];
 
 	/**
@@ -168,6 +169,10 @@ class PageUpdaterFactory {
 
 		$pageUpdater->setUseAutomaticEditSummaries(
 			$this->options->get( MainConfigNames::UseAutomaticEditSummaries )
+			&& !in_array(
+				$page->getNamespace(),
+				$this->options->get( MainConfigNames::NamespacesWithoutAutoSummaries )
+			)
 		);
 
 		return $pageUpdater;

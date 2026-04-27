@@ -169,7 +169,7 @@ class CommentParserTest extends \MediaWikiIntegrationTestCase {
 				null
 			],
 			[
-				'<span class="autocomment"><a href="/wiki/">→<bdi dir="ltr">(top)</bdi></a></span>',
+				'<span class="autocomment"><a href="#">→<bdi dir="ltr">(top)</bdi></a></span>',
 				"/* */",
 				false, true
 			],
