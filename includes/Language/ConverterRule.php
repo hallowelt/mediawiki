@@ -681,7 +681,9 @@ class ConverterRule {
 			}
 		}
 		$this->generateConvTable();
-		return null;
+		// Recurse into the result if disabled; otherwise we're done
+		// with this rule.
+		return $dmv->disabled ? 'x-raw' : null;
 	}
 
 	/**

@@ -102,7 +102,7 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 			$converter->translate( 'x', $toVariant->getCode() );
 			// Now actually do the language conversion on the DOM
 			$redLinks = [];
-			$this->doTraversal( $df, $converter, $toVariant->getCode(), $redLinks );
+			$this->doTraversal( $df, $converter, $toVariant->getCode(), false, $redLinks );
 			// Convert indicators as well
 			$indicators = array_map(
 				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable ownerDocument will never be null
@@ -110,7 +110,7 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 				$po->getIndicators()
 			);
 			foreach ( $indicators as $indicatorFrag ) {
-				$this->doTraversal( $indicatorFrag, $converter, $toVariant->getCode(), $redLinks );
+				$this->doTraversal( $indicatorFrag, $converter, $toVariant->getCode(), false, $redLinks );
 			}
 			// Adjust red links
 			if ( !$this->languageConverterFactory->isLinkConversionDisabled() ) {
@@ -196,16 +196,17 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 	}
 
 	private function doTraversal(
-		Node $rootNode, ILanguageConverter $converter, string $toVariant,
+		Node $rootNode, ILanguageConverter $converter,
+		string $toVariant, bool $isRaw,
 		array &$redLinks
 	): void {
 		$traverser = new DOMTraverser(
 			traverseWithTplInfo: false,
 			applyToAttributeEmbeddedHTML: true,
 		);
-		$traverser->addHandler( null, function ( $node ) use ( $converter, $toVariant, &$redLinks ) {
+		$traverser->addHandler( null, function ( $node ) use ( $converter, $toVariant, $isRaw, &$redLinks ) {
 			'@phan-var LanguageConverter $converter';
-			return $this->convertNode( $node, $converter, $toVariant, $redLinks );
+			return $this->convertNode( $node, $converter, $toVariant, $isRaw, $redLinks );
 		}, beforeAttributes: true );
 		// For efficiency skip the traversal if this is trivial.
 		if ( $converter->hasVariants() && $toVariant ) {
@@ -218,11 +219,15 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 	 * @return null|Node|true
 	 */
 	protected function convertNode(
-		Node $node, ILanguageConverter $converter, string $toVariant,
+		Node $node, ILanguageConverter $converter,
+		string $toVariant, bool $isRaw,
 		array &$redLinks
 	) {
 		$next = $node->nextSibling;
 		if ( $node instanceof Text ) {
+			if ( $isRaw ) {
+				return $next;
+			}
 			$oldText = $node->data;
 			if ( $converter->guessVariant( $oldText, $toVariant ) ) {
 				// Yuck: guessVariant should be deprecated.
@@ -243,7 +248,7 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 		foreach ( [ 'title', 'alt' ] as $attrName ) {
 			$val = DOMCompat::getAttribute( $el, $attrName );
 			// Don't convert URLs
-			if ( $val === null || str_contains( $val, '://' ) ) {
+			if ( $val === null || str_contains( $val, '://' ) || $isRaw ) {
 				continue;
 			}
 			// XXX should look at rich values of attribute
@@ -275,6 +280,9 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 				$contents = $el->textContent;
 				if ( str_contains( $contents, '-{' ) ) {
 					// Hack: use the legacy parser to parse rules inside <pre>
+					if ( $isRaw ) {
+						$contents = '-{' . $contents . '}-';
+					}
 					DOMCompat::replaceChildren(
 						$el, $converter->convertTo(
 							$contents, $toVariant, false
@@ -310,8 +318,10 @@ class ParsoidLanguageConverter extends ContentDOMTransformStage {
 				$df = $rule->getDisplayFragment( $el->ownerDocument );
 				// Do we need to clone this fragment? Should we do it in ConverterRule?
 				$df = DOMDataUtils::cloneDocumentFragment( $df );
-				if ( $nextVariant !== null ) {
-					$this->doTraversal( $df, $converter, $nextVariant, $redLinks );
+				if ( $nextVariant === 'x-raw' ) {
+					$this->doTraversal( $df, $converter, $toVariant, true, $redLinks );
+				} elseif ( $nextVariant !== null ) {
+					$this->doTraversal( $df, $converter, $nextVariant, false, $redLinks );
 				}
 				DOMCompat::replaceChildren( $el, $df );
 			}
