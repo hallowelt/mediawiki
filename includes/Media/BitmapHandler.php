@@ -76,7 +76,7 @@ class BitmapHandler extends TransformationalImageHandler {
 	 */
 	public function makeParamString( $params ) {
 		$res = parent::makeParamString( $params );
-		if ( isset( $params['interlace'] ) && $params['interlace'] ) {
+		if ( $res && isset( $params['interlace'] ) && $params['interlace'] ) {
 			return "interlaced-$res";
 		}
 		return $res;

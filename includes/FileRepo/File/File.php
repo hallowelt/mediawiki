@@ -1176,6 +1176,9 @@ abstract class File implements MediaHandlerState {
 		[ $thumbExt, ] = $this->getHandler()->getThumbType(
 			$extension, $this->getMimeType(), $params );
 		$thumbName = $this->getHandler()->makeParamString( $params );
+		if ( !$thumbName ) {
+			return null;
+		}
 
 		if ( $this->repo->supportsSha1URLs() ) {
 			$thumbName .= '-' . $this->getSha1() . '.' . $thumbExt;

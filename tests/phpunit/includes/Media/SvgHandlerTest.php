@@ -134,7 +134,7 @@ class SvgHandlerTest extends MediaWikiMediaTestCase {
 	 */
 	public function testMakeParamString( array $params, $expected, $message = '' ) {
 		$handler = new SvgHandler();
-		self::assertEquals( $expected, $handler->makeParamString( $params ), $message );
+		self::assertSame( $expected, $handler->makeParamString( $params ), $message );
 	}
 
 	public static function provideMakeParamString() {
