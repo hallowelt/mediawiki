@@ -52,7 +52,6 @@ class PreloadedContentBuilder {
 	 * @param string|null $preload
 	 * @param string[] $preloadParams
 	 * @param string|null $section
-	 * @return Content
 	 */
 	public function getPreloadedContent(
 		ProperPageIdentity $page,
@@ -92,9 +91,6 @@ class PreloadedContentBuilder {
 	 *
 	 * Some code may depend on the fact that this is only non-null for the 'MediaWiki:' namespace.
 	 * Beware.
-	 *
-	 * @param ProperPageIdentity $page
-	 * @return Content|null
 	 */
 	public function getDefaultContent( ProperPageIdentity $page ): ?Content {
 		$title = Title::newFromPageIdentity( $page );
@@ -118,7 +114,6 @@ class PreloadedContentBuilder {
 	 * @param Authority $performer
 	 * @param string|null $preload Representing the title to preload from.
 	 * @param string[] $preloadParams Parameters to use (interface-message style) in the preloaded text
-	 * @return Content
 	 */
 	private function getPreloadedContentFromParams(
 		ProperPageIdentity $contextPage,

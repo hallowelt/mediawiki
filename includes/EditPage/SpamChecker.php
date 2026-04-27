@@ -26,29 +26,22 @@ class SpamChecker {
 	/**
 	 * Check whether content text is considered spam
 	 *
-	 * @param string $text
 	 * @return string|false Matching string or false
 	 */
-	public function checkContent( string $text ) {
+	public function checkContent( string $text ): string|false {
 		return self::checkInternal( $text, $this->spamRegex );
 	}
 
 	/**
 	 * Check whether summary text is considered spam
 	 *
-	 * @param string $summary
 	 * @return string|false Matching string or false
 	 */
-	public function checkSummary( string $summary ) {
+	public function checkSummary( string $summary ): string|false {
 		return self::checkInternal( $summary, $this->summaryRegex );
 	}
 
-	/**
-	 * @param string $text
-	 * @param array $regexes
-	 * @return string|false
-	 */
-	private static function checkInternal( string $text, array $regexes ) {
+	private static function checkInternal( string $text, array $regexes ): string|false {
 		foreach ( $regexes as $regex ) {
 			$matches = [];
 			if ( preg_match( $regex, $text, $matches ) ) {

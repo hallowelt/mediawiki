@@ -25,12 +25,6 @@ use Wikimedia\Message\ListType;
  */
 class TemplatesOnThisPageFormatter {
 
-	/**
-	 * @param IContextSource $context
-	 * @param LinkRenderer $linkRenderer
-	 * @param LinkBatchFactory $linkBatchFactory
-	 * @param RestrictionStore $restrictionStore
-	 */
 	public function __construct(
 		private readonly IContextSource $context,
 		private readonly LinkRenderer $linkRenderer,
@@ -50,7 +44,7 @@ class TemplatesOnThisPageFormatter {
 	 * @param PageReference|string|null $more An escaped link for "More..." of the templates
 	 * @return string HTML output
 	 */
-	public function format( array $templates, $type = false, $more = null ) {
+	public function format( array $templates, $type = false, $more = null ): string {
 		if ( !$templates ) {
 			// No templates
 			return '';
@@ -101,11 +95,8 @@ class TemplatesOnThisPageFormatter {
 	 * Builds a list item for an individual template
 	 *
 	 * The output of this is repeated for live-preview in resources/src/mediawiki.page.preview.js
-	 *
-	 * @param PageIdentity $target
-	 * @return string
 	 */
-	private function formatTemplate( PageIdentity $target ) {
+	private function formatTemplate( PageIdentity $target ): string {
 		if ( !$target->canExist() ) {
 			return Html::rawElement( 'li', [], $this->linkRenderer->makeLink( $target ) );
 		}
@@ -126,21 +117,19 @@ class TemplatesOnThisPageFormatter {
 	 * If the page is protected, get the relevant text
 	 * for those restrictions
 	 *
-	 * @param array $restrictions
 	 * @return string HTML
 	 */
-	private function getRestrictionsText( array $restrictions ) {
-		$protected = '';
+	private function getRestrictionsText( array $restrictions ): string {
 		if ( !$restrictions ) {
-			return $protected;
+			return '';
 		}
 
 		// Construct the message from restriction-level-*
 		// e.g. restriction-level-sysop, restriction-level-autoconfirmed
-		$msgs = [];
-		foreach ( $restrictions as $r ) {
-			$msgs[] = $this->context->msg( "restriction-level-$r" );
-		}
+		$msgs = array_map(
+			fn ( $r ) => $this->context->msg( "restriction-level-$r" ),
+			$restrictions
+		);
 
 		// Check backwards-compatible messages for the built-in protection levels
 		$msg = null;
@@ -161,10 +150,9 @@ class TemplatesOnThisPageFormatter {
 	 * Return a link to the edit page, with the text
 	 * saying "view source" if the user can't edit the page
 	 *
-	 * @param PageIdentity $page
 	 * @return string HTML
 	 */
-	private function buildEditLink( PageIdentity $page ) {
+	private function buildEditLink( PageIdentity $page ): string {
 		if ( $this->context->getAuthority()->probablyCan( 'edit', $page ) ) {
 			$linkMsg = 'editlink';
 		} else {

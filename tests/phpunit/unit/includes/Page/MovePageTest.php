@@ -111,7 +111,7 @@ class MovePageTest extends MediaWikiUnitTestCase {
 	public function testCheckPermissions_spam() {
 		$spamChecker = $this->createNoOpMock( SpamChecker::class, [ 'checkSummary' ] );
 		$spamChecker->method( 'checkSummary' )
-			->willReturnCallback( static fn ( string $reason ) => $reason === 'SPAM' );
+			->willReturnCallback( static fn ( string $reason ) => $reason === 'SPAM' ? $reason : false );
 		$mp = $this->newServiceInstance(
 			MovePage::class,
 			[

@@ -20,9 +20,6 @@ trait ParametersHelper {
 	/**
 	 * If the given Title is Special:MyLanguage/Foo, resolve the language chain for the
 	 * actual target title desired.
-	 *
-	 * @param ?Title $title
-	 * @return ?Title
 	 */
 	private function getTargetTitleIfSpecialMyLanguage( ?Title $title ): ?Title {
 		if ( $title && $title->isSpecialPage() ) {
@@ -43,9 +40,6 @@ trait ParametersHelper {
 	/**
 	 * Verify if a given title exists and the given user is allowed to view it
 	 *
-	 * @param PageIdentity|null $page
-	 * @param Authority $performer
-	 * @return bool
 	 * @phan-assert-true-condition $page
 	 */
 	private function isPageExistingAndViewable( ?PageIdentity $page, Authority $performer ): bool {

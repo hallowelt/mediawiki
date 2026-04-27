@@ -76,7 +76,6 @@ class IntroMessageBuilder {
 	 * @param string|PageReference $page See LogEventsList::showLogExtract()
 	 * @param string $user See LogEventsList::showLogExtract()
 	 * @param array $param See LogEventsList::showLogExtract()
-	 * @return string
 	 */
 	private function getLogExtract( $types = [], $page = '', $user = '', $param = [] ): string {
 		$outString = '';
