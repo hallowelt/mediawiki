@@ -2,6 +2,11 @@ const VueTestUtils = require( '@vue/test-utils' );
 
 // Mock the CdxLookup component
 jest.mock( '../../../resources/src/mediawiki.languageselector/codex.js', () => ( {
+	CdxField: {
+		name: 'CdxField',
+		template: '<div class="cdx-field"><slot></slot></div>',
+		props: [ 'status', 'messages' ]
+	},
 	CdxLookup: {
 		name: 'CdxLookup',
 		template: '<div class="cdx-lookup"><slot name="menu-item" :menu-item="{ label: \'test\', value: \'test\' }"></slot><slot name="no-results"></slot></div>',

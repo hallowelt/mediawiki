@@ -1,7 +1,12 @@
 const VueTestUtils = require( '@vue/test-utils' );
 
-// Mock the CdxMultiselectLookup component
+// Mock the Codex components
 jest.mock( '../../../resources/src/mediawiki.languageselector/codex.js', () => ( {
+	CdxField: {
+		name: 'CdxField',
+		template: '<div class="cdx-field"><slot></slot></div>',
+		props: [ 'status', 'messages' ]
+	},
 	CdxMultiselectLookup: {
 		name: 'CdxMultiselectLookup',
 		template: `

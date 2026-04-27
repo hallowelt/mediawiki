@@ -18,7 +18,8 @@ jest.mock( '../../../resources/src/mediawiki.languageselector/supportedLanguages
 	de: 'Deutsch'
 } ), { virtual: true } );
 
-const { getLookupLanguageSelector, getMultiselectLookupLanguageSelector } = require( '../../../resources/src/mediawiki.languageselector/factory.js' );
+const { getLookupLanguageSelector } = require( '../../../resources/src/mediawiki.languageselector/lookup-factory.js' );
+const { getMultiselectLookupLanguageSelector } = require( '../../../resources/src/mediawiki.languageselector/multiselect-factory.js' );
 const Vue = require( 'vue' );
 
 // Mock mw global

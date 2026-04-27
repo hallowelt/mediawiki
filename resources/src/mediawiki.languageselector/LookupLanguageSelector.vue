@@ -1,11 +1,11 @@
 <template>
 	<cdx-field :status="status" :messages="statusMessages">
 		<cdx-lookup
+			:id="inputId"
 			v-model:input-value="inputValue"
 			:selected="selection.value"
 			:menu-items="menuItems"
 			:menu-config="menuConfig"
-			:id="inputId"
 			@update:input-value="onUpdateInputValue"
 			@update:selected="onUpdateSelected"
 			@blur="onBlur"
@@ -31,8 +31,7 @@
 <script>
 const { defineComponent, ref, toRefs, watch, computed } = require( 'vue' );
 const { CdxField, CdxLookup } = require( './codex.js' );
-const useLanguageSelector = require( './useLanguageSelector.js' );
-const { computeMenuItems } = require( './menuHelper.js' );
+const { useLanguageSelector, computeMenuItems } = require( 'mediawiki.languageselector.core' );
 
 // @vue/component
 module.exports = exports = defineComponent( {

@@ -1,12 +1,12 @@
 <template>
 	<cdx-field :status="status" :messages="statusMessages">
 		<cdx-multiselect-lookup
+			:id="inputId"
 			v-model:input-value="inputValue"
 			:input-chips="selection"
 			:selected="selectedValues"
 			:menu-items="menuItems"
 			:menu-config="menuConfig"
-			:id="inputId"
 			@input="search"
 			@update:input-value="onUpdateInputValue"
 			@update:selected="onUpdateSelected"
@@ -34,8 +34,7 @@
 <script>
 const { defineComponent, ref, toRefs, watch, computed } = require( 'vue' );
 const { CdxField, CdxMultiselectLookup } = require( './codex.js' );
-const useLanguageSelector = require( './useLanguageSelector.js' );
-const { computeMenuItems } = require( './menuHelper.js' );
+const { useLanguageSelector, computeMenuItems } = require( 'mediawiki.languageselector.core' );
 
 module.exports = exports = defineComponent( {
 	name: 'MultiselectLookupLanguageSelector',

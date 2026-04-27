@@ -126,17 +126,13 @@ return [
 			'searchsuggest-containing-html'
 		]
 	],
-	'mediawiki.languageselector' => [
-		'class' => 'MediaWiki\\ResourceLoader\\CodexModule',
+	'mediawiki.languageselector.core' => [
 		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.languageselector',
 		'remoteBasePath' => '',
 		'packageFiles' => [
-			'index.js',
+			'core.js',
 			'useLanguageSelector.js',
-			'LookupLanguageSelector.vue',
-			'MultiselectLookupLanguageSelector.vue',
 			'languageSearch.js',
-			'factory.js',
 			'debounce.js',
 			'menuHelper.js',
 			[
@@ -159,6 +155,22 @@ return [
 				},
 			],
 		],
+		'dependencies' => [
+			'mediawiki.api',
+			'vue'
+		]
+	],
+	'mediawiki.languageselector.lookup' => [
+		'class' => 'MediaWiki\\ResourceLoader\\CodexModule',
+		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.languageselector',
+		'remoteBasePath' => '',
+		'packageFiles' => [
+			'lookup.js',
+			'lookup-factory.js',
+			'LookupLanguageSelector.vue',
+			'multiselect-factory.js',
+			'MultiselectLookupLanguageSelector.vue',
+		],
 		'codexComponents' => [
 			'CdxField',
 			'CdxLookup',
@@ -169,7 +181,18 @@ return [
 			'languageselector-invalid-input'
 		],
 		'dependencies' => [
+			'mediawiki.languageselector.core',
 			'vue'
+		]
+	],
+	'mediawiki.languageselector' => [
+		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.languageselector',
+		'remoteBasePath' => '',
+		'packageFiles' => [
+			'index.js',
+		],
+		'dependencies' => [
+			'mediawiki.languageselector.lookup',
 		]
 	],
 
@@ -3461,7 +3484,7 @@ return [
 			'resources/src/mediawiki.widgets/mw.widgets.LanguageSelectWidget.js',
 		],
 		'dependencies' => [
-			'mediawiki.languageselector',
+			'mediawiki.languageselector.lookup',
 		],
 	],
 	'mediawiki.widgets.TagMultiselectWidget.styles' => [

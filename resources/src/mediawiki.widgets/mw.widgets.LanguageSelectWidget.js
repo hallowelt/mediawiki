@@ -8,10 +8,11 @@
 	// Replace a native HTML select element with Vue component.
 	function replaceWithVue( nativeSelect ) {
 		const isMultiple = nativeSelect.hasAttribute( 'multiple' );
-		const {
-			getLookupLanguageSelector,
-			getMultiselectLookupLanguageSelector
-		} = require( 'mediawiki.languageselector' );
+		const lookupModule = require( 'mediawiki.languageselector.lookup' );
+
+		const factory = isMultiple ?
+			lookupModule.getMultiselectLookupLanguageSelector :
+			lookupModule.getLookupLanguageSelector;
 
 		// Get configuration from data attributes
 		const languagesAttr = nativeSelect.getAttribute( 'data-mw-languages' );
@@ -40,7 +41,6 @@
 		nativeSelect.parentNode.insertBefore( vueContainer, nativeSelect.nextSibling );
 
 		// Create Vue app using the factory function
-		const factory = isMultiple ? getMultiselectLookupLanguageSelector : getLookupLanguageSelector;
 		const vueApp = factory( {
 			selectableLanguages: languages,
 			selectedLanguage: selectedLanguage,
@@ -81,7 +81,9 @@
 	// Replace native HTML select elements with Codex language selector.
 	function replaceLanguageSelects() {
 		// Load the language selector module once, then process all selects
-		mw.loader.using( 'mediawiki.languageselector' ).then( () => {
+		mw.loader.using( [
+			'mediawiki.languageselector.lookup'
+		] ).then( () => {
 			loadVueInNativeSelects();
 		} );
 	}

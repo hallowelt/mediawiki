@@ -1,10 +1,15 @@
-const LookupLanguageSelector = require( './LookupLanguageSelector.vue' );
-const { getLookupLanguageSelector, getMultiselectLookupLanguageSelector } = require( './factory.js' );
-const useLanguageSelector = require( './useLanguageSelector.js' );
+const {
+	LookupLanguageSelector,
+	getLookupLanguageSelector,
+	MultiselectLookupLanguageSelector,
+	getMultiselectLookupLanguageSelector
+} = require( 'mediawiki.languageselector.lookup' );
+const { useLanguageSelector } = require( 'mediawiki.languageselector.core' );
 
 module.exports = {
 	LookupLanguageSelector,
 	getLookupLanguageSelector,
+	MultiselectLookupLanguageSelector,
 	getMultiselectLookupLanguageSelector,
 	useLanguageSelector
 };
