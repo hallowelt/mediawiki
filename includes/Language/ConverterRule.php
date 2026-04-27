@@ -243,7 +243,10 @@ class ConverterRule {
 				}
 			}
 			// syntax error, pass
-			if ( !isset( $this->mConverter->getVariantNames()[$vv] ) ) {
+			if (
+				$vv === null ||
+				!isset( $this->mConverter->getVariantNames()[$vv] )
+			) {
 				$bidtable = [];
 				$unidtable = [];
 				break;
