@@ -659,51 +659,48 @@ abstract class SessionProvider implements Stringable, SessionProviderInterface {
 	 * (e.g. invalid credentials or a non-API request when the session provider only supports
 	 * API requests), and the returned SessionInfo should be returned by provideSessionInfo().
 	 *
-	 * @param string $key Key for the error message
-	 * @phpcs:ignore Generic.Files.LineLength
-	 * @param MessageParam|MessageSpecifier|string|int|float|list<MessageParam|MessageSpecifier|string|int|float> ...$params
-	 *   See Message::params()
+	 * @param string|MessageSpecifier $key Key for the error message
+	 * @param MessageParam|MessageSpecifier|string|int|float ...$params See Message::params()
 	 * @return SessionInfo An anonymous session info with maximum priority, to force an
 	 *   anonymous session in case throwing the exception doesn't happen.
 	 */
 	protected function makeException( $key, ...$params ): SessionInfo {
 		$msg = wfMessage( $key, $params );
 
-		if ( defined( 'MW_API' ) ) {
-			$this->hookContainer->register(
-				'ApiBeforeMain',
-				// @phan-suppress-next-line PhanPluginNeverReturnFunction Closures should not get doc
-				static function ( ApiMain &$main ) use ( $msg ) {
-					$main->handleCORS();
-					throw ApiUsageException::newWithMessage( null, $msg );
-				}
-			);
-		} elseif ( defined( 'MW_REST_API' ) ) {
-			$this->hookContainer->register(
-				'RestCheckCanExecute',
-				static function ( Module $module, Handler $handler, string $path,
-					RequestInterface $request, ?HttpException &$error ) use ( $key, $params )
-				{
-					$msg = new MessageValue( $key, $params );
-					$error = new LocalizedHttpException( $msg, 403 );
-					return false;
-				}
-			);
-		} else {
-			$this->hookContainer->register(
-				'BeforeInitialize',
-				// @phan-suppress-next-line PhanPluginNeverReturnFunction Closures should not get doc
-				static function () use ( $msg ) {
-					RequestContext::getMain()->getOutput()->setStatusCode( 400 );
-					throw new ErrorPageError( 'errorpagetitle', $msg );
-				}
-			);
-			// Disable file cache, which would be looked up before the BeforeInitialize hook call.
-			$this->hookContainer->register(
-				'HTMLFileCache__useFileCache',
-				static fn () => false
-			);
-		}
+		// Action API
+		$this->hookContainer->register(
+			'ApiBeforeMain',
+			static function ( ApiMain &$main ) use ( $msg ): never {
+				$main->handleCORS();
+				throw ApiUsageException::newWithMessage( null, $msg );
+			}
+		);
+
+		// REST API
+		$this->hookContainer->register(
+			'RestCheckCanExecute',
+			static function ( Module $module, Handler $handler, string $path,
+				RequestInterface $request, ?HttpException &$error ) use ( $msg )
+			{
+				$msg = MessageValue::newFromSpecifier( $msg );
+				$error = new LocalizedHttpException( $msg, 403 );
+				return false;
+			}
+		);
+
+		// index.php entry point
+		$this->hookContainer->register(
+			'BeforeInitialize',
+			static function () use ( $msg ): never {
+				RequestContext::getMain()->getOutput()->setStatusCode( 400 );
+				throw new ErrorPageError( 'errorpagetitle', $msg );
+			}
+		);
+		// Disable file cache, which would be looked up before the BeforeInitialize hook call.
+		$this->hookContainer->register(
+			'HTMLFileCache__useFileCache',
+			static fn () => false
+		);
 
 		$id = $this->hashToSessionId( 'bogus' );
 		return new SessionInfo( SessionInfo::MAX_PRIORITY, [
