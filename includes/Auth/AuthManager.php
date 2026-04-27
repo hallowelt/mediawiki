@@ -302,9 +302,11 @@ class AuthManager implements LoggerAwareInterface {
 			throw new LogicException( 'Authentication is not possible now' );
 		}
 
+		$status = Status::newGood();
 		$guessUserName = null;
 		foreach ( $reqs as $req ) {
 			$req->returnToUrl = $returnToUrl;
+			$status->merge( $req->validate() );
 			// @codeCoverageIgnoreStart
 			if ( $req->username !== null && $req->username !== '' ) {
 				if ( $guessUserName === null ) {
@@ -315,6 +317,22 @@ class AuthManager implements LoggerAwareInterface {
 				}
 			}
 			// @codeCoverageIgnoreEnd
+		}
+		if ( !$status->isOK() ) {
+			$this->logger->debug( "Login failed at AuthRequest validation", [
+				'user' => $guessUserName,
+				'reason' => $status->getWikiText( false, false, 'en' ),
+			] );
+			$res = AuthenticationResponse::newFail( $status->getMessage() );
+			$this->callMethodOnProviders( self::CALL_ALL, 'postAuthentication',
+				[ $this->userFactory->newFromName( (string)$guessUserName ) ?: null, $res ]
+			);
+			$session->remove( 'AuthManager::authnState' );
+			$this->getHookRunner()->onAuthManagerLoginAuthenticateAudit(
+				$res, null, $guessUserName, [
+					'performer' => $session->getUser()
+				] );
+			return $res;
 		}
 
 		// Check for special-case login of a just-created account
@@ -467,8 +485,29 @@ class AuthManager implements LoggerAwareInterface {
 
 			$guessUserName = $state['guessUserName'];
 
+			$status = Status::newGood();
 			foreach ( $reqs as $req ) {
 				$req->returnToUrl = $state['returnToUrl'];
+				$status->merge( $req->validate() );
+			}
+			if ( !$status->isOK() ) {
+				$this->logger->debug( "Login failed at AuthRequest validation", [
+					'user' => $guessUserName,
+					'reason' => $status->getWikiText( false, false, 'en' ),
+				] );
+				$res = AuthenticationResponse::newFail( $status->getMessage() );
+				if ( $state['maybeLink'] ) {
+					$res->createRequest = new CreateFromLoginAuthenticationRequest( null, $state['maybeLink'] );
+				}
+				$this->callMethodOnProviders( self::CALL_ALL, 'postAuthentication',
+					[ $this->userFactory->newFromName( (string)$guessUserName ) ?: null, $res ]
+				);
+				$session->remove( 'AuthManager::authnState' );
+				$this->getHookRunner()->onAuthManagerLoginAuthenticateAudit(
+					$res, null, $guessUserName, [
+						'performer' => $session->getUser()
+					] );
+				return $res;
 			}
 
 			// Step 1: Choose a primary authentication provider, and call it until it succeeds.
@@ -1036,6 +1075,17 @@ class AuthManager implements LoggerAwareInterface {
 	 * @return Status
 	 */
 	public function allowsAuthenticationDataChange( AuthenticationRequest $req, $checkData = true ) {
+		if ( $checkData ) {
+			$status = Status::wrap( $req->validate() );
+			if ( !$status->isOK() ) {
+				$this->logger->debug( "Auth data change failed at AuthRequest validation", [
+					'user' => $req->username,
+					'reason' => $status->getWikiText( false, false, 'en' ),
+				] );
+				return $status;
+			}
+		}
+
 		$any = false;
 		$providers = $this->getPrimaryAuthenticationProviders() +
 			$this->getSecondaryAuthenticationProviders();
@@ -1077,6 +1127,13 @@ class AuthManager implements LoggerAwareInterface {
 	 *  should not invalidate BotPasswords. If you're not sure, leave it false.
 	 */
 	public function changeAuthenticationData( AuthenticationRequest $req, $isAddition = false ) {
+		$status = Status::wrap( $req->validate() );
+		if ( !$status->isOK() ) {
+			// Caller should have tried with allowsAuthenticationDataChange() first.
+			throw new \LogicException( "Invalid auth data submitted for change for '{$req->username}': "
+				. $status->getWikiText( false, false, 'en' ) );
+		}
+
 		$this->logger->info( 'Changing authentication data for {user} class {what}', [
 			'user' => is_string( $req->username ) ? $req->username : '<no name>',
 			'what' => get_class( $req ),
@@ -1531,9 +1588,22 @@ class AuthManager implements LoggerAwareInterface {
 				}
 			}
 
+			$status = Status::newGood();
 			foreach ( $reqs as $req ) {
 				$req->returnToUrl = $state['returnToUrl'];
 				$req->username = $state['username'];
+				$status->merge( $req->validate() );
+			}
+			if ( !$status->isOK() ) {
+				$this->logger->debug( "Account creation failed at AuthRequest validation", [
+					'user' => $user->getName(),
+					'creator' => $creator->getName(),
+					'reason' => $status->getWikiText( false, false, 'en' ),
+				] );
+				$ret = AuthenticationResponse::newFail( $status->getMessage() );
+				$this->callMethodOnProviders( self::CALL_ALL, 'postAccountCreation', [ $user, $creator, $ret ] );
+				$session->remove( 'AuthManager::accountCreationState' );
+				return $ret;
 			}
 
 			// Run pre-creation tests, if we haven't already
@@ -2258,9 +2328,21 @@ class AuthManager implements LoggerAwareInterface {
 			}
 			return AuthenticationResponse::newFail( $msg );
 		}
+
+		$status = Status::newGood();
 		foreach ( $reqs as $req ) {
 			$req->username = $user->getName();
 			$req->returnToUrl = $returnToUrl;
+			$status->merge( $req->validate() );
+		}
+		if ( !$status->isOK() ) {
+			$this->logger->debug( "Account linking failed at AuthRequest validation", [
+				'user' => $user->getName(),
+				'reason' => $status->getWikiText( false, false, 'en' ),
+			] );
+			$ret = AuthenticationResponse::newFail( $status->getMessage() );
+			$this->callMethodOnProviders( self::CALL_PRE | self::CALL_PRIMARY, 'postAccountLink', [ $user, $ret ] );
+			return $ret;
 		}
 
 		$this->removeAuthenticationSessionData( null );
@@ -2407,15 +2489,27 @@ class AuthManager implements LoggerAwareInterface {
 				$ret = AuthenticationResponse::newFail(
 					wfMessage( 'authmanager-link-not-in-progress' )
 				);
-				$this->callMethodOnProviders( self::CALL_ALL, 'postAccountCreation', [ $user, $ret ] );
+				$this->callMethodOnProviders( self::CALL_ALL, 'postAccountLink', [ $user, $ret ] );
 				$session->remove( self::ACCOUNT_LINK_STATE );
 				return $ret;
 				// @codeCoverageIgnoreEnd
 			}
 
+			$status = Status::newGood();
 			foreach ( $reqs as $req ) {
 				$req->username = $state['username'];
 				$req->returnToUrl = $state['returnToUrl'];
+				$status->merge( $req->validate() );
+			}
+			if ( !$status->isOK() ) {
+				$this->logger->debug( "Account linking failed at AuthRequest validation", [
+					'user' => $user->getName(),
+					'reason' => $status->getWikiText( false, false, 'en' ),
+				] );
+				$ret = AuthenticationResponse::newFail( $status->getMessage() );
+				$this->callMethodOnProviders( self::CALL_PRE | self::CALL_PRIMARY, 'postAccountLink', [ $user, $ret ] );
+				$session->remove( 'AuthManager::accountLinkState' );
+				return $ret;
 			}
 
 			// Step 1: Call the primary again until it succeeds

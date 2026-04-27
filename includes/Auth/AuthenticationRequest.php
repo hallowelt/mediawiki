@@ -8,6 +8,7 @@ namespace MediaWiki\Auth;
 
 use MediaWiki\Language\RawMessage;
 use MediaWiki\Message\Message;
+use StatusValue;
 use UnexpectedValueException;
 
 /**
@@ -229,6 +230,30 @@ abstract class AuthenticationRequest {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Validate the submitted data.
+	 *
+	 * This is called by AuthManager sometime after request data was loaded
+	 * with loadFromSubmission(). A fatal status will stop the authentication
+	 * process and result in a FAIL response. (Non-fatal error statuses are
+	 * ignored for now.)
+	 *
+	 * This is meant for authentication errors the user is unable to fix
+	 * without restarting the process (such as token expiration) or which
+	 * indicate tampering with the request. Recoverable errors are better
+	 * handled by methods with allow the user to redo the request without
+	 * restarting the process (e.g. the AuthChangeFormFields hook).
+	 *
+	 * Note that this check was added in MediaWiki 1.33 so don't use it as a
+	 * security guarantee if you want to support older versions as well.
+	 *
+	 * @return StatusValue
+	 * @since 1.46
+	 */
+	public function validate() {
+		return StatusValue::newGood();
 	}
 
 	/**

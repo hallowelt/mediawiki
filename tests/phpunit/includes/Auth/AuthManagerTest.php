@@ -96,7 +96,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 	protected ReadOnlyMode $readOnlyMode;
 	private HookContainer $hookContainer;
 	protected UserNameUtils $userNameUtils;
-	protected LoggerInterface $logger;
+	protected LoggerInterface|TestLogger $logger;
 
 	/** @var AbstractPreAuthenticationProvider&MockObject[] */
 	protected $preauthMocks = [];
@@ -839,6 +839,29 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$this->assertNull( $this->request->getSession()->getSecret( AuthManager::AUTHN_STATE ) );
 	}
 
+	public function testBeginAuthentication_ValidateFails() {
+		$this->initializeManager();
+
+		// Request fails validate()
+		$invalidReq = $this->getMockBuilder( AuthenticationRequest::class )
+			->onlyMethods( [ 'validate' ] )
+			->getMockForAbstractClass();
+		$invalidReq->expects( $this->any() )
+			->method( 'validate' )
+			->willReturn( StatusValue::newFatal( 'invalid' ) );
+		$this->hook( 'UserLoggedIn', UserLoggedInHook::class, $this->never() );
+		$this->logger->setCollect( true );
+		$ret = $this->manager->beginAuthentication( [ $invalidReq ], 'http://localhost/' );
+		$this->logger->setCollect( false );
+		$this->assertSame( AuthenticationResponse::FAIL, $ret->status );
+		$this->assertSame( 'invalid', $ret->message->getKey() );
+		$this->assertSame( [
+			[ LogLevel::DEBUG, 'Login failed at AuthRequest validation' ],
+		], $this->logger->getBuffer() );
+		$this->unhook( 'UserLoggedIn' );
+		$this->assertNull( $this->request->getSession()->getSecret( 'AuthManager::authnState' ) );
+	}
+
 	public function testBeginAuthentication_CreatedAccountAuthenticationRequest() {
 		$this->initializeManager( true );
 		$user = $this->getTestSysop()->getUser();
@@ -867,6 +890,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			} ) );
 		$this->hook( 'AuthManagerLoginAuthenticateAudit',
 			AuthManagerLoginAuthenticateAuditHook::class, $this->once() );
+		$this->logger->clearBuffer();
 		$this->logger->setCollect( true );
 		$ret = $this->manager->beginAuthentication( $reqs, 'http://localhost/' );
 		$this->logger->setCollect( false );
@@ -891,12 +915,9 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 
 	public function testCreateFromLogin() {
 		$user = $this->getTestSysop()->getUser();
-		$req1 = $this->createMock( AuthenticationRequest::class );
-		$req1->method( 'getUniqueId' )->willReturn( __METHOD__ . 1 );
-		$req2 = $this->createMock( AuthenticationRequest::class );
-		$req2->method( 'getUniqueId' )->willReturn( __METHOD__ . 2 );
-		$req3 = $this->createMock( AuthenticationRequest::class );
-		$req3->method( 'getUniqueId' )->willReturn( __METHOD__ . 3 );
+		$req1 = $this->getMockForAbstractClass( AuthenticationRequest::class );
+		$req2 = $this->getMockForAbstractClass( AuthenticationRequest::class );
+		$req3 = $this->getMockForAbstractClass( AuthenticationRequest::class );
 		$userReq = new UsernameAuthenticationRequest;
 		$userReq->username = 'UTDummy';
 
@@ -1574,13 +1595,15 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * @dataProvider provideAllowsAuthenticationDataChange
+	 * @param AuthenticationRequest $req
 	 * @param StatusValue $primaryReturn
 	 * @param StatusValue $secondaryReturn
 	 * @param Status $expect
+	 * @param array $expectedLogs
 	 */
-	public function testAllowsAuthenticationDataChange( $primaryReturn, $secondaryReturn, $expect ) {
-		$req = $this->getMockForAbstractClass( AuthenticationRequest::class );
-
+	public function testAllowsAuthenticationDataChange(
+		$req, $primaryReturn, $secondaryReturn, $expect, $expectedLogs = []
+	) {
 		$mock1 = $this->createMock( AbstractPrimaryAuthenticationProvider::class );
 		$mock1->method( 'getUniqueId' )->willReturn( '1' );
 		$mock1->method( 'providerAllowsAuthenticationDataChange' )
@@ -1595,10 +1618,22 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$this->primaryauthMocks = [ $mock1 ];
 		$this->secondaryauthMocks = [ $mock2 ];
 		$this->initializeManager( true );
-		$this->assertEquals( $expect, $this->manager->allowsAuthenticationDataChange( $req ) );
+		$this->logger->setCollect( true );
+		$actualStatus = $this->manager->allowsAuthenticationDataChange( $req );
+		$this->assertEquals( $expect->isOK(), $actualStatus->isOK() );
+		$this->assertStatusMessagesExactly( $expect, $actualStatus );
+		$this->assertSame( $expectedLogs, $this->logger->getBuffer() );
 	}
 
-	public static function provideAllowsAuthenticationDataChange() {
+	public function provideAllowsAuthenticationDataChange() {
+		$req = $this->getMockForAbstractClass( AuthenticationRequest::class );
+		$invalidReq = $this->getMockBuilder( AuthenticationRequest::class )
+			->onlyMethods( [ 'validate' ] )
+			->getMockForAbstractClass();
+		$invalidReq->expects( $this->any() )
+			->method( 'validate' )
+			->willReturn( StatusValue::newFatal( 'invalid' ) );
+
 		$ignored = Status::newGood( 'ignored' );
 		$ignored->warning( 'authmanager-change-not-supported' );
 
@@ -1611,46 +1646,62 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 
 		return [
 			[
+				$invalidReq,
+				StatusValue::newGood(),
+				StatusValue::newGood(),
+				\Status::newFatal( 'invalid' ),
+				[ [ LogLevel::DEBUG, 'Auth data change failed at AuthRequest validation' ] ],
+			],
+			[
+				$req,
 				StatusValue::newGood(),
 				StatusValue::newGood(),
 				Status::newGood(),
 			],
 			[
+				$req,
 				StatusValue::newGood(),
 				StatusValue::newGood( 'ignore' ),
 				Status::newGood(),
 			],
 			[
+				$req,
 				StatusValue::newGood( 'ignored' ),
 				StatusValue::newGood(),
 				Status::newGood(),
 			],
 			[
+				$req,
 				StatusValue::newGood( 'ignored' ),
 				StatusValue::newGood( 'ignored' ),
 				$ignored,
 			],
 			[
+				$req,
 				StatusValue::newFatal( 'fail from primary' ),
 				StatusValue::newGood(),
 				Status::newFatal( 'fail from primary' ),
 			],
 			[
+				$req,
 				$okFromPrimary,
 				StatusValue::newGood(),
 				Status::wrap( $okFromPrimary ),
 			],
 			[
+				$req,
 				StatusValue::newGood(),
 				StatusValue::newFatal( 'fail from secondary' ),
 				Status::newFatal( 'fail from secondary' ),
 			],
 			[
+				$req,
 				StatusValue::newGood(),
 				$okFromSecondary,
 				Status::wrap( $okFromSecondary ),
 			],
 			[
+				$req,
 				StatusValue::newGood(),
 				$throttledMailPassword,
 				Status::newGood( 'throttled-mailpassword' ),
@@ -1659,6 +1710,28 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testChangeAuthenticationData() {
+		// Request fails validate()
+		$invalidReq = $this->getMockBuilder( AuthenticationRequest::class )
+			->onlyMethods( [ 'validate' ] )
+			->getMockForAbstractClass();
+		$invalidReq->expects( $this->any() )
+			->method( 'validate' )
+			->willReturn( StatusValue::newFatal( new \RawMessage( 'invalid' ) ) );
+		$invalidReq->username = 'Foo';
+		$mock1 = $this->getMockForAbstractClass( PrimaryAuthenticationProvider::class );
+		$mock1->expects( $this->any() )->method( 'getUniqueId' )->willReturn( '1' );
+		$mock1->expects( $this->never() )->method( 'providerChangeAuthenticationData' );
+		$this->primaryauthMocks = [ $mock1 ];
+		$this->initializeManager( true );
+		try {
+			$this->manager->changeAuthenticationData( $invalidReq );
+			$this->fail( 'Expected exception not thrown' );
+		} catch ( \LogicException $e ) {
+			$this->assertEquals( "Invalid auth data submitted for change for 'Foo': invalid",
+				$e->getMessage() );
+		}
+
+		// Successful change
 		$req = $this->getMockForAbstractClass( AuthenticationRequest::class );
 		$req->username = 'TestChangeAuthenticationData';
 
@@ -1771,6 +1844,43 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$this->initializeManager( true );
 		$status = $this->manager->authorizeCreateAccount( $user );
 		$this->assertStatusError( 'blockedtext', $status );
+	}
+
+	public function testContinueAuthentication() {
+		// most tests for this are in testAuthentication()
+		$this->initializeManager();
+
+		$session = [
+			'reqs' => [],
+			'providerIds' => [ 'preauth' => [], 'primaryauth' => [], 'secondaryauth' => [] ],
+			'returnToUrl' => 'http://localhost/',
+			'guessUserName' => null,
+			'primary' => null,
+			'primaryResponse' => null,
+			'secondary' => [],
+			'maybeLink' => [],
+			'continueRequests' => [],
+		];
+
+		// Request fails validate()
+		$invalidReq = $this->getMockBuilder( AuthenticationRequest::class )
+			->onlyMethods( [ 'validate' ] )
+			->getMockForAbstractClass();
+		$invalidReq->expects( $this->any() )
+			->method( 'validate' )
+			->willReturn( StatusValue::newFatal( 'invalid' ) );
+		$this->hook( 'UserLoggedIn', UserLoggedInHook::class, $this->never() );
+		$this->initializeManager();
+		$this->logger->setCollect( true );
+		$this->request->getSession()->setSecret( 'AuthManager::authnState',
+			[ 'continueRequests' => [ $invalidReq ] ] + $session );
+		$ret = $this->manager->continueAuthentication( [ $invalidReq ] );
+		$this->logger->setCollect( false );
+		$this->assertSame( AuthenticationResponse::FAIL, $ret->status );
+		$this->assertSame( 'invalid', $ret->message->getKey() );
+		$this->assertSame( [ [ LogLevel::DEBUG, 'Login failed at AuthRequest validation' ] ],
+			$this->logger->getBuffer() );
+		$this->assertNull( $this->request->getSession()->getSecret( 'AuthManager::authnState' ) );
 	}
 
 	/**
@@ -2098,6 +2208,7 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			'creatorname' => $username,
 			'reqs' => [],
 			'providerIds' => [ 'preauth' => [], 'primaryauth' => [], 'secondaryauth' => [] ],
+			'returnToUrl' => 'http://localhost/',
 			'primary' => null,
 			'primaryResponse' => null,
 			'secondary' => [],
@@ -2223,6 +2334,23 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$ret = $this->manager->continueAccountCreation( [] );
 		$this->assertSame( AuthenticationResponse::FAIL, $ret->status );
 		$this->assertSame( 'populatefail', $ret->message->getKey() );
+		$this->assertNull(
+			$this->request->getSession()->getSecret( AuthManager::ACCOUNT_CREATION_STATE )
+		);
+
+		// Request fails validate()
+		$invalidReq = $this->getMockBuilder( AuthenticationRequest::class )
+			->onlyMethods( [ 'validate' ] )
+			->getMockForAbstractClass();
+		$invalidReq->expects( $this->any() )
+			->method( 'validate' )
+			->willReturn( StatusValue::newFatal( 'invalid' ) );
+		$this->hook( 'LocalUserCreated', LocalUserCreatedHook::class, $this->never() );
+		$this->request->getSession()->setSecret( AuthManager::ACCOUNT_CREATION_STATE,
+			[ 'reqs' => [ $invalidReq ] ] + $session );
+		$ret = $this->manager->continueAccountCreation( [ $invalidReq ] );
+		$this->assertSame( AuthenticationResponse::FAIL, $ret->status );
+		$this->assertSame( 'invalid', $ret->message->getKey() );
 		$this->assertNull(
 			$this->request->getSession()->getSecret( AuthManager::ACCOUNT_CREATION_STATE )
 		);
@@ -4043,6 +4171,23 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		);
 		$this->assertSame( AuthenticationResponse::FAIL, $ret->status );
 		$this->assertSame( 'authmanager-userdoesnotexist', $ret->message->getKey() );
+
+		// Request fails validate()
+		$invalidReq = $this->getMockBuilder( AuthenticationRequest::class )
+			->onlyMethods( [ 'validate' ] )
+			->getMockForAbstractClass();
+		$invalidReq->expects( $this->any() )
+			->method( 'validate' )
+			->willReturn( StatusValue::newFatal( 'invalid' ) );
+		$this->logger->setCollect( true );
+		$ret = $this->manager->beginAccountLink(
+			$this->getTestUser()->getUser(), [ $invalidReq ], 'http://localhost/' );
+		$this->logger->setCollect( false );
+		$this->assertSame( AuthenticationResponse::FAIL, $ret->status );
+		$this->assertSame( 'invalid', $ret->message->getKey() );
+		$this->assertNull( $this->request->getSession()->getSecret( 'AuthManager::accountLinkState' ) );
+		$this->assertSame( [ [ LogLevel::DEBUG, 'Account linking failed at AuthRequest validation' ] ],
+			$this->logger->getBuffer() );
 	}
 
 	public function testContinueAccountLink() {
@@ -4052,7 +4197,10 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 		$session = [
 			'userid' => $user->getId(),
 			'username' => $user->getName(),
+			'returnToUrl' => 'http://localhost/',
+			'providerIds' => [ 'preauth' => [], 'primaryauth' => [ 'X' ], 'secondaryauth' => [] ],
 			'primary' => 'X',
+			'continueRequests' => [],
 		];
 
 		try {
@@ -4096,6 +4244,24 @@ class AuthManagerTest extends MediaWikiIntegrationTestCase {
 			);
 		}
 		$this->assertNull( $this->request->getSession()->getSecret( AuthManager::ACCOUNT_LINK_STATE ) );
+
+		// Request fails validate()
+		$invalidReq = $this->getMockBuilder( AuthenticationRequest::class )
+			->onlyMethods( [ 'validate' ] )
+			->getMockForAbstractClass();
+		$invalidReq->expects( $this->any() )
+			->method( 'validate' )
+			->willReturn( StatusValue::newFatal( 'invalid' ) );
+		$this->request->getSession()->setSecret( AuthManager::ACCOUNT_LINK_STATE,
+			[ 'continueRequests' => [ $invalidReq ] ] + $session );
+		$this->logger->setCollect( true );
+		$ret = $this->manager->continueAccountLink( [ $invalidReq ] );
+		$this->logger->setCollect( false );
+		$this->assertSame( AuthenticationResponse::FAIL, $ret->status );
+		$this->assertSame( 'invalid', $ret->message->getKey() );
+		$this->assertNull( $this->request->getSession()->getSecret( AuthManager::ACCOUNT_LINK_STATE ) );
+		$this->assertSame( [ [ LogLevel::DEBUG, 'Account linking failed at AuthRequest validation' ] ],
+			$this->logger->getBuffer() );
 	}
 
 	/**
