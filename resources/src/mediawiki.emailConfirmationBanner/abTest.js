@@ -16,7 +16,7 @@
 	}
 
 	mw.loader.using( 'ext.testKitchen' ).then( () => {
-		const exp = mw.testKitchen.getExperiment( 'ab-test-email-confirmation-banner' );
+		const exp = mw.testKitchen.compat.getExperiment( 'ab-test-email-confirmation-banner' );
 		if ( !exp || !exp.getAssignedGroup ) {
 			removeAll();
 			return;
