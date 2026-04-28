@@ -388,15 +388,16 @@
 							notifyPageWatchStatus( false );
 						}
 					} );
-				} else {
-					// The Vue app has already been mounted.
-					watchlistPopup.openPopup( $link[ 0 ] );
 				}
 				// Re-set to idle.
 				updateWatchLinkAttributes( $link, action, 'idle' );
 			} );
 			if ( watchlistPopup ) {
-				watchlistPopup.openPopup( $link[ 0 ] );
+				if ( watchlistPopup.isOpen ) {
+					watchlistPopup.isOpen = false;
+				} else {
+					watchlistPopup.openPopup( $link[ 0 ] );
+				}
 			}
 		} );
 	}

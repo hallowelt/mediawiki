@@ -111,7 +111,7 @@ module.exports = defineComponent( {
 	},
 	setup( props ) {
 		/** @member {boolean} isOpen Whether the popup is currently open. */
-		const isOpen = ref( true );
+		const isOpen = ref( false );
 
 		/** @member {string} action The action currently able to be taken from the popup or the link (i.e. if the item is watched, this is 'unwatch'). */
 		const action = ref( props.initialAction );
@@ -200,33 +200,31 @@ module.exports = defineComponent( {
 
 		/**
 		 * Allows user to tab into the expiry dropdown from the watch link.
-		 * Valid only for the initial keystroke after the popup appears, so as to
-		 * avoid listening to every keystroke for the entire session.
 		 */
-		function addTabKeyListener() {
-			$( window ).one( 'keydown.watchlistExpiry', ( e ) => {
-				if ( ( e.keyCode || e.which ) !== OO.ui.Keys.TAB ) {
-					return;
-				}
+		const tabKeyListener = ( e ) => {
+			if ( ( e.keyCode || e.which ) !== OO.ui.Keys.TAB ) {
+				return;
+			}
 
-				// Here we look for focus on the watch link, going by the accessKey.
-				// This is because there is no CSS class or ID on the link itself,
-				// and skins could manipulate the position of the link. The accessKey
-				// however is always present on the link.
-				if ( document.activeElement.accessKey === mw.msg( 'accesskey-ca-watch' ) ) {
-					e.preventDefault();
-					// @todo Fix this.
-					// this.expirySelect.value.focus();
-
-					// Add another tab key listener so they can tab back to the watch link.
-					addTabKeyListener();
-				} else if ( $( e.target ).parents( '.mw-watchexpiry' ).length ) {
-					// Move focus to the watch link if they're tabbing from the dropdown.
-					e.preventDefault();
-					props.link.focus();
-				}
-			} );
-		}
+			if ( document.activeElement === props.link && e.shiftKey ) {
+				// We're on the watchstar and reverse-tabbing, so go to the end of the popover.
+				e.preventDefault();
+				document.querySelector( '.mw-watchstar-WatchlistPopup .cdx-popover__footer button' ).focus();
+			} else if ( document.activeElement === props.link ) {
+				// We're on the watchstar, tab to the close button (as the first focusable element).
+				e.preventDefault();
+				document.querySelector( '.mw-watchstar-WatchlistPopup .cdx-popover__header__close-button' ).focus();
+			} else if (
+				// We're in the footer and tabbing.
+				( !e.shiftKey && $( e.target ).parents( '.cdx-popover__footer' ).length ) ||
+				// Or we're in the header and reverse-tabbing.
+				( e.shiftKey && $( e.target ).parents( '.cdx-popover__header' ).length )
+			) {
+				// Move focus back to the watch link.
+				e.preventDefault();
+				props.link.focus();
+			}
+		};
 
 		const showError = ( code, data ) => {
 			errorMessage.value = api.getErrorMessage( data ).html();
@@ -292,9 +290,15 @@ module.exports = defineComponent( {
 			intersectionObserver.observe( newAnchor );
 			anchor.value = newAnchor;
 			isOpen.value = true;
+
+			// Watch on initial open, if not yet watched.
+			if ( props.initialAction === 'watch' ) {
+				doWatch();
+			}
 		};
 
 		onMounted( () => {
+			isOpen.value = true;
 			api.get( {
 				action: 'query',
 				meta: 'userinfo',
@@ -344,6 +348,11 @@ module.exports = defineComponent( {
 			} else if ( !newVal ) {
 				watchResponse.value = {};
 			}
+			if ( newVal ) {
+				$( window ).on( 'keydown.watchlistExpiry', tabKeyListener );
+			} else {
+				$( window ).off( 'keydown.watchlistExpiry' );
+			}
 		} );
 
 		watch( expiry, ( newExpiry ) => {
@@ -354,15 +363,6 @@ module.exports = defineComponent( {
 				expiries.value.push( { value: newExpiry, label: daysLeftMsg } );
 			}
 		} );
-
-		if ( props.expiryEnabled || props.labelsEnabled ) {
-			addTabKeyListener();
-		}
-
-		// Watch on inintial open, if not yet watched.
-		if ( props.initialAction === 'watch' ) {
-			doWatch();
-		}
 
 		return {
 			isOpen,
