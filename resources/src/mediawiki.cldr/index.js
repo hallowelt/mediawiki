@@ -3,7 +3,7 @@
 
 	/**
 	 * Namespace for CLDR-related utility methods.
-	 * Provided by the `mediawiki.cdlr` ResourceLoader module.
+	 * Provided by the `mediawiki.cldr` ResourceLoader module.
 	 *
 	 * @namespace mw.cldr
 	 * @singleton
