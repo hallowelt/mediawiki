@@ -144,6 +144,7 @@ figure[ typeof~='mw:File/Frame' ] {
 		.mw-broken-media {
 			display: inline-block;
 			line-height: 1.6em;
+			/* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated */
 			word-break: break-word;  // Same as in the figcaption
 			/* This is hardcoded in Linker::makeThumbLink2 for broken media */
 			width: 180px;
@@ -180,6 +181,7 @@ figure[ typeof~='mw:File/Frame' ] {
 		 * when calculating min-content intrinsic sizes."
 		 * From https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-wrap
 		 */
+		/* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated */
 		word-break: break-word;
 		text-align: start;
 
