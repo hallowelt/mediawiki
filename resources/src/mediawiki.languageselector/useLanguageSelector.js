@@ -24,10 +24,6 @@ function useLanguageSelector(
 	const searchQueryHits = ref( {} );
 	const isSearching = ref( false );
 
-	/**
-	 * Normalized language list that defaults to an empty object.
-	 * Used for all data lookups and returned to the caller.
-	 */
 	const languages = computed( () => unref( selectableLanguages ) || {} );
 
 	const selection = computed( () => {
@@ -53,11 +49,8 @@ function useLanguageSelector(
 		return selection.value.value;
 	} );
 
-	let languageClient = null;
+	const languageClient = languageSearchClient( searchApiUrl );
 	const fetchLanguages = async ( query ) => {
-		if ( !languageClient ) {
-			languageClient = languageSearchClient( searchApiUrl );
-		}
 		const searchRequest = languageClient.searchLanguages( query );
 		isSearching.value = true;
 
@@ -68,9 +61,9 @@ function useLanguageSelector(
 
 			// Only filter results if the caller explicitly provided a subset of languages.
 			if ( unref( selectableLanguages ) ) {
-				const languagesKeys = Object.keys( languages.value );
+				const languagesSet = new Set( Object.keys( languages.value ) );
 				searchResults.value = responseLanguageCodes.filter(
-					( code ) => languagesKeys.includes( code )
+					( code ) => languagesSet.has( code )
 				);
 			} else {
 				searchResults.value = [];
@@ -98,14 +91,14 @@ function useLanguageSelector(
 	const debouncedSearch = debounce( search, debounceDelayMs );
 
 	const clearSearchQuery = () => {
-		searchQuery.value = null;
+		searchQuery.value = '';
 	};
 
 	const isSelectionUpdated = ( newValue ) => {
 		if ( isMultiple ) {
-			const current = selectedValues.value || [];
-			return newValue.length !== current.length ||
-				newValue.some( ( val, idx ) => val !== current[ idx ] );
+			const current = new Set( selectedValues.value || [] );
+			return newValue.length !== current.size ||
+				newValue.some( ( val ) => !current.has( val ) );
 		}
 
 		return selectedValues.value !== newValue;

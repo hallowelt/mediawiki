@@ -5,6 +5,8 @@
  * @return {Object} Language search client with search method
  */
 function languageSearchClient( apiUrl ) {
+	const api = new mw.Api( apiUrl ? { ajax: { url: apiUrl } } : undefined );
+
 	return {
 		/**
 		 * Search for languages matching the given query
@@ -12,17 +14,14 @@ function languageSearchClient( apiUrl ) {
 		 * @param {string} search - The search query string
 		 * @return {Promise<{languagesearch: Object}>} Promise that resolves with the search results
 		 */
-		searchLanguages: ( search ) => {
-			const api = new mw.Api( apiUrl ? { ajax: { url: apiUrl } } : undefined );
-			return new Promise( ( resolve, reject ) => {
-				api.get( {
-					action: 'languagesearch',
-					format: 'json',
-					formatversion: '2',
-					search: search
-				} ).then( resolve, reject );
-			} );
-		}
+		searchLanguages: ( search ) => new Promise( ( resolve, reject ) => {
+			api.get( {
+				action: 'languagesearch',
+				format: 'json',
+				formatversion: '2',
+				search: search
+			} ).then( resolve, reject );
+		} )
 	};
 }
 
