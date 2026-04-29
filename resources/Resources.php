@@ -166,16 +166,6 @@ return [
 			'vue'
 		]
 	],
-	'mediawiki.languageselector' => [
-		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.languageselector',
-		'remoteBasePath' => '',
-		'packageFiles' => [
-			'index.js',
-		],
-		'dependencies' => [
-			'mediawiki.languageselector.lookup',
-		]
-	],
 
 	/* Polyfills */
 	'web2017-polyfills' => [
