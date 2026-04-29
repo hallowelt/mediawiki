@@ -1,13 +1,12 @@
-const { ref, Ref, computed, onBeforeUnmount } = require( 'vue' );
-const supportedLanguages = require( './supportedLanguages.json' );
+const { ref, computed, onBeforeUnmount, unref } = require( 'vue' );
 const languageSearchClient = require( './languageSearch.js' );
 const debounce = require( './debounce.js' );
 
 /**
  * Composable for language selection logic
  *
- * @param {Ref<Object>} selectableLanguages
- * @param {Ref<string|string[]>} selected
+ * @param {import('vue').Ref<Object>|Object} [selectableLanguages]
+ * @param {import('vue').Ref<string|string[]>} selected
  * @param {string} searchApiUrl
  * @param {number} debounceDelayMs
  * @param {boolean} isMultiple Whether multiple selection is allowed
@@ -25,20 +24,28 @@ function useLanguageSelector(
 	const searchQueryHits = ref( {} );
 	const isSearching = ref( false );
 
-	const languages = computed( () => selectableLanguages.value || supportedLanguages );
+	/**
+	 * Normalized language list that defaults to an empty object.
+	 * Used for all data lookups and returned to the caller.
+	 */
+	const languages = computed( () => unref( selectableLanguages ) || {} );
+
 	const selection = computed( () => {
+		const currentSelected = unref( selected );
+
 		if ( isMultiple ) {
-			return selected.value.map( ( langCode ) => ( {
+			return ( currentSelected || [] ).map( ( langCode ) => ( {
 				value: langCode,
 				label: languages.value[ langCode ] || langCode
 			} ) );
 		} else {
 			return {
-				value: selected.value,
-				label: languages.value[ selected.value ] || selected.value
+				value: currentSelected,
+				label: languages.value[ currentSelected ] || currentSelected
 			};
 		}
 	} );
+
 	const selectedValues = computed( () => {
 		if ( isMultiple ) {
 			return selection.value.map( ( item ) => item.value );
@@ -58,13 +65,19 @@ function useLanguageSelector(
 			const response = await searchRequest;
 			searchQueryHits.value = response.languagesearch || {};
 			const responseLanguageCodes = Object.keys( searchQueryHits.value );
-			searchResults.value = responseLanguageCodes.filter(
-				( code ) => Object.keys( languages.value ).includes( code )
-			);
+
+			// Only filter results if the caller explicitly provided a subset of languages.
+			if ( unref( selectableLanguages ) ) {
+				const languagesKeys = Object.keys( languages.value );
+				searchResults.value = responseLanguageCodes.filter(
+					( code ) => languagesKeys.includes( code )
+				);
+			} else {
+				searchResults.value = [];
+			}
 		} catch ( error ) {
 			searchQueryHits.value = {};
 			mw.log.error( 'Language search failed:', error );
-			throw new Error( 'Language search failed' + error );
 		} finally {
 			isSearching.value = false;
 		}
@@ -77,7 +90,9 @@ function useLanguageSelector(
 			return;
 		}
 
-		fetchLanguages( query );
+		if ( unref( selectableLanguages ) ) {
+			fetchLanguages( query );
+		}
 	};
 
 	const debouncedSearch = debounce( search, debounceDelayMs );
@@ -88,11 +103,12 @@ function useLanguageSelector(
 
 	const isSelectionUpdated = ( newValue ) => {
 		if ( isMultiple ) {
-			return newValue.length !== selectedValues.value.length ||
-				newValue.some( ( val, idx ) => val !== selectedValues.value[ idx ] );
+			const current = selectedValues.value || [];
+			return newValue.length !== current.length ||
+				newValue.some( ( val, idx ) => val !== current[ idx ] );
 		}
 
-		return selection.value.value !== newValue;
+		return selectedValues.value !== newValue;
 	};
 
 	onBeforeUnmount( () => {

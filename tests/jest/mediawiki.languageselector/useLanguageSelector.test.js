@@ -1,12 +1,6 @@
 const { defineComponent, toRefs } = require( 'vue' );
 const VueTestUtils = require( '@vue/test-utils' );
 
-jest.mock( '../../../resources/src/mediawiki.languageselector/supportedLanguages.json', () => ( {
-	en: 'English',
-	fr: 'Français',
-	de: 'Deutsch'
-} ), { virtual: true } );
-
 jest.mock( '../../../resources/src/mediawiki.languageselector/languageSearch.js', () => jest.fn() );
 
 const useLanguageSelector = require( '../../../resources/src/mediawiki.languageselector/useLanguageSelector.js' );
@@ -105,7 +99,10 @@ describe( 'useLanguageSelector', () => {
 		jest.useFakeTimers();
 		mockSearchLanguages.mockReturnValue( Promise.resolve( { languagesearch: { en: 'English' } } ) );
 
-		const wrapper = mount( { debounceDelayMs: 300 } );
+		const wrapper = mount( {
+			debounceDelayMs: 300,
+			selectableLanguages: { en: 'English' }
+		} );
 		await wrapper.vm.$nextTick();
 
 		wrapper.vm.search( 'en' );
@@ -123,7 +120,9 @@ describe( 'useLanguageSelector', () => {
 		jest.useFakeTimers();
 		mockSearchLanguages.mockReturnValue( Promise.resolve( { languagesearch: { en: 'English' } } ) );
 
-		const wrapper = mount();
+		const wrapper = mount( {
+			selectableLanguages: { en: 'English' }
+		} );
 		await wrapper.vm.$nextTick();
 
 		wrapper.vm.search( 'en' );
@@ -134,6 +133,24 @@ describe( 'useLanguageSelector', () => {
 		await wrapper.vm.$nextTick();
 
 		expect( wrapper.vm.searchResults ).toEqual( [ 'en' ] );
+
+		jest.useRealTimers();
+	} );
+
+	it( 'does not search when selectableLanguages is not provided', async () => {
+		jest.useFakeTimers();
+		const wrapper = mount( {
+			selectableLanguages: null
+		} );
+		await wrapper.vm.$nextTick();
+
+		wrapper.vm.search( 'en' );
+
+		jest.advanceTimersByTime( 300 );
+		await wrapper.vm.$nextTick();
+
+		expect( mockSearchLanguages ).not.toHaveBeenCalled();
+		expect( wrapper.vm.searchResults ).toEqual( [] );
 
 		jest.useRealTimers();
 	} );

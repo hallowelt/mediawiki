@@ -135,25 +135,6 @@ return [
 			'languageSearch.js',
 			'debounce.js',
 			'menuHelper.js',
-			[
-				'name' => 'supportedLanguages.json',
-				'callback' => static function ( Context $context ) {
-					$services = MediaWikiServices::getInstance();
-
-					return $services->getLanguageNameUtils()
-						->getLanguageNames(
-							$context->getLanguage(),
-							LanguageNameUtils::SUPPORTED
-						);
-				},
-				'versionCallback' => static function ( Context $context ) {
-					return [
-						$context->getLanguage(),
-						// In case a new language is added
-						MediaWikiServices::getInstance()->getMainConfig()->get( 'CacheEpoch' )
-					];
-				},
-			],
 		],
 		'dependencies' => [
 			'mediawiki.api',

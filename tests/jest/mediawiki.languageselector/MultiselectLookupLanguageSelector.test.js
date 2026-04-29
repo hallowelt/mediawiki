@@ -23,17 +23,15 @@ jest.mock( '../../../resources/src/mediawiki.languageselector/codex.js', () => (
 	}
 } ), { virtual: true } );
 
-// Mock supportedLanguages.json
-jest.mock( '../../../resources/src/mediawiki.languageselector/supportedLanguages.json', () => ( {
-	en: 'English',
-	fr: 'Français',
-	de: 'Deutsch'
-} ), { virtual: true } );
-
 const MultiselectLookupLanguageSelector = require( '../../../resources/src/mediawiki.languageselector/MultiselectLookupLanguageSelector.vue' );
 
 const defaultProps = {
-	searchApiUrl: 'https://en.wikipedia.org/w/api.php'
+	searchApiUrl: 'https://en.wikipedia.org/w/api.php',
+	selectableLanguages: {
+		en: 'English',
+		fr: 'Français',
+		de: 'Deutsch'
+	}
 };
 
 const mount = ( customProps, options = {} ) => VueTestUtils.mount( MultiselectLookupLanguageSelector, {
