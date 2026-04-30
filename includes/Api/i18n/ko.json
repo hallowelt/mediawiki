@@ -1485,7 +1485,7 @@
 	"apihelp-rollback-param-pageid": "편집을 되돌릴 문서의 ID. <var>$1title</var>과 함께 사용할 수 없습니다.",
 	"apihelp-rollback-param-tags": "되돌리기를 적용하기 위해 태그합니다.",
 	"apihelp-rollback-param-user": "편집을 되돌릴 사용자의 이름입니다.",
-	"apihelp-rollback-param-summary": "사용자 정의 편집 요약입니다. 비어 있는 경우 기본 요약이 사용됩니다.",
+	"apihelp-rollback-param-summary": "사용자 지정 편집 요약입니다. 비어 있는 경우 기본 요약이 사용됩니다.",
 	"apihelp-rollback-param-markbot": "되돌려진 편집과 되돌려짐을 봇 편집으로 표시합니다.",
 	"apihelp-rollback-param-watchlist": "현재 사용자의 주시목록에서 문서를 무조건적으로 추가하거나 제거하거나, 환경 설정을 사용하거나 (봇 사용자는 무시됨) 주시를 변경하지 않습니다.",
 	"apihelp-rollback-param-watchlistexpiry": "주시문서 목록 만기 시간 타임스탬프입니다. 현재 만기 시간을 변경하지 않고 그대로 두려면 이 매개변수를 완전히 생략하세요.",
