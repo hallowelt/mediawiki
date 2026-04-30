@@ -992,7 +992,7 @@ abstract class LoginSignupSpecialPage extends AuthManagerSpecialPage {
 					'id' => 'wpPassword2',
 					'autocomplete' => 'new-password',
 					'placeholder-message' => 'createacct-yourpassword-ph',
-					'help-message' => 'createacct-useuniquepass',
+					'help-message' => $showCreateAccountUsernamePolicyPopover ? '' : 'createacct-useuniquepass',
 				] + $hideIf,
 				'domain' => [],
 				'retype' => [
@@ -1016,8 +1016,9 @@ abstract class LoginSignupSpecialPage extends AuthManagerSpecialPage {
 				] + $hideIf,
 				'email' => [
 					'type' => 'email',
-					'label-message' => $config->get( MainConfigNames::EmailConfirmToEdit )
-						? 'createacct-emailrequired' : 'createacct-emailoptional',
+					'label-message' => (
+						$config->get( MainConfigNames::EmailConfirmToEdit ) || $showCreateAccountUsernamePolicyPopover
+					) ? 'createacct-emailrequired' : 'createacct-emailoptional',
 					'id' => 'wpEmail',
 					'cssclass' => 'loginText',
 					'size' => '20',
