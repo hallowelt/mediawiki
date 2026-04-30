@@ -301,36 +301,25 @@ class ParserTestPrinter extends TestRecorder {
 	}
 
 	public function report() {
-		if ( $this->total > 0 ) {
-			$this->reportPercentage( $this->success, $this->total );
-		} else {
+		if ( !$this->total ) {
 			print $this->term->color( 31 ) . "No tests found." . $this->term->reset() . "\n";
+			return;
 		}
-	}
 
-	/**
-	 * @param int $success Number of passed tests
-	 * @param int $total Number of total tests
-	 * @return bool True if and only if all tests passed
-	 */
-	private function reportPercentage( $success, $total ) {
-		$ratio = round( 100 * $success / $total, 2 );
-		self::print( $this->term->color( 1 ) . "Passed $success of $total tests ($ratio%)" );
+		self::print( $this->term->color( 1 ) . "Passed {$this->success} of {$this->total} tests" );
 		if ( $this->skipped ) {
 			self::print( ", skipped {$this->skipped}" );
 		}
 		print "... ";
 
-		if ( $success == $total ) {
+		if ( $this->success === $this->total ) {
 			print $this->term->color( 32 ) . "ALL TESTS PASSED!";
 		} else {
-			$failed = $total - $success;
+			$failed = $this->total - $this->success;
 			self::print( $this->term->color( 31 ) . "$failed tests failed!" );
 		}
 
 		print $this->term->reset() . "\n";
-
-		return ( $success == $total );
 	}
 }
 /** @deprecated class alias since 1.46 */
