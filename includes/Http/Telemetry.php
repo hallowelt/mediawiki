@@ -22,21 +22,12 @@ class Telemetry implements TelemetryHeadersInterface {
 	private ?string $reqId = null;
 
 	/**
-	 * Server and execution environment information.
-	 *
-	 * @see https://www.php.net/manual/en/reserved.variables.server.php
-	 * @var array
-	 */
-	private array $server;
-
-	private ?bool $allowExternalReqID;
-
-	/**
 	 * @param array $server Server and execution environment information, most likely the $_SERVER variable
 	 */
-	public function __construct( array $server, ?bool $allowExternalReqID = null ) {
-		$this->server = $server;
-		$this->allowExternalReqID = $allowExternalReqID;
+	public function __construct(
+		private readonly array $server,
+		private readonly ?bool $allowExternalReqID = null,
+	) {
 	}
 
 	public static function getInstance(): Telemetry {

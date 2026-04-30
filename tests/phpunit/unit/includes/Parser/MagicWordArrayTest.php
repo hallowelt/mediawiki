@@ -26,7 +26,7 @@ class MagicWordArrayTest extends MediaWikiUnitTestCase {
 	public function testConstructor() {
 		$array = new MagicWordArray( [ 'ID' ], $this->getFactory() );
 		$this->assertSame( [ 'ID' ], $array->getNames() );
-		$this->assertSame( [ '(?i:(?P<a_ID>SYNONYM)|(?P<b_ID>alt\=\$1))', '(?!)' ],
+		$this->assertSame( [ '(?i:(?P<_ID>SYNONYM|alt\=\$1))', '(?!)' ],
 			$array->getBaseRegex() );
 		$this->assertSame( [ '(?i:SYNONYM|alt\=\$1)', '(?!)' ],
 			$array->getBaseRegex( false ) );
@@ -37,7 +37,7 @@ class MagicWordArrayTest extends MediaWikiUnitTestCase {
 		$array = new MagicWordArray( [], $this->getFactory() );
 		$array->add( 'ADD' );
 		$this->assertSame( [ 'ADD' ], $array->getNames() );
-		$this->assertSame( [ '(?i:(?P<a_ADD>SYNONYM)|(?P<b_ADD>alt\=\$1))', '(?!)' ],
+		$this->assertSame( [ '(?i:(?P<_ADD>SYNONYM|alt\=\$1))', '(?!)' ],
 			$array->getBaseRegex() );
 	}
 
@@ -93,17 +93,18 @@ class MagicWordArrayTest extends MediaWikiUnitTestCase {
 		/** @var MagicWordArray $spy */
 		$spy = TestingAccessWrapper::newFromObject( $array );
 		$this->assertSame( [
-			'/^(?:(?i:(?P<a_notitleconvert>__NOTITLECONVERT__)|(?P<b_notitleconvert>__NOTC__)|' .
-				'(?P<a_notoc>__NOTOC__)))$/JSu',
-			'/^(?:(?P<a_img_thumbnail>thumb)|(?P<b_img_thumbnail>thumbnail)|' .
-				'(?P<a_img_upright>upright)|(?P<b_img_upright>upright\=(.*?))|(?P<c_img_upright>upright (.*?))|' .
-				'(?P<a_img_width>(.*?)px))$/JS',
+			'/^(?:(?i:(?P<_notitleconvert>__NOTITLECONVERT__|__NOTC__)|' .
+				'(?P<_notoc>__NOTOC__)))$/JSu',
+			'/^(?:(?P<_img_thumbnail>thumb|thumbnail)|' .
+				'(?P<_img_upright>(?|upright|upright\=(.*?)|upright (.*?)))|' .
+				'(?P<_img_width>(.*?)px))$/JS',
 		], $spy->getVariableStartToEndRegex() );
 	}
 
 	public static function provideMatchVariableStartToEndMultiple() {
 		return [
 			[ 'thumb', [ 'img_thumbnail', false ] ],
+			[ 'upright 1.2', [ 'img_upright', '1.2' ] ],
 			[ 'upright=1.2', [ 'img_upright', '1.2' ] ],
 			[ 'upright=', [ 'img_upright', '' ] ],
 			[ 'upright', [ 'img_upright', false ] ],

@@ -26,31 +26,20 @@ use Wikimedia\Rdbms\SelectQueryBuilder;
  */
 class ImportableOldRevisionImporter implements OldRevisionImporter {
 
-	private bool $doUpdates;
-	private LoggerInterface $logger;
-	private IConnectionProvider $dbProvider;
-	private RevisionStore $revisionStore;
-	private SlotRoleRegistry $slotRoleRegistry;
-	private WikiPageFactory $wikiPageFactory;
-	private PageUpdaterFactory $pageUpdaterFactory;
-	private UserFactory $userFactory;
+	private readonly WikiPageFactory $wikiPageFactory;
+	private readonly PageUpdaterFactory $pageUpdaterFactory;
+	private readonly UserFactory $userFactory;
 
 	public function __construct(
-		bool $doUpdates,
-		LoggerInterface $logger,
-		IConnectionProvider $dbProvider,
-		RevisionStore $revisionStore,
-		SlotRoleRegistry $slotRoleRegistry,
+		private readonly bool $doUpdates,
+		private readonly LoggerInterface $logger,
+		private readonly IConnectionProvider $dbProvider,
+		private readonly RevisionStore $revisionStore,
+		private readonly SlotRoleRegistry $slotRoleRegistry,
 		?WikiPageFactory $wikiPageFactory = null,
 		?PageUpdaterFactory $pageUpdaterFactory = null,
-		?UserFactory $userFactory = null
+		?UserFactory $userFactory = null,
 	) {
-		$this->doUpdates = $doUpdates;
-		$this->logger = $logger;
-		$this->dbProvider = $dbProvider;
-		$this->revisionStore = $revisionStore;
-		$this->slotRoleRegistry = $slotRoleRegistry;
-
 		$services = MediaWikiServices::getInstance();
 		// @todo: temporary - remove when FileImporter extension is updated
 		$this->wikiPageFactory = $wikiPageFactory ?? $services->getWikiPageFactory();

@@ -17,17 +17,13 @@ use Psr\Http\Message\StreamInterface;
 class MwHttpRequestToResponseInterfaceAdapter implements ResponseInterface {
 
 	/**
-	 * @var MWHttpRequest
-	 */
-	private $mwHttpRequest;
-
-	/**
 	 * @param MWHttpRequest $mwHttpRequest the MWHttpRequest must contain response information, i.e. must have been
 	 *                                     `execute`d
 	 */
-	public function __construct( MWHttpRequest $mwHttpRequest ) {
+	public function __construct(
+		private readonly MWHttpRequest $mwHttpRequest,
+	) {
 		$this->validateHasResponse( $mwHttpRequest );
-		$this->mwHttpRequest = $mwHttpRequest;
 	}
 
 	/** @inheritDoc */

@@ -116,17 +116,9 @@ class WikiImporter {
 	 *
 	 * If you want to also log the import actions, see ImportReporter.
 	 */
-	private Authority $performer;
+	private readonly Authority $performer;
 
-	private Config $config;
-	private HookRunner $hookRunner;
-	private Language $contentLanguage;
-	private NamespaceInfo $namespaceInfo;
-	private TitleFactory $titleFactory;
-	private WikiPageFactory $wikiPageFactory;
-	private UploadRevisionImporter $uploadRevisionImporter;
-	private IContentHandlerFactory $contentHandlerFactory;
-	private SlotRoleRegistry $slotRoleRegistry;
+	private readonly HookRunner $hookRunner;
 
 	/**
 	 * Creates an ImportXMLReader drawing from the source provided
@@ -134,26 +126,18 @@ class WikiImporter {
 	public function __construct(
 		ImportSource $source,
 		Authority $performer,
-		Config $config,
+		private readonly Config $config,
 		HookContainer $hookContainer,
-		Language $contentLanguage,
-		NamespaceInfo $namespaceInfo,
-		TitleFactory $titleFactory,
-		WikiPageFactory $wikiPageFactory,
-		UploadRevisionImporter $uploadRevisionImporter,
-		IContentHandlerFactory $contentHandlerFactory,
-		SlotRoleRegistry $slotRoleRegistry
+		private readonly Language $contentLanguage,
+		private readonly NamespaceInfo $namespaceInfo,
+		private readonly TitleFactory $titleFactory,
+		private readonly WikiPageFactory $wikiPageFactory,
+		private readonly UploadRevisionImporter $uploadRevisionImporter,
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+		private readonly SlotRoleRegistry $slotRoleRegistry,
 	) {
 		$this->performer = $performer;
-		$this->config = $config;
 		$this->hookRunner = new HookRunner( $hookContainer );
-		$this->contentLanguage = $contentLanguage;
-		$this->namespaceInfo = $namespaceInfo;
-		$this->titleFactory = $titleFactory;
-		$this->wikiPageFactory = $wikiPageFactory;
-		$this->uploadRevisionImporter = $uploadRevisionImporter;
-		$this->contentHandlerFactory = $contentHandlerFactory;
-		$this->slotRoleRegistry = $slotRoleRegistry;
 
 		if ( !in_array( 'uploadsource', stream_get_wrappers() ) ) {
 			stream_wrapper_register( 'uploadsource', UploadSourceAdapter::class );

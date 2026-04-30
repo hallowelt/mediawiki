@@ -15,17 +15,12 @@ use Wikimedia\Rdbms\IDBAccessObject;
  */
 class ImportableUploadRevisionImporter implements UploadRevisionImporter {
 
-	private bool $enableUploads;
-	private LoggerInterface $logger;
-
 	private bool $shouldCreateNullRevision = true;
 
 	public function __construct(
-		bool $enableUploads,
-		LoggerInterface $logger
+		private readonly bool $enableUploads,
+		private readonly LoggerInterface $logger,
 	) {
-		$this->enableUploads = $enableUploads;
-		$this->logger = $logger;
 	}
 
 	/**

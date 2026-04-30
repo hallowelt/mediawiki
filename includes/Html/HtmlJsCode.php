@@ -26,10 +26,9 @@ namespace MediaWiki\Html;
  * @since 1.41 (renamed from XmlJsCode, which existed since 1.17)
  */
 class HtmlJsCode {
-	public string $value;
-
-	public function __construct( string $value ) {
-		$this->value = $value;
+	public function __construct(
+		public readonly string $value,
+	) {
 	}
 
 	/**

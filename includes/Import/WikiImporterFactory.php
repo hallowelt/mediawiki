@@ -24,36 +24,17 @@ use MediaWiki\Title\TitleFactory;
  * @since 1.37
  */
 class WikiImporterFactory {
-	private Config $config;
-	private HookContainer $hookContainer;
-	private Language $contentLanguage;
-	private NamespaceInfo $namespaceInfo;
-	private TitleFactory $titleFactory;
-	private WikiPageFactory $wikiPageFactory;
-	private UploadRevisionImporter $uploadRevisionImporter;
-	private IContentHandlerFactory $contentHandlerFactory;
-	private SlotRoleRegistry $slotRoleRegistry;
-
 	public function __construct(
-		Config $config,
-		HookContainer $hookContainer,
-		Language $contentLanguage,
-		NamespaceInfo $namespaceInfo,
-		TitleFactory $titleFactory,
-		WikiPageFactory $wikiPageFactory,
-		UploadRevisionImporter $uploadRevisionImporter,
-		IContentHandlerFactory $contentHandlerFactory,
-		SlotRoleRegistry $slotRoleRegistry
+		private readonly Config $config,
+		private readonly HookContainer $hookContainer,
+		private readonly Language $contentLanguage,
+		private readonly NamespaceInfo $namespaceInfo,
+		private readonly TitleFactory $titleFactory,
+		private readonly WikiPageFactory $wikiPageFactory,
+		private readonly UploadRevisionImporter $uploadRevisionImporter,
+		private readonly IContentHandlerFactory $contentHandlerFactory,
+		private readonly SlotRoleRegistry $slotRoleRegistry,
 	) {
-		$this->config = $config;
-		$this->hookContainer = $hookContainer;
-		$this->contentLanguage = $contentLanguage;
-		$this->namespaceInfo = $namespaceInfo;
-		$this->titleFactory = $titleFactory;
-		$this->wikiPageFactory = $wikiPageFactory;
-		$this->uploadRevisionImporter = $uploadRevisionImporter;
-		$this->contentHandlerFactory = $contentHandlerFactory;
-		$this->slotRoleRegistry = $slotRoleRegistry;
 	}
 
 	/**

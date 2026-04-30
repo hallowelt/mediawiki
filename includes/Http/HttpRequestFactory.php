@@ -20,13 +20,6 @@ use Wikimedia\Http\TelemetryHeadersInterface;
  * Factory creating MWHttpRequest objects.
  */
 class HttpRequestFactory {
-	/** @var ServiceOptions */
-	private $options;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var TelemetryHeadersInterface|null */
-	private $telemetry;
-
 	/**
 	 * @internal For use by ServiceWiring
 	 */
@@ -40,14 +33,11 @@ class HttpRequestFactory {
 	];
 
 	public function __construct(
-		ServiceOptions $options,
-		LoggerInterface $logger,
-		?TelemetryHeadersInterface $telemetry = null
+		private readonly ServiceOptions $options,
+		private readonly LoggerInterface $logger,
+		private readonly ?TelemetryHeadersInterface $telemetry = null,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
-		$this->options = $options;
-		$this->logger = $logger;
-		$this->telemetry = $telemetry;
 	}
 
 	/**

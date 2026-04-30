@@ -83,25 +83,13 @@ abstract class MWHttpRequest implements LoggerAwareInterface {
 	/** @var string[][] */
 	protected $respHeaders = [];
 
-	/** @var StatusValue */
-	protected $status;
+	protected readonly StatusValue $status;
 
-	/**
-	 * @var Profiler
-	 */
-	protected $profiler;
+	protected readonly string $profileName;
 
-	/**
-	 * @var string
-	 */
-	protected $profileName;
+	protected LoggerInterface $logger;
 
-	/**
-	 * @var LoggerInterface
-	 */
-	protected $logger;
-
-	private UrlUtils $urlUtils;
+	private readonly UrlUtils $urlUtils;
 
 	/**
 	 * @param string $url Url to use. If protocol-relative, will be expanded to an http:// URL
@@ -113,7 +101,10 @@ abstract class MWHttpRequest implements LoggerAwareInterface {
 	 * @throws \Exception
 	 */
 	public function __construct(
-		$url, array $options, $caller = __METHOD__, ?Profiler $profiler = null
+		$url,
+		array $options,
+		string $caller = __METHOD__,
+		protected readonly ?Profiler $profiler = null,
 	) {
 		$this->urlUtils = MediaWikiServices::getInstance()->getUrlUtils();
 		if ( !array_key_exists( 'timeout', $options )
@@ -166,7 +157,6 @@ abstract class MWHttpRequest implements LoggerAwareInterface {
 		}
 
 		// Profile based on what's calling us
-		$this->profiler = $profiler;
 		$this->profileName = $caller;
 	}
 

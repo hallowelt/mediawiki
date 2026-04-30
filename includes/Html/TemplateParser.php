@@ -25,10 +25,7 @@ class TemplateParser {
 	private const CACHE_VERSION = '2.2.0';
 	private const CACHE_TTL = BagOStuff::TTL_WEEK;
 
-	/**
-	 * @var BagOStuff
-	 */
-	private $cache;
+	private readonly BagOStuff $cache;
 
 	/**
 	 * @var string The path to the Mustache templates

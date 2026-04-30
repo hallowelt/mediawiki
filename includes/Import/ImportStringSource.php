@@ -20,17 +20,11 @@ namespace MediaWiki\Import;
  * @ingroup SpecialPage
  */
 class ImportStringSource implements ImportSource {
-	/** @var string */
-	private $mString;
+	private bool $mRead = false;
 
-	/** @var bool */
-	private $mRead = false;
-
-	/**
-	 * @param string $string
-	 */
-	public function __construct( $string ) {
-		$this->mString = $string;
+	public function __construct(
+		private readonly string $string,
+	) {
 	}
 
 	/**
@@ -48,7 +42,7 @@ class ImportStringSource implements ImportSource {
 			return false;
 		}
 		$this->mRead = true;
-		return $this->mString;
+		return $this->string;
 	}
 
 	/**

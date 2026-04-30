@@ -92,17 +92,21 @@ class MagicWordArray {
 		foreach ( $this->names as $name ) {
 			$magic = $this->factory->get( $name );
 			$case = $magic->isCaseSensitive() ? 1 : 0;
-			foreach ( $magic->getSynonyms() as $i => $syn ) {
-				if ( $capture ) {
-					// Group name must start with a non-digit in PCRE 8.34+
-					$it = strtr( $i, '0123456789', 'abcdefghij' );
-					$groupName = $it . '_' . $name;
-					$group = '(?P<' . $groupName . '>' . preg_quote( $syn, $delimiter ) . ')';
-					$regex[$case][] = $group;
-				} else {
-					$regex[$case][] = preg_quote( $syn, $delimiter );
-				}
+			$quotedSynonyms = [];
+			foreach ( $magic->getSynonyms() as $syn ) {
+				$quotedSynonyms[] = preg_quote( $syn, $delimiter );
 			}
+			$quotedSynonyms = implode( '|', $quotedSynonyms );
+			if ( $capture ) {
+				if ( substr_count( $quotedSynonyms, '\$1' ) > 1 ) {
+					// We know synonyms are exclusive to each other, and so are their parameter
+					// value placeholders that will become (.*?) subpatterns later.
+					$quotedSynonyms = "(?|$quotedSynonyms)";
+				}
+				// Group name must start with a non-digit in PCRE 8.34+
+				$quotedSynonyms = "(?P<_$name>$quotedSynonyms)";
+			}
+			$regex[$case][] = $quotedSynonyms;
 		}
 		'@phan-var array<int,string[]> $regex';
 		foreach ( $regex as $case => &$re ) {
@@ -200,11 +204,10 @@ class MagicWordArray {
 			}
 			// Skip the initial full match and any non-matching group
 			if ( $match !== '' && $key !== 0 ) {
-				$parts = explode( '_', $key, 2 );
-				if ( !isset( $parts[1] ) ) {
+				if ( !str_starts_with( $key, '_' ) ) {
 					throw new LogicException( 'Unexpected group name' );
 				}
-				$magicName = $parts[1];
+				$magicName = substr( $key, 1 );
 			}
 		}
 		throw new LogicException( 'Unexpected $m array with no match' );

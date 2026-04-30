@@ -57,27 +57,19 @@ class HookContainer implements SalvageableService {
 	/** @var array<object> handler name and their handler objects */
 	private $handlerObjects = [];
 
-	/** @var HookRegistry */
-	private $registry;
-
 	/**
 	 * Handlers registered by calling register().
 	 * @var array
 	 */
 	private $extraHandlers = [];
 
-	/** @var ObjectFactory */
-	private $objectFactory;
-
 	/** @var int The next ID to be used by scopedRegister() */
 	private $nextScopedRegisterId = 0;
 
 	public function __construct(
-		HookRegistry $hookRegistry,
-		ObjectFactory $objectFactory
+		private readonly HookRegistry $hookRegistry,
+		private readonly ObjectFactory $objectFactory,
 	) {
-		$this->registry = $hookRegistry;
-		$this->objectFactory = $objectFactory;
 	}
 
 	/**
@@ -278,7 +270,7 @@ class HookContainer implements SalvageableService {
 		if ( is_array( $handler ) && !empty( $handler['handler'] ) ) {
 			// Skip hooks that both acknowledge deprecation and are deprecated in core
 			if ( $handler['deprecated'] ?? false ) {
-				$deprecatedHooks = $this->registry->getDeprecatedHooks();
+				$deprecatedHooks = $this->hookRegistry->getDeprecatedHooks();
 				$deprecated = $deprecatedHooks->isHookDeprecated( $hook );
 				if ( $deprecated ) {
 					return false;
@@ -379,8 +371,8 @@ class HookContainer implements SalvageableService {
 		$names = array_merge(
 			array_keys( array_filter( $this->handlers ) ),
 			array_keys( array_filter( $this->extraHandlers ) ),
-			array_keys( array_filter( $this->registry->getGlobalHooks() ) ),
-			array_keys( array_filter( $this->registry->getExtensionHooks() ) )
+			array_keys( array_filter( $this->hookRegistry->getGlobalHooks() ) ),
+			array_keys( array_filter( $this->hookRegistry->getExtensionHooks() ) )
 		);
 
 		return array_unique( $names );
@@ -398,8 +390,8 @@ class HookContainer implements SalvageableService {
 	private function getHandlers( string $hook, array $options = [] ): array {
 		if ( !isset( $this->handlers[$hook] ) ) {
 			$handlers = [];
-			$registeredHooks = $this->registry->getExtensionHooks();
-			$configuredHooks = $this->registry->getGlobalHooks();
+			$registeredHooks = $this->hookRegistry->getExtensionHooks();
+			$configuredHooks = $this->hookRegistry->getGlobalHooks();
 
 			$rawHandlers = array_merge(
 				$configuredHooks[ $hook ] ?? [],
@@ -437,8 +429,8 @@ class HookContainer implements SalvageableService {
 		if ( isset( $this->handlers[ $hook ] ) ) {
 			$rawHandlers = $this->handlers[ $hook ];
 		} else {
-			$registeredHooks = $this->registry->getExtensionHooks();
-			$configuredHooks = $this->registry->getGlobalHooks();
+			$registeredHooks = $this->hookRegistry->getExtensionHooks();
+			$configuredHooks = $this->hookRegistry->getGlobalHooks();
 
 			$rawHandlers = array_merge(
 				$configuredHooks[ $hook ] ?? [],
@@ -495,8 +487,8 @@ class HookContainer implements SalvageableService {
 	 * 3. an extension registers a handler in the new way but does not acknowledge deprecation
 	 */
 	public function emitDeprecationWarnings() {
-		$deprecatedHooks = $this->registry->getDeprecatedHooks();
-		$extensionHooks = $this->registry->getExtensionHooks();
+		$deprecatedHooks = $this->hookRegistry->getDeprecatedHooks();
+		$extensionHooks = $this->hookRegistry->getExtensionHooks();
 
 		foreach ( $extensionHooks as $name => $handlers ) {
 			if ( $deprecatedHooks->isHookDeprecated( $name ) ) {
@@ -531,7 +523,7 @@ class HookContainer implements SalvageableService {
 	 */
 	private function checkDeprecation( string $hook, $handler, ?array $deprecationInfo = null ): void {
 		if ( !$deprecationInfo ) {
-			$deprecatedHooks = $this->registry->getDeprecatedHooks();
+			$deprecatedHooks = $this->hookRegistry->getDeprecatedHooks();
 			$deprecationInfo = $deprecatedHooks->getDeprecationInfo( $hook );
 		}
 

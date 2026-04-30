@@ -19,12 +19,9 @@ use MediaWiki\Output\OutputPage;
  * @since 1.27
  */
 class ListToggle {
-	/** @var OutputPage */
-	private $output;
-
-	public function __construct( OutputPage $output ) {
-		$this->output = $output;
-
+	public function __construct(
+		private readonly OutputPage $output,
+	) {
 		$output->addModules( 'mediawiki.checkboxtoggle' );
 		$output->addModuleStyles( 'mediawiki.checkboxtoggle.styles' );
 	}
