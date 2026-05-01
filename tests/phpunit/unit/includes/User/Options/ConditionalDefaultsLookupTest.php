@@ -12,6 +12,8 @@ use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserIdentityUtils;
 use MediaWiki\User\UserIdentityValue;
 use MediaWikiUnitTestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * @covers \MediaWiki\User\Options\ConditionalDefaultsLookup
@@ -95,6 +97,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			] ),
 			$this->createNoOpMock( UserRegistrationLookup::class ),
 			$this->createNoOpMock( UserIdentityUtils::class ),
+			new NullLogger(),
 			static fn () => null
 		);
 
@@ -118,6 +121,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			$this->getServiceOptions(),
 			$this->createNoOpMock( UserRegistrationLookup::class ),
 			$this->createNoOpMock( UserIdentityUtils::class ),
+			new NullLogger(),
 			static fn () => null
 		);
 
@@ -155,6 +159,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			] ),
 			$registrationLookup,
 			$this->createNoOpMock( UserIdentityUtils::class ),
+			new NullLogger(),
 			static fn () => null
 		);
 
@@ -170,6 +175,49 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			[ 'new accounts', '20241101000000', self::CONDITIONAL_USER_DEFAULTS_AFTER ],
 			[ null, null, self::CONDITIONAL_USER_DEFAULTS_AFTER ],
 		];
+	}
+
+	public function testGetOptionDefaultForUser__invalidTimestamp() {
+		$userIdentity = new UserIdentityValue( 1, 'User' );
+
+		$registrationLookup = $this->createMock( UserRegistrationLookup::class );
+		$registrationLookup->expects( $this->once() )
+			->method( 'getRegistration' )
+			->with( $userIdentity )
+			->willReturn( '20241101000000' );
+
+		$logger = $this->createMock( LoggerInterface::class );
+		$logger->expects( $this->once() )
+			->method( 'warning' )
+			->with(
+				'Invalid timestamp for CUDCOND_AFTER with option {option_name}: {timestamp}',
+				[
+					'option_name' => 'foo-option',
+					'timestamp' => 'not-valid-timestamp',
+					'user_id' => 1,
+				]
+			);
+
+		$configOverrides = [
+			MainConfigNames::ConditionalUserOptions => [
+				'foo-option' => [
+					[ 1, [ CUDCOND_AFTER, 'not-valid-timestamp' ] ],
+				],
+			]
+		];
+
+		$lookup = new ConditionalDefaultsLookup(
+			$this->createNoOpMock( HookRunner::class ),
+			$this->getServiceOptions( $configOverrides ),
+			$registrationLookup,
+			$this->createNoOpMock( UserIdentityUtils::class ),
+			$logger,
+			static fn () => null
+		);
+
+		$this->assertNull(
+			$lookup->getOptionDefaultForUser( 'foo-option', $userIdentity )
+		);
 	}
 
 	/**
@@ -190,6 +238,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 		$userIdentityUtils = $this->createNoOpMock( UserIdentityUtils::class );
 
 		$lookup = new ConditionalDefaultsLookup( $hookRunner, $options, $registrationLookup, $userIdentityUtils,
+			new NullLogger(),
 			static fn () => null
 		);
 
@@ -225,6 +274,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			->willReturn( $isNamed );
 
 		$lookup = new ConditionalDefaultsLookup( $hookRunner, $options, $registrationLookup, $userIdentityUtils,
+			new NullLogger(),
 			static fn () => null
 		);
 
@@ -261,6 +311,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 			->willReturn( $usergroups );
 
 		$lookup = new ConditionalDefaultsLookup( $hookRunner, $options, $registrationLookup, $userIdentityUtils,
+			new NullLogger(),
 			static function () use ( $userGroupManager ) {
 				return $userGroupManager;
 			} );
@@ -303,6 +354,7 @@ class ConditionalDefaultsLookupTest extends MediaWikiUnitTestCase {
 		$userIdentityUtils = $this->createMock( UserIdentityUtils::class );
 
 		$lookup = new ConditionalDefaultsLookup( $hookRunner, $options, $registrationLookup, $userIdentityUtils,
+			new NullLogger(),
 			static fn () => null
 		);
 

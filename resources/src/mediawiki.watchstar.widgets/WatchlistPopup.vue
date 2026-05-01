@@ -86,7 +86,7 @@
 
 <script>
 const { defineComponent, ref, computed, watch, onMounted } = require( 'vue' );
-const { CdxDialog, CdxMessage, CdxField, CdxSelect, CdxMultiselectLookup, CdxButton } = require( '@wikimedia/codex' );
+const { CdxDialog, CdxMessage, CdxField, CdxSelect, CdxMultiselectLookup, CdxButton } = require( './codex.js' );
 const api = new mw.Api();
 
 module.exports = defineComponent( {

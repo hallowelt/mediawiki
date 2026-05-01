@@ -10,6 +10,7 @@ use MediaWiki\User\Registration\UserRegistrationLookup;
 use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityUtils;
+use Psr\Log\LoggerInterface;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 
@@ -34,6 +35,7 @@ class ConditionalDefaultsLookup {
 		private readonly ServiceOptions $options,
 		private readonly UserRegistrationLookup $userRegistrationLookup,
 		private readonly UserIdentityUtils $userIdentityUtils,
+		private readonly LoggerInterface $logger,
 		callable $userGroupManagerCallback,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
@@ -82,7 +84,7 @@ class ConditionalDefaultsLookup {
 			// At the zeroth index of the conditional case, the intended value is found; the rest
 			// of the array are conditions, which are evaluated in checkConditionsForUser().
 			$value = array_shift( $conditionalDefault );
-			if ( $this->checkConditionsForUser( $userIdentity, $conditionalDefault ) ) {
+			if ( $this->checkConditionsForUser( $userIdentity, $optionName, $conditionalDefault ) ) {
 				return $value;
 			}
 		}
@@ -94,12 +96,13 @@ class ConditionalDefaultsLookup {
 	 * Are ALL conditions satisfied for the given user?
 	 *
 	 * @param UserIdentity $userIdentity
+	 * @param string $optionName
 	 * @param array $conditions
 	 * @return bool
 	 */
-	private function checkConditionsForUser( UserIdentity $userIdentity, array $conditions ): bool {
+	private function checkConditionsForUser( UserIdentity $userIdentity, string $optionName, array $conditions ): bool {
 		foreach ( $conditions as $condition ) {
-			if ( !$this->checkConditionForUser( $userIdentity, $condition ) ) {
+			if ( !$this->checkConditionForUser( $userIdentity, $optionName, $condition ) ) {
 				return false;
 			}
 		}
@@ -118,12 +121,14 @@ class ConditionalDefaultsLookup {
 	 * Is ONE condition satisfied for the given user?
 	 *
 	 * @param UserIdentity $userIdentity
+	 * @param string $optionName
 	 * @param array|int $cond Either [ CUDCOND_*, args ] or CUDCOND_*, depending on whether the
 	 * condition has any arguments.
 	 * @return bool
 	 */
 	private function checkConditionForUser(
 		UserIdentity $userIdentity,
+		string $optionName,
 		$cond
 	): bool {
 		if ( !is_array( $cond ) ) {
@@ -140,7 +145,19 @@ class ConditionalDefaultsLookup {
 					return false;
 				}
 
-				return $registration > ConvertibleTimestamp::convert( TS::MW, $cond[0] );
+				$cutoff = ConvertibleTimestamp::convert( TS::MW, $cond[0] );
+				if ( $cutoff === false ) {
+					$this->logger->warning(
+						'Invalid timestamp for CUDCOND_AFTER with option {option_name}: {timestamp}',
+						[
+							'option_name' => $optionName,
+							'timestamp' => $cond[0],
+							'user_id' => $userIdentity->getId(),
+						]
+					);
+					return false;
+				}
+				return $registration > $cutoff;
 			case CUDCOND_ANON:
 				return !$userIdentity->isRegistered();
 			case CUDCOND_NAMED:

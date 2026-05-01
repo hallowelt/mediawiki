@@ -3497,10 +3497,18 @@ return [
 				return WatchAction::getExpiryOptions( $messageLocalizer, false );
 			} ]
 		],
+		'class' => CodexModule::class,
+		'codexComponents' => [
+			'CdxButton',
+			'CdxDialog',
+			'CdxField',
+			'CdxMessage',
+			'CdxMultiselectLookup',
+			'CdxSelect',
+		],
 		'dependencies' => [
 			'mediawiki.api',
 			'vue',
-			'@wikimedia/codex',
 			'mediawiki.DateFormatter',
 		],
 		'messages' => [

@@ -3115,6 +3115,7 @@ return [
 			),
 			$services->getUserRegistrationLookup(),
 			$services->getUserIdentityUtils(),
+			LoggerFactory::getInstance( 'preferences' ),
 			static function () use ( $services ) {
 				return $services->getUserGroupManager();
 			}
