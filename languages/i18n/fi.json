@@ -2969,7 +2969,6 @@
 	"confirmemail_noemail": "Sinulla ei ole kelvollista sähköpostiosoitetta [[Special:Preferences|asetuksissasi]].",
 	"confirmemail_text": "{{SITENAME}} vaatii sähköpostiosoitteen varmentamisen, ennen kuin voit käyttää sähköpostitoimintoja. Lähetä alla olevasta painikkeesta varmennusviesti osoitteeseesi. Viesti sisältää linkin, jonka avaamalla varmennat sähköpostiosoitteesi.",
 	"confirmemail-notice": "[[Special:ConfirmEmail|Vahvista sähköpostiosoitteesi]] viimeistelläksesi käyttäjätunnuksesi luomisen.<br><br>Tätä vaaditaan, jos sinun tarvitsee tulevaisuudessa palauttaa käyttäjätunnuksesi. Lisäksi muut {{GRAMMAR:genitive|{{SITENAME}}}} ominaisuudet ja turvallisuussuojaukset saattavat vaatia vahvistettua sähköpostiosoitetta.",
-	"confirmemail-notice-arm-b": "Huomasimme, ettet ole vielä vahvistanut sähköpostiosoitettasi. Ilman vahvistettua sähköpostiosoitetta et saa sähköposti-ilmoituksia toimintaasi liittyen, kuten ilmoituksia maininnoista tai muokkaustesi kumoamisista. Et pysty myöskään palauttamaan käyttäjätunnustasi, mikäli menetät pääsysi siihen.<br><br>[[Special:ConfirmEmail|Käytä hetki vahvistaaksesi sähköpostiosoitteesi.]]",
 	"confirmemail_pending": "Varmennusviesti on jo lähetetty. Jos loit tunnuksen äskettäin, odota muutama minuutti viestin saapumista, ennen kuin yrität uudelleen.",
 	"confirmemail_send": "Lähetä varmennusviesti",
 	"confirmemail_sent": "Varmennusviesti lähetetty.",

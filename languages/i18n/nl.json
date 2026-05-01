@@ -3003,7 +3003,6 @@
 	"confirmemail_noemail": "U hebt geen geldig e-mailadres opgegeven in uw [[Special:Preferences|gebruikersvoorkeuren]].",
 	"confirmemail_text": "{{SITENAME}} eist bevestiging van uw e-mailadres voordat u de e-mailmogelijkheden kunt gebruiken.\nKlik op de onderstaande knop om een bevestigingsbericht te ontvangen.\nDit bericht bevat een koppeling met een code.\nOpen die koppeling om uw e-mailadres te bevestigen.",
 	"confirmemail-notice": "[[Special:ConfirmEmail|Bevestig uw e-mailadres]] om de instellingen van uw account te voltooien.<br><br>Dit is nodig als u uw account ooit wilt herstellen. Voor andere functies en beveiligingsmaatregelen op {{SITENAME}} is mogelijk een bevestigd e-mailadres vereist.",
-	"confirmemail-notice-arm-b": "We hebben gemerkt dat u uw e-mailadres nog niet hebt bevestigd. Zonder een bevestigd e-mailadres ontvangt u geen e-mails met betrekking tot uw activiteiten, zoals vermeldingen of reacties op bewerkingen. U kunt uw account ook niet herstellen als u de toegang verliest.<br><br>[[Special:ConfirmEmail|Neem even de tijd om uw e-mailadres nu te bevestigen]].",
 	"confirmemail_pending": "Er is al een bevestigingsbericht aan u verzonden.\nAls u recentelijk uw account hebt aangemaakt, wacht dan een paar minuten totdat het bericht aankomt voordat u opnieuw een e-mail laat sturen.",
 	"confirmemail_send": "Een bevestigingscode verzenden",
 	"confirmemail_sent": "Bevestigingscode verzonden.",

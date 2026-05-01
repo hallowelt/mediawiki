@@ -2608,7 +2608,6 @@
 	"confirmemail": "Potvrdiť e-mailovú adresu",
 	"confirmemail_noemail": "Nenastavili ste platnú e-mailovú adresu vo svojich [[Special:Preferences|Nastaveniach]].",
 	"confirmemail_text": "{{SITENAME}} vyžaduje, aby ste potvrdili platnosť vašej e-mailovej adresy\npred používaním e-mailových funkcií. Kliknite na tlačidlo dole, aby sa na vašu adresu odoslal potvrdzovací\ne-mail. V e-maili bude aj odkaz obsahujúci kód; otvorte odkaz\nvo vašom prehliadači, čím potvrdíte, že vaša e-mailová adresa je platná.",
-	"confirmemail-notice-arm-b": "Všimli sme si, že ste ešte nepotvrdili svoju e-mailovú adresu. Bez potvrdenej e-mailovej adresy nebudete dostávať e-maily súvisiace s Vašou aktivitou, ako sú zmienky alebo vrátené úpravy. Taktiež nebudete môcť obnoviť svoj účet, ak stratíte prístup.<br><br>[[Špeciálne:PotvrdiťEmail|Venujte teraz chvíľu potvrdeniu svojej e-mailovej adresy.]]",
 	"confirmemail_pending": "Potvrdzovací kód vám už bol zaslaný; ak ste si účet vytvorili len nedávno\nmali by ste počkať niekoľko minút, kým vám bude e-mail doručený, predtým\nnež si vyžiadate nový kód.",
 	"confirmemail_send": "Odoslať potvrdzovací kód",
 	"confirmemail_sent": "Potvrdzovací e-mail odoslaný.",

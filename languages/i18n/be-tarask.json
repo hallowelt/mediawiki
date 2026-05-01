@@ -3240,7 +3240,7 @@
 	"logentry-protect-modify-cascade": "$1 {{GENDER:$2|зьмяніў|зьмяніла}} налады абароны для $3 $4 [каскадна]",
 	"logentry-rights-rights": "$1 {{GENDER:$2|зьмяніў|зьмяніла}} прыналежнасьць {{GENDER:$6|$3}} да групаў: $7",
 	"logentry-rights-rights-granted": "{{GENDER:$2|надаў|надала}} $1",
-	"logentry-rights-rights-revoked": "{{GENDER:$2|адабраў|адабрала}} $1",
+	"logentry-rights-rights-revoked": "{{GENDER:$2|адклікана}} $1",
 	"logentry-rights-rights-legacy": "$1 {{GENDER:$1|зьмяніў|зьмяніла}} прыналежнасьць $3 да групаў",
 	"logentry-rights-autopromote": "$1 аўтаматычна {{GENDER:$2|зьмяніў|зьмяніла}} свой удзел у групах: $7",
 	"logentry-upload-upload": "$1 {{GENDER:$2|загрузіў|загрузіла}} $3",

@@ -884,6 +884,7 @@
 	"linterror-stripped-tag": "لیرې‌شوی نښلن",
 	"linterror-tidy-whitespace-bug": "د سپين تشيال ارزولو راپور",
 	"linterror-wikilink-in-extlink": "تړونو کې تړوني",
+	"linterror-template-arg-in-extension-tag": "شاتاړي نښلن له کينډۍ پاراميتر سره",
 	"email": "برېښليک",
 	"newuserlogpage": "د کارن جوړېدو يادښت",
 	"newuserlogpagetext": "دا د کارن-نوم د جوړېدو يادښت دی",
