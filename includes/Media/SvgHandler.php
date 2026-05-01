@@ -589,11 +589,11 @@ class SvgHandler extends ImageHandler {
 	public function validateParam( $name, $value ) {
 		if ( in_array( $name, [ 'width', 'height' ] ) ) {
 			// Reject negative heights, widths
-			return ( $value > 0 );
+			return (int)$value > 0;
 		}
 		if ( $name === 'lang' ) {
 			// Validate $code
-			if ( $value === ''
+			if ( !is_string( $value ) || $value === ''
 				|| !LanguageCode::isWellFormedLanguageTag( $value )
 			) {
 				return false;

@@ -45,7 +45,7 @@ abstract class ImageHandler extends MediaHandler {
 	 * @stable to override
 	 */
 	public function validateParam( $name, $value ) {
-		return in_array( $name, [ 'width', 'height' ] ) && $value > 0;
+		return in_array( $name, [ 'width', 'height' ] ) && (int)$value > 0;
 	}
 
 	/**

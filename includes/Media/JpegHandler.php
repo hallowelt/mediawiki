@@ -41,7 +41,7 @@ class JpegHandler extends ExifBitmapHandler {
 	/** @inheritDoc */
 	public function validateParam( $name, $value ) {
 		if ( $name === 'quality' ) {
-			return self::validateQuality( $value );
+			return is_string( $value ) && self::validateQuality( $value );
 		}
 		return parent::validateParam( $name, $value );
 	}

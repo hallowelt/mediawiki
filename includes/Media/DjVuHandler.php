@@ -78,18 +78,16 @@ class DjVuHandler extends ImageHandler {
 		];
 	}
 
-	/**
-	 * @param string $name
-	 * @param mixed $value
-	 * @return bool
-	 */
+	/** @inheritDoc */
 	public function validateParam( $name, $value ) {
-		if ( $name === 'page' && trim( $value ) !== (string)intval( $value ) ) {
-			// Extra junk on the end of page, probably actually a caption
-			// e.g. [[File:Foo.djvu|thumb|Page 3 of the document shows foo]]
-			return false;
+		if ( $name === 'page' ) {
+			return is_int( $value ) ||
+				// Extra junk on the end of page, probably actually a caption
+				// e.g. [[File:Foo.djvu|thumb|Page 3 of the document shows foo]]
+				( is_string( $value ) && trim( $value ) === (string)intval( $value ) );
 		}
-		return in_array( $name, [ 'width', 'height', 'page', 'physicalWidth', 'physicalHeight' ] ) && $value > 0;
+		return in_array( $name, [ 'width', 'height', 'page', 'physicalWidth', 'physicalHeight' ] ) &&
+			(int)$value > 0;
 	}
 
 	/**
