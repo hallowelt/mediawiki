@@ -252,6 +252,7 @@ module.exports = defineComponent( {
 					labelsInputChips.value = [];
 					expiry.value = props.preferredExpiry;
 					action.value = 'watch';
+					isOpen.value = false;
 					window.dispatchEvent( new CustomEvent( 'WatchlistPopup.unwatch', { detail: { watchResponse } } ) );
 					errorMessage.value = null;
 				} )
