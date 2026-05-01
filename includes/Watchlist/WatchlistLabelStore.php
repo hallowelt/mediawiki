@@ -22,9 +22,9 @@ class WatchlistLabelStore {
 	public const TABLE_WATCHLIST_LABEL_MEMBER = 'watchlist_label_member';
 
 	public function __construct(
-		private IConnectionProvider $dbProvider,
-		private LoggerInterface $logger,
-		private Config $config
+		private readonly IConnectionProvider $dbProvider,
+		private readonly LoggerInterface $logger,
+		private readonly Config $config
 	) {
 	}
 
@@ -85,7 +85,7 @@ class WatchlistLabelStore {
 	 * @return bool True on success, false on failure.
 	 */
 	public function delete( UserIdentity $user, array $ids ): bool {
-		if ( $ids === [] ) {
+		if ( !$ids ) {
 			return true;
 		}
 		$dbw = $this->dbProvider->getPrimaryDatabase();
@@ -162,11 +162,11 @@ class WatchlistLabelStore {
 	 * @return ?WatchlistLabel The label, or null if not found.
 	 */
 	public function loadByName( UserIdentity $user, string $name ): ?WatchlistLabel {
-		$select = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
 		$label = new WatchlistLabel( $user, $name );
-		$result = $select->table( self::TABLE_WATCHLIST_LABEL )
+		$result = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder()
+			->table( self::TABLE_WATCHLIST_LABEL )
 			->fields( [ 'wll_id', 'wll_name' ] )
-			->where( [ 'wll_user' => $label->getUser()->getId(), 'wll_name' => $label->getName() ] )
+			->where( [ 'wll_user' => $user->getId(), 'wll_name' => $label->getName() ] )
 			->caller( __METHOD__ )
 			->fetchRow();
 		if ( $result ) {
@@ -179,8 +179,6 @@ class WatchlistLabelStore {
 	/**
 	 * Get all of a user's watchlist labels.
 	 *
-	 * @param UserIdentity $user
-	 *
 	 * @return WatchlistLabel[] Labels indexed by ID
 	 */
 	public function loadAllForUser( UserIdentity $user ): array {
@@ -191,8 +189,8 @@ class WatchlistLabelStore {
 		} elseif ( $dbr->getType() === 'sqlite' ) {
 			$orderBy = 'wll_name COLLATE NOCASE';
 		}
-		$select = $dbr->newSelectQueryBuilder();
-		$results = $select->table( self::TABLE_WATCHLIST_LABEL )
+		$results = $dbr->newSelectQueryBuilder()
+			->table( self::TABLE_WATCHLIST_LABEL )
 			->fields( [ 'wll_id', 'wll_name' ] )
 			->where( [ 'wll_user' => $user->getId() ] )
 			->orderBy( $orderBy, 'ASC' )
@@ -210,14 +208,14 @@ class WatchlistLabelStore {
 	 *
 	 * @param int[] $labelIds
 	 *
-	 * @return array Keys are the label ID, values the integer count.
+	 * @return array<int, int> Keys are the label ID, values the integer count.
 	 */
 	public function countItems( array $labelIds ): array {
-		if ( count( $labelIds ) === 0 ) {
+		if ( !$labelIds ) {
 			return [];
 		}
-		$select = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
-		$results = $select->table( self::TABLE_WATCHLIST_LABEL_MEMBER )
+		$results = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder()
+			->table( self::TABLE_WATCHLIST_LABEL_MEMBER )
 			->fields( [ 'wlm_label', 'item_count' => 'COUNT(wlm_label)' ] )
 			->where( [ 'wlm_label' => $labelIds ] )
 			->groupBy( [ 'wlm_label' ] )
@@ -232,14 +230,10 @@ class WatchlistLabelStore {
 
 	/**
 	 * Get the current total count of a user's watchlist labels.
-	 *
-	 * @param UserIdentity $user
-	 *
-	 * @return int
 	 */
 	public function countAllForUser( UserIdentity $user ): int {
-		$select = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
-		return (int)$select->table( self::TABLE_WATCHLIST_LABEL )
+		return (int)$this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder()
+			->table( self::TABLE_WATCHLIST_LABEL )
 			->field( 'COUNT(*)' )
 			->where( [ 'wll_user' => $user->getId() ] )
 			->caller( __METHOD__ )
