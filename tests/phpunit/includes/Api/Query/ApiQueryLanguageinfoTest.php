@@ -62,6 +62,40 @@ class ApiQueryLanguageinfoTest extends ApiTestCase {
 					'sr-ec' => 'Ћирилица',
 					'sr-el' => 'Latinica',
 				],
+				'digittransforms' => [],
+				'digitgroupingpattern' => '#,##0.###',
+				'minimumgroupingdigits' => 1,
+			]
+		];
+
+		# this language has interesting grouping patterns
+		yield [
+			'hi',
+			[
+				'code' => 'hi',
+				'bcp47' => 'hi',
+				'autonym' => 'हिन्दी',
+				'name' => 'हिन्दी',
+				'fallbacks' => [],
+				'dir' => 'ltr',
+				'variants' => [ 'hi' ],
+				'variantnames' => [
+					'hi' => 'हिन्दी',
+				],
+				'digittransforms' => [
+					0 => '०',
+					1 => '१',
+					2 => '२',
+					3 => '३',
+					4 => '४',
+					5 => '५',
+					6 => '६',
+					7 => '७',
+					8 => '८',
+					9 => '९',
+				],
+				'digitgroupingpattern' => '#,##,##0.###',
+				'minimumgroupingdigits' => 1,
 			]
 		];
 
@@ -76,6 +110,9 @@ class ApiQueryLanguageinfoTest extends ApiTestCase {
 				'dir' => 'ltr',
 				'variants' => [ 'qtp' ],
 				'variantnames' => [ 'qtp' => 'qtp' ],
+				'digittransforms' => [],
+				'digitgroupingpattern' => '#,##0.###',
+				'minimumgroupingdigits' => 1,
 			]
 		];
 	}
@@ -85,7 +122,8 @@ class ApiQueryLanguageinfoTest extends ApiTestCase {
 	 */
 	public function testAllPropsForSingleLanguage( string $langCode, array $expected ) {
 		[ $response, $continue ] = $this->doQuery( [
-			'liprop' => 'code|bcp47|dir|autonym|name|fallbacks|variants|variantnames',
+			'liprop' => 'code|bcp47|dir|autonym|name|fallbacks|variants|variantnames|' .
+				'digittransforms|digitgroupingpattern|minimumgroupingdigits',
 			'licode' => $langCode,
 		] );
 

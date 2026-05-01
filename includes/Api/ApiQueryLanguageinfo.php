@@ -59,6 +59,9 @@ class ApiQueryLanguageinfo extends ApiQueryBase {
 		$includeVariantnames = isset( $props['variantnames'] );
 		$includeFallbacks = isset( $props['fallbacks'] );
 		$includeVariants = isset( $props['variants'] );
+		$includeDigitTransforms = isset( $props['digittransforms'] );
+		$includeDigitGroupingPattern = isset( $props['digitgroupingpattern'] );
+		$includeMinimumGroupingDigits = isset( $props['minimumgroupingdigits'] );
 
 		$targetLanguageCode = $this->getLanguage()->getCode();
 		$include = LanguageNameUtils::ALL;
@@ -177,6 +180,26 @@ class ApiQueryLanguageinfo extends ApiQueryBase {
 				}
 			}
 
+			if ( $includeDigitTransforms ) {
+				$language = $this->languageFactory->getLanguage( $languageCode );
+				$digittransforms = $language->digitTransformTable();
+				if ( !$digittransforms ) {
+					$digittransforms = [];
+				}
+				ApiResult::setIndexedTagName( $digittransforms, 'dig' );
+				$info['digittransforms'] = $digittransforms;
+			}
+
+			if ( $includeDigitGroupingPattern ) {
+				$language = $this->languageFactory->getLanguage( $languageCode );
+				$info['digitgroupingpattern'] = $language->digitGroupingPattern() ?? '#,##0.###';
+			}
+
+			if ( $includeMinimumGroupingDigits ) {
+				$language = $this->languageFactory->getLanguage( $languageCode );
+				$info['minimumgroupingdigits'] = $language->minimumGroupingDigits();
+			}
+
 			$fit = $result->addValue( $rootPath, $languageCode, $info );
 			if ( !$fit ) {
 				$this->setContinueEnumParameter( 'continue', $languageCode );
@@ -205,6 +228,9 @@ class ApiQueryLanguageinfo extends ApiQueryBase {
 					'variantnames',
 					'fallbacks',
 					'variants',
+					'digittransforms',
+					'digitgroupingpattern',
+					'minimumgroupingdigits',
 				],
 				self::PARAM_HELP_MSG_PER_VALUE => [],
 			],
