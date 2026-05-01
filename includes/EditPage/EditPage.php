@@ -395,24 +395,27 @@ class EditPage implements IEditObject {
 	private $editConflictHelperFactory = null;
 	private ?TextConflictHelper $editConflictHelper = null;
 
+	private AuthManager $authManager;
+	private EditConstraintFactory $constraintFactory;
 	private IContentHandlerFactory $contentHandlerFactory;
+	private IConnectionProvider $dbProvider;
+	private LinkBatchFactory $linkBatchFactory;
+	private LinkRenderer $linkRenderer;
+	private PageEditingHelper $pageEditingHelper;
 	private PermissionManager $permManager;
+	private RestrictionStore $restrictionStore;
 	private RevisionStore $revisionStore;
-	private WatchlistManager $watchlistManager;
+	private SessionManager $sessionManager;
+	private TempUserCreator $tempUserCreator;
+	private TextboxBuilder $textboxBuilder;
+	private UserEditTracker $userEditTracker;
+	private UserFactory $userFactory;
+	private UserIdentityUtils $userIdentityUtils;
+	private UserOptionsLookup $userOptionsLookup;
+	private UserRegistrationLookup $userRegistrationLookup;
 	private WatchedItemStoreInterface $watchedItemStore;
 	private WatchlistLabelStore $watchlistLabelStore;
-	private UserOptionsLookup $userOptionsLookup;
-	private TempUserCreator $tempUserCreator;
-	private UserFactory $userFactory;
-	private IConnectionProvider $dbProvider;
-	private AuthManager $authManager;
-	private UserRegistrationLookup $userRegistrationLookup;
-	private SessionManager $sessionManager;
-	private EditConstraintFactory $constraintFactory;
-	private PageEditingHelper $pageEditingHelper;
-	private UserIdentityUtils $userIdentityUtils;
-	private UserEditTracker $userEditTracker;
-	private TextboxBuilder $textboxBuilder;
+	private WatchlistManager $watchlistManager;
 
 	/** @var User|null */
 	private $placeholderTempUser;
@@ -435,10 +438,6 @@ class EditPage implements IEditObject {
 	/** Whether temp username acquisition failed (false indicates no failure or not attempted) */
 	private bool $unableToAcquireTempName = false;
 
-	private LinkRenderer $linkRenderer;
-	private LinkBatchFactory $linkBatchFactory;
-	private RestrictionStore $restrictionStore;
-
 	/**
 	 * @stable to call
 	 * @param Article $article
@@ -455,37 +454,38 @@ class EditPage implements IEditObject {
 		$this->context = new DerivativeContext( $article->getContext() );
 		$this->context->setWikiPage( $this->page );
 
-		$this->contentModel = $this->getTitle()->getContentModel();
-
 		$services = MediaWikiServices::getInstance();
+		$this->authManager = $services->getAuthManager();
+		$this->constraintFactory = $services->getService( '_EditConstraintFactory' );
 		$this->contentHandlerFactory = $services->getContentHandlerFactory();
-		$this->contentFormat = $this->contentHandlerFactory
-			->getContentHandler( $this->contentModel )
-			->getDefaultFormat();
+		$this->dbProvider = $services->getConnectionProvider();
+		$this->linkBatchFactory = $services->getLinkBatchFactory();
+		$this->linkRenderer = $services->getLinkRenderer();
+		$this->pageEditingHelper = $services->getService( '_PageEditingHelper' );
 		$this->permManager = $services->getPermissionManager();
+		$this->restrictionStore = $services->getRestrictionStore();
 		$this->revisionStore = $services->getRevisionStore();
+		$this->sessionManager = $services->getSessionManager();
+		$this->tempUserCreator = $services->getTempUserCreator();
+		$this->textboxBuilder = $services->getTextboxBuilder();
+		$this->userEditTracker = $services->getUserEditTracker();
+		$this->userFactory = $services->getUserFactory();
+		$this->userIdentityUtils = $services->getUserIdentityUtils();
+		$this->userOptionsLookup = $services->getUserOptionsLookup();
+		$this->userRegistrationLookup = $services->getUserRegistrationLookup();
+		$this->watchedItemStore = $services->getWatchedItemStore();
+		$this->watchlistLabelStore = $services->getWatchlistLabelStore();
+		$this->watchlistManager = $services->getWatchlistManager();
+
 		$this->watchlistExpiryEnabled = $this->getContext()->getConfig() instanceof Config
 			&& $this->getContext()->getConfig()->get( MainConfigNames::WatchlistExpiry );
 		$this->watchlistLabelsEnabled = $this->getContext()->getConfig() instanceof Config
 			&& $this->getContext()->getConfig()->get( MainConfigNames::EnableWatchlistLabels );
-		$this->watchedItemStore = $services->getWatchedItemStore();
-		$this->watchlistManager = $services->getWatchlistManager();
-		$this->watchlistLabelStore = $services->getWatchlistLabelStore();
-		$this->userOptionsLookup = $services->getUserOptionsLookup();
-		$this->tempUserCreator = $services->getTempUserCreator();
-		$this->userFactory = $services->getUserFactory();
-		$this->linkRenderer = $services->getLinkRenderer();
-		$this->linkBatchFactory = $services->getLinkBatchFactory();
-		$this->restrictionStore = $services->getRestrictionStore();
-		$this->dbProvider = $services->getConnectionProvider();
-		$this->authManager = $services->getAuthManager();
-		$this->userRegistrationLookup = $services->getUserRegistrationLookup();
-		$this->sessionManager = $services->getSessionManager();
-		$this->constraintFactory = $services->getService( '_EditConstraintFactory' );
-		$this->pageEditingHelper = $services->getService( '_PageEditingHelper' );
-		$this->userIdentityUtils = $services->getUserIdentityUtils();
-		$this->userEditTracker = $services->getUserEditTracker();
-		$this->textboxBuilder = $services->getTextboxBuilder();
+
+		$this->contentModel = $this->getTitle()->getContentModel();
+		$this->contentFormat = $this->contentHandlerFactory
+			->getContentHandler( $this->contentModel )
+			->getDefaultFormat();
 	}
 
 	/**
