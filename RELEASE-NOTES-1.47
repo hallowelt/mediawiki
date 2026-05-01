@@ -98,10 +98,10 @@ because of Phabricator reports.
 
 === Deprecations in 1.47 ===
 
-* The PatrolLog::record method is deprecated. Use
-  PatrolManager::createPatrolLog instead.
-* The MarkPatrolledComplete hook has been deprecated. Use the
-  MarkPatrolledAudit hook instead.
+* The PatrolLog::record method is deprecated and will trigger
+  deprecation warnings. Use PatrolManager::createPatrolLog instead.
+* The MarkPatrolledComplete hook has been deprecated and will trigger
+  deprecation warnings. Use the MarkPatrolledAudit hook instead.
 * …
 
 === Other changes in 1.47 ===

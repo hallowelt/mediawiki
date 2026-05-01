@@ -83,11 +83,11 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testMarkPatrolled() {
-		$markPatrolledCompleteHookCalled = false;
+		$markPatrolledAuditHookCalled = false;
 		$this->setTemporaryHook(
-			'MarkPatrolledComplete',
-			static function () use ( &$markPatrolledCompleteHookCalled ) {
-				$markPatrolledCompleteHookCalled = true;
+			'MarkPatrolledAudit',
+			static function () use ( &$markPatrolledAuditHookCalled ) {
+				$markPatrolledAuditHookCalled = true;
 			}
 		);
 
@@ -103,7 +103,7 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 			->getRecentChangeById( $rc->getAttribute( 'rc_id' ) );
 		$this->assertSame( '1', $reloadedRC->getAttribute( 'rc_patrolled' ) );
 
-		$this->assertTrue( $markPatrolledCompleteHookCalled, 'MarkPatrolledComplete hook was not called' );
+		$this->assertTrue( $markPatrolledAuditHookCalled, 'MarkPatrolledAudit hook was not called' );
 
 		$this->newSelectQueryBuilder()
 			->select( [ 'log_page', 'actor_name' ] )

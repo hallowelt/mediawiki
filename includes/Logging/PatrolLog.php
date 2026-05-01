@@ -38,6 +38,7 @@ class PatrolLog {
 	 * @return bool
 	 */
 	public static function record( $rc, $auto, UserIdentity $user, $tags = null ) {
+		wfDeprecated( __METHOD__, '1.47' );
 		// Do not log autopatrol actions: T184485
 		if ( $auto ) {
 			return false;
