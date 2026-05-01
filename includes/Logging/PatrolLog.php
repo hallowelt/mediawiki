@@ -11,18 +11,23 @@
 namespace MediaWiki\Logging;
 
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\User\UserIdentity;
 
 /**
  * Class containing static functions for working with
  * logs of patrol events
+ *
+ * @deprecated since 1.47
  */
 class PatrolLog {
 
 	/**
 	 * Record a log event for a change being patrolled
+	 *
+	 * @deprecated Since 1.47. Use {@link PatrolManager::createPatrolLog} instead.
+	 *   The new method does not filter out automatic patrol events and requires
+	 *   a RecentChange object instead of also accepting an ID
 	 *
 	 * @param int|RecentChange $rc Change identifier or RecentChange object
 	 * @param bool $auto Was this patrol event automatic?
@@ -38,42 +43,17 @@ class PatrolLog {
 			return false;
 		}
 
+		$services = MediaWikiServices::getInstance();
 		if ( !$rc instanceof RecentChange ) {
-			$rc = MediaWikiServices::getInstance()
-				->getRecentChangeLookup()
-				->getRecentChangeById( $rc );
+			$services->getRecentChangeLookup()->getRecentChangeById( $rc );
 			if ( !$rc ) {
 				return false;
 			}
 		}
 
-		$entry = new ManualLogEntry( 'patrol', 'patrol' );
-
-		// B/C: ->getPage() on RC will return a page reference or null, reconcile this in
-		//      $entry->setTarget() call so we don't throw.
-		$page = $rc->getPage() ?? PageReferenceValue::localReference( NS_SPECIAL, 'Badtitle' );
-		$entry->setTarget( $page );
-		$entry->setParameters( self::buildParams( $rc ) );
-		$entry->setPerformer( $user );
-		$entry->addTags( $tags );
-		$logid = $entry->insert();
-		$entry->publish( $logid, 'udp' );
+		$services->getPatrolManager()->createPatrolLog( $rc, $user, $tags );
 
 		return true;
-	}
-
-	/**
-	 * Prepare log parameters for a patrolled change
-	 *
-	 * @param RecentChange $change RecentChange to represent
-	 * @return array
-	 */
-	private static function buildParams( $change ) {
-		return [
-			'4::curid' => $change->getAttribute( 'rc_this_oldid' ),
-			'5::previd' => $change->getAttribute( 'rc_last_oldid' ),
-			'6::auto' => 0
-		];
 	}
 }
 

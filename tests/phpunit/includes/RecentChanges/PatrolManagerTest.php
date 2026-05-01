@@ -11,6 +11,7 @@ use MediaWiki\Utils\MWTimestamp;
 
 /**
  * @group Database
+ * @covers \MediaWiki\RecentChanges\PatrolManager
  */
 class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 	use MockAuthorityTrait;
@@ -32,9 +33,6 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 		] );
 	}
 
-	/**
-	 * @covers \MediaWiki\RecentChanges\PatrolManager::markPatrolled
-	 */
 	public function testMarkPatrolledPermissions() {
 		$rc = $this->getDummyEditRecentChange();
 		$performer = $this->mockRegisteredAuthority( static function (
@@ -55,9 +53,6 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 		$this->assertStatusError( 'missing-patrol', $status );
 	}
 
-	/**
-	 * @covers \MediaWiki\RecentChanges\PatrolManager::markPatrolled
-	 */
 	public function testMarkPatrolledPermissions_Hook() {
 		$rc = $this->getDummyEditRecentChange();
 		$this->setTemporaryHook( 'MarkPatrolled', static fn () => false );
@@ -68,9 +63,6 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 		$this->assertStatusError( 'hookaborted', $status );
 	}
 
-	/**
-	 * @covers \MediaWiki\RecentChanges\PatrolManager::markPatrolled
-	 */
 	public function testMarkPatrolledPermissions_Self() {
 		$rc = $this->getDummyEditRecentChange();
 		$status = $this->getServiceContainer()->getPatrolManager()->markPatrolled(
@@ -80,9 +72,6 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 		$this->assertStatusError( 'markedaspatrollederror-noautopatrol', $status );
 	}
 
-	/**
-	 * @covers \MediaWiki\RecentChanges\PatrolManager::markPatrolled
-	 */
 	public function testMarkPatrolledPermissions_NoRcPatrol() {
 		$this->overrideConfigValue( MainConfigNames::UseRCPatrol, false );
 		$rc = $this->getDummyEditRecentChange();
@@ -93,10 +82,15 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 		$this->assertStatusError( 'rcpatroldisabled', $status );
 	}
 
-	/**
-	 * @covers \MediaWiki\RecentChanges\PatrolManager::markPatrolled
-	 */
 	public function testMarkPatrolled() {
+		$markPatrolledCompleteHookCalled = false;
+		$this->setTemporaryHook(
+			'MarkPatrolledComplete',
+			static function () use ( &$markPatrolledCompleteHookCalled ) {
+				$markPatrolledCompleteHookCalled = true;
+			}
+		);
+
 		$rc = $this->getDummyEditRecentChange();
 		$status = $this->getServiceContainer()->getPatrolManager()->markPatrolled(
 			$rc,
@@ -108,6 +102,19 @@ class PatrolManagerTest extends MediaWikiIntegrationTestCase {
 			->getRecentChangeLookup()
 			->getRecentChangeById( $rc->getAttribute( 'rc_id' ) );
 		$this->assertSame( '1', $reloadedRC->getAttribute( 'rc_patrolled' ) );
+
+		$this->assertTrue( $markPatrolledCompleteHookCalled, 'MarkPatrolledComplete hook was not called' );
+
+		$this->newSelectQueryBuilder()
+			->select( [ 'log_page', 'actor_name' ] )
+			->from( 'logging' )
+			->join( 'actor', null, 'actor_id=log_actor' )
+			->where( [
+				'log_type' => 'patrol',
+				'log_action' => 'patrol',
+			] )
+			->caller( __METHOD__ )
+			->assertRowValue( [ $this->title->getId(), $this->user->getName() ] );
 	}
 
 	private function getDummyEditRecentChange(): RecentChange {

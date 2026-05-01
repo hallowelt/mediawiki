@@ -98,6 +98,8 @@ because of Phabricator reports.
 
 === Deprecations in 1.47 ===
 
+* The PatrolLog::record method is deprecated. Use
+  PatrolManager::createPatrolLog instead.
 * …
 
 === Other changes in 1.47 ===

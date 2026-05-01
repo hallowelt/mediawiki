@@ -9,12 +9,14 @@ namespace MediaWiki\RecentChanges;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\HookRunner;
-use MediaWiki\Logging\PatrolLog;
+use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Page\PageReferenceValue;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\Permissions\PermissionStatus;
 use MediaWiki\Storage\RevertedTagUpdateManager;
 use MediaWiki\User\UserFactory;
+use MediaWiki\User\UserIdentity;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**
@@ -134,7 +136,7 @@ class PatrolManager {
 		}
 
 		// Log this patrol event
-		PatrolLog::record( $recentChange, false, $performer->getUser(), $tags );
+		$this->createPatrolLog( $recentChange, $user, $tags );
 
 		$hookRunner->onMarkPatrolledComplete( $recentChange->getAttribute( 'rc_id' ), $user, false, false );
 
@@ -177,5 +179,36 @@ class PatrolManager {
 		}
 
 		return $affectedRowCount;
+	}
+
+	/**
+	 * Create a logging entry for a change being patrolled.
+	 *
+	 * @since 1.47
+	 *
+	 * @param RecentChange $recentChange RecentChange object for the entry that was patrolled
+	 * @param UserIdentity $user User performing the patrol action
+	 * @param string|string[]|null $tags Change tags to add to the patrol log entry
+	 *    ($user should be able to add the specified tags before this is called)
+	 */
+	public function createPatrolLog(
+		RecentChange $recentChange,
+		UserIdentity $user,
+		$tags = null
+	): void {
+		$entry = new ManualLogEntry( 'patrol', 'patrol' );
+
+		$page = $recentChange->getPage() ?? PageReferenceValue::localReference( NS_SPECIAL, 'Badtitle' );
+		$entry->setTarget( $page );
+		$entry->setParameters( [
+			'4::curid' => $recentChange->getAttribute( 'rc_this_oldid' ),
+			'5::previd' => $recentChange->getAttribute( 'rc_last_oldid' ),
+			'6::auto' => 0,
+		] );
+		$entry->setPerformer( $user );
+		$entry->addTags( $tags );
+
+		$logId = $entry->insert();
+		$entry->publish( $logId, 'udp' );
 	}
 }
