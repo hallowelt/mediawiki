@@ -136,9 +136,10 @@ class PatrolManager {
 		}
 
 		// Log this patrol event
-		$this->createPatrolLog( $recentChange, $user, $tags );
+		$logId = $this->createPatrolLog( $recentChange, $user, $tags );
 
 		$hookRunner->onMarkPatrolledComplete( $recentChange->getAttribute( 'rc_id' ), $user, false, false );
+		$hookRunner->onMarkPatrolledAudit( $recentChange, $user, $logId );
 
 		return $status;
 	}
@@ -195,7 +196,7 @@ class PatrolManager {
 		RecentChange $recentChange,
 		UserIdentity $user,
 		$tags = null
-	): void {
+	): int {
 		$entry = new ManualLogEntry( 'patrol', 'patrol' );
 
 		$page = $recentChange->getPage() ?? PageReferenceValue::localReference( NS_SPECIAL, 'Badtitle' );
@@ -210,5 +211,7 @@ class PatrolManager {
 
 		$logId = $entry->insert();
 		$entry->publish( $logId, 'udp' );
+
+		return $logId;
 	}
 }

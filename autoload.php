@@ -2761,6 +2761,7 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\RecentChanges\\Hook\\EnhancedChangesListModifyLineDataHook' => __DIR__ . '/includes/RecentChanges/Hook/EnhancedChangesListModifyLineDataHook.php',
 	'MediaWiki\\RecentChanges\\Hook\\EnhancedChangesList__getLogTextHook' => __DIR__ . '/includes/RecentChanges/Hook/EnhancedChangesList__getLogTextHook.php',
 	'MediaWiki\\RecentChanges\\Hook\\FetchChangesListHook' => __DIR__ . '/includes/RecentChanges/Hook/FetchChangesListHook.php',
+	'MediaWiki\\RecentChanges\\Hook\\MarkPatrolledAuditHook' => __DIR__ . '/includes/RecentChanges/Hook/MarkPatrolledAuditHook.php',
 	'MediaWiki\\RecentChanges\\Hook\\MarkPatrolledCompleteHook' => __DIR__ . '/includes/RecentChanges/Hook/MarkPatrolledCompleteHook.php',
 	'MediaWiki\\RecentChanges\\Hook\\MarkPatrolledHook' => __DIR__ . '/includes/RecentChanges/Hook/MarkPatrolledHook.php',
 	'MediaWiki\\RecentChanges\\Hook\\OldChangesListRecentChangesLineHook' => __DIR__ . '/includes/RecentChanges/Hook/OldChangesListRecentChangesLineHook.php',

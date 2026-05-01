@@ -16,6 +16,7 @@ interface MarkPatrolledCompleteHook {
 	 * This hook is called after an edit is marked patrolled.
 	 *
 	 * @since 1.35
+	 * @deprecated Since 1.47 - Use {@link MarkPatrolledAuditHook} instead
 	 *
 	 * @param int $rcid ID of the revision marked as patrolled
 	 * @param User $user User who marked the edit patrolled

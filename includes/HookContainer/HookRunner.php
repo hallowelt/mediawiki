@@ -391,6 +391,7 @@ class HookRunner implements
 	\MediaWiki\RecentChanges\Hook\EnhancedChangesListModifyBlockLineDataHook,
 	\MediaWiki\RecentChanges\Hook\EnhancedChangesListModifyLineDataHook,
 	\MediaWiki\RecentChanges\Hook\FetchChangesListHook,
+	\MediaWiki\RecentChanges\Hook\MarkPatrolledAuditHook,
 	\MediaWiki\RecentChanges\Hook\MarkPatrolledCompleteHook,
 	\MediaWiki\RecentChanges\Hook\MarkPatrolledHook,
 	\MediaWiki\RecentChanges\Hook\OldChangesListRecentChangesLineHook,
@@ -2844,6 +2845,15 @@ class HookRunner implements
 		return $this->container->run(
 			'MarkPatrolledComplete',
 			[ $rcid, $user, $wcOnlySysopsCanPatrol, $auto ]
+		);
+	}
+
+	/** @inheritDoc */
+	public function onMarkPatrolledAudit( $recentChange, $userIdentity, int $logId ): void {
+		$this->container->run(
+			'MarkPatrolledAudit',
+			[ $recentChange, $userIdentity, $logId ],
+			[ 'abortable' => false ]
 		);
 	}
 

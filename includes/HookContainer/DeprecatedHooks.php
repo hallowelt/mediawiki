@@ -31,6 +31,7 @@ class DeprecatedHooks {
 		'EmailUserPermissionsErrors' => [ 'deprecatedVersion' => '1.41' ],
 		'InterwikiLoadPrefix' => [ 'deprecatedVersion' => '1.36' ],
 		'LocalFile::getHistory' => [ 'deprecatedVersion' => '1.37' ],
+		'MarkPatrolledComplete' => [ 'deprecatedVersion' => '1.47', 'silent' => true ],
 		'MessageCache::get' => [ 'deprecatedVersion' => '1.41' ],
 		'ProtectionForm::buildForm' => [ 'deprecatedVersion' => '1.36', 'silent' => true ],
 		'RecentChangesPurgeRows' => [ 'deprecatedVersion' => '1.45', 'silent' => true ],
