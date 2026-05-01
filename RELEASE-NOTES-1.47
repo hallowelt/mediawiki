@@ -94,6 +94,8 @@ because of Phabricator reports.
 
 === Breaking changes in 1.47 ===
 
+* It is no longer possible to pass null to the $output parameter of
+  FeedUtils::checkFeedOutput. This behaviour was deprecated in 1.46.
 * …
 
 === Deprecations in 1.47 ===

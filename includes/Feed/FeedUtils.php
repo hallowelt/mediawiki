@@ -34,18 +34,12 @@ class FeedUtils {
 	 * Check whether feeds can be used and that $type is a valid feed type
 	 *
 	 * @param string $type Feed type, as requested by the user
-	 * @param OutputPage|null $output Null (deprecated since 1.46) falls back to $wgOut
-	 * @return bool
+	 * @param OutputPage $output
 	 * @since 1.36 $output parameter added
 	 */
-	public static function checkFeedOutput( $type, $output = null ) {
+	public static function checkFeedOutput( $type, $output ): bool {
 		$feed = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::Feed );
 		$feedClasses = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::FeedClasses );
-		if ( $output === null ) {
-			wfDeprecated( __METHOD__ . ' with null $output', '1.46' );
-			global $wgOut;
-			$output = $wgOut;
-		}
 
 		if ( !$feed ) {
 			$output->addWikiMsg( 'feed-unavailable' );
