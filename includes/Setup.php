@@ -436,7 +436,7 @@ global $wgRequest;
 $wgRequest = RequestContext::getMain()->getRequest(); // BackCompat
 
 // Make sure that object caching does not undermine the ChronologyProtector improvements
-if ( $wgRequest->getCookie( 'UseDC', '' ) === 'master' ) {
+if ( RequestContext::getMain()->getRequest()->getCookie( 'UseDC', '' ) === 'master' ) {
 	// The user is pinned to the primary DC, meaning that they made recent changes which should
 	// be reflected in their subsequent web requests. Avoid the use of interim cache keys because
 	// they use a blind TTL and could be stale if an object changes twice in a short time span.
@@ -445,17 +445,16 @@ if ( $wgRequest->getCookie( 'UseDC', '' ) === 'master' ) {
 
 // Useful debug output
 ( static function () {
-	global $wgRequest;
-
 	$logger = LoggerFactory::getInstance( 'wfDebug' );
 	if ( MW_ENTRY_POINT === 'cli' ) {
 		$self = $_SERVER['PHP_SELF'] ?? '';
 		$logger->debug( "\n\nStart command line script $self" );
 	} else {
-		$debug = "\n\nStart request {$wgRequest->getMethod()} {$wgRequest->getRequestURL()}\n";
-		$debug .= "IP: " . $wgRequest->getIP() . "\n";
+		$request = RequestContext::getMain()->getRequest();
+		$debug = "\n\nStart request {$request->getMethod()} {$request->getRequestURL()}\n";
+		$debug .= "IP: " . $request->getIP() . "\n";
 		$debug .= "HTTP HEADERS:\n";
-		foreach ( $wgRequest->getAllHeaders() as $name => $value ) {
+		foreach ( $request->getAllHeaders() as $name => $value ) {
 			$debug .= "$name: $value\n";
 		}
 		$debug .= "(end headers)";
@@ -476,7 +475,7 @@ if ( $wgRequest->getCookie( 'UseDC', '' ) === 'master' ) {
 // TODO: Figure out if this can be safely done after everything else in Setup.php (e.g. any
 // hooks or other state that would miss this?). If so, move to wfIndexMain or MediaWiki::run.
 if ( MW_ENTRY_POINT === 'index' ) {
-	$wgRequest->interpolateTitle();
+	RequestContext::getMain()->getRequest()->interpolateTitle();
 }
 
 if ( !defined( 'MW_NO_SESSION' ) && MW_ENTRY_POINT !== 'cli' ) {

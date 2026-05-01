@@ -4992,15 +4992,14 @@ class OutputPage extends ContextSource {
 	 * Transform "media" attribute based on request parameters
 	 *
 	 * @param string $media Current value of the "media" attribute
-	 * @param WebRequest|null $request Null (deprecated since 1.46) falls back to $wgRequest
+	 * @param WebRequest|null $request Null (deprecated since 1.46) falls back to the main request
 	 * @return string|null Modified value of the "media" attribute, or null to disable
 	 * this stylesheet
 	 */
 	public static function transformCssMedia( $media, $request = null ) {
 		if ( $request === null ) {
 			wfDeprecated( __METHOD__ . ' with null $request', '1.46' );
-			global $wgRequest;
-			$request = $wgRequest;
+			$request = RequestContext::getMain()->getRequest();
 		}
 
 		if ( $request->getBool( 'printable' ) ) {

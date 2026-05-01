@@ -54,7 +54,6 @@ use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Message\Message;
 use MediaWiki\Page\Article;
 use MediaWiki\Page\CategoryPage;
 use MediaWiki\Page\LinkBatchFactory;
@@ -191,8 +190,8 @@ class EditPage implements IEditObject {
 	 */
 	public bool $isConflict = false;
 
-	/** @var bool New page or new section */
-	private $isNew = false;
+	/** New page or new section */
+	private bool $isNew = false;
 
 	/** @var string */
 	public $formtype;
@@ -203,22 +202,17 @@ class EditPage implements IEditObject {
 	 */
 	public $firsttime;
 
-	/** @var bool */
-	private $mTokenOk = false;
+	private bool $mTokenOk = false;
 
-	/** @var bool */
-	private $mTriedSave = false;
+	private bool $mTriedSave = false;
 
-	/** @var bool */
-	private $incompleteForm = false;
+	private bool $incompleteForm = false;
 
-	/** @var bool */
-	private $missingSummary = false;
+	private bool $missingSummary = false;
 
 	private bool $allowBlankSummary = false;
 
-	/** @var bool */
-	protected $blankArticle = false;
+	private bool $blankArticle = false;
 
 	private bool $allowBlankArticle = false;
 
@@ -232,37 +226,32 @@ class EditPage implements IEditObject {
 
 	private string $autoSumm = '';
 
-	/** @var string */
-	private $hookError = '';
+	private string $hookError = '';
 
 	/** @var ParserOutput|null */
 	private $mParserOutput;
 
-	/** @var bool */
-	public $mShowSummaryField = true;
+	public bool $mShowSummaryField = true;
 
 	# Form values
 
-	/** @var bool */
-	public $save = false;
+	public bool $save = false;
 
-	/** @var bool */
-	public $preview = false;
+	public bool $preview = false;
 
-	/** @var bool */
-	private $diff = false;
+	private bool $diff = false;
 
 	private bool $minoredit = false;
 
 	private bool $watchthis = false;
 
-	/** @var bool Corresponds to $wgWatchlistExpiry */
-	private $watchlistExpiryEnabled;
+	/** Corresponds to $wgWatchlistExpiry */
+	private bool $watchlistExpiryEnabled;
 
 	/** The expiry time of the watch item, or null if it is not watched temporarily. */
 	private ?string $watchlistExpiry = null;
 
-	/** @var bool Corresponds to $wgEnableWatchlistLabels */
+	/** Corresponds to $wgEnableWatchlistLabels */
 	private bool $watchlistLabelsEnabled;
 
 	/** @var int[] Watchlist label IDs submitted in the form */
@@ -270,8 +259,7 @@ class EditPage implements IEditObject {
 
 	private bool $recreate = false;
 
-	/** @var bool */
-	private $ignoreRevisionDeletedWarning = false;
+	private bool $ignoreRevisionDeletedWarning = false;
 
 	/**
 	 * Page content input field.
@@ -280,11 +268,8 @@ class EditPage implements IEditObject {
 
 	public string $summary = '';
 
-	/**
-	 * @var bool
-	 * If true, hide the summary field.
-	 */
-	private $nosummary = false;
+	/** If true, hide the summary field. */
+	private bool $nosummary = false;
 
 	/**
 	 * Timestamp of the latest revision of the page when editing was initiated
@@ -333,8 +318,7 @@ class EditPage implements IEditObject {
 	 */
 	private int $parentRevId = 0;
 
-	/** @var int|null */
-	private $scrolltop = null;
+	private ?int $scrolltop = null;
 
 	private bool $markAsBot = true;
 
@@ -364,13 +348,12 @@ class EditPage implements IEditObject {
 	/** @var string */
 	public $previewTextAfterContent = '';
 
-	/** @var bool should be set to true whenever an article was successfully altered. */
-	public $didSave = false;
+	/** Should be set to true whenever an article was successfully altered. */
+	public bool $didSave = false;
 	public int $undidRev = 0;
 	private int $undoAfter = 0;
 
-	/** @var bool */
-	public $suppressIntro = false;
+	public bool $suppressIntro = false;
 
 	private int|false $contentLength = false;
 
@@ -381,14 +364,10 @@ class EditPage implements IEditObject {
 
 	protected IContextSource $context;
 
-	/**
-	 * @var bool Whether an old revision is edited
-	 */
-	private $isOldRev = false;
+	/** Whether an old revision is edited */
+	private bool $isOldRev = false;
 
-	/**
-	 * What the user submitted in the 'wpUnicodeCheck' field
-	 */
+	/** What the user submitted in the 'wpUnicodeCheck' field */
 	private string $unicodeCheck = '';
 
 	/** @var callable|null */
@@ -429,11 +408,11 @@ class EditPage implements IEditObject {
 	/** Whether temp user creation will be attempted */
 	private bool $tempUserCreateActive = false;
 
-	/** @var string|null If a temp user name was acquired, this is the name */
-	private $tempUserName;
+	/** If a temp user name was acquired, this is the name */
+	private ?string $tempUserName = null;
 
-	/** @var bool Whether temp user creation was successful */
-	private $tempUserCreateDone = false;
+	/** Whether temp user creation was successful */
+	private bool $tempUserCreateDone = false;
 
 	/** Whether temp username acquisition failed (false indicates no failure or not attempted) */
 	private bool $unableToAcquireTempName = false;
@@ -1359,14 +1338,11 @@ class EditPage implements IEditObject {
 		}
 
 		if ( !$content ) {
-			$out = $this->context->getOutput();
-			// FIXME Why is this double-parsing?
-			$this->editFormPageTop .= Html::errorBox(
-				$out->parseAsInterface( $this->context->msg( 'missing-revision-content',
-					$this->oldid,
-					Message::plaintextParam( $this->getTitle()->getPrefixedText() )
-				)->parse() )
-			);
+			$this->editFormPageTop .= Html::errorBox( $this->context->msg(
+				'missing-revision-content',
+				$this->oldid,
+				wfEscapeWikiText( $this->getTitle()->getPrefixedText() )
+			)->parse() );
 		} elseif ( !$this->pageEditingHelper->isSupportedContentModel(
 			$content->getModel(), $this->enableApiEditOverride,
 		) ) {
@@ -1915,12 +1891,8 @@ class EditPage implements IEditObject {
 
 	/**
 	 * Emit the post-save redirect. The URL is modifiable with a hook.
-	 *
-	 * @param string $query
-	 * @param string $anchor
-	 * @return void
 	 */
-	private function doPostEditRedirect( $query, $anchor ) {
+	private function doPostEditRedirect( string $query, string $anchor ): void {
 		$out = $this->context->getOutput();
 		$url = $this->getTitle()->getFullURL( $query ) . $anchor;
 		$user = $this->getUserForSave();
@@ -2594,10 +2566,6 @@ class EditPage implements IEditObject {
 	 * one that was submitted by the user. If they match, the undo is considered "clean".
 	 * Otherwise there is no guarantee if anything was reverted at all, as the user could
 	 * even swap out entire content.
-	 *
-	 * @param Content $content
-	 *
-	 * @return bool
 	 */
 	private function isUndoClean( Content $content ): bool {
 		// Check whether the undo was "clean", that is the user has not modified
@@ -2645,12 +2613,17 @@ class EditPage implements IEditObject {
 	 * @param string $newModel
 	 * @param string $reason
 	 */
-	private function addContentModelChangeLogEntry( UserIdentity $user, $oldModel, $newModel, $reason = "" ): void {
+	private function addContentModelChangeLogEntry(
+		UserIdentity $user,
+		string|false $oldModel,
+		string $newModel,
+		string $reason
+	): void {
 		$new = $oldModel === false;
 		$log = new ManualLogEntry( 'contentmodel', $new ? 'new' : 'change' );
 		$log->setPerformer( $user );
 		$log->setTarget( $this->page );
-		$log->setComment( is_string( $reason ) ? $reason : "" );
+		$log->setComment( $reason );
 		$log->setParameters( [
 			'4::oldmodel' => $oldModel,
 			'5::newmodel' => $newModel
@@ -2693,18 +2666,14 @@ class EditPage implements IEditObject {
 	 * and current content, in case of edit conflict, in whichever way appropriate
 	 * for the content type.
 	 *
-	 * @param Content $editContent
-	 *
-	 * @return array|false either `false` or an array of the new Content and the
+	 * @return array{0:Content,1:int}|false either `false` or an array of the new Content and the
 	 *   updated parent revision id
 	 */
-	private function mergeChangesIntoContent( Content $editContent ) {
+	private function mergeChangesIntoContent( Content $editContent ): array|false {
 		// This is the revision that was current at the time editing was initiated on the client,
 		// even if the edit was based on an old revision.
 		$baseRevRecord = $this->getExpectedParentRevision();
-		$baseContent = $baseRevRecord ?
-			$baseRevRecord->getContent( SlotRecord::MAIN ) :
-			null;
+		$baseContent = $baseRevRecord?->getContent( SlotRecord::MAIN );
 
 		if ( $baseContent === null ) {
 			return false;
@@ -2720,9 +2689,7 @@ class EditPage implements IEditObject {
 			0,
 			IDBAccessObject::READ_LATEST
 		);
-		$currentContent = $currentRevisionRecord
-			? $currentRevisionRecord->getContent( SlotRecord::MAIN )
-			: null;
+		$currentContent = $currentRevisionRecord?->getContent( SlotRecord::MAIN );
 
 		if ( $currentContent === null ) {
 			return false;
@@ -2747,7 +2714,7 @@ class EditPage implements IEditObject {
 	 * @since 1.35
 	 * @return RevisionRecord|null Latest revision when editing was initiated on the client
 	 */
-	public function getExpectedParentRevision() {
+	public function getExpectedParentRevision(): ?RevisionRecord {
 		return $this->pageEditingHelper->getExpectedParentRevision(
 			$this->editRevId,
 			$this->edittime,
@@ -3085,7 +3052,7 @@ class EditPage implements IEditObject {
 		}
 
 		if ( !$this->getTitle()->isUserConfigPage() ) {
-			$out->addHTML( self::getEditToolbar() );
+			$out->addHTML( self::getEditToolbar() ?? '' );
 		}
 
 		if ( $this->blankArticle ) {
@@ -3179,7 +3146,7 @@ class EditPage implements IEditObject {
 	 * @param PageIdentity[] $templates
 	 * @return string HTML
 	 */
-	public function makeTemplatesOnThisPageList( array $templates ) {
+	public function makeTemplatesOnThisPageList( array $templates ): string {
 		$templateListFormatter = new TemplatesOnThisPageFormatter(
 			$this->context,
 			$this->linkRenderer,
@@ -3202,11 +3169,8 @@ class EditPage implements IEditObject {
 
 	/**
 	 * Extract the section title from current section text, if any.
-	 *
-	 * @param string $text
-	 * @return string|false
 	 */
-	private static function extractSectionTitle( $text ) {
+	private static function extractSectionTitle( string $text ): string|false {
 		if ( preg_match( "/^(=+)(.+)\\1\\s*(\n|$)/i", $text, $matches ) ) {
 			return MediaWikiServices::getInstance()->getParser()
 				->stripSectionName( trim( $matches[2] ) );
@@ -3279,9 +3243,6 @@ class EditPage implements IEditObject {
 	/**
 	 * Helper function for summary input functions, which returns the necessary
 	 * attributes for the input.
-	 *
-	 * @param array $inputAttrs Array of attrs to use on the input
-	 * @return array
 	 */
 	private function getSummaryInputAttributes( array $inputAttrs ): array {
 		// HTML maxlength uses "UTF-16 code units", which means that characters outside BMP
@@ -3363,7 +3324,6 @@ class EditPage implements IEditObject {
 	 * @param bool $isSubjectPreview True if this is the section subject/title
 	 *   up top, or false if this is the comment summary
 	 *   down below the textarea
-	 * @return string
 	 */
 	private function getSummaryPreview( bool $isSubjectPreview ): string {
 		// avoid spaces in preview, gets always trimmed on save
@@ -3440,7 +3400,7 @@ class EditPage implements IEditObject {
 		);
 	}
 
-	protected function showTextbox( string $text, string $name, array $customAttribs = [] ) {
+	protected function showTextbox( string $text, string $name, array $customAttribs = [] ): void {
 		$attribs = $this->textboxBuilder->buildTextboxAttribs(
 			$name,
 			$customAttribs,
@@ -3514,7 +3474,7 @@ class EditPage implements IEditObject {
 	 * If this is a section edit, we'll replace the section as for final
 	 * save and then make a comparison.
 	 */
-	public function showDiff() {
+	public function showDiff(): void {
 		$oldtitlemsg = 'currentrev';
 		# if message does not exist, show diff against the preloaded default
 		if ( $this->page->getNamespace() === NS_MEDIAWIKI && !$this->page->exists() ) {
@@ -3615,9 +3575,12 @@ class EditPage implements IEditObject {
 	 * @param string $format Output format, valid values are any function of a Message object
 	 *   (e.g. 'parse', 'plain')
 	 * @param MessageLocalizer $localizer
-	 * @return string
 	 */
-	public static function getCopyrightWarning( PageReference $page, string $format, MessageLocalizer $localizer ) {
+	public static function getCopyrightWarning(
+		PageReference $page,
+		string $format,
+		MessageLocalizer $localizer
+	): string {
 		$services = MediaWikiServices::getInstance();
 		$rightsText = $services->getMainConfig()->get( MainConfigNames::RightsText );
 		if ( $rightsText ) {
@@ -3646,7 +3609,7 @@ class EditPage implements IEditObject {
 	 * @param ParserOutput|null $output ParserOutput object from the parse
 	 * @return string HTML
 	 */
-	public static function getPreviewLimitReport( ?ParserOutput $output = null ) {
+	public static function getPreviewLimitReport( ?ParserOutput $output = null ): string {
 		if ( !$output || !$output->getLimitReportData() ) {
 			return '';
 		}
@@ -3707,7 +3670,7 @@ class EditPage implements IEditObject {
 		return $limitReport;
 	}
 
-	protected function showStandardInputs( int &$tabindex = 2 ) {
+	protected function showStandardInputs( int &$tabindex = 2 ): void {
 		$out = $this->context->getOutput();
 		$out->addHTML( "<div class='editOptions'>\n" );
 
@@ -4031,9 +3994,8 @@ class EditPage implements IEditObject {
 
 	/**
 	 * Get parser options for a preview
-	 * @return ParserOptions
 	 */
-	protected function getPreviewParserOptions() {
+	protected function getPreviewParserOptions(): ParserOptions {
 		$parserOptions = $this->page->makeParserOptions( $this->context );
 		$parserOptions->setRenderReason( 'page-preview' );
 		$parserOptions->setIsPreview( true );
@@ -4113,10 +4075,8 @@ class EditPage implements IEditObject {
 
 	/**
 	 * Allow extensions to provide a toolbar.
-	 *
-	 * @return string|null
 	 */
-	public static function getEditToolbar() {
+	public static function getEditToolbar(): ?string {
 		$startingToolbar = '<div id="toolbar"></div>';
 		$toolbar = $startingToolbar;
 
@@ -4153,7 +4113,7 @@ class EditPage implements IEditObject {
 	 *   For checkboxes, the value is a bool that indicates the checked status of the checkbox.
 	 * @return array[]
 	 */
-	public function getCheckboxesDefinition( $values ) {
+	public function getCheckboxesDefinition( $values ): array {
 		$checkboxes = [];
 
 		$user = $this->context->getUser();
@@ -4519,7 +4479,7 @@ class EditPage implements IEditObject {
 	 *
 	 * @param string|array|false $match Text (or array of texts) which triggered one or more filters
 	 */
-	public function spamPageWithContent( $match = false ) {
+	public function spamPageWithContent( $match = false ): void {
 		$out = $this->context->getOutput();
 		$out->prepareErrorPage();
 		$out->setPageTitleMsg( $this->context->msg( 'spamprotectiontitle' ) );
@@ -4577,7 +4537,7 @@ class EditPage implements IEditObject {
 	 * @param callable $factory Factory function to create a {@see TextConflictHelper}
 	 * @since 1.31
 	 */
-	public function setEditConflictHelperFactory( callable $factory ) {
+	public function setEditConflictHelperFactory( callable $factory ): void {
 		Assert::precondition( !$this->editConflictHelperFactory,
 			'Can only have one extension that resolves edit conflicts' );
 		$this->editConflictHelperFactory = $factory;

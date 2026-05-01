@@ -121,7 +121,7 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 		global $wgRequest;
 
 		// re-use existing global session by default
-		$session ??= $wgRequest->getSessionArray();
+		$session ??= RequestContext::getMain()->getRequest()->getSessionArray();
 
 		$sessionObj = SessionManager::singleton()->getEmptySession();
 

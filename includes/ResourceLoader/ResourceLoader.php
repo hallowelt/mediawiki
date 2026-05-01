@@ -15,6 +15,7 @@ use Less_Parser;
 use LogicException;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Config\Config;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Exception\MWExceptionHandler;
 use MediaWiki\Exception\MWExceptionRenderer;
 use MediaWiki\HookContainer\HookContainer;
@@ -1812,12 +1813,11 @@ MESSAGE;
 	 */
 	public static function inDebugMode() {
 		if ( self::$debugMode === null ) {
-			global $wgRequest;
-
 			$resourceLoaderDebug = MediaWikiServices::getInstance()->getMainConfig()->get(
 				MainConfigNames::ResourceLoaderDebug );
-			$str = $wgRequest->getRawVal( 'debug' ) ??
-				$wgRequest->getCookie( 'resourceLoaderDebug', '', $resourceLoaderDebug ? 'true' : '' );
+			$request = RequestContext::getMain()->getRequest();
+			$str = $request->getRawVal( 'debug' ) ??
+				$request->getCookie( 'resourceLoaderDebug', '', $resourceLoaderDebug ? 'true' : '' );
 			self::$debugMode = Context::debugFromString( $str );
 		}
 		return self::$debugMode;

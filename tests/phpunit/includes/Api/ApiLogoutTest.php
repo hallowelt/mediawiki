@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Tests\Api;
 
+use MediaWiki\Context\RequestContext;
 use MediaWiki\User\User;
 
 /**
@@ -14,12 +15,10 @@ use MediaWiki\User\User;
 class ApiLogoutTest extends ApiTestCase {
 
 	protected function setUp(): void {
-		global $wgRequest;
-
 		parent::setUp();
 
 		$user = $this->getTestSysop()->getUser();
-		$wgRequest->getSession()->setUser( $user );
+		RequestContext::getMain()->getRequest()->getSession()->setUser( $user );
 		$this->apiContext->setUser( $user );
 	}
 
@@ -59,13 +58,11 @@ class ApiLogoutTest extends ApiTestCase {
 	}
 
 	public function testUserLogoutWithWebToken() {
-		global $wgRequest;
-
 		$user = $this->getTestSysop()->getUser();
 		$this->assertTrue( $user->isRegistered() );
 
 		// Logic copied from SkinTemplate.
-		$token = $user->getEditToken( 'logoutToken', $wgRequest );
+		$token = $user->getEditToken( 'logoutToken', RequestContext::getMain()->getRequest() );
 
 		$this->doUserLogout( $token, $user );
 		$this->assertFalse( $user->isRegistered() );

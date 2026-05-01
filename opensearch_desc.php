@@ -21,11 +21,12 @@ define( 'MW_ENTRY_POINT', 'opensearch_desc' );
 require_once __DIR__ . '/includes/WebStart.php';
 
 $url = wfScript( 'rest' ) . '/v1/search';
-$ctype = $wgRequest->getRawVal( 'ctype' );
+$request = RequestContext::getMain()->getRequest();
+$ctype = $request->getRawVal( 'ctype' );
 
 if ( $ctype !== null ) {
 	$url = wfAppendQuery( $url, [ 'ctype' => $ctype ] );
 }
 
-$wgRequest->response()->header( 'Location: ' . $url, true, 308 );
-$wgRequest->response()->header( 'Cache-control: max-age=600' );
+$request->response()->header( 'Location: ' . $url, true, 308 );
+$request->response()->header( 'Cache-control: max-age=600' );
