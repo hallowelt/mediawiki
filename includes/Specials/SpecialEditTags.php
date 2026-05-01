@@ -12,6 +12,7 @@ use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Exception\ErrorPageError;
 use MediaWiki\Exception\UserBlockedError;
 use MediaWiki\Html\Html;
+use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Logging\LogEventsList;
 use MediaWiki\Logging\LogPage;
 use MediaWiki\Permissions\PermissionManager;
@@ -20,7 +21,6 @@ use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\SpecialPage\UnlistedSpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
-use MediaWiki\Xml\XmlSelect;
 
 /**
  * Add or remove change tags to individual revisions.
@@ -31,11 +31,8 @@ use MediaWiki\Xml\XmlSelect;
  * @since 1.25
  */
 class SpecialEditTags extends UnlistedSpecialPage {
-	/** @var bool Was the DB modified in this request */
-	protected $wasSaved = false;
-
-	/** @var bool True if the submit button was clicked, and the form was posted */
-	private $submitClicked;
+	/** @var Status|null Result of the last submit attempt */
+	protected $status;
 
 	/** @var array Target ID list */
 	private $ids;
@@ -48,9 +45,6 @@ class SpecialEditTags extends UnlistedSpecialPage {
 
 	/** @var ChangeTagsList Storing the list of items to be tagged */
 	private $revList;
-
-	/** @var string */
-	private $reason;
 
 	public function __construct(
 		private readonly PermissionManager $permissionManager,
@@ -82,13 +76,13 @@ class SpecialEditTags extends UnlistedSpecialPage {
 		$this->outputHeader();
 		$this->addHelpLink( 'Help:Tags' );
 
-		$output->addModules( [ 'mediawiki.misc-authed-curate' ] );
+		$output->addModules( [ 'mediawiki.misc-authed-ooui' ] );
 		$output->addModuleStyles( [
 			'mediawiki.interface.helpers.styles',
-			'mediawiki.special'
+			'mediawiki.special',
 		] );
 
-		$this->submitClicked = $request->wasPosted() && $request->getBool( 'wpSubmit' );
+		$submitClicked = $request->getVal( 'action' ) === 'submit' && $request->wasPosted();
 
 		// Handle our many different possible input types
 		$ids = $request->getVal( 'ids' );
@@ -128,7 +122,6 @@ class SpecialEditTags extends UnlistedSpecialPage {
 			$this->ids
 		);
 
-		$this->reason = $request->getVal( 'wpReason', '' );
 		// We need a target page!
 		if ( $this->targetObj === null ) {
 			$output->addWikiMsg( 'undelete-header' );
@@ -136,7 +129,7 @@ class SpecialEditTags extends UnlistedSpecialPage {
 		}
 
 		// Check blocks
-		$checkReplica = !$this->submitClicked;
+		$checkReplica = !$submitClicked;
 		if (
 			$this->permissionManager->isBlockedFrom(
 				$user,
@@ -156,11 +149,19 @@ class SpecialEditTags extends UnlistedSpecialPage {
 		// Give a link to the logs/hist for this page
 		$this->showConvenienceLinks();
 
-		// Either submit or create our form
-		if ( $this->submitClicked ) {
-			$this->submit();
+		$form = $this->getForm();
+		$result = $form->tryAuthorizedSubmit();
+		$wasSaved = $result === true;
+		if ( $wasSaved ) {
+			$this->success();
+			$this->showTargetList();
+			$this->getForm( true )->displayForm( false );
 		} else {
-			$this->showForm();
+			if ( $this->status instanceof Status ) {
+				$this->failure();
+			}
+			$this->showTargetList();
+			$form->displayForm( $result );
 		}
 
 		// Show relevant lines from the tag log
@@ -171,7 +172,7 @@ class SpecialEditTags extends UnlistedSpecialPage {
 			'tag',
 			$this->targetObj,
 			'', /* user */
-			[ 'lim' => 25, 'conds' => [], 'useMaster' => $this->wasSaved ]
+			[ 'lim' => 25, 'conds' => [], 'useMaster' => $wasSaved ]
 		);
 	}
 
@@ -220,18 +221,19 @@ class SpecialEditTags extends UnlistedSpecialPage {
 	 */
 	protected function getList() {
 		if ( $this->revList === null ) {
-			$this->revList = ChangeTagsList::factory( $this->typeName, $this->getContext(),
-				$this->targetObj, $this->ids );
+			$this->revList = ChangeTagsList::factory(
+				$this->typeName, $this->getContext(), $this->targetObj, $this->ids
+			);
 		}
+		$this->revList->reset();
 
 		return $this->revList;
 	}
 
 	/**
-	 * Show a list of items that we will operate on, and show a form which allows
-	 * the user to modify the tags applied to those items.
+	 * Show a list of items that we will operate on, above the form
 	 */
-	protected function showForm() {
+	protected function showTargetList() {
 		$out = $this->getOutput();
 		// Messages: tags-edit-revision-selected, tags-edit-logentry-selected
 		$out->wrapWikiMsg( "<strong>$1</strong>", [
@@ -244,9 +246,8 @@ class SpecialEditTags extends UnlistedSpecialPage {
 		$out->addHTML( "<ul>" );
 
 		$numRevisions = 0;
-		// Live revisions...
 		$list = $this->getList();
-		for ( $list->reset(); $list->current(); $list->next() ) {
+		for ( ; $list->current(); $list->next() ) {
 			$item = $list->current();
 			if ( !$item->canView() ) {
 				throw new ErrorPageError( 'permissionserrors', 'tags-update-no-permission' );
@@ -262,162 +263,165 @@ class SpecialEditTags extends UnlistedSpecialPage {
 		$out->addHTML( "</ul>" );
 		// Explanation text
 		$out->wrapWikiMsg( '<p>$1</p>', "tags-edit-{$this->typeName}-explanation" );
-
-		// Show form
-		$form = Html::openElement( 'form', [ 'method' => 'post',
-				'action' => $this->getPageTitle()->getLocalURL( [ 'action' => 'submit' ] ),
-				'id' => 'mw-revdel-form-revisions' ] ) .
-			Html::openElement( 'fieldset' ) .
-			Html::element(
-				'legend', [],
-				$this->msg( "tags-edit-{$this->typeName}-legend", count( $this->ids ) )->text()
-			) .
-			$this->buildCheckBoxes() .
-			Html::openElement( 'table' ) .
-			"<tr>\n" .
-				'<td class="mw-label">' .
-					Html::label( $this->msg( 'tags-edit-reason' )->text(), 'wpReason' ) .
-				'</td>' .
-				'<td class="mw-input">' .
-					Html::element( 'input', [ 'name' => 'wpReason', 'size' => 60, 'value' => $this->reason,
-						'id' => 'wpReason',
-						// HTML maxlength uses "UTF-16 code units", which means that characters outside BMP
-						// (e.g. emojis) count for two each. This limit is overridden in JS to instead count
-						// Unicode codepoints.
-						'maxlength' => CommentStore::COMMENT_CHARACTER_LIMIT,
-					] ) .
-				'</td>' .
-			"</tr><tr>\n" .
-				'<td></td>' .
-				'<td class="mw-submit">' .
-					Html::submitButton( $this->msg( "tags-edit-{$this->typeName}-submit",
-						$numRevisions )->text(), [ 'name' => 'wpSubmit' ] ) .
-				'</td>' .
-			"</tr>\n" .
-			Html::closeElement( 'table' ) .
-			Html::hidden( 'wpEditToken', $this->getUser()->getEditToken() ) .
-			Html::hidden( 'target', $this->targetObj->getPrefixedText() ) .
-			Html::hidden( 'type', $this->typeName ) .
-			Html::hidden( 'ids', implode( ',', $this->ids ) ) .
-			Html::closeElement( 'fieldset' ) . "\n" .
-			Html::closeElement( 'form' ) . "\n";
-
-		$out->addHTML( $form );
 	}
 
 	/**
-	 * @return string HTML
-	 */
-	protected function buildCheckBoxes() {
-		// If there is just one item, provide the user with a multi-select field
-		$list = $this->getList();
-		$tags = [];
-		if ( $list->length() == 1 ) {
-			$list->reset();
-			$tags = $list->current()->getTags();
-			if ( $tags ) {
-				$tags = explode( ',', $tags );
-			} else {
-				$tags = [];
-			}
-
-			$html = '<table id="mw-edittags-tags-selector">';
-			$html .= '<tr><td>' . $this->msg( 'tags-edit-existing-tags' )->escaped() .
-				'</td><td>';
-			if ( $tags ) {
-				$html .= $this->getLanguage()->commaList( array_map( 'htmlspecialchars', $tags ) );
-			} else {
-				$html .= $this->msg( 'tags-edit-existing-tags-none' )->parse();
-			}
-			$html .= '</td></tr>';
-			$tagSelect = $this->getTagSelect( $tags, $this->msg( 'tags-edit-new-tags' )->plain() );
-			$html .= '<tr><td>' . $tagSelect[0] . '</td><td>' . $tagSelect[1];
-		} else {
-			// Otherwise, use a multi-select field for adding tags, and a list of
-			// checkboxes for removing them
-
-			for ( $list->reset(); $list->current(); $list->next() ) {
-				$currentTags = $list->current()->getTags();
-				if ( $currentTags ) {
-					$tags = array_merge( $tags, explode( ',', $currentTags ) );
-				}
-			}
-			$tags = array_unique( $tags );
-
-			$html = '<table id="mw-edittags-tags-selector-multi"><tr><td>';
-			$tagSelect = $this->getTagSelect( [], $this->msg( 'tags-edit-add' )->plain() );
-			$html .= '<p>' . $tagSelect[0] . '</p>' . $tagSelect[1] . '</td><td>';
-			$html .= Html::element( 'p', [], $this->msg( 'tags-edit-remove' )->plain() );
-			$html .= Html::element( 'input', [
-				'type' => 'checkbox', 'name' => 'wpRemoveAllTags', 'value' => '1',
-				'id' => 'mw-edittags-remove-all'
-			] ) . '&nbsp;'
-				. Html::label( $this->msg( 'tags-edit-remove-all-tags' )->plain(), 'mw-edittags-remove-all' );
-			$i = 0; // used for generating checkbox IDs only
-			foreach ( $tags as $tag ) {
-				$id = 'mw-edittags-remove-' . $i++;
-				$html .= Html::element( 'br' ) . "\n" . Html::element( 'input', [
-					'type' => 'checkbox', 'name' => 'wpTagsToRemove[]', 'value' => $tag,
-					'class' => 'mw-edittags-remove-checkbox', 'id' => $id,
-				] ) . '&nbsp;' . Html::label( $tag, $id );
-			}
-		}
-
-		// also output the tags currently applied as a hidden form field, so we
-		// know what to remove from the revision/log entry when the form is submitted
-		$html .= Html::hidden( 'wpExistingTags', implode( ',', $tags ) );
-		$html .= '</td></tr></table>';
-
-		return $html;
-	}
-
-	/**
-	 * Returns a <select multiple> element with a list of change tags that can be
-	 * applied by users.
+	 * Build and return the OOUI HTMLForm for editing tags.
 	 *
-	 * @param array $selectedTags The tags that should be preselected in the
-	 * list. Any tags in this list, but not in the list returned by
-	 * ChangeTagsStore::listExplicitlyDefinedTags, will be appended to the <select>
-	 * element.
-	 * @param string $label The text of a <label> to precede the <select>
-	 * @return array HTML <label> element at index 0, HTML <select> element at
-	 * index 1
+	 * @param bool $reset If true, reset all fields to their defaults
+	 * @return HTMLForm
 	 */
-	protected function getTagSelect( $selectedTags, $label ) {
-		$result = [];
-		$result[0] = Html::label( $label, 'mw-edittags-tag-list' );
+	protected function getForm( bool $reset = false ): HTMLForm {
+		$formDescriptor = $this->buildFormFields( $reset );
+		$formDescriptor['Reason'] = [
+			'type' => 'text',
+			'name' => 'wpReason',
+			'id' => 'wpReason',
+			'label-message' => 'tags-edit-reason',
+			// HTML maxlength uses "UTF-16 code units"; the JS overrides this to count
+			// Unicode codepoints instead.
+			'maxlength' => CommentStore::COMMENT_CHARACTER_LIMIT,
+			'maxlength-unit' => 'codepoints',
+			'infusable' => true,
+			'default' => '',
+			'nodata' => $reset,
+		];
 
-		$select = new XmlSelect( 'wpTagList[]', 'mw-edittags-tag-list', $selectedTags );
-		$select->setAttribute( 'multiple', 'multiple' );
-		$select->setAttribute( 'size', '8' );
-
-		$tags = $this->changeTagsStore->listExplicitlyDefinedTags();
-		$tags = array_unique( array_merge( $tags, $selectedTags ) );
-
-		// Values of $tags are also used as <option> labels
-		$select->addOptions( array_combine( $tags, $tags ) );
-
-		$result[1] = $select->getHTML();
-		return $result;
+		return HTMLForm::factory( 'ooui', $formDescriptor, $this->getContext() )
+			->setId( 'mw-edit-tags-form' )
+			->setAction( $this->getPageTitle()->getLocalURL( [ 'action' => 'submit' ] ) )
+			->addHiddenFields( [
+				'target' => $this->targetObj->getPrefixedText(),
+				'type' => $this->typeName,
+				'ids' => implode( ',', $this->ids ),
+			] )
+			->setSubmitText(
+				$this->msg( "tags-edit-{$this->typeName}-submit", count( $this->ids ) )->text()
+			)
+			->setWrapperLegend(
+				$this->msg( "tags-edit-{$this->typeName}-legend", count( $this->ids ) )->text()
+			)
+			->setSubmitCallback( [ $this, 'onSubmit' ] )
+			->prepareForm();
 	}
 
 	/**
-	 * UI entry point for form submission.
-	 * @return bool
+	 * Build the HTMLForm field descriptors for the tag editing form.
+	 *
+	 * @param bool $reset If true, reset all fields to their defaults
+	 * @return array[] HTMLForm field descriptor array
 	 */
-	protected function submit() {
-		// Check edit token on submission
-		$request = $this->getRequest();
-		$token = $request->getVal( 'wpEditToken' );
-		if ( $this->submitClicked && !$this->getUser()->matchEditToken( $token ) ) {
-			$this->getOutput()->addWikiMsg( 'sessionfailure' );
-			return false;
+	protected function buildFormFields( bool $reset = false ): array {
+		$formDescriptor = [];
+		$list = $this->getList();
+		$singleRev = $list->length() === 1;
+
+		$existingTags = [];
+		for ( ; $list->current(); $list->next() ) {
+			$currentTags = $list->current()->getTags();
+			if ( $currentTags ) {
+				$existingTags = array_merge( $existingTags, explode( ',', $currentTags ) );
+			}
+		}
+		$existingTags = array_unique( $existingTags );
+
+		$explicitlyDefined = $this->changeTagsStore->listExplicitlyDefinedTags();
+		// tags applied by software are not in listExplicitlyDefinedTags() and cannot
+		// be added or removed thriugh this form. so we exclude them from all interactive fields.
+		$softwareTags = array_values( array_diff( $existingTags, $explicitlyDefined ) );
+		$manageableTags = array_values( array_diff( $existingTags, $softwareTags ) );
+
+		$selectableTags = array_unique( array_merge( $explicitlyDefined, $manageableTags ) );
+		$tagOptions = array_combine( $selectableTags, $selectableTags );
+
+		if ( $singleRev ) {
+			if ( $existingTags ) {
+				$existingDisplay = $this->getLanguage()->commaList(
+					array_map( 'htmlspecialchars', $existingTags )
+				);
+			} else {
+				$existingDisplay = $this->msg( 'tags-edit-existing-tags-none' )->parse();
+			}
+			$formDescriptor['existing'] = [
+				'type' => 'info',
+				'raw' => true,
+				'default' => $existingDisplay,
+				'label-message' => 'tags-edit-existing-tags',
+			];
+
+			$formDescriptor['TagList'] = [
+				'type' => 'multiselect',
+				'dropdown' => true,
+				'placeholder-message' => 'tags-edit-chosen-placeholder',
+				'options' => $tagOptions,
+				'default' => $manageableTags,
+				'nodata' => $reset,
+				'label-message' => 'tags-edit-new-tags',
+			];
+		} else {
+			if ( $softwareTags ) {
+				$formDescriptor['softwareTagsInfo'] = [
+					'type' => 'info',
+					'raw' => true,
+					'default' => $this->getLanguage()->commaList(
+						array_map( 'htmlspecialchars', $softwareTags )
+					),
+					'label-message' => 'tags-edit-existing-tags',
+				];
+			}
+
+			$formDescriptor['TagList'] = [
+				'type' => 'multiselect',
+				'dropdown' => true,
+				'placeholder-message' => 'tags-edit-chosen-placeholder',
+				'options' => $tagOptions,
+				'default' => [],
+				'nodata' => $reset,
+				'label-message' => 'tags-edit-add',
+			];
+
+			if ( $manageableTags ) {
+				$removeOptions = array_combine( $manageableTags, $manageableTags );
+				$formDescriptor += [
+					'RemoveLabel' => [
+						'type' => 'info',
+						'default' => $this->msg( 'tags-edit-remove' )->text(),
+					],
+					'RemoveAllTags' => [
+						'type' => 'check',
+						'label-message' => 'tags-edit-remove-all-tags',
+						'nodata' => $reset,
+					],
+					'TagsToRemove' => [
+						'type' => 'multiselect',
+						'options' => $removeOptions,
+						'cssclass' => 'mw-edittags-remove-tags',
+						'nodata' => $reset,
+					],
+				];
+			}
 		}
 
-		// Evaluate incoming request data
-		$tagList = $request->getArray( 'wpTagList' ) ?? [];
-		$existingTags = $request->getVal( 'wpExistingTags' );
-		if ( $existingTags === null || $existingTags === '' ) {
+		$formDescriptor['ExistingTags'] = [
+			'type' => 'hidden',
+			'default' => implode( ',', $manageableTags ),
+		];
+
+		return $formDescriptor;
+	}
+
+	/**
+	 * HTMLForm submit callback.
+	 *
+	 * @param array $alldata
+	 * @param HTMLForm $form
+	 * @return bool True on success, false to redisplay the form
+	 */
+	public function onSubmit( array $alldata, HTMLForm $form ) {
+		$tagList = $alldata['TagList'] ?? [];
+
+		$existingTags = $alldata['ExistingTags'];
+		if ( $existingTags === '' ) {
 			$existingTags = [];
 		} else {
 			$existingTags = explode( ',', $existingTags );
@@ -426,37 +430,37 @@ class SpecialEditTags extends UnlistedSpecialPage {
 		if ( count( $this->ids ) > 1 ) {
 			// multiple revisions selected
 			$tagsToAdd = $tagList;
-			if ( $request->getBool( 'wpRemoveAllTags' ) ) {
+			if ( !empty( $alldata['RemoveAllTags'] ) ) {
 				$tagsToRemove = $existingTags;
 			} else {
-				$tagsToRemove = $request->getArray( 'wpTagsToRemove', [] );
+				$tagsToRemove = $alldata['TagsToRemove'] ?? [];
 			}
 		} else {
-			// single revision selected
-			// The user tells us which tags they want associated to the revision.
-			// We have to figure out which ones to add, and which to remove.
 			$tagsToAdd = array_diff( $tagList, $existingTags );
 			$tagsToRemove = array_diff( $existingTags, $tagList );
 		}
 
 		if ( !$tagsToAdd && !$tagsToRemove ) {
-			$status = Status::newFatal( 'tags-edit-none-selected' );
+			$this->status = Status::newFatal( 'tags-edit-none-selected' );
 		} else {
-			$status = $this->getList()->updateChangeTagsOnAll( $tagsToAdd,
-				$tagsToRemove, null, $this->reason, $this->getAuthority() );
+			$this->status = $this->getList()->updateChangeTagsOnAll(
+				$tagsToAdd,
+				$tagsToRemove,
+				null,
+				$alldata['Reason'],
+				$this->getAuthority()
+			);
 		}
 
-		if ( $status->isGood() ) {
-			$this->success();
+		if ( $this->status->isGood() ) {
 			return true;
-		} else {
-			$this->failure( $status );
-			return false;
 		}
+
+		return false;
 	}
 
 	/**
-	 * Report that the submit operation succeeded
+	 * Report that the submit operation succeeded.
 	 */
 	protected function success() {
 		$out = $this->getOutput();
@@ -464,27 +468,22 @@ class SpecialEditTags extends UnlistedSpecialPage {
 		$out->addHTML(
 			Html::successBox( $out->msg( 'tags-edit-success' )->parse() )
 		);
-		$this->wasSaved = true;
 		$this->revList->reloadFromPrimary();
-		$this->reason = ''; // no need to spew the reason back at the user
-		$this->showForm();
 	}
 
 	/**
-	 * Report that the submit operation failed
-	 * @param Status $status
+	 * Report that the submit operation failed.
 	 */
-	protected function failure( $status ) {
+	protected function failure() {
 		$out = $this->getOutput();
 		$out->setPageTitleMsg( $this->msg( 'actionfailed' ) );
 		$out->addHTML(
 			Html::errorBox(
 				$out->parseAsContent(
-					$status->getWikiText( 'tags-edit-failure', false, $this->getLanguage() )
+					$this->status->getWikiText( 'tags-edit-failure', false, $this->getLanguage() )
 				)
 			)
 		);
-		$this->showForm();
 	}
 
 	/** @inheritDoc */

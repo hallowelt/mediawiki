@@ -2124,7 +2124,6 @@ return [
 			'resources/src/mediawiki.special/apisandbox.css',
 			'resources/src/mediawiki.special/comparepages.less',
 			'resources/src/mediawiki.special/contributions.less',
-			'resources/src/mediawiki.special/edittags.css',
 			'resources/src/mediawiki.special/movePage.css',
 			'resources/src/mediawiki.special/newpages.less',
 			'resources/src/mediawiki.special/pagesWithProp.css',
@@ -2313,6 +2312,7 @@ return [
 		'scripts' => [
 			'action.delete.js',
 			'special.changecredentials.js',
+			'special.edittags.js',
 			'special.import.js',
 			'special.movePage.js',
 			'special.mute.js',
@@ -2363,10 +2363,8 @@ return [
 		'scripts' => [
 			'patrol.js',
 			'rollback.js',
-			'edittags.js',
 		],
 		'dependencies' => [
-			'jquery.chosen',
 			'jquery.lengthLimit',
 			'jquery.spinner',
 			'mediawiki.api',
@@ -2380,8 +2378,6 @@ return [
 			'rollback-confirmation-confirm',
 			'rollback-confirmation-yes',
 			'rollback-confirmation-no',
-			'tags-edit-chosen-placeholder',
-			'tags-edit-chosen-no-results',
 		],
 	],
 	'mediawiki.special.block.codex' => [
