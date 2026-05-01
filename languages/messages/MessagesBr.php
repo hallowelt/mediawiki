@@ -187,12 +187,18 @@ $bookstoreList = [
 	'chapitre.com' => 'http://www.chapitre.com/frame_rec.asp?isbn=$1',
 ];
 
-$datePreferences = false;
+$datePreferences = [
+	'default',
+	'dmy',
+	'ISO 8601',
+];
+
 $defaultDateFormat = 'dmy';
+
 $dateFormats = [
 	'dmy time' => 'H:i',
-	'dmy date' => 'j M Y',
-	'dmy both' => 'j M Y "da" H:i',
+	'dmy date' => 'j F Y',
+	'dmy both' => 'j F Y "da" H:i',
 ];
 
 $separatorTransformTable = [ ',' => "\u{00A0}", '.' => ',' ];
