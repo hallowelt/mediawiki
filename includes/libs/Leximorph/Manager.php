@@ -7,6 +7,7 @@
 namespace Wikimedia\Leximorph;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Wikimedia\Leximorph\Handler\Bidi;
 use Wikimedia\Leximorph\Handler\Formal;
 use Wikimedia\Leximorph\Handler\Gender;
@@ -27,16 +28,15 @@ use Wikimedia\Leximorph\Util\JsonLoader;
  * Note that Gender and Bidi handlers are language independent.
  *
  * Usage Example:
- * <code>
+ * @code
  *            $manager = new Manager( 'en', new NullLogger() );
  *            $pluralHandler = $manager->getPlural();
  *            echo $pluralHandler->process( 3, [ 'article', 'articles' ] );
- * </code>
+ * @endcode
  *
  * @newable
  * @since     1.45
  * @author    Doğu Abaris (abaris@null.net)
- * @license   https://www.gnu.org/copyleft/gpl.html GPL-2.0-or-later
  */
 final class Manager {
 
@@ -61,8 +61,6 @@ final class Manager {
 		],
 		Formal::class => [
 			'args' => [],
-			'langDependent' => true,
-			'needsLogger' => true,
 			'needsProvider' => true,
 		],
 		Gender::class => [
@@ -81,6 +79,9 @@ final class Manager {
 		],
 	];
 
+	/** @var Provider Shared provider */
+	private Provider $provider;
+
 	/**
 	 * Initializes a new Manager instance with a default language code.
 	 *
@@ -91,7 +92,8 @@ final class Manager {
 	 */
 	public function __construct( string $langCode, ?LoggerInterface $logger = null ) {
 		$this->langCode = $langCode;
-		$this->logger = $logger;
+		$this->logger = $logger ?? new NullLogger();
+		$this->provider = new Provider( $this->langCode, $this->logger );
 	}
 
 	/**
@@ -117,7 +119,7 @@ final class Manager {
 	protected function getSpecArgs( array $spec, LoggerInterface $logger ): array {
 		$args = [];
 		if ( $spec['needsProvider'] ?? false ) {
-			$args[] = new Provider( $this->langCode, $logger );
+			$args[] = $this->provider;
 		}
 		if ( $spec['needsPostProcessor'] ?? false ) {
 			$args[] = new GrammarFallbackRegistry();
