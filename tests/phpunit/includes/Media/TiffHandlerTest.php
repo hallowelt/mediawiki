@@ -8,7 +8,7 @@ use MediaWiki\Media\TiffHandler;
  * @group Media
  * @requires extension exif
  */
-class TiffTest extends MediaWikiIntegrationTestCase {
+class TiffHandlerTest extends MediaWikiIntegrationTestCase {
 	private const FILE_PATH = __DIR__ . '/../../data/media/';
 
 	/** @var TiffHandler */

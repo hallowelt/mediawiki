@@ -9,7 +9,7 @@ use MediaWiki\Tests\Common\Parser\DjVuSupport;
  * @group Media
  * @covers \MediaWiki\Media\DjVuHandler
  */
-class DjVuTest extends MediaWikiMediaTestCase {
+class DjVuHandlerTest extends MediaWikiMediaTestCase {
 
 	/**
 	 * @var DjVuHandler

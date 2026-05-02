@@ -251,9 +251,10 @@
 }
 
 @media all and ( min-width: @min-width-breakpoint-tablet ) {
-	/* Make the "Basic information" section more compact */
+	/* Make the "Basic information" and "Account security" sections more compact */
 	/* OOUI's `align: 'left'` for FieldLayouts sucks, so we do our own */
-	#mw-htmlform-info {
+	#mw-htmlform-info,
+	#mw-htmlform-accountsecurity {
 		> .oo-ui-fieldLayout-align-top > .oo-ui-fieldLayout-body > .oo-ui-fieldLayout-header {
 			display: inline-block;
 			width: 20%;

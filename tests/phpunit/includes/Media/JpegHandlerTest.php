@@ -9,7 +9,7 @@ use MediaWiki\Media\JpegHandler;
  * @covers \MediaWiki\Media\JpegHandler
  * @requires extension exif
  */
-class JpegTest extends MediaWikiMediaTestCase {
+class JpegHandlerTest extends MediaWikiMediaTestCase {
 	/** @var JpegHandler */
 	private $handler;
 
