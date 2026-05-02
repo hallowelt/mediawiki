@@ -32,21 +32,19 @@ class DjVuImage {
 	 */
 	private const DJVUTXT_MEMORY_LIMIT = 300_000_000;
 
-	/** @var string */
-	private $mFilename;
+	private string $mFilename;
 
 	/**
 	 * @param string $filename The DjVu file name.
 	 */
-	public function __construct( $filename ) {
+	public function __construct( string $filename ) {
 		$this->mFilename = $filename;
 	}
 
 	/**
 	 * Check if the given file is indeed a valid DjVu image file
-	 * @return bool
 	 */
-	public function isValid() {
+	public function isValid(): bool {
 		$info = $this->getInfo();
 
 		return $info !== false;
@@ -56,7 +54,7 @@ class DjVuImage {
 	 * Return width and height
 	 * @return array An array with "width" and "height" keys, or an empty array on failure.
 	 */
-	public function getImageSize() {
+	public function getImageSize(): array {
 		$data = $this->getInfo();
 
 		if ( $data !== false ) {
@@ -68,12 +66,10 @@ class DjVuImage {
 		return [];
 	}
 
-	// ---------
-
 	/**
 	 * For debugging; dump the IFF chunk structure
 	 */
-	public function dump() {
+	public function dump(): void {
 		$file = fopen( $this->mFilename, 'rb' );
 		$header = fread( $file, 12 );
 		$arr = unpack( 'a4magic/a4chunk/NchunkLength', $header );
@@ -89,7 +85,7 @@ class DjVuImage {
 	 * @param int $length
 	 * @param int $indent
 	 */
-	private function dumpForm( $file, int $length, int $indent ) {
+	private function dumpForm( $file, int $length, int $indent ): void {
 		$start = ftell( $file );
 		$secondary = fread( $file, 4 );
 		echo str_repeat( ' ', $indent * 4 ) . "($secondary)\n";
@@ -115,8 +111,7 @@ class DjVuImage {
 		}
 	}
 
-	/** @return array|false */
-	private function getInfo() {
+	private function getInfo(): array|false {
 		// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 		$file = @fopen( $this->mFilename, 'rb' );
 		if ( $file === false ) {
@@ -168,7 +163,7 @@ class DjVuImage {
 	 * @param resource $file
 	 * @param int $chunkLength
 	 */
-	private function skipChunk( $file, int $chunkLength ) {
+	private function skipChunk( $file, int $chunkLength ): void {
 		fseek( $file, $chunkLength, SEEK_CUR );
 
 		if ( ( $chunkLength & 1 ) && !feof( $file ) ) {
@@ -182,7 +177,7 @@ class DjVuImage {
 	 * @param int $formLength
 	 * @return array|false
 	 */
-	private function getMultiPageInfo( $file, int $formLength ) {
+	private function getMultiPageInfo( $file, int $formLength ): array|false {
 		// For now, we'll just look for the first page in the file
 		// and report its information, hoping others are the same size.
 		$start = ftell( $file );
@@ -215,7 +210,7 @@ class DjVuImage {
 	 * @param resource $file
 	 * @return array|false
 	 */
-	private function getPageInfo( $file ) {
+	private function getPageInfo( $file ): array|false {
 		[ $chunk, $length ] = $this->readChunk( $file );
 		if ( $chunk !== 'INFO' ) {
 			wfDebug( __METHOD__ . ": expected INFO chunk, got '$chunk'" );
@@ -255,9 +250,8 @@ class DjVuImage {
 
 	/**
 	 * Return an array describing the DjVu image
-	 * @return array|null|false
 	 */
-	public function retrieveMetaData() {
+	public function retrieveMetaData(): array|null|false {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
 		$djvuDump = $config->get( MainConfigNames::DjvuDump );
 		$djvuTxt = $config->get( MainConfigNames::DjvuTxt );
@@ -387,8 +381,8 @@ EOR;
 	 * @param string $dump
 	 * @return array|false
 	 */
-	private function convertDumpToJSON( $dump ) {
-		if ( strval( $dump ) == '' ) {
+	private function convertDumpToJSON( string $dump ): array|false {
+		if ( $dump === '' ) {
 			return false;
 		}
 
@@ -446,7 +440,7 @@ EOR;
 	}
 
 	/** @return array|false */
-	private function parseFormDjvu( string $line ) {
+	private function parseFormDjvu( string $line ): array|false {
 		$parentLevel = strspn( $line, ' ' );
 		$line = strtok( "\n" );
 		# Find INFO
