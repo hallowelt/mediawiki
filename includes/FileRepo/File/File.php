@@ -2086,7 +2086,7 @@ abstract class File implements MediaHandlerState {
 
 	/**
 	 * @param IContextSource|false $context
-	 * @return array[]|false
+	 * @return array<string,array[]>|false
 	 */
 	public function formatMetadata( $context = false ) {
 		$handler = $this->getHandler();

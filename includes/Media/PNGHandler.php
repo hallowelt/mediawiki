@@ -53,7 +53,7 @@ class PNGHandler extends BitmapHandler {
 	/**
 	 * @param File $image
 	 * @param IContextSource|false $context
-	 * @return array[]|false
+	 * @return array<string,array[]>|false
 	 */
 	public function formatMetadata( $image, $context = false ) {
 		$meta = $this->getCommonMetaArray( $image );

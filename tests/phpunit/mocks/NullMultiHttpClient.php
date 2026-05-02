@@ -18,13 +18,9 @@ class NullMultiHttpClient extends MultiHttpClient {
 	/**
 	 * Always fails.
 	 *
-	 * @param array $reqs
-	 * @param array $opts
-	 * @param string $caller
-	 *
 	 * @throws AssertionFailedError always
 	 */
-	public function runMulti( array $reqs, array $opts = [], string $caller = __METHOD__ ) {
+	public function runMulti( array $reqs, array $opts = [], string $caller = __METHOD__ ): array {
 		$urls = implode( ', ', array_column( $reqs, 'url' ) );
 		$trace = NullHttpUtil::getFormattedTrace();
 		Assert::fail(

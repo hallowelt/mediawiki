@@ -146,11 +146,12 @@ class XCFHandler extends BitmapHandler {
 	/**
 	 * Should we refresh the metadata
 	 *
-	 * @param File $file The file object for the file in question
+	 * @param File $image The file object for the file in question
+	 *
 	 * @return bool|int One of the self::METADATA_(BAD|GOOD|COMPATIBLE) constants
 	 */
-	public function isFileMetadataValid( $file ) {
-		if ( !$file->getMetadataArray() ) {
+	public function isFileMetadataValid( $image ) {
+		if ( !$image->getMetadataArray() ) {
 			// Old metadata when we just put an empty string in there
 			return self::METADATA_BAD;
 		}

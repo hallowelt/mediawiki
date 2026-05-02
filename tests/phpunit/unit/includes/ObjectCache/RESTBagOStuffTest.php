@@ -133,8 +133,13 @@ class RESTBagOStuffTest extends \MediaWikiUnitTestCase {
 
 	public function testSetStats() {
 		$statsHelper = Wikimedia\Stats\StatsFactory::newUnitTestingHelper();
-		$cache = new RESTBagOStuff( [ 'client' => $this->client,
-			'url' => 'http://test/rest/', 'stats' => $statsHelper->getStatsFactory() ] );
+		$this->client->expects( $this->once() )->method( 'run' )
+			->willReturn( [ 200, 'OK', [], 'Done', 0 ] );
+		$cache = new RESTBagOStuff( [
+			'client' => $this->client,
+			'url' => 'http://test/rest/',
+			'stats' => $statsHelper->getStatsFactory()
+		] );
 		$cache->set( 'test_set12345', 'F4l65kZqWhoAnKW8ZTzekDYfrDxT' );
 
 		$bagostuff_bytes_sent_total = $statsHelper->getStatsFactory()

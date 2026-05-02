@@ -34,7 +34,7 @@ abstract class ImageHandler extends MediaHandler {
 	/**
 	 * @inheritDoc
 	 * @stable to override
-	 * @return string[]
+	 * @return array<string,string>
 	 */
 	public function getParamMap() {
 		return [ 'img_width' => 'width' ];

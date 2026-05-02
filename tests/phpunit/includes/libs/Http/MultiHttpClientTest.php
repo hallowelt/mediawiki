@@ -11,6 +11,7 @@ use MediaWikiIntegrationTestCase;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionClass;
+use ReflectionException;
 use StatusValue;
 use Wikimedia\Http\MultiHttpClient;
 use Wikimedia\Http\TelemetryHeadersInterface;
@@ -147,7 +148,7 @@ class MultiHttpClientTest extends MediaWikiIntegrationTestCase {
 	 * Test of response header handling
 	 */
 	public function testMultiHttpClientHeaders() {
-		// Represenative headers for typical requests, per MWHttpRequest::getResponseHeaders()
+		// Representative headers for typical requests, per MWHttpRequest::getResponseHeaders()
 		$headers = [
 			'content-type' => [
 				'text/html; charset=utf-8',
@@ -184,60 +185,60 @@ class MultiHttpClientTest extends MediaWikiIntegrationTestCase {
 			'default 10/30' => [
 				[],
 				[],
-				10,
-				30
+				10.0,
+				30.0,
 			],
 			'constructor override' => [
-				[ 'connTimeout' => 2, 'reqTimeout' => 3 ],
+				[ 'connTimeout' => 2.0, 'reqTimeout' => 3.0 ],
 				[],
-				2,
-				3
+				2.0,
+				3.0,
 			],
 			'run override' => [
 				[],
-				[ 'connTimeout' => 2, 'reqTimeout' => 3 ],
-				2,
-				3
+				[ 'connTimeout' => 2.0, 'reqTimeout' => 3.0 ],
+				2.0,
+				3.0,
 			],
 			'constructor max option limits default' => [
-				[ 'maxConnTimeout' => 2, 'maxReqTimeout' => 3 ],
+				[ 'maxConnTimeout' => 2.0, 'maxReqTimeout' => 3.0 ],
 				[],
-				2,
-				3
+				2.0,
+				3.0,
 			],
 			'constructor max option limits regular constructor option' => [
 				[
-					'maxConnTimeout' => 2,
-					'maxReqTimeout' => 3,
-					'connTimeout' => 100,
-					'reqTimeout' => 100
+					'maxConnTimeout' => 2.0,
+					'maxReqTimeout' => 3.0,
+					'connTimeout' => 100.0,
+					'reqTimeout' => 100.0,
 				],
 				[],
-				2,
-				3
+				2.0,
+				3.0,
 			],
 			'constructor max option greater than regular constructor option' => [
 				[
-					'maxConnTimeout' => 2,
-					'maxReqTimeout' => 3,
-					'connTimeout' => 1,
-					'reqTimeout' => 1
+					'maxConnTimeout' => 2.0,
+					'maxReqTimeout' => 3.0,
+					'connTimeout' => 1.0,
+					'reqTimeout' => 1.0,
 				],
 				[],
-				1,
-				1
+				1.0,
+				1.0,
 			],
 			'constructor max option limits run option' => [
 				[
-					'maxConnTimeout' => 2,
-					'maxReqTimeout' => 3,
+					'maxConnTimeout' => 2.0,
+					'maxReqTimeout' => 3.0,
 				],
 				[
-					'connTimeout' => 100,
-					'reqTimeout' => 100
+					'connTimeout' => 100.0,
+					'reqTimeout' => 100.0,
 				],
-				2,
-				3
+				2.0,
+				3.0,
 			],
 		];
 	}
@@ -246,8 +247,11 @@ class MultiHttpClientTest extends MediaWikiIntegrationTestCase {
 	 * Test of timeout parameter handling
 	 * @dataProvider provideMultiHttpTimeout
 	 */
-	public function testMultiHttpTimeout( $createOptions, $runOptions,
-		$expectedConnTimeout, $expectedReqTimeout
+	public function testMultiHttpTimeout(
+		$createOptions,
+		$runOptions,
+		$expectedConnTimeout,
+		$expectedReqTimeout
 	) {
 		$url = 'http://www.example.test';
 		$httpRequest = $this->getHttpRequest( StatusValue::newGood( 200 ), 200 );

@@ -12,7 +12,6 @@ use Exception;
 use InvalidArgumentException;
 use Less_Environment;
 use Less_Parser;
-use LogicException;
 use MediaWiki\CommentStore\CommentStore;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
@@ -1508,33 +1507,6 @@ MESSAGE;
 	}
 
 	/**
-	 * Wrapper around json_encode that avoids needless escapes,
-	 * and pretty-prints in debug mode.
-	 *
-	 * @param mixed $data
-	 * @return string|false JSON string, false on error
-	 */
-	private static function encodeJsonForScript( $data ) {
-		// Keep output as small as possible by disabling needless escape modes
-		// that PHP uses by default.
-		// However, while most module scripts are only served on HTTP responses
-		// for JavaScript, some modules can also be embedded in the HTML as inline
-		// scripts. This, and the fact that we sometimes need to export strings
-		// containing user-generated content and labels that may genuinely contain
-		// a sequences like "</script>", we need to encode either '/' or '<'.
-		// By default PHP escapes '/'. Let's escape '<' instead which is less common
-		// and allows URLs to mostly remain readable.
-		$jsonFlags = JSON_UNESCAPED_SLASHES |
-			JSON_UNESCAPED_UNICODE |
-			JSON_HEX_TAG |
-			JSON_HEX_AMP;
-		if ( self::inDebugMode() ) {
-			$jsonFlags |= JSON_PRETTY_PRINT;
-		}
-		return json_encode( $data, $jsonFlags );
-	}
-
-	/**
 	 * Format a JS call to mw.loader.state()
 	 *
 	 * @internal For use by StartUpModule
@@ -1708,32 +1680,6 @@ MESSAGE;
 	}
 
 	/**
-	 * Return JS code which will set the MediaWiki configuration array to
-	 * the given value.
-	 *
-	 * @param array $configuration List of configuration values keyed by variable name
-	 * @return string JavaScript code
-	 * @throws LogicException
-	 *
-	 * @deprecated since 1.44; hard-deprecated since 1.46. Consider using package files
-	 * instead or you can return mw.config.set() combined with RL\Context::encodeJson,
-	 * if available. If not, use FormatJson::encode.
-	 */
-	public static function makeConfigSetScript( array $configuration ) {
-		wfDeprecated( __METHOD__, '1.44' );
-		$json = self::encodeJsonForScript( $configuration );
-		if ( $json === false ) {
-			$e = new LogicException(
-				'JSON serialization of config data failed. ' .
-				'This usually means the config data is not valid UTF-8.'
-			);
-			MWExceptionHandler::logException( $e );
-			return 'mw.log.error(' . self::encodeJsonForScript( $e->__toString() ) . ');';
-		}
-		return "mw.config.set($json);";
-	}
-
-	/**
 	 * Convert an array of module names to a packed query string.
 	 *
 	 * For example, `[ 'foo.bar', 'foo.baz', 'bar.baz', 'bar.quux' ]`
@@ -1809,9 +1755,11 @@ MESSAGE;
 	 * - 2) Cookie,
 	 * - 3) Site configuration.
 	 *
+	 * @deprecated since 1.47
 	 * @return int
 	 */
 	public static function inDebugMode() {
+		wfDeprecated( __METHOD__, '1.47' );
 		if ( self::$debugMode === null ) {
 			$resourceLoaderDebug = MediaWikiServices::getInstance()->getMainConfig()->get(
 				MainConfigNames::ResourceLoaderDebug );

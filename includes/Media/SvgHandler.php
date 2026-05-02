@@ -540,7 +540,7 @@ class SvgHandler extends ImageHandler {
 	/**
 	 * @param File $file
 	 * @param IContextSource|false $context
-	 * @return array[]|false
+	 * @return array<string,array[]>|false
 	 */
 	public function formatMetadata( $file, $context = false ) {
 		$result = [

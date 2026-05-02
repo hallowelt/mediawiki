@@ -48,44 +48,29 @@ class MultiHttpClient implements LoggerAwareInterface {
 	/** Regex for headers likely to contain tokens, etc. that we want to redact from logs */
 	private const SENSITIVE_HEADERS = '/(^|-|_)(authorization|auth|password|cookie)($|-|_)/';
 	/**
-	 * @var CurlMultiHandle|null curl_multi_init() handle, initialized in getCurlMulti()
+	 * curl_multi_init() handle, initialized in getCurlMulti()
 	 */
-	protected $cmh = null;
-	/** @var string|null SSL certificates path */
-	protected $caBundlePath;
-	/** @var float */
-	protected $connTimeout = 10;
-	/** @var float */
-	protected $maxConnTimeout = INF;
-	/** @var float */
-	protected $reqTimeout = 30;
-	/** @var float */
-	protected $maxReqTimeout = INF;
-	/** @var bool */
-	protected $usePipelining = false;
-	/** @var int */
-	protected $maxConnsPerHost = 50;
-	/** @var string|null */
-	protected $proxy;
-	/** @var string|false */
-	protected $localProxy = false;
+	protected ?CurlMultiHandle $cmh = null;
+	/** SSL certificates path */
+	protected ?string $caBundlePath = null;
+	protected float $connTimeout = 10;
+	protected float $maxConnTimeout = INF;
+	protected float $reqTimeout = 30;
+	protected float $maxReqTimeout = INF;
+	protected bool $usePipelining = false;
+	protected int $maxConnsPerHost = 50;
+	protected ?string $proxy = null;
+	protected string|false $localProxy = false;
 	/** @var string[] */
-	protected $localVirtualHosts = [];
-	/** @var string */
-	protected $userAgent = 'wikimedia/multi-http-client v1.1';
-	/** @var LoggerInterface */
-	protected $logger;
+	protected array $localVirtualHosts = [];
+	protected string $userAgent = 'wikimedia/multi-http-client v1.1';
+	protected LoggerInterface $logger;
 	protected array $headers = [];
-
-	// In PHP 7 due to https://bugs.php.net/bug.php?id=76480 the request/connect
-	// timeouts are periodically polled instead of being accurately respected.
-	// The select timeout is set to the minimum timeout multiplied by this factor.
-	private const TIMEOUT_ACCURACY_FACTOR = 0.1;
 
 	private ?TelemetryHeadersInterface $telemetry = null;
 
 	/**
-	 * Since 1.35, callers should use HttpRequestFactory::createMultiClient() to get
+	 * Since MW 1.35, callers should use HttpRequestFactory::createMultiClient() to get
 	 * a client object with appropriately configured timeouts instead of constructing
 	 * a MultiHttpClient directly.
 	 *
@@ -100,11 +85,10 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 *   - usePipelining     : whether to use HTTP pipelining if possible (for all hosts)
 	 *   - maxConnsPerHost   : maximum number of concurrent connections (per host)
 	 *   - userAgent         : The User-Agent header value to send
-	 *   - logger            : a \Psr\Log\LoggerInterface instance for debug logging
+	 *   - logger            : a {@see LoggerInterface} instance for debug logging
 	 *   - caBundlePath      : path to specific Certificate Authority bundle (if any)
 	 *   - headers           : an array of default headers to send with every request
-	 *   - telemetry         : a \Wikimedia\Http\RequestTelemetry instance to track telemetry data
-	 * @throws \Exception
+	 *   - telemetry         : a {@link \Wikimedia\Http\RequestTelemetry] instance to track telemetry data
 	 */
 	public function __construct( array $options ) {
 		if ( isset( $options['caBundlePath'] ) ) {
@@ -150,7 +134,7 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 * @param string $caller The method making this request, for attribution in logs
 	 * @return array Response array for request
 	 */
-	public function run( array $req, array $opts = [], string $caller = __METHOD__ ) {
+	public function run( array $req, array $opts = [], string $caller = __METHOD__ ): array {
 		return $this->runMulti( [ $req ], $opts, $caller )[0]['response'];
 	}
 
@@ -184,9 +168,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 *                       PHP/curl's default
 	 * @param string $caller The method making these requests, for attribution in logs
 	 * @return array[] $reqs With response array populated for each
-	 * @throws \Exception
 	 */
-	public function runMulti( array $reqs, array $opts = [], string $caller = __METHOD__ ) {
+	public function runMulti( array $reqs, array $opts = [], string $caller = __METHOD__ ): array {
 		$this->normalizeRequests( $reqs );
 		$opts += [ 'connTimeout' => $this->connTimeout, 'reqTimeout' => $this->reqTimeout ];
 
@@ -198,24 +181,13 @@ class MultiHttpClient implements LoggerAwareInterface {
 		}
 
 		if ( $this->isCurlEnabled() ) {
-			switch ( $opts['httpVersion'] ?? null ) {
-				case 'v1.0':
-					$opts['httpVersion'] = CURL_HTTP_VERSION_1_0;
-					break;
-				case 'v1.1':
-					$opts['httpVersion'] = CURL_HTTP_VERSION_1_1;
-					break;
-				case 'v2':
-				case 'v2.0':
-					$opts['httpVersion'] = CURL_HTTP_VERSION_2_0;
-					break;
-				case 'v3':
-				case 'v3.0':
-					$opts['httpVersion'] = CURL_HTTP_VERSION_3;
-					break;
-				default:
-					$opts['httpVersion'] = CURL_HTTP_VERSION_NONE;
-			}
+			$opts['httpVersion'] = match ( $opts['httpVersion'] ?? null ) {
+				'v1.0' => CURL_HTTP_VERSION_1_0,
+				'v1.1' => CURL_HTTP_VERSION_1_1,
+				'v2', 'v2.0' => CURL_HTTP_VERSION_2_0,
+				'v3', 'v3.0' => CURL_HTTP_VERSION_3,
+				default => CURL_HTTP_VERSION_NONE,
+			};
 			return $this->runMultiCurl( $reqs, $opts, $caller );
 		} else {
 			# TODO: Add handling for httpVersion option
@@ -228,7 +200,7 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 *
 	 * @return bool true if curl is available, false otherwise.
 	 */
-	protected function isCurlEnabled() {
+	protected function isCurlEnabled(): bool {
 		// Explicitly test if curl_multi* is blocked, as some users' hosts provide
 		// them with a modified curl with the multi-threaded parts removed(!)
 		return extension_loaded( 'curl' ) && function_exists( 'curl_multi_init' );
@@ -249,10 +221,9 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 * @phan-param array{connTimeout?:int,reqTimeout?:int,usePipelining?:bool,maxConnsPerHost?:int} $opts
 	 * @param string $caller The method making these requests, for attribution in logs
 	 * @return array $reqs With response array populated for each
-	 * @throws \Exception
 	 * @suppress PhanTypeInvalidDimOffset
 	 */
-	private function runMultiCurl( array $reqs, array $opts, string $caller = __METHOD__ ) {
+	private function runMultiCurl( array $reqs, array $opts, string $caller = __METHOD__ ): array {
 		$chm = $this->getCurlMulti( $opts );
 
 		$selectTimeout = $this->getSelectTimeout( $opts );
@@ -263,11 +234,13 @@ class MultiHttpClient implements LoggerAwareInterface {
 			$handles[$index] = $this->getCurlHandle( $req, $opts );
 			curl_multi_add_handle( $chm, $handles[$index] );
 		}
-		unset( $req ); // don't assign over this by accident
+		// don't assign over this by accident
+		unset( $req );
 
 		$infos = [];
 		// Execute the cURL handles concurrently...
-		$active = null; // handles still being processed
+		// handles still being processed
+		$active = null;
 		do {
 			// Do any available work...
 			$mrc = curl_multi_exec( $chm, $active );
@@ -305,7 +278,7 @@ class MultiHttpClient implements LoggerAwareInterface {
 			}
 		} while ( $queuedMessages > 0 );
 
-		// Remove all of the added cURL handles and check for errors...
+		// Remove all the cURL handles and check for errors...
 		foreach ( $reqs as $index => &$req ) {
 			$ch = $handles[$index];
 			curl_multi_remove_handle( $chm, $ch );
@@ -334,10 +307,12 @@ class MultiHttpClient implements LoggerAwareInterface {
 							'response_code' => $req['response']['code'],
 							'size' => curl_getinfo( $ch, CURLINFO_SIZE_DOWNLOAD ),
 							'total_time' => $this->getCurlTime(
-								$ch, CURLINFO_TOTAL_TIME, 'CURLINFO_TOTAL_TIME_T'
+								$ch,
+								CURLINFO_TOTAL_TIME_T
 							),
 							'connect_time' => $this->getCurlTime(
-								$ch, CURLINFO_CONNECT_TIME, 'CURLINFO_CONNECT_TIME_T'
+								$ch,
+								CURLINFO_CONNECT_TIME_T
 							),
 						]
 					);
@@ -347,18 +322,21 @@ class MultiHttpClient implements LoggerAwareInterface {
 			}
 
 			// For convenience with array destructuring
-			$req['response'][0] = $req['response']['code'];
-			$req['response'][1] = $req['response']['reason'];
-			$req['response'][2] = $req['response']['headers'];
-			$req['response'][3] = $req['response']['body'];
-			$req['response'][4] = $req['response']['error'];
+			$req['response'] += [
+				0 => $req['response']['code'],
+				1 => $req['response']['reason'],
+				2 => $req['response']['headers'],
+				3 => $req['response']['body'],
+				4 => $req['response']['error'],
+			];
 			// Close any string wrapper file handles
 			if ( isset( $req['_closeHandle'] ) ) {
 				fclose( $req['_closeHandle'] );
 				unset( $req['_closeHandle'] );
 			}
 		}
-		unset( $req ); // don't assign over this by accident
+		// don't assign over this by accident
+		unset( $req );
 
 		return $reqs;
 	}
@@ -371,10 +349,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 *   - connTimeout : default connection timeout
 	 *   - reqTimeout : default request timeout
 	 *   - httpVersion: default HTTP version
-	 * @return CurlHandle
-	 * @throws \Exception
 	 */
-	protected function getCurlHandle( array &$req, array $opts ) {
+	protected function getCurlHandle( array &$req, array $opts ): CurlHandle {
 		$ch = curl_init();
 
 		curl_setopt( $ch, CURLOPT_PROXY, $req['proxy'] ?? $this->proxy );
@@ -419,7 +395,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 				rewind( $fp );
 				curl_setopt( $ch, CURLOPT_INFILE, $fp );
 				curl_setopt( $ch, CURLOPT_INFILESIZE, strlen( $req['body'] ) );
-				$req['_closeHandle'] = $fp; // remember to close this later
+				// remember to close this later
+				$req['_closeHandle'] = $fp;
 			} else {
 				curl_setopt( $ch, CURLOPT_INFILESIZE, 0 );
 			}
@@ -499,17 +476,12 @@ class MultiHttpClient implements LoggerAwareInterface {
 		return $ch;
 	}
 
-	/**
-	 * @param array $opts
-	 * @return CurlMultiHandle
-	 * @throws \Exception
-	 */
-	protected function getCurlMulti( array $opts ) {
+	protected function getCurlMulti( array $opts ): CurlMultiHandle {
 		if ( !$this->cmh ) {
 			$cmh = curl_multi_init();
 			// Limit the size of the idle connection cache such that consecutive parallel
 			// request batches to the same host can avoid having to keep making connections
-			curl_multi_setopt( $cmh, CURLMOPT_MAXCONNECTS, (int)$this->maxConnsPerHost );
+			curl_multi_setopt( $cmh, CURLMOPT_MAXCONNECTS, $this->maxConnsPerHost );
 			$this->cmh = $cmh;
 		}
 
@@ -542,20 +514,10 @@ class MultiHttpClient implements LoggerAwareInterface {
 	}
 
 	/**
-	 * Get a time in seconds, formatted with microsecond resolution, or fall back to second
-	 * resolution on PHP 7.2
-	 *
-	 * @param CurlHandle $ch
-	 * @param int $oldOption
-	 * @param string $newConstName
-	 * @return string
+	 * Get a time in seconds, formatted with microsecond resolution.
 	 */
-	private function getCurlTime( $ch, $oldOption, $newConstName ): string {
-		if ( defined( $newConstName ) ) {
-			return sprintf( "%.6F", curl_getinfo( $ch, constant( $newConstName ) ) / 1e6 );
-		} else {
-			return (string)curl_getinfo( $ch, $oldOption );
-		}
+	private function getCurlTime( CurlHandle $ch, int $option ): string {
+		return sprintf( "%.6F", curl_getinfo( $ch, $option ) / 1e6 );
 	}
 
 	/**
@@ -571,9 +533,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 *   - reqTimeout      : post-connection timeout per request (seconds)
 	 * @phan-param array{connTimeout:int,reqTimeout:int} $opts
 	 * @return array $reqs With response array populated for each
-	 * @throws \Exception
 	 */
-	private function runMultiHttp( array $reqs, array $opts = [] ) {
+	private function runMultiHttp( array $reqs, array $opts = [] ): array {
 		$httpOptions = [
 			'timeout' => $opts['reqTimeout'] ?? $this->reqTimeout,
 			'connectTimeout' => $opts['connTimeout'] ?? $this->connTimeout,
@@ -633,20 +594,20 @@ class MultiHttpClient implements LoggerAwareInterface {
 				}
 			}
 
-			$req['response'][0] = $req['response']['code'];
-			$req['response'][1] = $req['response']['reason'];
-			$req['response'][2] = $req['response']['headers'];
-			$req['response'][3] = $req['response']['body'];
-			$req['response'][4] = $req['response']['error'];
+			$req['response'] += [
+				0 => $req['response']['code'],
+				1 => $req['response']['reason'],
+				2 => $req['response']['headers'],
+				3 => $req['response']['body'],
+				4 => $req['response']['error'],
+			];
 		}
 
 		return $reqs;
 	}
 
 	/**
-	 * Normalize headers array
-	 * @param array $headers
-	 * @return array
+	 * Normalize the headers array
 	 */
 	private function normalizeHeaders( array $headers ): array {
 		$normalized = [];
@@ -668,14 +629,16 @@ class MultiHttpClient implements LoggerAwareInterface {
 				'reason'   => '',
 				'headers'  => [],
 				'body'     => '',
-				'error'    => ''
+				'error'    => '',
 			];
 			if ( isset( $req[0] ) ) {
-				$req['method'] = $req[0]; // short-form
+				// short-form
+				$req['method'] = $req[0];
 				unset( $req[0] );
 			}
 			if ( isset( $req[1] ) ) {
-				$req['url'] = $req[1]; // short-form
+				// short-form
+				$req['url'] = $req[1];
 				unset( $req[1] );
 			}
 			if ( !isset( $req['method'] ) ) {
@@ -717,7 +680,7 @@ class MultiHttpClient implements LoggerAwareInterface {
 		}
 	}
 
-	private function useReverseProxy( array &$req, string $proxy ) {
+	private function useReverseProxy( array &$req, string $proxy ): void {
 		$parsedProxy = parse_url( $proxy );
 		if ( $parsedProxy === false ) {
 			throw new InvalidArgumentException( "Invalid reverseProxy configured: $proxy" );
@@ -741,7 +704,7 @@ class MultiHttpClient implements LoggerAwareInterface {
 		}
 		$req['url'] = self::assembleUrl( $parsedUrl );
 		// Explicitly disable use of another proxy by setting to false,
-		// since null will fallback to $this->proxy
+		// since null will fall back to $this->proxy
 		$req['proxy'] = false;
 	}
 
@@ -794,9 +757,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 	 *
 	 * @note this is mostly a copy of MWHttpRequest::isLocalURL()
 	 * @param string $url Full url to check
-	 * @return bool
 	 */
-	private function isLocalURL( $url ) {
+	private function isLocalURL( string $url ): bool {
 		if ( !$this->localVirtualHosts ) {
 			// Shortcut
 			return false;
@@ -832,11 +794,8 @@ class MultiHttpClient implements LoggerAwareInterface {
 
 	/**
 	 * Get a suitable select timeout for the given options.
-	 *
-	 * @param array $opts
-	 * @return float
 	 */
-	private function getSelectTimeout( $opts ) {
+	private function getSelectTimeout( array $opts ): float {
 		$connTimeout = $opts['connTimeout'] ?? $this->connTimeout;
 		$reqTimeout = $opts['reqTimeout'] ?? $this->reqTimeout;
 		$timeouts = array_filter( [ $connTimeout, $reqTimeout ] );
@@ -844,7 +803,7 @@ class MultiHttpClient implements LoggerAwareInterface {
 			return 1;
 		}
 
-		$selectTimeout = min( $timeouts ) * self::TIMEOUT_ACCURACY_FACTOR;
+		$selectTimeout = min( $timeouts );
 		// Minimum 10us
 		if ( $selectTimeout < 10e-6 ) {
 			$selectTimeout = 10e-6;

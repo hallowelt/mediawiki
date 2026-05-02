@@ -86,7 +86,7 @@ abstract class MediaHandler {
 	/**
 	 * Get an associative array mapping magic word IDs to parameter names.
 	 * Will be used by the parser to identify parameters.
-	 * @return string[]
+	 * @return array<string,string>
 	 */
 	abstract public function getParamMap();
 
@@ -631,7 +631,7 @@ abstract class MediaHandler {
 	 *
 	 * @param File $image
 	 * @param int $page What page to get dimensions of
-	 * @return array|false
+	 * @return array{width: int, height: int}|false
 	 */
 	public function getPageDimensions( File $image, $page ) {
 		return false;
@@ -703,7 +703,7 @@ abstract class MediaHandler {
 	 *
 	 * @param File $image
 	 * @param IContextSource|false $context
-	 * @return array|false
+	 * @return array<string,array[]>|false
 	 */
 	public function formatMetadata( $image, $context = false ) {
 		return false;
@@ -719,7 +719,7 @@ abstract class MediaHandler {
 	 *
 	 * @param array $metadataArray
 	 * @param IContextSource|false $context
-	 * @return array[] Array for use displaying metadata.
+	 * @return array<string,array[]> Array for use displaying metadata.
 	 */
 	protected function formatMetadataHelper( $metadataArray, $context = false ) {
 		$result = [
