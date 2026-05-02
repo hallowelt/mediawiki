@@ -17,7 +17,6 @@ use MediaWiki\FileBackend\LockManager\LockManagerGroupFactory;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Output\StreamFile;
-use MediaWiki\Profiler\Profiler;
 use MediaWiki\Status\Status;
 use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FileBackendMultiWrite;
@@ -236,9 +235,6 @@ class FileBackendGroup {
 				'wanCache' => $this->wanCache,
 				'srvCache' => $this->srvCache,
 				'logger' => LoggerFactory::getInstance( 'FileOperation' ),
-				'profiler' => static function ( $section ) {
-					return Profiler::instance()->scopedProfileIn( $section );
-				},
 				'telemetry' => $this->telemetry,
 			],
 			// Configured backend parameters

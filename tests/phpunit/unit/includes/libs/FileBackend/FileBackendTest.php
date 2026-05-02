@@ -13,7 +13,6 @@ use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FSFile\TempFSFileFactory;
 use Wikimedia\LockManager\LockManager;
 use Wikimedia\LockManager\ScopedLock;
-use Wikimedia\ScopedCallback;
 use Wikimedia\TestingAccessWrapper;
 
 /**
@@ -263,9 +262,6 @@ class FileBackendTest extends MediaWikiUnitTestCase {
 				[ 'inexact' => true ]
 			],
 			'headerFunc set' => [ 'headerFunc', 'myHeaderFunc', [ 'headerFunc' => 'myHeaderFunc' ] ],
-
-			'profiler default value' => [ 'profiler', null ],
-			'profiler not callable' => [ 'profiler', null, [ 'profiler' => '!' ] ],
 
 			'logger default value' => [ 'logger', new NullLogger, [ 'inexact' => true ] ],
 			'logger set' => [ 'logger', 'abcd', [ 'logger' => 'abcd' ] ],
@@ -1024,19 +1020,5 @@ class FileBackendTest extends MediaWikiUnitTestCase {
 			}
 		] );
 		$this->assertSame( $expectedSv, $backend->doOperations( [] ) );
-	}
-
-	public function testScopedProfileSection(): void {
-		$scopedCallback = new ScopedCallback( null );
-		$backend = $this->newMockFileBackend( [ 'profiler' =>
-			#[\NoDiscard]
-			function ( string $section ) use ( $scopedCallback ): ScopedCallback {
-				$this->assertSame( 'mysection', $section );
-				return $scopedCallback;
-			}
-		] );
-		// See comment in testConstruct_properties about use of TestingAccessWrapper.
-		$this->assertSame( $scopedCallback,
-			TestingAccessWrapper::newFromObject( $backend )->scopedProfileSection( 'mysection' ) );
 	}
 }

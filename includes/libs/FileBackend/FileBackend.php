@@ -118,8 +118,6 @@ abstract class FileBackend implements LoggerAwareInterface {
 	protected $lockManager;
 	/** @var LoggerInterface */
 	protected $logger;
-	/** @var callable|null */
-	protected $profiler;
 
 	/** @var callable */
 	private $obResetFunc;
@@ -190,8 +188,6 @@ abstract class FileBackend implements LoggerAwareInterface {
 	 *   - headerFunc : alternative callback for sending response headers
 	 *   - asyncHandler : callback for scheduling deferred updated
 	 *   - logger : Optional PSR logger object.
-	 *   - profiler : Optional callback that takes a section name argument and returns
-	 *      a ScopedCallback instance that ends the profile section in its destructor.
 	 *   - statusWrapper : Optional callback that is used to wrap returned StatusValues
 	 */
 	public function __construct( array $config ) {
@@ -227,11 +223,6 @@ abstract class FileBackend implements LoggerAwareInterface {
 			'headerFunc' => $this->headerFunc,
 			'streamMimeFunc' => $config['streamMimeFunc'] ?? null,
 		];
-
-		$this->profiler = $config['profiler'] ?? null;
-		if ( !is_callable( $this->profiler ) ) {
-			$this->profiler = null;
-		}
 		$this->logger = $config['logger'] ?? new NullLogger();
 		$this->statusWrapper = $config['statusWrapper'] ?? null;
 		// tmpDirectory gets precedence for backward compatibility
@@ -1745,14 +1736,6 @@ abstract class FileBackend implements LoggerAwareInterface {
 	 */
 	final protected function wrapStatus( StatusValue $sv ) {
 		return $this->statusWrapper ? ( $this->statusWrapper )( $sv ) : $sv;
-	}
-
-	/**
-	 * @param string $section
-	 */
-	#[\NoDiscard]
-	protected function scopedProfileSection( $section ): ?ScopedCallback {
-		return $this->profiler ? ( $this->profiler )( $section ) : null;
 	}
 
 	/**

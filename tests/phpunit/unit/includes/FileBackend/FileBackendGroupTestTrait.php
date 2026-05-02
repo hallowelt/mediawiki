@@ -203,11 +203,6 @@ trait FileBackendGroupTestTrait {
 		$obj = $this->newObj();
 		$config = $obj->config( 'local-backend' );
 
-		// XXX How to actually test that a profiler is loaded?
-		$this->assertNull( $config['profiler']( 'x' ) );
-		// Equality comparison doesn't work for closures, so just set to null
-		$config['profiler'] = null;
-
 		$this->assertEquals( [
 			'mimeCallback' => $obj->guessMimeInternal( ... ),
 			'obResetFunc' => wfResetOutputBuffers( ... ),
@@ -222,7 +217,6 @@ trait FileBackendGroupTestTrait {
 			'srvCache' => $this->srvCache ?? $config['srvCache'],
 			'logger' => LoggerFactory::getInstance( 'FileOperation' ),
 			// This was set to null above in $config, it's not really null
-			'profiler' => null,
 			'name' => 'local-backend',
 			'containerPaths' => [
 				'local-public' => 'upload-dir',

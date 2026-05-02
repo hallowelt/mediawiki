@@ -152,9 +152,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @return StatusValue
 	 */
 	final public function createInternal( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		if ( strlen( $params['content'] ) > $this->maxFileSizeInternal() ) {
 			$status = $this->newStatus( 'backend-fail-maxsize',
 				$params['dst'], $this->maxFileSizeInternal() );
@@ -195,9 +192,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @return StatusValue
 	 */
 	final public function storeInternal( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		if ( filesize( $params['src'] ) > $this->maxFileSizeInternal() ) {
 			$status = $this->newStatus( 'backend-fail-maxsize',
 				$params['dst'], $this->maxFileSizeInternal() );
@@ -239,9 +233,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @return StatusValue
 	 */
 	final public function copyInternal( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$status = $this->doCopyInternal( $params );
 		$this->clearCache( [ $params['dst'] ] );
 		if ( $params['dstExists'] ?? true ) {
@@ -273,9 +264,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @return StatusValue
 	 */
 	final public function deleteInternal( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$status = $this->doDeleteInternal( $params );
 		$this->clearCache( [ $params['src'] ] );
 		$this->deleteFileCache( $params['src'] ); // persistent cache
@@ -309,9 +297,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @return StatusValue
 	 */
 	final public function moveInternal( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$status = $this->doMoveInternal( $params );
 		$this->clearCache( [ $params['src'], $params['dst'] ] );
 		$this->deleteFileCache( $params['src'] ); // persistent cache
@@ -344,9 +329,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @return StatusValue
 	 */
 	final public function describeInternal( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		if ( count( $params['headers'] ) ) {
 			$status = $this->doDescribeInternal( $params );
 			$this->clearCache( [ $params['src'] ] );
@@ -381,10 +363,7 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function concatenate( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
-
 		// Try to lock the source files for the scope of this function
 		/** @noinspection PhpUnusedLocalVariableInspection */
 		$scopeLockS = $this->getScopedFileLocks( $params['srcs'], LockManager::LOCK_UW, $status );
@@ -482,8 +461,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @inheritDoc
 	 */
 	final protected function doPrepare( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
 
 		[ $fullCont, $dir, $shard ] = $this->resolveStoragePath( $params['dir'] );
@@ -520,8 +497,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final protected function doSecure( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
 
 		[ $fullCont, $dir, $shard ] = $this->resolveStoragePath( $params['dir'] );
@@ -558,8 +533,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final protected function doPublish( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
 
 		[ $fullCont, $dir, $shard ] = $this->resolveStoragePath( $params['dir'] );
@@ -596,8 +569,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final protected function doClean( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
 
 		// Recursive: first delete all empty subdirs recursively
@@ -656,9 +627,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function fileExists( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$stat = $this->getFileStat( $params );
 		if ( is_array( $stat ) ) {
 			return true;
@@ -669,9 +637,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getFileTimestamp( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$stat = $this->getFileStat( $params );
 		if ( is_array( $stat ) ) {
 			return $stat['mtime'];
@@ -682,9 +647,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getFileSize( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$stat = $this->getFileStat( $params );
 		if ( is_array( $stat ) ) {
 			return $stat['size'];
@@ -695,9 +657,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getFileStat( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$path = self::normalizeStoragePath( $params['src'] );
 		if ( $path === null ) {
 			return self::STAT_ERROR; // invalid storage path
@@ -828,9 +787,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	public function getFileContentsMulti( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$params = $this->setConcurrencyFlags( $params );
 		$contents = $this->doGetFileContentsMulti( $params );
 		foreach ( $contents as $path => $content ) {
@@ -866,9 +822,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getFileXAttributes( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$path = self::normalizeStoragePath( $params['src'] );
 		if ( $path === null ) {
 			return self::XATTRS_FAIL; // invalid storage path
@@ -915,9 +868,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getFileSha1Base36( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$path = self::normalizeStoragePath( $params['src'] );
 		if ( $path === null ) {
 			return self::SHA1_FAIL; // invalid storage path
@@ -970,9 +920,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getFileProps( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$fsFile = $this->getLocalReference( $params );
 
 		return $fsFile ? $fsFile->getProps() : FSFile::placeholderProps();
@@ -980,9 +927,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getLocalReferenceMulti( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$params = $this->setConcurrencyFlags( $params );
 
 		$fsFiles = []; // (path => FSFile)
@@ -1029,9 +973,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function getLocalCopyMulti( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$params = $this->setConcurrencyFlags( $params );
 
 		return $this->doGetLocalCopyMulti( $params );
@@ -1073,8 +1014,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function streamFile( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
 
 		// Always set some fields for subclass convenience
@@ -1300,8 +1239,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final protected function doOperationsInternal( array $ops, array $opts ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
 
 		// Fix up custom header name/value pairs
@@ -1364,8 +1301,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final protected function doQuickOperationsInternal( array $ops, array $opts ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$status = $this->newStatus();
 
 		// Fix up custom header name/value pairs
@@ -1433,9 +1368,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @throws FileBackendError
 	 */
 	final public function executeOpHandlesInternal( array $fileOpHandles ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		foreach ( $fileOpHandles as $fileOpHandle ) {
 			if ( !( $fileOpHandle instanceof FileBackendStoreOpHandle ) ) {
 				throw new InvalidArgumentException( "Expected FileBackendStoreOpHandle object." );
@@ -1544,9 +1476,6 @@ abstract class FileBackendStore extends FileBackend {
 
 	/** @inheritDoc */
 	final public function preloadFileStat( array $params ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$params['concurrency'] = ( $this->parallelize !== 'off' ) ? $this->concurrency : 1;
 		$stats = $this->doGetFileStatMulti( $params );
 		if ( $stats === null ) {
@@ -1868,9 +1797,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * This loads the persistent cache values into the process cache.
 	 */
 	final protected function primeContainerCache( array $items ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$paths = []; // list of storage paths
 		$contNames = []; // (cache key => resolved container name)
 		// Get all the paths/containers from the items...
@@ -1972,9 +1898,6 @@ abstract class FileBackendStore extends FileBackend {
 	 * @param array $items List of storage paths
 	 */
 	final protected function primeFileCache( array $items ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$paths = []; // list of storage paths
 		$pathNames = []; // (cache key => storage path)
 		// Get all the paths/containers from the items...

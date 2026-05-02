@@ -821,8 +821,6 @@ class SwiftFileBackend extends FileBackendStore {
 			return $objHdrs; // nothing to do
 		}
 
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 		$this->logger->error( __METHOD__ . ": {path} was not stored with SHA-1 metadata.",
 			[ 'path' => $path ] );
 
@@ -975,9 +973,6 @@ class SwiftFileBackend extends FileBackendStore {
 			return $dirs; // nothing more
 		}
 
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		$prefix = ( $dir == '' ) ? null : "{$dir}/";
 		// Non-recursive: only list dirs right under $dir
 		if ( !empty( $params['topOnly'] ) ) {
@@ -1055,9 +1050,6 @@ class SwiftFileBackend extends FileBackendStore {
 		if ( $after === INF ) {
 			return $files; // nothing more
 		}
-
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
 
 		$prefix = ( $dir == '' ) ? null : "{$dir}/";
 		// $objects will contain a list of unfiltered names or stdClass items
@@ -1520,9 +1512,6 @@ class SwiftFileBackend extends FileBackendStore {
 	 * @return array|false|null False on 404, null on failure
 	 */
 	protected function getContainerStat( $container, $bypassCache = false ) {
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$ps = $this->scopedProfileSection( __METHOD__ . "-{$this->name}" );
-
 		if ( $bypassCache ) { // purge cache
 			$this->containerStatCache->clear( $container );
 		} elseif ( !$this->containerStatCache->hasField( $container, 'stat' ) ) {
