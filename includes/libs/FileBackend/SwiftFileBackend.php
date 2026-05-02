@@ -21,8 +21,6 @@ use Wikimedia\FileBackend\FileOpHandle\SwiftFileOpHandle;
 use Wikimedia\FileBackend\FSFile\TempFSFile;
 use Wikimedia\Http\MultiHttpClient;
 use Wikimedia\LockManager\LockManager;
-use Wikimedia\ObjectCache\BagOStuff;
-use Wikimedia\ObjectCache\EmptyBagOStuff;
 use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\RequestTimeout\TimeoutException;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
@@ -39,16 +37,9 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
  */
 class SwiftFileBackend extends FileBackendStore {
 	private const DEFAULT_HTTP_OPTIONS = [ 'httpVersion' => 'v1.1' ];
-	private const AUTH_FAILURE_ERROR = 'Could not connect due to prior authentication failure';
 
 	/** @var MultiHttpClient */
 	protected $http;
-	/** @var int TTL in seconds */
-	protected $authTTL;
-	/** @var string Authentication base URL (without version) */
-	protected $swiftAuthUrl;
-	/** @var string Override of storage base URL */
-	protected $swiftStorageUrl;
 	/** @var string Swift user (account:user) to authenticate as */
 	protected $swiftUser;
 	/** @var string Secret key for user */
@@ -72,19 +63,9 @@ class SwiftFileBackend extends FileBackendStore {
 	/** @var array Additional users (account:user) with write permissions on private containers */
 	protected $secureWriteUsers;
 
-	/** Persistent cache for authentication credential */
-	protected BagOStuff $credentialCache;
-
 	/** @var MapCacheLRU Container stat cache */
 	protected $containerStatCache;
-
-	/** @var array|null */
-	protected $authCreds;
-	/** @var int|null UNIX timestamp */
-	protected $authErrorTimestamp = null;
-
-	/** @var bool Whether the server is an Ceph RGW */
-	protected $isRGW = false;
+	private SwiftAuthProvider $swiftAuthProvider;
 
 	/**
 	 * @see FileBackendStore::__construct()
@@ -135,15 +116,13 @@ class SwiftFileBackend extends FileBackendStore {
 	public function __construct( array $config ) {
 		parent::__construct( $config );
 		// Required settings
-		$this->swiftAuthUrl = $config['swiftAuthUrl'];
 		$this->swiftUser = $config['swiftUser'];
 		$this->swiftKey = $config['swiftKey'];
 		// Optional settings
-		$this->authTTL = $config['swiftAuthTTL'] ?? 15 * 60; // some sensible number
 		$this->swiftTempUrlKey = $config['swiftTempUrlKey'] ?? '';
 		$this->canShellboxGetTempUrl = $config['canShellboxGetTempUrl'] ?? false;
 		$this->shellboxIpRange = $config['shellboxIpRange'] ?? null;
-		$this->swiftStorageUrl = $config['swiftStorageUrl'] ?? null;
+
 		$this->shardViaHashLevels = $config['shardViaHashLevels'] ?? '';
 		$this->rgwS3AccessKey = $config['rgwS3AccessKey'] ?? '';
 		$this->rgwS3SecretKey = $config['rgwS3SecretKey'] ?? '';
@@ -165,12 +144,6 @@ class SwiftFileBackend extends FileBackendStore {
 		$this->wanStatCache = $this->wanCache;
 		// Process cache for container info
 		$this->containerStatCache = new MapCacheLRU( 300 );
-		// Cache auth token information to avoid RTTs
-		if ( !empty( $config['cacheAuthInfo'] ) ) {
-			$this->credentialCache = $this->srvCache;
-		} else {
-			$this->credentialCache = new EmptyBagOStuff();
-		}
 		$this->readUsers = $config['readUsers'] ?? [];
 		$this->writeUsers = $config['writeUsers'] ?? [];
 		$this->secureReadUsers = $config['secureReadUsers'] ?? [];
@@ -180,11 +153,14 @@ class SwiftFileBackend extends FileBackendStore {
 		// splitting objects has not yet been implemented by this class
 		// so limit max file size to 5GiB.
 		$this->maxFileSize = 5 * 1024 * 1024 * 1024;
+
+		$this->swiftAuthProvider = new SwiftAuthProvider( $config, $this->http, $this->logger );
 	}
 
 	public function setLogger( LoggerInterface $logger ): void {
 		parent::setLogger( $logger );
 		$this->http->setLogger( $logger );
+		$this->swiftAuthProvider->setLogger( $logger );
 	}
 
 	/** @inheritDoc */
@@ -1260,8 +1236,8 @@ class SwiftFileBackend extends FileBackendStore {
 			}
 		}
 
-		// Ceph RADOS Gateway is in use (strong consistency) or X-Newest will be used
-		$latest = ( $this->isRGW || !empty( $params['latest'] ) );
+		// X-Newest will be used
+		$latest = !empty( $params['latest'] );
 
 		$reqs = $this->requestMultiWithAuth(
 			$reqs,
@@ -1335,7 +1311,7 @@ class SwiftFileBackend extends FileBackendStore {
 			return self::TEMPURL_ERROR; // invalid path
 		}
 
-		$auth = $this->getAuthentication();
+		$auth = $this->swiftAuthProvider->getAuthentication();
 		if ( !$auth ) {
 			$this->logger->debug( "Can't get Swift file URL: authentication failed" );
 			return self::TEMPURL_ERROR;
@@ -1726,9 +1702,6 @@ class SwiftFileBackend extends FileBackendStore {
 				}
 				// Load the stat map from the headers
 				$stat = $this->getStatFromHeaders( $rhdrs );
-				if ( $this->isRGW ) {
-					$stat['latest'] = true; // strong consistency
-				}
 			} elseif ( $rcode === 404 ) {
 				$stat = self::RES_ABSENT;
 			} else {
@@ -1764,110 +1737,7 @@ class SwiftFileBackend extends FileBackendStore {
 	}
 
 	/**
-	 * Get the cached auth token.
-	 *
-	 * @return array|null Credential map
-	 */
-	protected function getAuthentication() {
-		if ( $this->authErrorTimestamp !== null ) {
-			$interval = time() - $this->authErrorTimestamp;
-			if ( $interval < 60 ) {
-				$this->logger->debug(
-					'rejecting request since auth failure occurred {interval} seconds ago',
-					[ 'interval' => $interval ]
-				);
-				return null;
-			} else { // actually retry this time
-				$this->authErrorTimestamp = null;
-			}
-		}
-		// Authenticate with proxy and get a session key...
-		if ( !$this->authCreds ) {
-			$cacheKey = $this->getCredsCacheKey( $this->swiftUser );
-			$creds = $this->credentialCache->get( $cacheKey );
-			if (
-				isset( $creds['auth_token'] ) &&
-				isset( $creds['storage_url'] ) &&
-				isset( $creds['expiry_time'] ) &&
-				$creds['expiry_time'] > time()
-			) {
-				// Cache hit; reuse the cached credentials cache
-				$this->setAuthCreds( $creds );
-			} else {
-				// Cache miss; re-authenticate to get the credentials
-				$this->refreshAuthentication();
-			}
-		}
-
-		return $this->authCreds;
-	}
-
-	/**
-	 * Update the auth credentials
-	 *
-	 * @param array|null $creds
-	 */
-	private function setAuthCreds( ?array $creds ) {
-		$this->logger->debug( 'Using auth token with expiry_time={expiry_time}',
-			[
-				'expiry_time' => isset( $creds['expiry_time'] )
-					? gmdate( 'c', $creds['expiry_time'] ) : 'null'
-			]
-		);
-		$this->authCreds = $creds;
-		// Ceph RGW does not use <account> in URLs (OpenStack Swift uses "/v1/<account>")
-		if ( $creds && str_ends_with( $creds['storage_url'], '/v1' ) ) {
-			$this->isRGW = true; // take advantage of strong consistency in Ceph
-		}
-	}
-
-	/**
-	 * Fetch the auth token from the server, without caching.
-	 *
-	 * @return array|null Credential map
-	 */
-	private function refreshAuthentication() {
-		[ $rcode, , $rhdrs, $rbody, ] = $this->http->run( [
-			'method' => 'GET',
-			'url' => "{$this->swiftAuthUrl}/v1.0",
-			'headers' => [
-				'x-auth-user' => $this->swiftUser,
-				'x-auth-key' => $this->swiftKey
-			]
-		], self::DEFAULT_HTTP_OPTIONS );
-
-		if ( $rcode >= 200 && $rcode <= 299 ) { // OK
-			if ( isset( $rhdrs['x-auth-token-expires'] ) ) {
-				$ttl = intval( $rhdrs['x-auth-token-expires'] );
-			} else {
-				$ttl = $this->authTTL;
-			}
-			$expiryTime = time() + $ttl;
-			$creds = [
-				'auth_token' => $rhdrs['x-auth-token'],
-				'storage_url' => $this->swiftStorageUrl ?? $rhdrs['x-storage-url'],
-				'expiry_time' => $expiryTime,
-			];
-			$this->credentialCache->set(
-				$this->getCredsCacheKey( $this->swiftUser ),
-				$creds,
-				$expiryTime
-			);
-		} elseif ( $rcode === 401 ) {
-			$this->onError( null, __METHOD__, [], "Authentication failed.", $rcode );
-			$this->authErrorTimestamp = time();
-			$creds = null;
-		} else {
-			$this->onError( null, __METHOD__, [], "HTTP return code: $rcode", $rcode, $rbody );
-			$this->authErrorTimestamp = time();
-			$creds = null;
-		}
-		$this->setAuthCreds( $creds );
-		return $creds;
-	}
-
-	/**
-	 * @param array $creds From getAuthentication()
+	 * @param array $creds From SwiftAuthProvider::getAuthentication()
 	 * @param string|null $container
 	 * @param string|null $object
 	 * @return string
@@ -1882,24 +1752,6 @@ class SwiftFileBackend extends FileBackendStore {
 		}
 
 		return implode( '/', $parts );
-	}
-
-	/**
-	 * @param array $creds From getAuthentication()
-	 * @return array
-	 */
-	protected function authTokenHeaders( array $creds ) {
-		return [ 'x-auth-token' => $creds['auth_token'] ];
-	}
-
-	/**
-	 * Get the cache key for a container
-	 *
-	 * @param string $username
-	 * @return string
-	 */
-	private function getCredsCacheKey( $username ) {
-		return 'swiftcredentials:' . md5( $username . ':' . $this->swiftAuthUrl );
 	}
 
 	/**
@@ -1929,12 +1781,12 @@ class SwiftFileBackend extends FileBackendStore {
 	 */
 	private function requestMultiWithAuth( array $reqs, $options = [] ) {
 		$remainingTries = 2;
-		$auth = $this->getAuthentication();
+		$auth = $this->swiftAuthProvider->getAuthentication();
 		while ( true ) {
 			if ( !$auth ) {
 				foreach ( $reqs as &$req ) {
 					if ( !isset( $req['response'] ) ) {
-						$req['response'] = $this->getAuthFailureResponse();
+						$req['response'] = $this->swiftAuthProvider->getAuthFailureResponse();
 					}
 				}
 				break;
@@ -1948,7 +1800,7 @@ class SwiftFileBackend extends FileBackendStore {
 						continue;
 					}
 				}
-				$req['headers'] = $this->authTokenHeaders( $auth ) + ( $req['headers'] ?? [] );
+				$req['headers'] = $this->swiftAuthProvider->authTokenHeaders( $auth ) + ( $req['headers'] ?? [] );
 				$req['url'] = $this->storageUrl( $auth, $req['container'], $req['relPath'] ?? null );
 			}
 			unset( $req );
@@ -1957,7 +1809,7 @@ class SwiftFileBackend extends FileBackendStore {
 				// Retry if any request failed with 401 "not authorized"
 				foreach ( $reqs as $req ) {
 					if ( $req['response']['code'] === 401 ) {
-						$auth = $this->refreshAuthentication();
+						$auth = $this->swiftAuthProvider->refreshAuthentication();
 						continue 2;
 					}
 				}
@@ -1965,29 +1817,6 @@ class SwiftFileBackend extends FileBackendStore {
 			break;
 		}
 		return $reqs;
-	}
-
-	/**
-	 * Get a synthetic response to return from requestWithAuth() or requestMultiWithAuth()
-	 * if the request could not be issued due to failure of a prior authentication request.
-	 * This failure should not be logged as an HTTP error since the original failure would
-	 * have been logged.
-	 *
-	 * @return array
-	 */
-	private function getAuthFailureResponse() {
-		return [
-			'code' => 0,
-			0 => 0,
-			'reason' => '',
-			1 => '',
-			'headers' => [],
-			2 => [],
-			'body' => '',
-			3 => '',
-			'error' => self::AUTH_FAILURE_ERROR,
-			4 => self::AUTH_FAILURE_ERROR
-		];
 	}
 
 	/**
@@ -2003,7 +1832,7 @@ class SwiftFileBackend extends FileBackendStore {
 	 * @param string $body HTTP body
 	 */
 	public function onError( $status, $func, array $params, $err = '', $code = 0, $desc = '', $body = '' ) {
-		if ( $code === 0 && $err === self::AUTH_FAILURE_ERROR ) {
+		if ( $code === 0 && $err === SwiftAuthProvider::AUTH_FAILURE_ERROR ) {
 			if ( $status instanceof StatusValue ) {
 				$status->fatal( 'backend-fail-connect', $this->name );
 			}

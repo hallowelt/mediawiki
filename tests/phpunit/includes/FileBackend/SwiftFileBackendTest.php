@@ -16,6 +16,7 @@ use Wikimedia\TestingAccessWrapper;
  * @covers \Wikimedia\FileBackend\FileIteration\SwiftFileBackendDirList
  * @covers \Wikimedia\FileBackend\FileIteration\SwiftFileBackendFileList
  * @covers \Wikimedia\FileBackend\FileIteration\SwiftFileBackendList
+ * @covers \Wikimedia\FileBackend\SwiftAuthProvider
  */
 class SwiftFileBackendTest extends MediaWikiIntegrationTestCase {
 	/** @var TestingAccessWrapper|SwiftFileBackend */
@@ -194,8 +195,9 @@ class SwiftFileBackendTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function setupAuthFailure() {
-		$this->backend->authErrorTimestamp = time();
-		$this->backend->http = null;
+		$swiftAuthProvider = TestingAccessWrapper::newFromObject( $this->backend->swiftAuthProvider );
+		$swiftAuthProvider->authErrorTimestamp = time();
+		$swiftAuthProvider->http = new NullMultiHttpClient( [] );
 	}
 
 	public function testGetFileStatAuthFail() {

@@ -4389,6 +4389,7 @@ $wgAutoloadLocalClasses = [
 	'Wikimedia\\FileBackend\\FileOps\\StoreFileOp' => __DIR__ . '/includes/libs/FileBackend/FileOps/StoreFileOp.php',
 	'Wikimedia\\FileBackend\\HTTPFileStreamer' => __DIR__ . '/includes/libs/FileBackend/HTTPFileStreamer.php',
 	'Wikimedia\\FileBackend\\MemoryFileBackend' => __DIR__ . '/includes/libs/FileBackend/MemoryFileBackend.php',
+	'Wikimedia\\FileBackend\\SwiftAuthProvider' => __DIR__ . '/includes/libs/FileBackend/SwiftAuthProvider.php',
 	'Wikimedia\\FileBackend\\SwiftFileBackend' => __DIR__ . '/includes/libs/FileBackend/SwiftFileBackend.php',
 	'Wikimedia\\HashRing\\HashRing' => __DIR__ . '/includes/libs/HashRing/HashRing.php',
 	'Wikimedia\\HtmlArmor\\HtmlArmor' => __DIR__ . '/includes/libs/HtmlArmor/HtmlArmor.php',
