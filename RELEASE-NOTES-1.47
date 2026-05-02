@@ -54,6 +54,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== New external libraries ====
 
+* Added symfony/polyfill-php86 at 1.37.0.
 * …
 
 ===== New development-only external libraries =====
