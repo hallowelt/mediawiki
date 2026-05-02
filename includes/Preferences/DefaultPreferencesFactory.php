@@ -554,7 +554,7 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 					? $context->msg( 'prefs-help-yourpassword',
 						'[[#mw-prefsection-personal-email|{{int:prefs-email}}]]' )->parse()
 					: '',
-				'section' => 'personal/info',
+				'section' => 'personal/accountsecurity',
 			];
 		}
 		// Only show prefershttps if secure login is turned on
