@@ -57,7 +57,7 @@ trait MediaTestTrait {
 		$file = $this->createNoOpMock(
 			LocalFile::class,
 			[ 'getName', 'getTitle', 'getDescriptionUrl', 'exists', 'userCan', 'getUploader', 'getTimestamp',
-				'getMediaType', 'getSize', 'getHeight', 'getWidth', 'getDisplayWidthHeight',
+				'getMediaType', 'getSize', 'getHeight', 'getWidth', 'getDisplayWidthHeight', 'getHandler',
 				'getLength', 'getUrl', 'allowInlineDisplay', 'transform', 'getSha1', 'load', 'getMimeType' ]
 		);
 		$file->method( 'getName' )->willReturn( ucfirst( $title->getDBkey() ) );
@@ -81,6 +81,10 @@ trait MediaTestTrait {
 			'https://example.com/wiki/' . $title->getPrefixedDBkey()
 		);
 		$file->method( 'getMimeType' )->willReturn( 'image/jpeg' );
+
+		$handler = $this->createNoOpMock( \MediaWiki\Media\MediaHandler::class, [ 'getThumbType' ] );
+		$handler->method( 'getThumbType' )->willReturn( [ 'jpg', 'image/jpeg' ] );
+		$file->method( 'getHandler' )->willReturn( $handler );
 
 		$getDisplayWidthHeight = static function ( $maxWidth, $maxHeight, $page = 1 ) use ( $file ) {
 			$width = $file->getWidth( $page );

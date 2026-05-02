@@ -2883,6 +2883,7 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\Rest\\Handler\\Helper\\RevisionContentHelper' => __DIR__ . '/includes/Rest/Handler/Helper/RevisionContentHelper.php',
 	'MediaWiki\\Rest\\Handler\\LanguageLinksHandler' => __DIR__ . '/includes/Rest/Handler/LanguageLinksHandler.php',
 	'MediaWiki\\Rest\\Handler\\MediaFileHandler' => __DIR__ . '/includes/Rest/Handler/MediaFileHandler.php',
+	'MediaWiki\\Rest\\Handler\\MediaFileThumbnailsHandler' => __DIR__ . '/includes/Rest/Handler/MediaFileThumbnailsHandler.php',
 	'MediaWiki\\Rest\\Handler\\MediaLinksHandler' => __DIR__ . '/includes/Rest/Handler/MediaLinksHandler.php',
 	'MediaWiki\\Rest\\Handler\\ModuleSpecHandler' => __DIR__ . '/includes/Rest/Handler/ModuleSpecHandler.php',
 	'MediaWiki\\Rest\\Handler\\OpenSearchDescriptionHandler' => __DIR__ . '/includes/Rest/Handler/OpenSearchDescriptionHandler.php',

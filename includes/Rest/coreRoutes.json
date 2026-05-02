@@ -260,6 +260,18 @@
 		}
 	},
 	{
+		"path": "/v1/file/{title}/thumbnails",
+		"class": "MediaWiki\\Rest\\Handler\\MediaFileThumbnailsHandler",
+		"services": [
+			"RepoGroup",
+			"PageStore"
+		],
+		"openApiSpec": {
+			"x-i18n-description": "rest-endpoint-desc-get-file-title-thumbnails",
+			"x-i18n-summary": "rest-endpoint-summ-get-file-title-thumbnails"
+		}
+	},
+	{
 		"method": "PUT",
 		"path": "/v1/page/{title}",
 		"class": "MediaWiki\\Rest\\Handler\\UpdateHandler",

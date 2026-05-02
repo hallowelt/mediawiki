@@ -152,6 +152,7 @@ class ContentHolder {
 	 * @param string $fragmentName name of the fragment to set
 	 * @param string|null $html string of the fragment to set, or null to
 	 *  remove a fragment.
+	 * @param-taint $html exec_html
 	 * @return void
 	 *
 	 * @note The self::BODY_FRAGMENT should not contain the top-level <body>

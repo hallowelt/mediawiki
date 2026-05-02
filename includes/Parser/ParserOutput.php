@@ -3587,6 +3587,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 	 *
 	 * @param ?string $text Content of the body fragment as an HTML string, or
 	 *   null if not generated
+	 * @param-taint $text exec_html
 	 * @since 1.42
 	 */
 	public function setContentHolderText( ?string $text ): void {

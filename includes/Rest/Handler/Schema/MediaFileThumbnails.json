@@ -1,0 +1,84 @@
+{
+	"x-i18n-description": "rest-endpoint-desc-get-file-title-thumbnails",
+	"required": [
+		"title",
+		"original",
+		"thumbnails"
+	],
+	"properties": {
+		"title": {
+			"type": "string",
+			"example": "Example.jpg",
+			"x-i18n-description": "rest-param-desc-media-file-title"
+		},
+		"original": {
+			"type": "object",
+			"required": [ "mediatype", "width", "height", "url" ],
+			"properties": {
+				"mediatype": {
+					"type": "string",
+					"example": "BITMAP",
+					"x-i18n-description": "rest-param-desc-media-mediatype"
+				},
+				"width": {
+					"type": "integer",
+					"nullable": true,
+					"example": 1200,
+					"x-i18n-description": "rest-param-desc-media-width"
+				},
+				"height": {
+					"type": "integer",
+					"nullable": true,
+					"example": 800,
+					"x-i18n-description": "rest-param-desc-media-height"
+				},
+				"url": {
+					"type": "string",
+					"format": "uri",
+					"example": "https://example.org/wiki/Special:FilePath/Example.jpg",
+					"x-i18n-description": "rest-param-desc-media-url"
+				}
+			}
+		},
+		"thumbnails": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [ "width", "height", "url", "mime" ],
+				"properties": {
+					"width": {
+						"type": "integer",
+						"example": 120,
+						"x-i18n-description": "rest-param-desc-media-width"
+					},
+					"height": {
+						"type": "integer",
+						"example": 80,
+						"x-i18n-description": "rest-param-desc-media-height"
+					},
+					"url": {
+						"type": "string",
+						"format": "uri",
+						"example": "https://example.org/w/images/thumb/a/ab/Example.jpg/120px-Example.jpg",
+						"x-i18n-description": "rest-param-desc-media-url"
+					},
+					"mime": {
+						"type": "string",
+						"example": "image/jpeg",
+						"x-i18n-description": "rest-param-desc-media-mediatype"
+					},
+					"responsive_urls": {
+						"type": "object",
+						"example": {
+							"2": "https://example.org/w/images/thumb/a/ab/Example.jpg/240px-Example.jpg"
+						},
+						"additionalProperties": {
+							"type": "string",
+							"format": "uri"
+						}
+					}
+				}
+			}
+		}
+	}
+}
