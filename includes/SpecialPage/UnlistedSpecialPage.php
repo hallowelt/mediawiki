@@ -16,7 +16,7 @@ namespace MediaWiki\SpecialPage;
  *
  * @ingroup SpecialPage
  */
-class UnlistedSpecialPage extends SpecialPage {
+abstract class UnlistedSpecialPage extends SpecialPage {
 
 	/**
 	 * @stable to call
@@ -28,9 +28,6 @@ class UnlistedSpecialPage extends SpecialPage {
 	 * @param string $file Unused. Deprecated since 1.46.
 	 */
 	public function __construct( $name, $restriction = '', $function = false, $file = 'default' ) {
-		if ( static::class === self::class ) {
-			wfDeprecated( 'direct instantiation of ' . __CLASS__, '1.46' );
-		}
 		$parentParams = [ $name ];
 		if ( func_num_args() > 1 ) {
 			wfDeprecated( __CLASS__ . ' constructor parameters $restriction, $function and $file', '1.46' );

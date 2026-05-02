@@ -49,7 +49,7 @@ use Wikimedia\Message\MessageSpecifier;
  *
  * @ingroup SpecialPage
  */
-class SpecialPage implements MessageLocalizer {
+abstract class SpecialPage implements MessageLocalizer {
 	use DeprecationHelper;
 
 	/**
@@ -208,9 +208,6 @@ class SpecialPage implements MessageLocalizer {
 		$name = '', $restriction = '', $listed = true,
 		$function = false, $file = '', $includable = false
 	) {
-		if ( static::class === self::class ) {
-			wfDeprecated( 'direct instantiation of ' . __CLASS__, '1.46' );
-		}
 		if ( func_num_args() > 1 ) {
 			wfDeprecated( __CLASS__ . ' constructor parameters $restriction, ' .
 				'$listed, $function, $file and $includable', '1.46' );

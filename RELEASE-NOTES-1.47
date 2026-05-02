@@ -111,6 +111,12 @@ because of Phabricator reports.
   relevant MediaWikiServices access points instead.
 * The method Action::getArticle is now final. Overriding of this method fails
   now.
+* The SpecialPage root and intermediate classes are now marked as abstract:
+  - SpecialPage
+  - ContributionsSpecialPage
+  - IncludableSpecialPage
+  - UnlistedSpecialPage
+  Instantiate a subclass instead.
 * …
 
 === Deprecations in 1.47 ===

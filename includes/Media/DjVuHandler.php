@@ -36,9 +36,11 @@ class DjVuHandler extends ImageHandler {
 		$djvuRenderer = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::DjvuRenderer );
 		$djvuDump = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::DjvuDump );
 		if ( !$djvuRenderer || !$djvuDump ) {
+			// @codeCoverageIgnoreStart
 			wfDebug( "DjVu is disabled, please set \$wgDjvuRenderer and \$wgDjvuDump" );
 
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 		return true;
 	}

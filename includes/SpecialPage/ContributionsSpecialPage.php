@@ -53,7 +53,7 @@ use Wikimedia\Rdbms\IConnectionProvider;
  * @ingroup SpecialPage
  * @since 1.43 Refactored from SpecialContributions
  */
-class ContributionsSpecialPage extends IncludableSpecialPage {
+abstract class ContributionsSpecialPage extends IncludableSpecialPage {
 
 	use ContributionsRangeTrait;
 
@@ -91,9 +91,6 @@ class ContributionsSpecialPage extends IncludableSpecialPage {
 		$name,
 		$restriction = ''
 	) {
-		if ( static::class === self::class ) {
-			wfDeprecated( 'direct instantiation of ' . __CLASS__, '1.46' );
-		}
 		$parentParams = [ $name ];
 		if ( func_num_args() > 11 ) {
 			wfDeprecated( __CLASS__ . ' constructor parameter $restriction', '1.46' );
@@ -1058,11 +1055,7 @@ class ContributionsSpecialPage extends IncludableSpecialPage {
 	 * @param UserIdentity $targetUser The normalized target user identity
 	 * @return ContributionsPager
 	 */
-	protected function getPager( $targetUser ) {
-		// TODO: This class and the classes it extends should be abstract, and this
-		// method should be abstract.
-		throw new \LogicException( __METHOD__ . " must be overridden" );
-	}
+	abstract protected function getPager( $targetUser );
 
 	/**
 	 * @inheritDoc

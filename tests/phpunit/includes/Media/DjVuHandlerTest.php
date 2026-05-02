@@ -2,6 +2,7 @@
 
 use MediaWiki\MainConfigNames;
 use MediaWiki\Media\DjVuHandler;
+use MediaWiki\Media\ThumbnailImage;
 use MediaWiki\Media\TrivialMediaHandlerState;
 use MediaWiki\Tests\Common\Parser\DjVuSupport;
 
@@ -75,6 +76,26 @@ class DjVuHandlerTest extends MediaWikiMediaTestCase {
 			"Lorem ipsum \n\n1 \n",
 			$this->handler->getPageText( $file, 1 ),
 			"Text layer of page 1 of file LoremIpsum.djvu should be 'Lorem ipsum \n\n1 \n'"
+		);
+	}
+
+	public function testDoTransform() {
+		// T425228 - pnmtojpeg isn't in CI images, so we can't use it
+		$this->overrideConfigValue( MainConfigNames::DjvuPostProcessor, null );
+
+		$file = $this->dataFile( 'LoremIpsum.djvu', 'image/x.djvu' );
+		$this->assertInstanceOf(
+			ThumbnailImage::class,
+			$this->handler->doTransform(
+				$file,
+				'dummy path',
+				'',
+				[
+					'width' => 10,
+					'height' => 10,
+					'page' => 1,
+				]
+			)
 		);
 	}
 }

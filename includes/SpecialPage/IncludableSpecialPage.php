@@ -12,7 +12,7 @@ namespace MediaWiki\SpecialPage;
  * @stable to extend
  * @ingroup SpecialPage
  */
-class IncludableSpecialPage extends SpecialPage {
+abstract class IncludableSpecialPage extends SpecialPage {
 	/**
 	 * @stable to call
 	 *
@@ -26,9 +26,6 @@ class IncludableSpecialPage extends SpecialPage {
 	public function __construct(
 		$name, $restriction = '', $listed = true, $function = false, $file = 'default'
 	) {
-		if ( static::class === self::class ) {
-			wfDeprecated( 'direct instantiation of ' . __CLASS__, '1.46' );
-		}
 		parent::__construct( ...func_get_args() );
 		$this->mIncludable = true;
 	}

@@ -16,4 +16,9 @@ class DjVuImageTest extends MediaWikiMediaTestCase {
 	public function testIsValid() {
 		$this->assertTrue( ( new DjVuImage( self::FILE_NAME ) )->isValid() );
 	}
+
+	public function testRetrieveMetadata() {
+		$data = ( new DjVuImage( self::FILE_NAME ) )->retrieveMetadata();
+		$this->assertNotEquals( [], $data );
+	}
 }
