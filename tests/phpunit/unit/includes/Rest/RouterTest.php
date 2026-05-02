@@ -9,6 +9,7 @@ use MediaWiki\Rest\BasicAccess\StaticBasicAuthorizer;
 use MediaWiki\Rest\CorsUtils;
 use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\PathTemplateMatcher\ModuleConfigurationException;
 use MediaWiki\Rest\RedirectException;
 use MediaWiki\Rest\Reporter\ErrorReporter;
 use MediaWiki\Rest\RequestData;
@@ -378,6 +379,34 @@ class RouterTest extends MediaWikiUnitTestCase {
 			[ '/rest/mock/v1/RouterTest/hello' ],
 			[ '/rest/mock-too/RouterTest/hello/two' ],
 		];
+	}
+
+	public function testDuplicateModuleIdsFromSameFile() {
+		$request = new RequestData( [
+			'uri' => new Uri( '/rest/mock/v1/RouterTest/hello' )
+		] );
+		$router = $this->createRouter(
+			$request,
+			null,
+			[ __DIR__ . '/testRoutes.json', __DIR__ . '/../Rest/testRoutes.json' ]
+		);
+
+		// createRouter will supply a '/' path that ends up with an empty prefix, so we need ''
+		$this->assertSame( [ 'mock/v1', '' ], $router->getModuleIds() );
+	}
+
+	public function testDuplicateModulesIdsFromDifferentFiles() {
+		$request = new RequestData( [
+			'uri' => new Uri( '/rest/mock/v1/RouterTest/hello' )
+		] );
+		$router = $this->createRouter(
+			$request,
+			null,
+			[ __DIR__ . '/testRoutes.json', __DIR__ . '/mock.v1.json' ]
+		);
+
+		$this->expectException( ModuleConfigurationException::class );
+		$this->assertSame( [ 'mock/v1', '' ], $router->getModuleIds() );
 	}
 
 	public static function provideGetRouteUrl() {

@@ -283,7 +283,13 @@ class Router {
 			}
 
 			if ( $moduleInfo ) {
-				if ( isset( $modules[$id] ) ) {
+				// Config and ModuleManager's CORE_ROUTE_FILES may legitimately refer to the same
+				// module file by different routes. The same moduleId in files with different
+				// names is almost certainly an error.
+				if (
+					isset( $modules[$id] ) &&
+					basename( $modules[$id]['specFile'] ) !== basename( $file )
+				) {
 					throw new ModuleConfigurationException(
 						"Duplicate module $id in $file"
 					);
