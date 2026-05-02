@@ -9,7 +9,6 @@
 namespace MediaWiki\Actions;
 
 use MediaWiki\Context\IContextSource;
-use MediaWiki\Debug\MWDebug;
 use MediaWiki\Exception\ErrorPageError;
 use MediaWiki\Exception\PermissionsError;
 use MediaWiki\Exception\ReadOnlyError;
@@ -176,11 +175,10 @@ abstract class Action implements MessageLocalizer {
 	/**
 	 * Get a Article object
 	 * @since 1.35
-	 * Overriding this method is deprecated since 1.35
 	 *
 	 * @return Article|ImagePage|CategoryPage
 	 */
-	public function getArticle() {
+	final public function getArticle() {
 		return $this->article;
 	}
 
@@ -249,7 +247,6 @@ abstract class Action implements MessageLocalizer {
 		private readonly Article $article,
 		protected readonly IContextSource $context,
 	) {
-		MWDebug::detectDeprecatedOverride( $this, __CLASS__, 'getArticle', '1.35' );
 	}
 
 	/**

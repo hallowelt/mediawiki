@@ -108,6 +108,8 @@ because of Phabricator reports.
   Use ::extractResults() instead.
 * The ParsoidService class, deprecated since 1.39, has been removed. Use the
   relevant MediaWikiServices access points instead.
+* The method Action::getArticle is now final. Overriding of this method fails
+  now.
 * …
 
 === Deprecations in 1.47 ===
