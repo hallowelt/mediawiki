@@ -203,11 +203,9 @@ class SearchResultSet extends BaseSearchResultSet {
 				// Don't bother if we've got empty result
 				return $this->results;
 			}
-			$this->rewind();
 			foreach ( $this as $result ) {
 				$this->results[] = $result;
 			}
-			$this->rewind();
 		}
 		return $this->results;
 	}
