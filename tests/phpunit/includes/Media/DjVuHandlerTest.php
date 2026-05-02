@@ -24,7 +24,8 @@ class DjVuHandlerTest extends MediaWikiMediaTestCase {
 
 		if ( !$djvuSupport->isEnabled() ) {
 			$this->markTestSkipped(
-			'This test needs the installation of the ddjvu, djvutoxml and djvudump tools' );
+				'This test needs the installation of the ddjvu, djvutxt and djvudump tools'
+			);
 		}
 
 		$this->overrideConfigValue( MainConfigNames::DjvuUseBoxedCommand, true );
