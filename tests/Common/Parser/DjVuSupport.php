@@ -29,10 +29,8 @@ class DjVuSupport {
 
 	/**
 	 * Returns true if the DjVu tools are usable
-	 *
-	 * @return bool
 	 */
-	public function isEnabled() {
+	public function isEnabled(): bool {
 		global $wgDjvuRenderer, $wgDjvuDump, $wgDjvuTxt;
 
 		return is_executable( $wgDjvuRenderer )
