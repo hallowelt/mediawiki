@@ -279,16 +279,7 @@ module.exports = defineComponent( {
 		/** @member {HTMLAnchorElement} anchor The watch link that the popup is currently anchored to. */
 		const anchor = ref( props.link );
 
-		// If the popover anchor is scrolled off-screen then close the popover.
-		// eslint-disable-next-line compat/compat
-		const intersectionObserver = new IntersectionObserver( ( entries ) => {
-			isOpen.value = entries.length && entries[ 0 ].isIntersecting;
-		} );
-		intersectionObserver.observe( anchor.value );
-
 		const openPopup = function ( newAnchor ) {
-			intersectionObserver.unobserve( anchor.value );
-			intersectionObserver.observe( newAnchor );
 			anchor.value = newAnchor;
 			isOpen.value = true;
 

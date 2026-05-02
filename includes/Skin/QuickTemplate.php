@@ -157,7 +157,10 @@ abstract class QuickTemplate {
 	}
 
 	/**
+	 * @deprecated since 1.47. Warning, this doesn't return a string but echo'es HTML. This is most
+	 *  likely not what you want.
 	 * @param string $msgKey
+	 * @return void
 	 */
 	public function msg( $msgKey ) {
 		echo htmlspecialchars( wfMessage( $msgKey )->text() );
@@ -173,6 +176,7 @@ abstract class QuickTemplate {
 	}
 
 	/**
+	 * @deprecated since 1.47, please use {@link Message::isDisabled} instead
 	 * @param string $msgKey
 	 * @return bool
 	 */

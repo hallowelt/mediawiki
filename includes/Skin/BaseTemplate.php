@@ -37,7 +37,10 @@ abstract class BaseTemplate extends QuickTemplate {
 	}
 
 	/**
+	 * @deprecated since 1.47. Warning, this doesn't return a string but echo'es HTML. This is most
+	 *  likely not what you want.
 	 * @param string $str
+	 * @return void
 	 */
 	public function msg( $str ) {
 		echo $this->getMsg( $str )->escaped();
