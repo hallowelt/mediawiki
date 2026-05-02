@@ -15,11 +15,11 @@ namespace MediaWiki\Actions;
  */
 class ActionInfo {
 
-	private string $name;
-	private ?string $restriction;
-	private bool $needsReadRights;
-	private bool $requiresWrite;
-	private bool $requiresUnblock;
+	private readonly string $name;
+	private readonly ?string $restriction;
+	private readonly bool $needsReadRights;
+	private readonly bool $requiresWrite;
+	private readonly bool $requiresUnblock;
 
 	/**
 	 * Constructs ActionInfo based on an action object spec which is expected to

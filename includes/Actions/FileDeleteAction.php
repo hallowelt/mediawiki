@@ -29,10 +29,9 @@ use MediaWiki\Utils\UrlUtils;
  * @ingroup Actions
  */
 class FileDeleteAction extends DeleteAction {
-	/** @var File */
-	private $file;
+	private readonly File $file;
 	/** @var string Descriptor for the old version of the image, if applicable */
-	private $oldImage;
+	private readonly string $oldImage;
 	/** @var OldLocalFile|null Corresponding to oldImage, if applicable */
 	private $oldFile;
 

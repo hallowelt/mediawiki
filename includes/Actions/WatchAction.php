@@ -40,9 +40,9 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
 class WatchAction extends FormAction {
 
 	/** @var bool The value of the $wgWatchlistExpiry configuration variable. */
-	protected $watchlistExpiry;
+	protected readonly bool $watchlistExpiry;
 
-	private bool $enableWatchlistLabels;
+	private readonly bool $enableWatchlistLabels;
 
 	/** @var string */
 	protected $expiryFormFieldName = 'expiry';

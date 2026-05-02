@@ -49,29 +49,27 @@ class HistoryPager extends ReverseChronologicalPager {
 
 	public string $buttons;
 
-	/** @var int */
-	protected $oldIdChecked;
+	protected int $oldIdChecked;
 
-	/** @var bool */
-	protected $preventClickjacking = false;
+	protected bool $preventClickjacking = false;
 	/**
 	 * @var array
 	 */
 	protected $parentLens;
 
 	/** @var bool Whether to show the tag editing UI */
-	protected $showTagEditUI;
+	protected readonly bool $showTagEditUI;
 
-	protected MapCacheLRU $tagsCache;
+	protected readonly MapCacheLRU $tagsCache;
 
 	/** @var string|null|false */
 	private $notificationTimestamp;
 
-	private RevisionStore $revisionStore;
-	private LinkBatchFactory $linkBatchFactory;
-	private CommentFormatter $commentFormatter;
-	private HookRunner $hookRunner;
-	private ChangeTagsStore $changeTagsStore;
+	private readonly RevisionStore $revisionStore;
+	private readonly LinkBatchFactory $linkBatchFactory;
+	private readonly CommentFormatter $commentFormatter;
+	private readonly HookRunner $hookRunner;
+	private readonly ChangeTagsStore $changeTagsStore;
 
 	/**
 	 * @var RevisionRecord[] Revisions, with the key being their result offset
