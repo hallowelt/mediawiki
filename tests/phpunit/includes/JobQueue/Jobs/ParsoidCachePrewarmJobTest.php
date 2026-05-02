@@ -79,8 +79,8 @@ class ParsoidCachePrewarmJobTest extends MediaWikiIntegrationTestCase {
 		);
 
 		// Ensure we have the parsoid output in parser cache as an HTML document
-		$this->assertStringContainsString( '<html', $parsoidOutput->getRawText() );
-		$this->assertStringContainsString( self::NON_JOB_QUEUE_EDIT, $parsoidOutput->getRawText() );
+		$this->assertStringContainsString( '<html', $parsoidOutput->getContentHolderText() );
+		$this->assertStringContainsString( self::NON_JOB_QUEUE_EDIT, $parsoidOutput->getContentHolderText() );
 
 		$rev2 = $this->editPage( $page, self::JOB_QUEUE_EDIT )->getNewRevision();
 		// Post-edit, reset all services!
@@ -117,8 +117,8 @@ class ParsoidCachePrewarmJobTest extends MediaWikiIntegrationTestCase {
 		);
 
 		// Ensure we have the parsoid output in parser cache as an HTML document
-		$this->assertStringContainsString( '<html', $parsoidOutput->getRawText() );
-		$this->assertStringContainsString( self::JOB_QUEUE_EDIT, $parsoidOutput->getRawText() );
+		$this->assertStringContainsString( '<html', $parsoidOutput->getContentHolderText() );
+		$this->assertStringContainsString( self::JOB_QUEUE_EDIT, $parsoidOutput->getContentHolderText() );
 
 		$services = MediaWikiServices::getInstance();
 		$servicesOptions = new ServiceOptions(

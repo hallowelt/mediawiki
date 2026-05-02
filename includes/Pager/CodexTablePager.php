@@ -62,7 +62,7 @@ abstract class CodexTablePager extends TablePager {
 		$header = $this->getHeader();
 
 		$pout = new ParserOutput();
-		$pout->setRawText(
+		$pout->setContentHolderText(
 			Html::openElement( 'div', [ 'class' => 'cdx-table' ] ) . "\n" .
 			$header . "\n" .
 			$navigation . "\n" .

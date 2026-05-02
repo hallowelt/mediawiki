@@ -364,7 +364,7 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 
 		/** @var ParserOutput $output */
 		$output = $status->getValue();
-		$this->assertContainsHtml( 'Hello <i>World</i>!', $output->getRawText() );
+		$this->assertContainsHtml( 'Hello <i>World</i>!', $output->getContentHolderText() );
 
 		$this->assertStatsKeyContains( '#case:current' );
 		$this->assertStatsKeyContains( '#pool:none', 'Should count direct render' );
@@ -379,7 +379,7 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 
 		$cachedOutput = $access->getCachedParserOutput( $page, $parserOptions );
 		$this->assertNotNull( $cachedOutput );
-		$this->assertSame( $output->getRawText(), $cachedOutput->getRawText() );
+		$this->assertSame( $output->getContentHolderText(), $cachedOutput->getContentHolderText() );
 
 		$this->assertStatsKeyContains(
 			'#cache:primary,reason:hit,type:hit',
@@ -409,7 +409,7 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 		/** @var ParserOutput $output */
 		$output = $access->getParserOutput( $page, $parserOptions )->getValue();
 		$this->assertNotNull( $output->getRedirectHeader() );
-		$this->assertStringContainsString( 'footer', $output->getRawText() );
+		$this->assertStringContainsString( 'footer', $output->getContentHolderText() );
 
 		// Check that the output was cached.
 		// Create a new instance so we bypass the in-object cache.
@@ -1688,7 +1688,7 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 		$output = $status->getValue();
 		$this->assertStringContainsString(
 			'just a test',
-			$output->getRawText()
+			$output->getContentHolderText()
 		);
 	}
 
@@ -1724,7 +1724,7 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 		);
 
 		$this->assertStatusOK( $status );
-		$this->assertSame( $output->getRawText(), $status->getValue()->getRawText() );
+		$this->assertSame( $output->getContentHolderText(), $status->getValue()->getContentHolderText() );
 
 		// get old revision output
 		$status = $access->getParserOutput(
@@ -1735,7 +1735,7 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 		);
 
 		$this->assertStatusOK( $status );
-		$this->assertSame( $output->getRawText(), $status->getValue()->getRawText() );
+		$this->assertSame( $output->getContentHolderText(), $status->getValue()->getContentHolderText() );
 	}
 
 	public function testInvalidate() {

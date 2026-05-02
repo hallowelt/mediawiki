@@ -3487,25 +3487,15 @@ return [
 		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.watchstar.widgets',
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.watchstar.widgets",
 		'packageFiles' => [
-			'init.js',
-			'WatchlistPopup.vue',
+			'WatchlistPopup.js',
 			[ 'name' => 'data.json', 'callback' => static function ( MessageLocalizer $messageLocalizer ) {
 				return WatchAction::getExpiryOptions( $messageLocalizer, false );
 			} ]
 		],
-		'class' => CodexModule::class,
-		'codexComponents' => [
-			'CdxButton',
-			'CdxDialog',
-			'CdxField',
-			'CdxMessage',
-			'CdxMultiselectLookup',
-			'CdxSelect',
-		],
+		'styles' => 'WatchlistPopup.css',
 		'dependencies' => [
+			'oojs-ui',
 			'mediawiki.api',
-			'vue',
-			'mediawiki.DateFormatter',
 		],
 		'messages' => [
 			'accesskey-ca-watch',

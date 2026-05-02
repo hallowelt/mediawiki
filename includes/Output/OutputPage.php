@@ -2568,7 +2568,7 @@ class OutputPage extends ContextSource {
 		// Add default options from the skin
 		$skin = $this->getSkin();
 		$skinOptions = $skin->getOptions();
-		$oldText = $parserOutput->getRawText();
+		$oldText = $parserOutput->getContentHolderText();
 		$poOptions += [
 			// T371022
 			'allowClone' => false,
@@ -2586,7 +2586,7 @@ class OutputPage extends ContextSource {
 			$parserOptions,
 			$poOptions
 		)->getContentHolderText();
-		$parserOutput->setRawText( $oldText );
+		$parserOutput->setContentHolderText( $oldText );
 		return $text;
 	}
 
@@ -5125,7 +5125,7 @@ class OutputPage extends ContextSource {
 		$pout = new ParserOutput;
 		$pout->setTOCData( $tocData );
 		$pout->setOutputFlag( ParserOutputFlags::SHOW_TOC );
-		$pout->setRawText( Parser::TOC_PLACEHOLDER );
+		$pout->setContentHolderText( Parser::TOC_PLACEHOLDER );
 		$this->addParserOutput( $pout, $this->internalParserOptions( false ) );
 	}
 

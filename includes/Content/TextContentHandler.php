@@ -231,7 +231,7 @@ class TextContentHandler extends ContentHandler {
 		}
 
 		$output->clearWrapperDivClass();
-		$output->setRawText( $html );
+		$output->setContentHolderText( $html );
 	}
 }
 /** @deprecated class alias since 1.43 */

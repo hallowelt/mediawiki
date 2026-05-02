@@ -126,7 +126,7 @@ class CodexTablePagerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetBodyOutput() {
-		$doc = self::getOutputHtml( $this->pager->getBodyOutput()->getRawText() );
+		$doc = self::getOutputHtml( $this->pager->getBodyOutput()->getContentHolderText() );
 		$table = Zest::find( 'table', $doc )[ 0 ];
 		$rows = Zest::find( 'tr', $doc );
 		$caption = Zest::find( 'caption', $doc );

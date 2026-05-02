@@ -107,7 +107,7 @@ class RevisionOutputCacheTest extends MediaWikiIntegrationTestCase {
 
 	private function createDummyParserOutput(): ParserOutput {
 		$parserOutput = new ParserOutput();
-		$parserOutput->setRawText( 'TEST' );
+		$parserOutput->setContentHolderText( 'TEST' );
 		foreach ( $this->getDummyUsedOptions() as $option ) {
 			$parserOutput->recordOption( $option );
 		}
@@ -161,7 +161,7 @@ class RevisionOutputCacheTest extends MediaWikiIntegrationTestCase {
 		$this->assertInstanceOf( ParserOutput::class, $savedOutput );
 		// RevisionOutputCache adds a comment to the HTML, so check if the result starts with page content.
 		$this->assertStringStartsWith( 'TEST_TEXT',
-			$savedOutput->getRawText() );
+			$savedOutput->getContentHolderText() );
 		$this->assertSame( $this->cacheTime, $savedOutput->getCacheTime() );
 		$this->assertSame( $this->revision->getId(), $savedOutput->getCacheRevisionId() );
 		$this->assertSame( '$wgOldRevisionParserCacheExpireTime',
@@ -194,7 +194,7 @@ class RevisionOutputCacheTest extends MediaWikiIntegrationTestCase {
 		$this->assertInstanceOf( ParserOutput::class, $savedOutput );
 		// RevisionOutputCache adds a comment to the HTML, so check if the result starts with page content.
 		$this->assertStringStartsWith( 'TEST_TEXT',
-			$savedOutput->getRawText() );
+			$savedOutput->getContentHolderText() );
 		$this->assertSame( $this->cacheTime, $savedOutput->getCacheTime() );
 		$this->assertSame( $this->revision->getId(), $savedOutput->getCacheRevisionId() );
 		$this->assertSame( '$wgOldRevisionParserCacheExpireTime',
@@ -415,7 +415,7 @@ class RevisionOutputCacheTest extends MediaWikiIntegrationTestCase {
 		$unicodeCharacter = "Э";
 		$cache = $this->createRevisionOutputCache( new HashBagOStuff() );
 		$parserOutput = $this->createDummyParserOutput();
-		$parserOutput->setRawText( $unicodeCharacter );
+		$parserOutput->setContentHolderText( $unicodeCharacter );
 		$cache->save( $parserOutput, $this->revision, ParserOptions::newFromAnon() );
 
 		$backend = TestingAccessWrapper::newFromObject( $cache )->cache;

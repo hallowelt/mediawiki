@@ -77,7 +77,7 @@ class HtmlMessageOutputHelper implements HtmlOutputHelper {
 		// But messages are small, and not hit a lot...
 		$output = $this->getHtml();
 
-		return '"message/' . sha1( $output->getRawText() ) . '/' . $suffix . '"';
+		return '"message/' . sha1( $output->getContentHolderText() ) . '/' . $suffix . '"';
 	}
 
 	/**

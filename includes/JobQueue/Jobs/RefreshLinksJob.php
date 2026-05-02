@@ -456,7 +456,7 @@ class RefreshLinksJob extends Job {
 			// There was no cached output, or no HTML was generated because
 			// shouldGenerateHTMLOnEdit returned false.
 			$htmlChanged = 'unknown';
-		} elseif ( $cachedOutput->getRawText() === $output->getRawText() ) {
+		} elseif ( $cachedOutput->getContentHolderText() === $output->getContentHolderText() ) {
 			// We have cached output, but we couldn't be sure that it was still good.
 			// So we parsed again, but the result turned out to be the same HTML as
 			// before.

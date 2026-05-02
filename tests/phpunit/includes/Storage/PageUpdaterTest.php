@@ -1647,7 +1647,7 @@ class PageUpdaterTest extends MediaWikiIntegrationTestCase {
 		$expected = strval( $callback( $rev ) );
 
 		$output = $page->getParserOutput( ParserOptions::newFromAnon() );
-		$html = $output->getRawText();
+		$html = $output->getContentHolderText();
 		$text = $rev->getContent( SlotRecord::MAIN )->serialize();
 
 		if ( $subst ) {

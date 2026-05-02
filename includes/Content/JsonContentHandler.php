@@ -144,23 +144,23 @@ class JsonContentHandler extends CodeContentHandler {
 						// Browsers render this quickly, avoiding performance issues.
 						$html = htmlspecialchars( $content->getText(), ENT_COMPAT );
 						$html = "<pre>$html</pre>";
-						$parserOutput->setRawText( $html );
+						$parserOutput->setContentHolderText( $html );
 					} else {
 						// Output an HTML table, which is a little bit easier to read for
 						// non-programmers. Browsers render this slowly, but the page is small
 						// enough that this isn't a problem.
 						$html = $content->rootValueTable( $content->getData()->getValue() );
-						$parserOutput->setRawText( $html );
+						$parserOutput->setContentHolderText( $html );
 					}
 				}
 			} else {
 				$error = wfMessage( 'invalid-json-data' )->parse();
-				$parserOutput->setRawText( $error );
+				$parserOutput->setContentHolderText( $error );
 			}
 
 			$parserOutput->addModuleStyles( [ 'mediawiki.content.json' ] );
 		} else {
-			$parserOutput->setRawText( null );
+			$parserOutput->setContentHolderText( null );
 		}
 	}
 }

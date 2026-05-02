@@ -68,7 +68,7 @@ abstract class TablePager extends IndexPager {
 		$body = parent::getBody();
 
 		$pout = new ParserOutput;
-		$pout->setRawText( $body );
+		$pout->setContentHolderText( $body );
 		return $pout;
 	}
 
@@ -86,7 +86,7 @@ abstract class TablePager extends IndexPager {
 		$body = parent::getBody();
 
 		$pout = new ParserOutput;
-		$pout->setRawText( $navigation . $body . $navigation );
+		$pout->setContentHolderText( $navigation . $body . $navigation );
 		$pout->addModuleStyles( $this->getModuleStyles() );
 		return $pout;
 	}

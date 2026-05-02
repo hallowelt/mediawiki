@@ -287,13 +287,13 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$mainOutput = $updater->getSlotParserOutput( SlotRecord::MAIN );
-		$text = $mainOutput->getRawText();
+		$text = $mainOutput->getContentHolderText();
 		$this->assertStringContainsString( 'first', $text );
 		$this->assertStringContainsString( '<a ', $text );
 		$this->assertNotEmpty( $mainOutput->getLinkList( ParserOutputLinkTypes::LOCAL ) );
 
 		$canonicalOutput = $updater->getCanonicalParserOutput();
-		$text = $canonicalOutput->getRawText();
+		$text = $canonicalOutput->getContentHolderText();
 		$this->assertStringContainsString( 'first', $text );
 		$this->assertStringContainsString( '<a ', $text );
 		$this->assertStringContainsString( 'inherited ', $text );
@@ -333,7 +333,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotNull( $updater1->getRenderedRevision() );
 
 		// parser-output for null-edit uses the original author's name
-		$html = $updater1->getRenderedRevision()->getRevisionParserOutput()->getRawText();
+		$html = $updater1->getRenderedRevision()->getRevisionParserOutput()->getContentHolderText();
 		$this->assertStringNotContainsString( $sysopName, $html, '{{REVISIONUSER}}' );
 		$this->assertStringNotContainsString( '{{REVISIONUSER}}', $html, '{{REVISIONUSER}}' );
 		$this->assertStringNotContainsString( '~~~', $html, 'signature ~~~' );
@@ -426,13 +426,13 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$mainOutput = $updater1->getSlotParserOutput( SlotRecord::MAIN );
-		$mainText = $mainOutput->getRawText();
+		$mainText = $mainOutput->getContentHolderText();
 		$this->assertStringContainsString( 'first', $mainText );
 		$this->assertStringContainsString( '<a ', $mainText );
 		$this->assertNotEmpty( $mainOutput->getLinkList( ParserOutputLinkTypes::LOCAL ) );
 
 		$canonicalOutput = $updater1->getCanonicalParserOutput();
-		$canonicalText = $canonicalOutput->getRawText();
+		$canonicalText = $canonicalOutput->getContentHolderText();
 		$this->assertStringContainsString( 'first', $canonicalText );
 		$this->assertStringContainsString( '<a ', $canonicalText );
 		$this->assertNotEmpty( $canonicalOutput->getLinkList( ParserOutputLinkTypes::LOCAL ) );
@@ -448,7 +448,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( $updater2->isChange() );
 
 		$canonicalOutput = $updater2->getCanonicalParserOutput();
-		$this->assertStringContainsString( 'second', $canonicalOutput->getRawText() );
+		$this->assertStringContainsString( 'second', $canonicalOutput->getContentHolderText() );
 	}
 
 	/**
@@ -561,7 +561,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotSame( $mainOutput, $updater->getSlotParserOutput( SlotRecord::MAIN ) );
 		$this->assertNotSame( $canonicalOutput, $updater->getCanonicalParserOutput() );
 
-		$html = $updater->getCanonicalParserOutput()->getRawText();
+		$html = $updater->getCanonicalParserOutput()->getContentHolderText();
 		$this->assertStringContainsString( '--' . $rev->getId() . '--', $html );
 
 		// TODO: MCR: ensure that when the main slot uses {{REVISIONID}} but another slot is
@@ -1642,7 +1642,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$parserOptions->setUseParsoid();
 		$parsoidCached = $parsoidCache->get( $page, $parserOptions, true );
 		$this->assertIsObject( $parsoidCached );
-		$this->assertStringContainsString( 'first', $parsoidCached->getRawText() );
+		$this->assertStringContainsString( 'first', $parsoidCached->getContentHolderText() );
 
 		// The parsoid parser output is generated during runJobs(), after the last call to setFakeTime().
 		$this->assertGreaterThan( $rev->getTimestamp(), $parsoidCached->getCacheTime() );
@@ -1658,7 +1658,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$cached = $parserCache->get( $page, $parserOptions, true );
 		$this->assertIsObject( $cached );
 		$this->assertNotSame( $parsoidCached, $cached );
-		$this->assertStringContainsString( 'first', $cached->getRawText() );
+		$this->assertStringContainsString( 'first', $cached->getContentHolderText() );
 
 		// The regular parser output is generated immediately during saveRevision(),
 		// so it uses the same timestamp as the revision.

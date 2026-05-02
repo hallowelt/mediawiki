@@ -778,7 +778,7 @@ abstract class ParsoidHandler extends Handler {
 			// Once the OutputTransform framework lands, we might revisit this.
 
 			$response = $this->getResponseFactory()->create();
-			$response->getBody()->write( $out->getRawText() );
+			$response->getBody()->write( $out->getContentHolderText() );
 
 			$helper->putHeaders( $response, true );
 

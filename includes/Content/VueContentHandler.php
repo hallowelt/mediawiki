@@ -101,7 +101,7 @@ class VueContentHandler extends CodeContentHandler {
 		}
 
 		$output->clearWrapperDivClass();
-		$output->setRawText( $html );
+		$output->setContentHolderText( $html );
 		// Suppress the TOC (T307691)
 		$output->setOutputFlag( ParserOutputFlags::NO_TOC );
 		$output->setSections( [] );

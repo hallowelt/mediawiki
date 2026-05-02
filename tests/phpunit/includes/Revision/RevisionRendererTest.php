@@ -142,14 +142,14 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $rev, $rr->getRevision() );
 		$this->assertSame( $options, $rr->getOptions() );
 
-		$html = $rr->getRevisionParserOutput()->getRawText();
+		$html = $rr->getRevisionParserOutput()->getContentHolderText();
 
 		$this->assertStringContainsString( 'page:' . __CLASS__, $html );
 		$this->assertStringContainsString( 'rev:101', $html ); // from speculativeRevIdCallback
 		$this->assertStringContainsString( 'user:Frank', $html );
 		$this->assertStringContainsString( 'time:20180101000003', $html );
 
-		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getRawText() );
+		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getContentHolderText() );
 	}
 
 	public function testGetRenderedRevision_current() {
@@ -177,14 +177,14 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $rev, $rr->getRevision() );
 		$this->assertSame( $options, $rr->getOptions() );
 
-		$html = $rr->getRevisionParserOutput()->getRawText();
+		$html = $rr->getRevisionParserOutput()->getContentHolderText();
 
 		$this->assertStringContainsString( 'page:' . __CLASS__, $html );
 		$this->assertStringContainsString( 'rev:21', $html );
 		$this->assertStringContainsString( 'user:Frank', $html );
 		$this->assertStringContainsString( 'time:20180101000003', $html );
 
-		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getRawText() );
+		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getContentHolderText() );
 	}
 
 	public function testGetRenderedRevision_master() {
@@ -209,11 +209,11 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertFalse( $rr->isContentDeleted(), 'isContentDeleted' );
 
-		$html = $rr->getRevisionParserOutput()->getRawText();
+		$html = $rr->getRevisionParserOutput()->getContentHolderText();
 
 		$this->assertStringContainsString( 'rev:21', $html );
 
-		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getRawText() );
+		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getContentHolderText() );
 	}
 
 	public function testGetRenderedRevision_known() {
@@ -239,8 +239,8 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$this->assertSame( $output, $rr->getRevisionParserOutput() );
-		$this->assertSame( 'cached text', $rr->getRevisionParserOutput()->getRawText() );
-		$this->assertSame( 'cached text', $rr->getSlotParserOutput( SlotRecord::MAIN )->getRawText() );
+		$this->assertSame( 'cached text', $rr->getRevisionParserOutput()->getContentHolderText() );
+		$this->assertSame( 'cached text', $rr->getSlotParserOutput( SlotRecord::MAIN )->getContentHolderText() );
 	}
 
 	public function testGetRenderedRevision_old() {
@@ -268,14 +268,14 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $rev, $rr->getRevision() );
 		$this->assertSame( $options, $rr->getOptions() );
 
-		$html = $rr->getRevisionParserOutput()->getRawText();
+		$html = $rr->getRevisionParserOutput()->getContentHolderText();
 
 		$this->assertStringContainsString( 'page:' . __CLASS__, $html );
 		$this->assertStringContainsString( 'rev:11', $html );
 		$this->assertStringContainsString( 'user:Frank', $html );
 		$this->assertStringContainsString( 'time:20180101000003', $html );
 
-		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getRawText() );
+		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getContentHolderText() );
 	}
 
 	public function testGetRenderedRevision_suppressed() {
@@ -330,7 +330,7 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $rev, $rr->getRevision() );
 		$this->assertSame( $options, $rr->getOptions() );
 
-		$html = $rr->getRevisionParserOutput()->getRawText();
+		$html = $rr->getRevisionParserOutput()->getContentHolderText();
 
 		// Suppressed content should be visible for sysops
 		$this->assertStringContainsString( 'page:' . __CLASS__, $html );
@@ -338,7 +338,7 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'user:Frank', $html );
 		$this->assertStringContainsString( 'time:20180101000003', $html );
 
-		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getRawText() );
+		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getContentHolderText() );
 	}
 
 	public function testGetRenderedRevision_raw() {
@@ -377,7 +377,7 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $rev->getId(), $parserOutput->getCacheRevisionId() );
 		$this->assertSame( $rev->getTimestamp(), $parserOutput->getRevisionTimestamp() );
 
-		$html = $parserOutput->getRawText();
+		$html = $parserOutput->getContentHolderText();
 
 		// Suppressed content should be visible in raw mode
 		$this->assertStringContainsString( 'page:' . __CLASS__, $html );
@@ -385,7 +385,7 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'user:Frank', $html );
 		$this->assertStringContainsString( 'time:20180101000003', $html );
 
-		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getRawText() );
+		$this->assertSame( $html, $rr->getSlotParserOutput( SlotRecord::MAIN )->getContentHolderText() );
 	}
 
 	public function testGetRenderedRevision_multi() {
@@ -434,7 +434,7 @@ class RevisionRendererTest extends MediaWikiIntegrationTestCase {
 
 		// there should be only one wrapper div
 		$this->assertSame( 1, preg_match_all( '#class="[^"]*mw-parser-output"#', $combinedHtml ) );
-		$this->assertStringNotContainsString( 'mw-parser-output"', $combinedOutput->getRawText() );
+		$this->assertStringNotContainsString( 'mw-parser-output"', $combinedOutput->getContentHolderText() );
 
 		$this->assertTrue( self::linksContain( $combinedOutput, NS_MAIN, 'Kittens' ), 'links from main slot' );
 		$this->assertTrue( self::linksContain( $combinedOutput, NS_MAIN, 'Goats' ), 'links from aux slot' );

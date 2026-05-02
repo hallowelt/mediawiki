@@ -82,9 +82,9 @@ class CompareParserCache extends Maintenance {
 				$this->output( "Found cache entry found for '{$title->getPrefixedText()}'..." );
 
 				$oldHtml = trim( preg_replace( '#<!-- .+-->#Us', '',
-					$parserOutputOld->getRawText() ) );
+					$parserOutputOld->getContentHolderText() ) );
 				$newHtml = trim( preg_replace( '#<!-- .+-->#Us', '',
-					$parserOutputNew->getRawText() ) );
+					$parserOutputNew->getContentHolderText() ) );
 				$diffs = new Diff( explode( "\n", $oldHtml ), explode( "\n", $newHtml ) );
 				$formatter = new UnifiedDiffFormatter();
 				$unifiedDiff = $formatter->format( $diffs );

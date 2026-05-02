@@ -25,7 +25,7 @@ class HtmlMessageOutputHelperTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( 0, $page->getLatest() );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 
 		$this->assertStringContainsString( 'You are now logged out', $htmlresult );
 		// Check that we have a full HTML document in English
@@ -58,7 +58,7 @@ class HtmlMessageOutputHelperTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( 0, $page->getLatest() );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 
 		$this->assertStringContainsString( 'Du bist nun abgemeldet', $htmlresult );
 		// Check that we have a full HTML document in English

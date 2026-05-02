@@ -87,7 +87,7 @@ class ExportTest extends MediaWikiLangTestCase {
 				ContentParseParams $cpoParams,
 				ParserOutput &$output
 			) {
-				$output->setRawText( json_encode( $content->getTestData() ) );
+				$output->setContentHolderText( json_encode( $content->getTestData() ) );
 			}
 
 			private function getTestContent( string $blob ): Content {

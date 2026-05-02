@@ -205,7 +205,7 @@ class LanguageVariantConverterTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( 'my-data', $modifiedParserOutput->getExtensionData( 'my-key' ) );
 
-		$html = $modifiedParserOutput->getRawText();
+		$html = $modifiedParserOutput->getContentHolderText();
 		$stripped = preg_replace( ':</?span[^>]*>:', '', $html );
 		$this->assertStringContainsString( $expected, $stripped );
 		if ( $expectedLanguage !== false ) {

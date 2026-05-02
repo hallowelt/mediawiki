@@ -275,11 +275,11 @@ class RevisionRenderer implements LoggerAwareInterface {
 
 				// XXX: do we want to put a wrapper div around the output?
 				// Do we want to let $roleHandler do that?
-				$html .= $out->getRawText();
+				$html .= $out->getContentHolderText();
 				$combinedOutput->mergeHtmlMetaDataFrom( $out );
 			}
 
-			$combinedOutput->setRawText( $html );
+			$combinedOutput->setContentHolderText( $html );
 		}
 
 		$options->registerWatcher( null );

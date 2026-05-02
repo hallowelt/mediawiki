@@ -271,11 +271,11 @@ class ParserOutputTest extends MediaWikiLangTestCase {
 		$opts = ParserOptions::newFromAnon();
 		$pipeline = MediaWikiServices::getInstance()->getDefaultOutputPipeline();
 
-		$po->setRawText( 'Kittens' );
+		$po->setContentHolderText( 'Kittens' );
 		$text = $pipeline->run( $po, $opts, [] )->getContentHolderText();
 		$this->assertStringContainsString( 'Kittens', $text );
 		$this->assertStringNotContainsString( '<div', $text );
-		$this->assertSame( 'Kittens', $po->getRawText() );
+		$this->assertSame( 'Kittens', $po->getContentHolderText() );
 
 		$po->addWrapperDivClass( 'foo' );
 		$text = $pipeline->run( $po, $opts, [] )->getContentHolderText();
@@ -306,7 +306,7 @@ class ParserOutputTest extends MediaWikiLangTestCase {
 		$this->assertStringContainsString( 'class="mw-content-ltr xyzzy"', $text );
 		$this->assertStringNotContainsString( 'foo bar', $text );
 
-		$text = $po->getRawText();
+		$text = $po->getContentHolderText();
 		$this->assertSame( 'Kittens', $text );
 
 		$po->clearWrapperDivClass();
@@ -333,11 +333,11 @@ class ParserOutputTest extends MediaWikiLangTestCase {
 		$this->assertTrue( $po->hasText() );
 
 		$po = new ParserOutput( null );
-		$po->setRawText( '' );
+		$po->setContentHolderText( '' );
 		$this->assertTrue( $po->hasText() );
 
 		$po = new ParserOutput( 'foo' );
-		$po->setRawText( null );
+		$po->setContentHolderText( null );
 		$this->assertFalse( $po->hasText() );
 	}
 
@@ -348,7 +348,7 @@ class ParserOutputTest extends MediaWikiLangTestCase {
 		$po = new ParserOutput( null );
 
 		$this->expectException( LogicException::class );
-		$po->getRawText();
+		$po->getContentHolderText();
 	}
 
 	public static function provideMergeHtmlMetaDataFrom() {

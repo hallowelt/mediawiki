@@ -18,7 +18,7 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 	/** @dataProvider provideParserOutputFromPageBundle */
 	public function testParserOutputFromPageBundle( HtmlPageBundle $pageBundle ) {
 		$output = PageBundleParserOutputConverter::parserOutputFromPageBundle( $pageBundle );
-		$this->assertSame( $pageBundle->html, $output->getRawText() );
+		$this->assertSame( $pageBundle->html, $output->getContentHolderText() );
 
 		$outputPageBundle = $output->getContentHolder()->getBasePageBundle();
 		$this->assertEquals( $pageBundle->toBasePageBundle(), $outputPageBundle );
@@ -38,7 +38,7 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 
 		// This should preserve the metadata.
 		$output = PageBundleParserOutputConverter::parserOutputFromPageBundle( $pageBundle, $original );
-		$this->assertSame( $pageBundle->html, $output->getRawText() );
+		$this->assertSame( $pageBundle->html, $output->getContentHolderText() );
 
 		// Check the page bundle data
 		$outputPageBundle = $output->getContentHolder()->getBasePageBundle();
@@ -63,8 +63,8 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 		}
 
 		// Check that $original and $output can be modified independently of each other
-		$original->setRawText( 'new text version' );
-		$this->assertNotSame( 'new text version', $output->getRawText() );
+		$original->setContentHolderText( 'new text version' );
+		$this->assertNotSame( 'new text version', $output->getContentHolderText() );
 	}
 
 	public static function provideParserOutputFromPageBundle() {
@@ -94,7 +94,7 @@ class PageBundleParserOutputConverterTest extends MediaWikiUnitTestCase {
 	public function testPageBundleFromParserOutput( ParserOutput $parserOutput ) {
 		$pageBundle = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput );
 
-		$this->assertSame( $parserOutput->getRawText(), $pageBundle->html );
+		$this->assertSame( $parserOutput->getContentHolderText(), $pageBundle->html );
 
 		$outputPageBundle = $parserOutput->getContentHolder()->getBasePageBundle();
 		$this->assertEquals( $pageBundle->toBasePageBundle(), $outputPageBundle );

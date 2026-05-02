@@ -499,7 +499,7 @@ class ApiParse extends ApiBase {
 			// TODO T371022 it should be reasonably straightforward to move this to a clone, but it requires
 			// careful checking of the clone and of what happens on the boundary of OutputPage. Leaving this as
 			// "getText-equivalent" for now; will fix in a later, independent patch.
-			$oldText = $p_result->getRawText();
+			$oldText = $p_result->getContentHolderText();
 			$newText = $p_result->runOutputPipeline( $popts, [
 				// This will have side effects on $p_result (T371022)
 				'allowClone' => false,
@@ -511,7 +511,7 @@ class ApiParse extends ApiBase {
 				'skin' => $skin,
 				'includeDebugInfo' => !$params['disablepp'] && !$params['disablelimitreport']
 			] )->getContentHolderText();
-			$p_result->setRawText( $oldText );
+			$p_result->setContentHolderText( $oldText );
 			if ( isset( $prop['text'] ) ) {
 				$result_array['text'] = $newText;
 				$result_array[ApiResult::META_BC_SUBELEMENTS][] = 'text';

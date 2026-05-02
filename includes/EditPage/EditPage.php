@@ -4037,14 +4037,14 @@ class EditPage implements IEditObject {
 		$skinOptions = $skin->getOptions();
 		// TODO T371004 move runOutputPipeline out of $parserOutput
 		// TODO T371022 ideally we clone here, but for now let's reproduce getText behaviour
-		$oldHtml = $parserOutput->getRawText();
+		$oldHtml = $parserOutput->getContentHolderText();
 		$html = $parserOutput->runOutputPipeline( $parserOptions, [
 			'allowClone' => 'false',
 			'userLang' => $skin->getLanguage(),
 			'injectTOC' => $skinOptions['toc'],
 			'includeDebugInfo' => true,
 		] )->getContentHolderText();
-		$parserOutput->setRawText( $oldHtml );
+		$parserOutput->setContentHolderText( $oldHtml );
 		return [
 			'parserOutput' => $parserOutput,
 			'html' => $html

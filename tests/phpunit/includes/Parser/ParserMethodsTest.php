@@ -395,7 +395,7 @@ class ParserMethodsTest extends MediaWikiLangTestCase {
 
 		$parser = $this->getServiceContainer()->getParser();
 		$parser->parse( $text, $title, $po, true, true, $revId );
-		$html = $parser->getOutput()->getRawText();
+		$html = $parser->getOutput()->getContentHolderText();
 
 		$this->assertStringContainsString( $expectedInHtml, $html, 'In HTML' );
 

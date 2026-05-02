@@ -56,7 +56,7 @@ class ExtraParserTest extends MediaWikiIntegrationTestCase {
 		$title = Title::makeTitle( NS_MAIN, 'Unit test' );
 		$options = ParserOptions::newFromUser( new User() );
 		$this->assertEquals( "<p>$longLine</p>",
-			$this->parser->parse( $longLine, $title, $options )->getRawText() );
+			$this->parser->parse( $longLine, $title, $options )->getContentHolderText() );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class ExtraParserTest extends MediaWikiIntegrationTestCase {
 
 		RequestContext::getMain()->setTitle( $title );
 
-		$parsed = $this->parser->parse( $text, $title, $options )->getRawText();
+		$parsed = $this->parser->parse( $text, $title, $options )->getContentHolderText();
 		$this->assertStringContainsString( 'apihelp-header', $parsed );
 	}
 
@@ -83,7 +83,7 @@ class ExtraParserTest extends MediaWikiIntegrationTestCase {
 		$parserOutput = $this->parser->parse( "Test\n{{Foo}}\n{{Bar}}", $title, $this->options );
 		$this->assertEquals(
 			"<p>Test\nContent of <i>Template:Foo</i>\nContent of <i>Template:Bar</i>\n</p>",
-			$parserOutput->getRawText()
+			$parserOutput->getContentHolderText()
 		);
 	}
 

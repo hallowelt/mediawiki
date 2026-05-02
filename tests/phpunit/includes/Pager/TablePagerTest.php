@@ -105,7 +105,7 @@ class TablePagerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetBodyOutput() {
-		$doc = self::getOutputHtml( $this->tablePager->getBodyOutput()->getRawText() );
+		$doc = self::getOutputHtml( $this->tablePager->getBodyOutput()->getContentHolderText() );
 		$table = Zest::find( 'table', $doc )[ 0 ];
 		$rows = Zest::find( 'tr', $doc );
 

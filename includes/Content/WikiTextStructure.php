@@ -155,7 +155,7 @@ class WikiTextStructure {
 		if ( $this->allText !== null ) {
 			return;
 		}
-		$text = $this->parserOutput->getRawText();
+		$text = $this->parserOutput->getContentHolderText();
 		if ( $text === '' ) {
 			$this->allText = "";
 

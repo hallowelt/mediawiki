@@ -671,7 +671,7 @@ class Parser {
 
 		$this->mOutput->setFromParserOptions( $options );
 
-		$this->mOutput->setRawText( $text );
+		$this->mOutput->setContentHolderText( $text );
 
 		$this->mRevisionId = $oldRevisionId;
 		$this->mRevisionRecordObject = $oldRevisionRecordObject;

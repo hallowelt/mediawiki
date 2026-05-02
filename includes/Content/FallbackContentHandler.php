@@ -110,7 +110,7 @@ class FallbackContentHandler extends ContentHandler {
 		'@phan-var FallbackContent $content';
 		$msg = wfMessage( 'unsupported-content-model', [ $content->getModel() ] );
 		$html = Html::rawElement( 'div', [ 'class' => 'error' ], $msg->inContentLanguage()->parse() );
-		$output->setRawText( $html );
+		$output->setContentHolderText( $html );
 	}
 
 	/**

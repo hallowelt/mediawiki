@@ -106,7 +106,7 @@ class PageHTMLHandler extends SimpleHandler {
 		$this->contentHelper->checkHasContent();
 
 		$parserOutput = $this->htmlHelper->getHtml();
-		$parserOutputHtml = $parserOutput->getRawText();
+		$parserOutputHtml = $parserOutput->getContentHolderText();
 
 		$outputMode = $this->getOutputMode();
 		switch ( $outputMode ) {

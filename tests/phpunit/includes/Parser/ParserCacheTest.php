@@ -106,7 +106,7 @@ class ParserCacheTest extends ParserCacheTestBase {
 
 	private function createDummyParserOutput(): ParserOutput {
 		$parserOutput = new ParserOutput();
-		$parserOutput->setRawText( 'TEST' );
+		$parserOutput->setContentHolderText( 'TEST' );
 		foreach ( $this->getDummyUsedOptions() as $option ) {
 			$parserOutput->recordOption( $option );
 		}
@@ -328,7 +328,7 @@ class ParserCacheTest extends ParserCacheTestBase {
 		// ParserCache adds a comment to the HTML, so check if the result starts with page content.
 		$this->assertStringStartsWith(
 			'TEST_TEXT',
-			$savedOutput->getRawText()
+			$savedOutput->getContentHolderText()
 		);
 		$this->assertSame(
 			$this->cacheTime,
@@ -376,7 +376,7 @@ class ParserCacheTest extends ParserCacheTestBase {
 		// ParserCache adds a comment to the HTML, so check if the result starts with page content.
 		$this->assertStringStartsWith(
 			'TEST_TEXT',
-			$savedOutput->getRawText()
+			$savedOutput->getContentHolderText()
 		);
 		$this->assertSame(
 			$this->cacheTime,
@@ -576,7 +576,7 @@ class ParserCacheTest extends ParserCacheTestBase {
 			$cache->get(
 				$this->page,
 				$options
-			)->getRawText()
+			)->getContentHolderText()
 		);
 	}
 
@@ -1002,7 +1002,7 @@ class ParserCacheTest extends ParserCacheTestBase {
 
 		$result = $cache->get( $page, $popt );
 		$this->assertInstanceOf( ParserOutput::class, $result );
-		$this->assertSame( 'TEST', $result->getRawText() );
+		$this->assertSame( 'TEST', $result->getContentHolderText() );
 	}
 
 	/**
@@ -1290,7 +1290,7 @@ class ParserCacheTest extends ParserCacheTestBase {
 		$bag = new HashBagOStuff();
 		$parserCache = $this->makeParserCache( $bag );
 		$parserOutput = $this->createDummyParserOutput();
-		$parserOutput->setRawText( $unicodeCharacter );
+		$parserOutput->setContentHolderText( $unicodeCharacter );
 		$parserCache->save(
 			$parserOutput,
 			$this->page,

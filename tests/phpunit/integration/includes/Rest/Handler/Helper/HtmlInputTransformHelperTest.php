@@ -1085,7 +1085,7 @@ class HtmlInputTransformHelperTest extends MediaWikiIntegrationTestCase {
 		$pout = $access->getParserOutput( $pageLookup->getPageByReference( $page ), $popt )->getValue();
 
 		$key = ParsoidRenderID::newFromParserOutput( $pout )->getKey();
-		$html = $pout->getRawText();
+		$html = $pout->getContentHolderText();
 
 		// Load the original data based on the ETag
 		$body = [ 'html' => $html, 'original' => [ 'renderid' => $key ] ];
@@ -1113,7 +1113,7 @@ class HtmlInputTransformHelperTest extends MediaWikiIntegrationTestCase {
 		$popt = ParserOptions::newFromAnon();
 		$popt->setUseParsoid();
 		$pout = $access->getParserOutput( $pageLookup->getPageByReference( $page ), $popt )->getValue();
-		$html = $pout->getRawText();
+		$html = $pout->getContentHolderText();
 
 		// Load the original data based on the ETag
 		$body = [ 'html' => $html, 'original' => [ 'revid' => $rev->getId() ] ];

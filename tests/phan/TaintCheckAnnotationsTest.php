@@ -1369,6 +1369,6 @@ class TaintCheckAnnotationsTest {
 
 	function testParserOutput( ParserOutput $po ) {
 		$po->setIndicator( 'foo', $_GET['a'] ); // @phan-suppress-current-line SecurityCheck-XSS
-		$po->setRawText( $_GET['a'] ); // @phan-suppress-current-line SecurityCheck-XSS
+		$po->setContentHolderText( $_GET['a'] ); // @phan-suppress-current-line SecurityCheck-XSS
 	}
 }

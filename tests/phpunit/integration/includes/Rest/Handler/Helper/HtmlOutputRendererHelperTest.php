@@ -310,7 +310,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 			$this->assertSame( 0, $helper->getRevisionId() );
 		}
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 
 		$this->assertStringContainsString( $this->getMockHtml( $revId ), $htmlresult );
 	}
@@ -322,7 +322,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper = $this->newHelper( [ 'expectedHtml' => self::MOCK_HTML ], $page, self::PARAM_DEFAULTS, $this->newAuthority() );
 		$helper->setVariantConversionLanguage( new Bcp47CodeValue( 'en-x-piglatin' ) );
 
-		$htmlResult = $helper->getHtml()->getRawText();
+		$htmlResult = $helper->getHtml()->getContentHolderText();
 		$this->assertStringContainsString( self::MOCK_HTML_VARIANT, $htmlResult );
 		$this->assertStringContainsString( 'en-x-piglatin', $helper->getETag() );
 
@@ -388,7 +388,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		// getRevisionId() should return null for fake revisions.
 		$this->assertNull( $helper->getRevisionId() );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 
 		$this->assertStringContainsString( 'text to preview', $htmlresult );
 	}
@@ -399,7 +399,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper = $this->newHelper( [], $page, self::PARAM_DEFAULTS, $this->newAuthority() );
 		$helper->setContentSource( 'text to preview', CONTENT_MODEL_WIKITEXT );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 
 		$this->assertStringContainsString( 'text to preview', $htmlresult );
 	}
@@ -418,7 +418,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		);
 		$helper->setStashingEnabled( true );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 		$this->assertStringContainsString( self::MOCK_HTML, $htmlresult );
 
 		$eTag = $helper->getETag();
@@ -440,7 +440,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper->setContent( new WikitextContent( $text ) );
 		$helper->setStashingEnabled( true );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 		$this->assertStringContainsString( $text, $htmlresult );
 
 		$eTag = $helper->getETag();
@@ -512,7 +512,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper->setFlavor( 'fragment' );
 		$helper->setContentSource( 'Contents', CONTENT_MODEL_WIKITEXT );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 
 		$this->assertStringContainsString( 'fragment', $helper->getETag() );
 		$this->assertStringContainsString( '<p>Contents</p>', $htmlresult );
@@ -527,7 +527,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper->setContentSource( 'hello {{world}}', CONTENT_MODEL_WIKITEXT );
 		$helper->setFlavor( 'edit' );
 
-		$htmlresult = $helper->getHtml()->getRawText();
+		$htmlresult = $helper->getHtml()->getContentHolderText();
 
 		$this->assertStringContainsString( 'edit', $helper->getETag() );
 
@@ -1051,7 +1051,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 
 		// check content language in HTML
 		$output = $helper->getHtml();
-		$html = $output->getRawText();
+		$html = $output->getContentHolderText();
 		$this->assertStringContainsString( 'lang="ar"', $html );
 		$this->assertStringContainsString( '>ar<', $html ); # {{PAGELANGUAGE}}
 
@@ -1060,7 +1060,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper->setPageLanguage( 'en' );
 		$this->assertSame( 'en', $helper->getHtmlOutputContentLanguage()->toBcp47Code() );
 		$output = $helper->getHtml();
-		$html = $output->getRawText();
+		$html = $output->getContentHolderText();
 		$this->assertStringContainsString( 'lang="en"', $html );
 		$this->assertStringContainsString( '>en<', $html ); # {{PAGELANGUAGE}}
 	}
@@ -1259,7 +1259,7 @@ class HtmlOutputRendererHelperTest extends MediaWikiIntegrationTestCase {
 		$helper->setFlavor( $flavor );
 
 		$output = $helper->getHtml();
-		$this->assertStringContainsString( 'not wikitext', $output->getRawText() );
+		$this->assertStringContainsString( 'not wikitext', $output->getContentHolderText() );
 		$this->assertNotNull( ParsoidRenderID::newFromParserOutput( $output )->getKey() );
 	}
 

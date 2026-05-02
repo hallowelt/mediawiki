@@ -198,7 +198,7 @@ class CompareLanguageConverterOutput extends Maintenance {
 
 	private function getConverterUsed( ParserOutput $parsoidOutput ): string {
 		$isCoreConverterUsed = strpos(
-			$parsoidOutput->getRawText(),
+			$parsoidOutput->getContentHolderText(),
 			'Variant conversion performed using the core LanguageConverter'
 		);
 

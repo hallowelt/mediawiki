@@ -37,7 +37,7 @@ class ParsoidParserTest extends MediaWikiIntegrationTestCase {
 			$args[2] = ParserOptions::newFromAnon();
 		}
 		$output = $parsoidParser->parse( ...$args );
-		$html = $output->getRawText();
+		$html = $output->getContentHolderText();
 		$this->assertStringContainsString( $expected, $html );
 		$this->assertTrue(
 			$output->getTitle()->isSameLinkAs( $args[1] )
@@ -90,7 +90,7 @@ class ParsoidParserTest extends MediaWikiIntegrationTestCase {
 			true,
 			$page->getRevisionRecord()->getId()
 		);
-		$html = $output->getRawText();
+		$html = $output->getContentHolderText();
 		$this->assertStringContainsString( "Hello, World", $html );
 		$this->assertTrue(
 			$output->getTitle()->isSameLinkAs( $pageTitle )
