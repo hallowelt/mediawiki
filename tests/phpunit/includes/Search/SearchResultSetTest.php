@@ -27,8 +27,6 @@ class SearchResultSetTest extends MediaWikiIntegrationTestCase {
 		}
 		$this->assertSame( 1, $count );
 
-		$this->hideDeprecated( 'MediaWiki\\Search\\BaseSearchResultSet::rewind' );
-		$resultSet->rewind();
 		$count = 0;
 		foreach ( $resultSet as $iterResult ) {
 			$this->assertEquals( $result, $iterResult );

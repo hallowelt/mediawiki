@@ -2,8 +2,6 @@
 
 namespace MediaWiki\Search;
 
-use ArrayIterator;
-
 /**
  * BaseSearchResultSet is the base class that must be extended by SearchEngine
  * search result set implementations.
@@ -15,40 +13,8 @@ use ArrayIterator;
  *
  * @stable to extend
  * @ingroup Search
- * @method ArrayIterator getIterator()
  */
 abstract class BaseSearchResultSet implements ISearchResultSet {
-
-	/**
-	 * @var ArrayIterator|null Iterator supporting BC iteration methods
-	 */
-	private $bcIterator;
-
-	/**
-	 * Rewind result set back to beginning
-	 * @deprecated since 1.32; Use self::extractResults() or foreach
-	 */
-	public function rewind() {
-		wfDeprecated( __METHOD__, '1.32' );
-		$this->bcIterator()->rewind();
-	}
-
-	private function bcIterator(): ArrayIterator {
-		if ( $this->bcIterator === null ) {
-			// @phan-suppress-next-line PhanTypeMismatchProperty Expected
-			$this->bcIterator = 'RECURSION';
-			$this->bcIterator = $this->getIterator();
-		} elseif ( $this->bcIterator === 'RECURSION' ) {
-			// @phan-suppress-previous-line PhanTypeComparisonFromArray Use of string is a hack
-			// Either next/rewind or extractResults must be implemented.  This
-			// class was potentially instantiated directly. It should be
-			// abstract with abstract methods to enforce this but that's a
-			// breaking change...
-			wfDeprecated( static::class . ' without implementing extractResults', '1.32' );
-			$this->bcIterator = new ArrayIterator( [] );
-		}
-		return $this->bcIterator;
-	}
 
 	/**
 	 * @inheritDoc
