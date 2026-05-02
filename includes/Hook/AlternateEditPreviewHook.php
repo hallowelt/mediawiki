@@ -23,7 +23,7 @@ interface AlternateEditPreviewHook {
 	 * @param EditPage $editPage
 	 * @param Content &$content Content object for the text field from the edit page
 	 * @param string &$previewHTML Text to be placed into the page for the preview
-	 * @param ParserOutput &$parserOutput ParserOutput object for the preview
+	 * @param ParserOutput|null &$parserOutput ParserOutput object for the preview
 	 * @return bool|void True or no return value to continue, or false and set $previewHTML and
 	 *   $parserOutput to output custom page preview HTML
 	 */

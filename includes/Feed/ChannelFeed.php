@@ -10,8 +10,6 @@
 
 namespace MediaWiki\Feed;
 
-use LogicException;
-use MediaWiki\Debug\MWDebug;
 use MediaWiki\Html\TemplateParser;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -54,27 +52,7 @@ abstract class ChannelFeed extends FeedItem {
 	 * @stable to override
 	 * @since 1.46
 	 */
-	public function outputHeader( $output ): void {
-		if ( MWDebug::detectDeprecatedOverride( $this, __CLASS__, 'outHeader', '1.46' ) ) {
-			$this->outHeader();
-			return;
-		}
-		throw new LogicException( 'Either outHeader() or outputHeader() needs to be implemented!' );
-	}
-
-	/**
-	 * Generate Header of the feed
-	 * @par Example:
-	 * @code
-	 * print "<feed>";
-	 * @endcode
-	 * @deprecated since 1.46; use outputFooter instead
-	 */
-	public function outHeader() {
-		wfDeprecated( __METHOD__, '1.46' );
-		global $wgOut;
-		$this->outputHeader( $wgOut );
-	}
+	abstract public function outputHeader( $output ): void;
 
 	/**
 	 * Generate an item
@@ -85,28 +63,7 @@ abstract class ChannelFeed extends FeedItem {
 	 * @stable to override
 	 * @since 1.46
 	 */
-	public function outputItem( FeedItem $item, $output ): void {
-		if ( MWDebug::detectDeprecatedOverride( $this, __CLASS__, 'outItem', '1.46' ) ) {
-			$this->outItem( $item );
-			return;
-		}
-		throw new LogicException( 'Either outItem() or outputItem() needs to be implemented!' );
-	}
-
-	/**
-	 * Generate an item
-	 * @par Example:
-	 * @code
-	 * print "<item>...</item>";
-	 * @endcode
-	 * @param FeedItem $item
-	 * @deprecated since 1.46; use outputItem instead
-	 */
-	public function outItem( $item ) {
-		wfDeprecated( __METHOD__, '1.46' );
-		global $wgOut;
-		$this->outputItem( $item, $wgOut );
-	}
+	abstract public function outputItem( FeedItem $item, $output ): void;
 
 	/**
 	 * Generate Footer of the feed
@@ -116,27 +73,7 @@ abstract class ChannelFeed extends FeedItem {
 	 * @stable to override
 	 * @since 1.46
 	 */
-	public function outputFooter( $output ): void {
-		if ( MWDebug::detectDeprecatedOverride( $this, __CLASS__, 'outFooter', '1.46' ) ) {
-			$this->outFooter();
-			return;
-		}
-		throw new LogicException( 'Either outFooter() or outputFooter() needs to be implemented!' );
-	}
-
-	/**
-	 * Generate Footer of the feed
-	 * @par Example:
-	 * @code
-	 * print "</feed>";
-	 * @endcode
-	 * @deprecated since 1.46; use outputFooter instead
-	 */
-	public function outFooter() {
-		wfDeprecated( __METHOD__, '1.46' );
-		global $wgOut;
-		$this->outputFooter( $wgOut );
-	}
+	abstract public function outputFooter( $output ): void;
 
 	/**
 	 * Setup and send HTTP headers. Don't send any content;
@@ -169,22 +106,6 @@ abstract class ChannelFeed extends FeedItem {
 	}
 
 	/**
-	 * Setup and send HTTP headers. Don't send any content;
-	 * content might end up being cached and re-sent with
-	 * these same headers later.
-	 *
-	 * This should be called from the outHeader() method,
-	 * but can also be called separately.
-	 *
-	 * @deprecated since 1.46; use sendHttpHeaders() instead
-	 */
-	public function httpHeaders() {
-		wfDeprecated( __METHOD__, '1.46' );
-		global $wgOut;
-		$this->sendHttpHeaders( $wgOut );
-	}
-
-	/**
 	 * Return an internet media type to be sent in the headers.
 	 *
 	 * @param WebRequest $request
@@ -210,16 +131,5 @@ abstract class ChannelFeed extends FeedItem {
 	protected function outputXmlHeader( $output ): void {
 		$this->sendHttpHeaders( $output );
 		echo '<?xml version="1.0"?>' . "\n";
-	}
-
-	/**
-	 * Output the initial XML headers.
-	 *
-	 * @deprecated since 1.46; use outputXmlHeader() instead
-	 */
-	protected function outXmlHeader() {
-		wfDeprecated( __METHOD__, '1.46' );
-		global $wgOut;
-		$this->outputXmlHeader( $wgOut );
 	}
 }

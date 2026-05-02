@@ -96,6 +96,10 @@ because of Phabricator reports.
 
 * It is no longer possible to pass null to the $output parameter of
   FeedUtils::checkFeedOutput. This behaviour was deprecated in 1.46.
+* ChannelFeed::outHeader(), ::outItem(), ::outFooter(), ::httpHeaders() and
+  ::outXmlHeader() have been removed. Use/override ::outputHeader(),
+  ::outputItem(), ::outputFooter(), ::sendHttpHeaders() and ::outputXmlHeader()
+  instead.
 * …
 
 === Deprecations in 1.47 ===

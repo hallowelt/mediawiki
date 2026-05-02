@@ -228,8 +228,7 @@ class EditPage implements IEditObject {
 
 	private string $hookError = '';
 
-	/** @var ParserOutput|null */
-	private $mParserOutput;
+	private ?ParserOutput $mParserOutput = null;
 
 	public bool $mShowSummaryField = true;
 
