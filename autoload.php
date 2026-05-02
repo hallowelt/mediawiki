@@ -2619,7 +2619,6 @@ $wgAutoloadLocalClasses = [
 	'MediaWiki\\Parser\\Parsoid\\ParsoidParser' => __DIR__ . '/includes/Parser/Parsoid/ParsoidParser.php',
 	'MediaWiki\\Parser\\Parsoid\\ParsoidParserFactory' => __DIR__ . '/includes/Parser/Parsoid/ParsoidParserFactory.php',
 	'MediaWiki\\Parser\\Parsoid\\ParsoidRenderID' => __DIR__ . '/includes/Edit/ParsoidRenderID.php',
-	'MediaWiki\\Parser\\Parsoid\\ParsoidServices' => __DIR__ . '/includes/Parser/Parsoid/ParsoidServices.php',
 	'MediaWiki\\Parser\\Preprocessor' => __DIR__ . '/includes/Parser/Preprocessor.php',
 	'MediaWiki\\Parser\\Preprocessor_Hash' => __DIR__ . '/includes/Parser/Preprocessor_Hash.php',
 	'MediaWiki\\Parser\\RemexRemoveTagHandler' => __DIR__ . '/includes/Parser/RemexRemoveTagHandler.php',

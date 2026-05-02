@@ -104,6 +104,10 @@ because of Phabricator reports.
 * ResourceLoader::makeConfigSetScript, deprecated in 1.44, has been removed.
   Use package files instead or return mw.config.set() combined with
   RL\Context::encodeJson, if available. Otherwise, use FormatJson::encode.
+* BaseSearchResultSet::next(), deprecated since 1.32 has now been removed.
+  Use ::extractResults() instead.
+* The ParsoidService class, deprecated since 1.39, has been removed. Use the
+  relevant MediaWikiServices access points instead.
 * …
 
 === Deprecations in 1.47 ===

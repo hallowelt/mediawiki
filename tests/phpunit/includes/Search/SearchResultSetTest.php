@@ -4,17 +4,17 @@ use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Search\SearchResult;
 use MediaWiki\Title\Title;
 
+/**
+ * @covers \MediaWiki\Search\SearchResultSet
+ * @covers \MediaWiki\Search\BaseSearchResultSet
+ * @covers \MediaWiki\Search\SearchResultSetTrait
+ */
 class SearchResultSetTest extends MediaWikiIntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->setService( 'RevisionLookup', $this->createMock( RevisionLookup::class ) );
 	}
 
-	/**
-	 * @covers \MediaWiki\Search\SearchResultSet::getIterator
-	 * @covers \MediaWiki\Search\BaseSearchResultSet::next
-	 * @covers \MediaWiki\Search\BaseSearchResultSet::rewind
-	 */
 	public function testIterate() {
 		$title = Title::makeTitle( NS_MAIN, __METHOD__ );
 		$result = SearchResult::newFromTitle( $title );
@@ -28,7 +28,6 @@ class SearchResultSetTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 1, $count );
 
 		$this->hideDeprecated( 'MediaWiki\\Search\\BaseSearchResultSet::rewind' );
-		$this->hideDeprecated( 'MediaWiki\\Search\\BaseSearchResultSet::next' );
 		$resultSet->rewind();
 		$count = 0;
 		foreach ( $resultSet as $iterResult ) {
@@ -38,10 +37,6 @@ class SearchResultSetTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 1, $count );
 	}
 
-	/**
-	 * @covers \MediaWiki\Search\SearchResultSetTrait::augmentResult
-	 * @covers \MediaWiki\Search\SearchResultSetTrait::setAugmentedData
-	 */
 	public function testDelayedResultAugment() {
 		$title = Title::makeTitle( NS_MAIN, __METHOD__ );
 		$title->resetArticleID( 42 );
@@ -55,11 +50,6 @@ class SearchResultSetTest extends MediaWikiIntegrationTestCase {
 		$this->assertEquals( [ 'foo' => 'bar' ], $result->getExtensionData() );
 	}
 
-	/**
-	 * @covers \MediaWiki\Search\SearchResultSet::shrink
-	 * @covers \MediaWiki\Search\SearchResultSet::count
-	 * @covers \MediaWiki\Search\SearchResultSet::hasMoreResults
-	 */
 	public function testHasMoreResults() {
 		$title = Title::makeTitle( NS_MAIN, __METHOD__ );
 		$result = SearchResult::newFromTitle( $title );
@@ -72,9 +62,6 @@ class SearchResultSetTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( $resultSet->hasMoreResults() );
 	}
 
-	/**
-	 * @covers \MediaWiki\Search\SearchResultSet::shrink
-	 */
 	public function testShrink() {
 		$title = Title::makeTitle( NS_MAIN, __METHOD__ );
 		$results = array_fill( 0, 3, SearchResult::newFromTitle( $title ) );

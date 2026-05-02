@@ -25,19 +25,6 @@ abstract class BaseSearchResultSet implements ISearchResultSet {
 	private $bcIterator;
 
 	/**
-	 * Fetches next search result, or false.
-	 * @return SearchResult|false
-	 * @deprecated since 1.32; Use self::extractResults() or foreach
-	 */
-	public function next() {
-		wfDeprecated( __METHOD__, '1.32' );
-		$it = $this->bcIterator();
-		$searchResult = $it->current();
-		$it->next();
-		return $searchResult ?? false;
-	}
-
-	/**
 	 * Rewind result set back to beginning
 	 * @deprecated since 1.32; Use self::extractResults() or foreach
 	 */
