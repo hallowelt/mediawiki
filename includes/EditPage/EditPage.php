@@ -3907,8 +3907,8 @@ class EditPage implements IEditObject {
 				}
 
 				# Used messages to make sure grep find them:
-				# Messages: usercsspreview, userjsonpreview, userjspreview,
-				#   sitecsspreview, sitejsonpreview, sitejspreview
+				# Messages: usercsspreview, userjsonpreview, userjspreview, uservuepreview,
+				#   sitecsspreview, sitejsonpreview, sitejspreview, sitevuepreview
 				if ( $level && $format ) {
 					$previewNoteHtml = Html::noticeBox( Html::rawElement(
 						'div',
