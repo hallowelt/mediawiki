@@ -48,7 +48,6 @@ class SpecialPreferences extends SpecialPage {
 	/** @inheritDoc */
 	public function execute( $par ) {
 		$this->setHeaders();
-		$this->outputHeader();
 		$out = $this->getOutput();
 		$out->disallowUserJs(); # Prevent hijacked user scripts from sniffing passwords etc.
 
@@ -88,6 +87,7 @@ class SpecialPreferences extends SpecialPage {
 			);
 		}
 
+		$this->outputHeader();
 		$this->addHelpLink( 'Help:Preferences' );
 
 		// Load the user from the primary DB to reduce CAS errors on double post (T95839)

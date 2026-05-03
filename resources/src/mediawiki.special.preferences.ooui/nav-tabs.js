@@ -59,15 +59,7 @@ $( () => {
 		}
 	};
 
-	// onSubmit callback
-	const onSubmit = function () {
-		const value = tabs.getCurrentTabPanelName();
-		mw.storage.session.set( 'mwpreferences-prevTab', value );
-	};
-
 	nav.onLoad( setSection, 'mw-prefsection-personal' );
-
-	nav.restorePrevSection( setSection, onSubmit );
 
 	// Search index
 	let index, texts;

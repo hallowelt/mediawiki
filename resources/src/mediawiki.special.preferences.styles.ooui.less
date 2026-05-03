@@ -227,11 +227,29 @@
 			}
 		}
 
-		// Hide all but the first panel before infusion
+		// Styles for before the section panels get turned into section tabs
 		&:not( .mw-prefs-tabs-infused ) {
-			.oo-ui-tabPanelLayout:not( :first-child ) {
-				display: none;
+			// If we're not linking to a section,
+			// hide all the panels except for the first one.
+			&:not( :has( :target ) ) {
+				.oo-ui-tabPanelLayout:not( :first-child ) {
+					display: none;
+				}
 			}
+
+			// If we are linking to a section (or a specific field),
+			// hide all the panels except for that one (or the one that contains the field).
+			&:has( :target ) {
+				.oo-ui-tabPanelLayout:not( :has( :target ) ) {
+					display: none;
+				}
+			}
+		}
+
+		// If we are linking to a section, keep the scroll position at the top of the page,
+		// instead of scrolling a little bit down to where the section content starts.
+		.oo-ui-tabPanelLayout > fieldset:target {
+			scroll-margin-top: 9999px;
 		}
 	}
 

@@ -2165,7 +2165,9 @@ class DefaultPreferencesFactory implements PreferencesFactory {
 
 			$urlOptions += $form->getExtraSuccessRedirectParameters();
 
-			$url = $form->getTitle()->getFullURL( $urlOptions );
+			$url = $form->getTitle()->createFragmentTarget(
+				$form->getRequest()->getVal( 'returntoanchor' ) ?? ''
+			)->getFullURL( $urlOptions );
 
 			// Set session data for the success message
 			$context->getRequest()->getSession()->set( 'specialPreferencesSaveSuccess', 1 );

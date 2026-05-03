@@ -37,6 +37,11 @@ module.exports = {
 	 *  open section. Use this flag to suppress this.
 	 */
 	switchPrefSection: function ( setSection, sectionName, fieldset, noHash ) {
+		// Store selected tab, so that we can return to it after form is submitted
+		$( '#mw-prefs-form [name="returntoanchor"]' ).val( sectionName );
+		$( '#mw-prefs-form' ).attr( 'action',
+			( _, oldAction ) => oldAction.replace( /#.+$/, '' ) + '#' + sectionName );
+
 		if ( noHash ) {
 			this.switchingNoHash = true;
 		}
@@ -87,32 +92,22 @@ module.exports = {
 	},
 
 	/**
-	 * Trigger onHashChange onload to select the proper tab on startup.
-	 *
 	 * @ignore
 	 * @param {Function} setSection callback for opening the section
 	 * @param {string} defaultSection The name of a section to load by default
 	 */
 	onLoad: function ( setSection, defaultSection ) {
-		$( window ).on( 'hashchange', this.onHashChange.bind( this, setSection, defaultSection )
-		).trigger( 'hashchange' );
-	},
+		// Add input field for storing the selected tab on form submission.
+		$( '#mw-prefs-form' ).append(
+			$( '<input>' )
+				.attr( 'type', 'hidden' )
+				.attr( 'name', 'returntoanchor' )
+		);
 
-	/**
-	 * Restore the active tab after saving the preferences
-	 *
-	 * @ignore
-	 * @param {Function} setSection callback for opening the section
-	 * @param {Function} onSubmit callback for saving the active section name
-	 */
-	restorePrevSection: function ( setSection, onSubmit ) {
-		const sectionName = session.get( 'mwpreferences-prevTab' );
-		if ( sectionName ) {
-			this.switchPrefSection( setSection, sectionName, undefined, true );
-			// Deleting the key, the section states should be reset until we press Save
-			session.remove( 'mwpreferences-prevTab' );
-		}
-		$( '#mw-prefs-form' ).on( 'submit', onSubmit );
+		// Trigger onHashChange onload to select the proper tab on startup.
+		$( window )
+			.on( 'hashchange', this.onHashChange.bind( this, setSection, defaultSection ) )
+			.trigger( 'hashchange' );
 	}
 
 };
