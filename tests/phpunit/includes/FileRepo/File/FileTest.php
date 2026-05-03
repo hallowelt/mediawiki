@@ -639,8 +639,7 @@ class FileTest extends MediaWikiMediaTestCase {
 		int $expected
 	) {
 		$this->overrideConfigValues( [
-			MainConfigNames::ThumbnailSteps => [ 100, 200, 1000 ],
-			MainConfigNames::ThumbnailStepsRatio => $enabled ? 1.0 : 0.0,
+			MainConfigNames::ThumbnailSteps => $enabled ? [ 100, 200, 1000 ] : [],
 			MainConfigNames::SVGNativeRendering => false,
 			MainConfigNames::TiffThumbnailType => [ 'png', 'image/png' ],
 		] );
@@ -656,23 +655,5 @@ class FileTest extends MediaWikiMediaTestCase {
 			$this->overrideConfigValue( MainConfigNames::SVGNativeRendering, true );
 			$this->assertThumbNameEquals( $filename, $type, $originalWidth, $params, $expected, true );
 		}
-	}
-
-	/**
-	 * @covers \MediaWiki\FileRepo\File\File::thumbName
-	 * @covers \MediaWiki\FileRepo\File\File::generateThumbName
-	 */
-	public function testThumbNameStepsRatio() {
-		$this->overrideConfigValues( [
-			MainConfigNames::ThumbnailSteps => [ 10, 100, 200 ],
-			// Enable for 50%
-			MainConfigNames::ThumbnailStepsRatio => 0.5,
-		] );
-
-		$params = [ 'width' => 90, 'height' => 90, 'physicalWidth' => 90, 'physicalHeight' => 90 ];
-		$this->assertThumbNameEquals( 'test1.jpg', 'image/jpeg', 500, $params, 100 );
-
-		$params = [ 'width' => 90, 'height' => 90, 'physicalWidth' => 90, 'physicalHeight' => 90 ];
-		$this->assertThumbNameEquals( 'test2.jpg', 'image/jpeg', 500, $params, 90 );
 	}
 }

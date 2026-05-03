@@ -1078,8 +1078,7 @@ const util = {
 
 	/**
 	 * Adjust the thumbnail size to fit the width steps defined in config via
-	 * config.ThumbnailSteps, according to whether config.ThumbnailStepsRatio
-	 * is set.
+	 * config.ThumbnailSteps
 	 *
 	 * This logic is duplicated server-side in File::adjustThumbWidthForSteps.
 	 *
@@ -1094,14 +1093,9 @@ const util = {
 		isVectorized = false
 	) {
 		const steps = config.ThumbnailSteps;
-		const ratio = config.ThumbnailStepsRatio;
-		if ( !steps || !ratio ) {
+		if ( !steps ) {
 			return thumbWidth;
 		}
-
-		// Note: non-integral thumbnailStepsRatio values are treated
-		// as equivalent to 1 here. This is a transitional setting
-		// for content generation and should be ok to ignore client-side.
 
 		for ( const widthStep of steps ) {
 			if ( widthStep > originalWidth && !isVectorized ) {

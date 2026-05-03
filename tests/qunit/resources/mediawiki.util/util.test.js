@@ -699,8 +699,7 @@ QUnit.module( 'mediawiki.util', QUnit.newMwEnvironment( {
 	}, ( assert, data ) => {
 		// See also server-side logic test for File::adjustThumbWidthForSteps in FileTest.php
 		mw.util.setOptionsForTest( {
-			ThumbnailSteps: [ 100, 200 ],
-			ThumbnailStepsRatio: data.enabled ? 1 : 0
+			ThumbnailSteps: data.enabled ? [ 100, 200 ] : []
 		} );
 
 		const actual = mw.util.adjustThumbWidthForSteps( data.thumbWidth, data.originalWidth );

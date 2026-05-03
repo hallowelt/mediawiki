@@ -162,7 +162,7 @@ abstract class ImageHandler extends MediaHandler {
 
 	/**
 	 * Adjust the thumbnail size to fit the width steps defined in config via
-	 * $wgThumbnailSteps, according to whether $wgThumbnailStepsRatio is set.
+	 * $wgThumbnailSteps.
 	 *
 	 * This logic is duplicated client-side in mw.util.adjustThumbWidthForSteps.
 	 *
@@ -173,23 +173,9 @@ abstract class ImageHandler extends MediaHandler {
 	): int {
 		$mainConfig = MediaWikiServices::getInstance()->getMainConfig();
 		$thumbnailSteps = $mainConfig->get( MainConfigNames::ThumbnailSteps );
-		$thumbnailStepsRatio = $mainConfig->get( MainConfigNames::ThumbnailStepsRatio );
 
-		if ( !$thumbnailSteps || !$thumbnailStepsRatio ) {
+		if ( !$thumbnailSteps ) {
 			return $requestWidth;
-		}
-
-		if ( $thumbnailStepsRatio < 1 ) {
-			// If thumbnail ratio is below 100%, build a random number
-			// out of the file name and decide whether to apply adjustments
-			// based on that. This way, we get a good uniformity while not going
-			// back and forth between old and new in different requests.
-			// Also this way, ramping up (e.g. from 0.1 to 0.2) would also
-			// cover the previous values too which would reduce the scale of changes.
-			$hash = hexdec( substr( md5( $image->getName() ), 0, 8 ) ) & 0x7fffffff;
-			if ( ( $hash % 1000 ) > ( $thumbnailStepsRatio * 1000 ) ) {
-				return $requestWidth;
-			}
 		}
 
 		$prevStep = $thumbnailSteps[0];

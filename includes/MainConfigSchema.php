@@ -2318,18 +2318,6 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * Ratio of images that will use the thumbnail steps
-	 *
-	 * This is to allow for gradual roll out of thumbnail steps. It should be a number between 0 and 1.
-	 *
-	 * The precision of this value is up to 0.001, anything below that will be ignored.
-	 */
-	public const ThumbnailStepsRatio = [
-		'default' => null,
-		'type' => '?float',
-	];
-
-	/**
 	 * An array of image widths used as reference buckets for thumbnail generation.
 	 *
 	 * Speed up thumbnail generation and save server-side CPU/memory resources by

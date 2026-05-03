@@ -1409,15 +1409,6 @@ config-schema:
             have requested but it will save resources by de-duplicating thumbnail generation and storage.
             Note that these steps are "best effort" and MediaWiki might decide to use the requested size
             for any reason.
-    ThumbnailStepsRatio:
-        default: null
-        type:
-            - number
-            - 'null'
-        description: |-
-            Ratio of images that will use the thumbnail steps
-            This is to allow for gradual roll out of thumbnail steps. It should be a number between 0 and 1.
-            The precision of this value is up to 0.001, anything below that will be ignored.
     ThumbnailBuckets:
         default: null
         type:

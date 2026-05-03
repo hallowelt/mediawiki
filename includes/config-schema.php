@@ -318,7 +318,6 @@ return [
 				6,
 			],
 			'ThumbnailSteps' => null,
-			'ThumbnailStepsRatio' => null,
 			'ThumbnailBuckets' => null,
 			'ThumbnailMinimumBucketDistance' => 50,
 			'UploadThumbnailRenderMap' => [
@@ -2851,10 +2850,6 @@ return [
 			'ThumbnailNamespaces' => 'array',
 			'ThumbnailSteps' => [
 				'array',
-				'null',
-			],
-			'ThumbnailStepsRatio' => [
-				'number',
 				'null',
 			],
 			'ThumbnailBuckets' => [
