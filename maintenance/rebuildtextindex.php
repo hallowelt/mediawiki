@@ -123,11 +123,13 @@ class RebuildTextIndex extends Maintenance {
 	private function dropMysqlTextIndex() {
 		$dbw = $this->getDB( DB_PRIMARY );
 		$searchindex = $dbw->tableName( 'searchindex' );
-		if ( $dbw->indexExists( 'searchindex', 'si_title', __METHOD__ ) ) {
-			$this->output( "Dropping index...\n" );
-			$sql = "ALTER TABLE $searchindex DROP INDEX si_title, DROP INDEX si_text";
-			$dbw->query( $sql, __METHOD__ );
-		}
+		$this->output( "Dropping index...\n" );
+		$sql = <<<SQL
+			ALTER TABLE $searchindex
+			DROP INDEX IF EXISTS si_title,
+			DROP INDEX IF EXISTS si_text
+		SQL;
+		$dbw->query( $sql, __METHOD__ );
 	}
 
 	/**
