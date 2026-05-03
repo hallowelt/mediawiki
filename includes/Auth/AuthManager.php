@@ -662,6 +662,11 @@ class AuthManager implements LoggerAwareInterface {
 
 			$res = $state['primaryResponse'];
 			if ( $res->username === null ) {
+				// The user was authenticated successfully but had no wiki account (neither local
+				// nor central). This can happen when using a third-party identity provider. End
+				// this login attempt, but provide a way for the user to reuse this identity for
+				// signup or account linking.
+
 				$provider = $this->getAuthenticationProvider( $state['primary'] );
 				if ( !$provider instanceof PrimaryAuthenticationProvider ) {
 					// Configuration changed? Force them to start over.
