@@ -320,6 +320,7 @@ class EditPageTest extends MediaWikiLangTestCase {
 	/**
 	 * @dataProvider provideCreatePages
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testCreatePage(
 		$desc, $pageTitle, $user, $editText, $expectedCode, $expectedText, $ignoreBlank = false
@@ -356,6 +357,7 @@ class EditPageTest extends MediaWikiLangTestCase {
 	/**
 	 * @dataProvider provideCreatePages
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testCreatePageTrx(
 		$desc, $pageTitle, $user, $editText, $expectedCode, $expectedText, $ignoreBlank = false
@@ -408,6 +410,7 @@ class EditPageTest extends MediaWikiLangTestCase {
 
 	/**
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testUpdatePage() {
 		$checkIds = [];
@@ -450,6 +453,7 @@ class EditPageTest extends MediaWikiLangTestCase {
 
 	/**
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testUpdateNoMinor() {
 		// Test that page creation can never be minor
@@ -506,6 +510,7 @@ class EditPageTest extends MediaWikiLangTestCase {
 
 	/**
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testUpdatePageTrx() {
 		$text = "one";
@@ -633,6 +638,7 @@ hello
 	/**
 	 * @dataProvider provideSectionEdit
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testSectionEdit( $title, $base, $section, $text, $summary, $expected ) {
 		$edit = [
@@ -702,6 +708,7 @@ hello
 	/**
 	 * @dataProvider provideConflictDetection
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testConflictDetection( $editUser, $newEdit, $expectedCode, $message ) {
 		// create page
@@ -828,6 +835,7 @@ hello
 	/**
 	 * @dataProvider provideAutoMerge
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testAutoMerge( $baseUser, $text, $adamsEdit, $bertasEdit,
 		$expectedCode, $expectedText, $message = null
@@ -877,6 +885,7 @@ hello
 	/**
 	 * @depends testAutoMerge
 	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testCheckDirectEditingDisallowed_forNonTextContent() {
 		$user = self::$editUsers['user'];
@@ -896,7 +905,10 @@ hello
 		$this->doEditDummyNonTextPage( $edit );
 	}
 
-	/** @covers \MediaWiki\EditPage\EditPage */
+	/**
+	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
+	 */
 	public function testShouldPreventChangingContentModelWhenUserCannotChangeModelForTitle() {
 		$this->setTemporaryHook( 'getUserPermissionsErrors',
 			static function ( Title $page, $user, $action, &$result ) {
@@ -926,7 +938,10 @@ hello
 		$this->assertStatusValue( EditPage::AS_NO_CHANGE_CONTENT_MODEL, $status );
 	}
 
-	/** @covers \MediaWiki\EditPage\EditPage */
+	/**
+	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
+	 */
 	public function testShouldPreventChangingContentModelWhenUserCannotEditTargetTitle() {
 		$this->setTemporaryHook( 'getUserPermissionsErrors',
 			static function ( Title $page, $user, $action, &$result ) {
@@ -1155,7 +1170,7 @@ hello
 	}
 
 	/**
-	 * @covers \MediaWiki\EditPage\EditPage::updateWatchlist
+	 * @covers \MediaWiki\PageEdit\PageEdit::updateWatchlist
 	 */
 	public function testWatchlistLabelsAreReadAsIntArrayFromRequest(): void {
 		$this->overrideConfigValue( MainConfigNames::EnableWatchlistLabels, true );
@@ -1193,7 +1208,7 @@ hello
 	}
 
 	/**
-	 * @covers \MediaWiki\EditPage\EditPage::updateWatchlist
+	 * @covers \MediaWiki\PageEdit\PageEdit::updateWatchlist
 	 */
 	public function testWatchlistLabelsAreAddedOnSave(): void {
 		$this->overrideConfigValue( MainConfigNames::EnableWatchlistLabels, true );
@@ -1245,7 +1260,7 @@ hello
 	}
 
 	/**
-	 * @covers \MediaWiki\EditPage\EditPage::updateWatchlist
+	 * @covers \MediaWiki\PageEdit\PageEdit::updateWatchlist
 	 */
 	public function testWatchlistLabelsFromOtherUsersAreIgnoredOnSave(): void {
 		$this->overrideConfigValue( MainConfigNames::EnableWatchlistLabels, true );
@@ -1308,7 +1323,7 @@ hello
 
 	/**
 	 * T277204
-	 * @covers \MediaWiki\EditPage\EditPage
+	 * @covers \MediaWiki\PageEdit\PageEdit
 	 */
 	public function testFalseyEditRevId() {
 		$elmosEdit['wpTextbox1'] = 'Elmo\'s text';

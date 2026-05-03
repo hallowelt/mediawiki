@@ -176,6 +176,7 @@ use MediaWiki\Page\RedirectStore;
 use MediaWiki\Page\RollbackPageFactory;
 use MediaWiki\Page\UndeletePageFactory;
 use MediaWiki\Page\WikiPageFactory;
+use MediaWiki\PageEdit\PageEditFactory;
 use MediaWiki\Parser\DateFormatterFactory;
 use MediaWiki\Parser\MagicWordFactory;
 use MediaWiki\Parser\Parser;
@@ -3235,6 +3236,22 @@ return [
 			$services->getRedirectStore(),
 			$services->getLogFormatterFactory(),
 			$services->getLinkWriteDuplicator()
+		);
+	},
+
+	'_PageEditFactory' => static function ( MediaWikiServices $services ): PageEditFactory {
+		return new PageEditFactory(
+			new ServiceOptions( PageEditFactory::CONSTRUCTOR_OPTIONS, $services->getMainConfig() ),
+			$services->getContentHandlerFactory(),
+			$services->getService( '_EditConstraintFactory' ),
+			$services->getConnectionProvider(),
+			$services->getContentLanguage(),
+			$services->getContentTransformer(),
+			$services->getService( '_PageEditingHelper' ),
+			$services->getRateLimiter(),
+			$services->getRevisionStore(),
+			$services->getWatchlistManager(),
+			$services->getWatchedItemStore(),
 		);
 	},
 

@@ -10,30 +10,23 @@ use BadMethodCallException;
 use MediaWiki\Actions\WatchAction;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\CommentStore\CommentStore;
-use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Config\Config;
 use MediaWiki\Content\Content;
 use MediaWiki\Content\ContentHandler;
 use MediaWiki\Content\ContentSerializationException;
 use MediaWiki\Content\IContentHandlerFactory;
-use MediaWiki\Content\TextContent;
 use MediaWiki\Content\UnknownContentModelException;
 use MediaWiki\Content\UnsupportedContentFormatException;
 use MediaWiki\Context\DerivativeContext;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\EditPage\Constraint\AccidentalRecreationConstraint;
 use MediaWiki\EditPage\Constraint\AuthorizationConstraint;
-use MediaWiki\EditPage\Constraint\ChangeTagsConstraint;
-use MediaWiki\EditPage\Constraint\ContentModelChangeConstraint;
 use MediaWiki\EditPage\Constraint\DefaultTextConstraint;
 use MediaWiki\EditPage\Constraint\EditConstraintFactory;
 use MediaWiki\EditPage\Constraint\EditConstraintRunner;
 use MediaWiki\EditPage\Constraint\EditFilterMergedContentHookConstraint;
 use MediaWiki\EditPage\Constraint\ExistingSectionEditConstraint;
-use MediaWiki\EditPage\Constraint\ImageRedirectConstraint;
-use MediaWiki\EditPage\Constraint\MissingCommentConstraint;
 use MediaWiki\EditPage\Constraint\NewSectionMissingSubjectConstraint;
-use MediaWiki\EditPage\Constraint\PageSizeConstraint;
 use MediaWiki\EditPage\Constraint\RedirectConstraint;
 use MediaWiki\EditPage\Constraint\RevisionDeletedConstraint;
 use MediaWiki\EditPage\Constraint\SpamRegexConstraint;
@@ -51,7 +44,6 @@ use MediaWiki\Language\RawMessage;
 use MediaWiki\Linker\Linker;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Logger\LoggerFactory;
-use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\Article;
@@ -60,6 +52,8 @@ use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Page\WikiPage;
+use MediaWiki\PageEdit\PageEditFactory;
+use MediaWiki\PageEdit\PageEditInputs;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
@@ -68,7 +62,6 @@ use MediaWiki\Permissions\Authority;
 use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Permissions\PermissionStatus;
 use MediaWiki\Permissions\RestrictionStore;
-use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\RevisionStore;
@@ -77,8 +70,6 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Session\SessionManager;
 use MediaWiki\Skin\Skin;
 use MediaWiki\Status\Status;
-use MediaWiki\Storage\EditResult;
-use MediaWiki\Storage\PageUpdateCauses;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleValue;
 use MediaWiki\User\ExternalUserNames;
@@ -109,7 +100,6 @@ use Wikimedia\Message\MessageSpecifier;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\TypeDef\ExpiryDef;
 use Wikimedia\Rdbms\IConnectionProvider;
-use Wikimedia\Rdbms\IDBAccessObject;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 
@@ -379,6 +369,7 @@ class EditPage implements IEditObject {
 	private IConnectionProvider $dbProvider;
 	private LinkBatchFactory $linkBatchFactory;
 	private LinkRenderer $linkRenderer;
+	private PageEditFactory $pageEditFactory;
 	private PageEditingHelper $pageEditingHelper;
 	private PermissionManager $permManager;
 	private RestrictionStore $restrictionStore;
@@ -439,6 +430,7 @@ class EditPage implements IEditObject {
 		$this->dbProvider = $services->getConnectionProvider();
 		$this->linkBatchFactory = $services->getLinkBatchFactory();
 		$this->linkRenderer = $services->getLinkRenderer();
+		$this->pageEditFactory = $services->getService( '_PageEditFactory' );
 		$this->pageEditingHelper = $services->getService( '_PageEditingHelper' );
 		$this->permManager = $services->getPermissionManager();
 		$this->restrictionStore = $services->getRestrictionStore();
@@ -1992,8 +1984,6 @@ class EditPage implements IEditObject {
 			$result['savedTempUser'] = $tempAccountStatus->getUser();
 		}
 
-		$useNPPatrol = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::UseNPPatrol );
-		$useRCPatrol = MediaWikiServices::getInstance()->getMainConfig()->get( MainConfigNames::UseRCPatrol );
 		if ( !$this->getHookRunner()->onEditPage__attemptSave( $this ) ) {
 			wfDebug( "Hook 'EditPage::attemptSave' aborted article saving" );
 			return EditPageStatus::newFatal( 'hookaborted' )
@@ -2012,513 +2002,76 @@ class EditPage implements IEditObject {
 				->setValue( self::AS_HOOK_ERROR_EXPECTED );
 		}
 
-		try {
-			# Construct Content object
-			$textbox_content = $this->toEditContent( $this->textbox1 );
-		} catch ( ContentSerializationException $ex ) {
-			return EditPageStatus::newFatal(
-				'content-failed-to-parse',
-				$this->contentModel,
-				$this->contentFormat,
-				$ex->getMessage(),
-			)->setValue( self::AS_PARSE_ERROR );
-		}
-		'@phan-var Content $textbox_content';
+		$pageEdit = $this->pageEditFactory->newPageEdit( new PageEditInputs(
+			allowBlankArticle: $this->allowBlankArticle,
+			allowBlankSummary: $this->allowBlankSummary,
+			allowedProblematicRedirectTarget: $this->allowedProblematicRedirectTarget,
+			article: $this->mArticle,
+			authority: $this->getAuthority(),
+			autoSumm: $this->autoSumm,
+			changeTags: $this->changeTags,
+			contentFormat: $this->contentFormat,
+			contentModel: $this->contentModel,
+			context: $this->context,
+			contextTitle: $this->mContextTitle,
+			edittime: $this->edittime,
+			editRevId: $this->editRevId,
+			enableApiEditOverride: $this->enableApiEditOverride,
+			ignoreProblematicRedirects: $this->ignoreProblematicRedirects,
+			ignoreRevisionDeletedWarning: $this->ignoreRevisionDeletedWarning,
+			markAsBot: $markAsBot,
+			markAsMinor: $markAsMinor,
+			newSectionAnchor: $this->newSectionAnchor,
+			oldid: $this->oldid,
+			parentRevId: $this->parentRevId,
+			recreate: $this->recreate,
+			section: $this->section,
+			sectiontitle: $this->sectiontitle,
+			starttime: $this->starttime,
+			submitButtonLabel: $this->getSubmitButtonLabel(),
+			summary: $this->summary,
+			tempUserCreateActive: $this->tempUserCreateActive,
+			textbox1: $this->textbox1,
+			undidRev: $this->undidRev,
+			undoAfter: $this->undoAfter,
+			unicodeCheck: $this->unicodeCheck,
+			userForPreview: $this->getUserForPreview(),
+			userForSave: $this->getUserForSave(),
+			watchlistExpiry: $this->watchlistExpiry,
+			watchlistLabels: $this->watchlistLabels,
+			watchthis: $this->watchthis,
+		) );
+		$pageEditResult = $pageEdit->edit();
 
-		$this->contentLength = strlen( $this->textbox1 );
+		// PageEdit writes to those properties, so update them for backwards compatibility
+		$this->contentLength = $pageEditResult->getContentLength();
+		$this->isConflict = $pageEditResult->isConflict();
+		$this->parentRevId = $pageEditResult->getParentRevId();
+		$this->section = $pageEditResult->getSection();
+		$this->summary = $pageEditResult->getSummary();
+		$this->textbox1 = $pageEditResult->getTextbox1();
 
-		$requestUser = $this->context->getUser();
-		$authority = $this->getAuthority();
-		$pstUser = $this->getUserForPreview();
-
-		$changingContentModel = false;
-		if ( $this->contentModel !== $this->getTitle()->getContentModel() ) {
-			$changingContentModel = true;
-			$oldContentModel = $this->getTitle()->getContentModel();
-		}
-
-		// Load the page data from the primary DB. If anything changes in the meantime,
-		// we detect it by using page_latest like a token in a 1 try compare-and-swap.
-		$this->page->loadPageData( IDBAccessObject::READ_LATEST );
-		$new = !$this->page->exists();
-
-		// Message key of the label of the submit button - used by some constraint error messages
-		$submitButtonLabel = $this->getSubmitButtonLabel();
-
-		$preliminaryChecksRunner = $this->getPreliminaryChecksRunner(
-			$authority,
-			$new,
-			$textbox_content,
-			$requestUser,
-			$submitButtonLabel,
-		);
-		$status = $preliminaryChecksRunner->checkConstraints();
-		if ( !$status->isOK() ) {
-			$failed = $status->getFailedConstraint();
+		if ( !$pageEditResult->getStatus()->isOK() ) {
+			$failed = $pageEditResult->getStatus()->getFailedConstraint();
 
 			// Need to check SpamRegexConstraint here, to avoid needing to pass
 			// $result by reference again
 			if ( $failed instanceof SpamRegexConstraint ) {
 				$result['spam'] = $failed->getMatch();
-			}
-
-			return $status;
-		}
-
-		$flags = EDIT_AUTOSUMMARY |
-			( $new ? EDIT_NEW : EDIT_UPDATE ) |
-			( $markAsMinor ? EDIT_MINOR : 0 ) |
-			( $markAsBot ? EDIT_FORCE_BOT : 0 );
-
-		if ( $new ) {
-			$content = $textbox_content;
-
-			$result['sectionanchor'] = '';
-			if ( $this->section === 'new' ) {
-				if ( $this->sectiontitle !== null ) {
-					// Insert the section title above the content.
-					$content = $content->addSectionHeader( $this->sectiontitle );
-				}
-				$result['sectionanchor'] = $this->newSectionAnchor;
-			}
-
-			$pageUpdater = $this->page->newPageUpdater( $pstUser )
-				->setContent( SlotRecord::MAIN, $content );
-			$pageUpdater->prepareUpdate( $flags );
-
-			$newPageChecksRunner = $this->getNewPageChecksRunner(
-				$content,
-				$markAsMinor,
-				$pstUser,
-				$submitButtonLabel,
-			);
-			$status = $newPageChecksRunner->checkConstraints();
-			if ( !$status->isOK() ) {
-				return $status;
-			}
-		} else { # not $new
-
-			# Article exists. Check for edit conflict.
-
-			$timestamp = $this->page->getTimestamp();
-			$latest = $this->page->getLatest();
-
-			wfDebug( "timestamp: {$timestamp}, edittime: {$this->edittime}" );
-			wfDebug( "revision: {$latest}, editRevId: {$this->editRevId}" );
-
-			$editConflictLogger = LoggerFactory::getInstance( 'EditConflict' );
-			// An edit conflict is detected if the latest revision is different from the
-			// revision that was current when editing was initiated on the client.
-			// This is checked based on the timestamp and revision ID.
-			// TODO: the timestamp based check can probably go away now.
-			if ( ( $this->edittime !== null && $this->edittime != $timestamp )
-				|| ( $this->editRevId !== null && $this->editRevId != $latest )
-			) {
-				$this->isConflict = true;
-				if ( $this->section === 'new' ) {
-					if ( $this->page->getUserText() === $requestUser->getName() &&
-						$this->page->getComment() === $this->summary
-					) {
-						// Probably a duplicate submission of a new comment.
-						// This can happen when CDN resends a request after
-						// a timeout but the first one actually went through.
-						$editConflictLogger->debug(
-							'Duplicate new section submission; trigger edit conflict!'
-						);
-					} else {
-						// New comment; suppress conflict.
-						$this->isConflict = false;
-						$editConflictLogger->debug( 'Conflict suppressed; new section' );
-					}
-				} elseif ( $this->section === ''
-					&& $this->edittime
-					&& $this->revisionStore->userWasLastToEdit(
-						$this->dbProvider->getPrimaryDatabase(),
-						$this->getTitle()->getArticleID(),
-						$requestUser->getId(),
-						$this->edittime
-					)
-				) {
-					# Suppress edit conflict with self, except for section edits where merging is required.
-					$editConflictLogger->debug( 'Suppressing edit conflict, same user.' );
-					$this->isConflict = false;
-				}
-			}
-
-			if ( $this->isConflict ) {
-				$editConflictLogger->debug(
-					'Conflict! Getting section {section} for time {editTime}'
-					. ' (id {editRevId}, article time {timestamp})',
-					[
-						'section' => $this->section,
-						'editTime' => $this->edittime,
-						'editRevId' => $this->editRevId,
-						'timestamp' => $timestamp,
-					]
-				);
-				// @TODO: replaceSectionAtRev() with base ID (not prior current) for ?oldid=X case
-				// ...or disable section editing for non-latest revisions (not exposed anyway).
-				if ( $this->editRevId !== null ) {
-					$content = $this->page->replaceSectionAtRev(
-						$this->section,
-						$textbox_content,
-						$this->sectiontitle,
-						$this->editRevId
-					);
-				} else {
-					$content = $this->page->replaceSectionContent(
-						$this->section,
-						$textbox_content,
-						$this->sectiontitle,
-						$this->edittime
-					);
-				}
 			} else {
-				$editConflictLogger->debug(
-					'Getting section {section}',
-					[ 'section' => $this->section ]
-				);
-				$content = $this->page->replaceSectionAtRev(
-					$this->section,
-					$textbox_content,
-					$this->sectiontitle
-				);
+				$this->handleFailedConstraint( $pageEditResult->getStatus() );
 			}
-
-			if ( $content === null ) {
-				$editConflictLogger->debug( 'Activating conflict; section replace failed.' );
-				$this->isConflict = true;
-				$content = $textbox_content; // do not try to merge here!
-			} elseif ( $this->isConflict ) {
-				// Attempt merge
-				$mergedChange = $this->mergeChangesIntoContent( $content );
-				if ( $mergedChange !== false ) {
-					// Successful merge! Maybe we should tell the user the good news?
-					$content = $mergedChange[0];
-					$this->parentRevId = $mergedChange[1];
-					$this->isConflict = false;
-					$editConflictLogger->debug( 'Suppressing edit conflict, successful merge.' );
-				} else {
-					$this->section = '';
-					$this->textbox1 = ( $content instanceof TextContent ) ? $content->getText() : '';
-					$editConflictLogger->debug( 'Keeping edit conflict, failed merge.' );
-				}
-			}
-
-			if ( $this->isConflict ) {
-				return EditPageStatus::newGood( self::AS_CONFLICT_DETECTED )
-					// This message isn't shown, it's just for some logging code (T423754)
-					->fatal( 'editconflict', $this->getContextTitle()->getPrefixedText() );
-			}
-
-			$pageUpdater = $this->page->newPageUpdater( $pstUser )
-				->setContent( SlotRecord::MAIN, $content );
-			$pageUpdater->prepareUpdate( $flags );
-
-			$existingPageChecksRunner = $this->getExistingPageChecksRunner(
-				$authority,
-				$content,
-				$markAsMinor,
-				$pstUser,
-				$submitButtonLabel,
-			);
-			$status = $existingPageChecksRunner->checkConstraints();
-			if ( !$status->isOK() ) {
-				return $status;
-			}
-
-			# All's well
-			$sectionAnchor = '';
-			if ( $this->section === 'new' ) {
-				$sectionAnchor = $this->newSectionAnchor;
-			} elseif ( $this->section !== '' ) {
-				# Try to get a section anchor from the section source, redirect
-				# to edited section if header found.
-				# XXX: Might be better to integrate this into WikiPage::replaceSectionAtRev
-				# for duplicate heading checking and maybe parsing.
-				$hasmatch = preg_match( "/^ *([=]{1,6})(.*?)(\\1) *\\n/i", $this->textbox1, $matches );
-				# We can't deal with anchors, includes, html etc in the header for now,
-				# headline would need to be parsed to improve this.
-				if ( $hasmatch && $matches[2] !== '' ) {
-					$sectionAnchor = $this->pageEditingHelper->guessSectionName( $matches[2] );
-				}
-			}
-			$result['sectionanchor'] = $sectionAnchor;
-
-			// Save errors may fall down to the edit form, but we've now
-			// merged the section into full text. Clear the section field
-			// so that later submission of conflict forms won't try to
-			// replace that into a duplicated mess.
-			$this->textbox1 = $this->pageEditingHelper->toEditText(
-				$content, $this->contentFormat, $this->enableApiEditOverride
-			);
-			$this->section = '';
 		}
 
-		// Check for length errors again now that the section is merged in
-		$this->contentLength = strlen( $this->pageEditingHelper->toEditText(
-			$content, $this->contentFormat, $this->enableApiEditOverride
-		) ?? '' );
-
-		$postMergeChecksRunner = $this->getPostMergeChecksRunner(
-			$content,
-			$submitButtonLabel,
-		);
-		$status = $postMergeChecksRunner->checkConstraints();
-		if ( !$status->isOK() ) {
-			return $status;
+		$result['sectionanchor'] = $pageEditResult->getSectionanchor();
+		if ( $pageEditResult->isNullEdit() !== null ) {
+			$result['nullEdit'] = $pageEditResult->isNullEdit();
+		}
+		if ( $pageEditResult->isRedirect() !== null ) {
+			$result['redirect'] = $pageEditResult->isRedirect();
 		}
 
-		if ( $this->undidRev && $this->isUndoClean( $content ) ) {
-			// As the user can change the edit's content before saving, we only mark
-			// "clean" undos as reverts. This is to avoid abuse by marking irrelevant
-			// edits as undos.
-			$pageUpdater
-				->setOriginalRevisionId( $this->undoAfter ?: false )
-				->setCause( PageUpdateCauses::CAUSE_UNDO )
-				->markAsRevert(
-					EditResult::REVERT_UNDO,
-					$this->undidRev,
-					$this->undoAfter ?: null
-				);
-		}
-
-		$needsPatrol = $useRCPatrol || ( $useNPPatrol && !$this->page->exists() );
-		if ( $needsPatrol && $authority->authorizeWrite( 'autopatrol', $this->getTitle() ) ) {
-			$pageUpdater->setRcPatrolStatus( RecentChange::PRC_AUTOPATROLLED );
-		}
-
-		$pageUpdater
-			->addTags( $this->changeTags )
-			->saveRevision(
-				CommentStoreComment::newUnsavedComment( trim( $this->summary ) ),
-				$flags
-			);
-		$doEditStatus = $pageUpdater->getStatus();
-
-		if ( !$doEditStatus->isOK() ) {
-			// Failure from doEdit()
-			// Show the edit conflict page for certain recognized errors from doEdit(),
-			// but don't show it for errors from extension hooks
-			if (
-				$doEditStatus->failedBecausePageMissing() ||
-				$doEditStatus->failedBecausePageExists() ||
-				$doEditStatus->failedBecauseOfConflict()
-			) {
-				$this->isConflict = true;
-				return EditPageStatus::cast( $doEditStatus )
-					->setValue( self::AS_END );
-			}
-			return EditPageStatus::cast( $doEditStatus );
-		}
-
-		$result['nullEdit'] = !$doEditStatus->wasRevisionCreated();
-		if ( $result['nullEdit'] ) {
-			// We didn't know if it was a null edit until now, so bump the rate limit now
-			$limitSubject = $requestUser->toRateLimitSubject();
-			MediaWikiServices::getInstance()->getRateLimiter()->limit( $limitSubject, 'linkpurge' );
-		}
-		$result['redirect'] = $content->isRedirect();
-
-		$this->updateWatchlist();
-
-		// If the content model changed, add a log entry
-		if ( $changingContentModel ) {
-			$this->addContentModelChangeLogEntry(
-				$this->getUserForSave(),
-				// @phan-suppress-next-next-line PhanPossiblyUndeclaredVariable
-				// $oldContentModel is set when $changingContentModel is true
-				$new ? false : $oldContentModel,
-				$this->contentModel,
-				$this->summary
-			);
-		}
-
-		// Instead of carrying the same status object throughout, it is created right
-		// when it is returned, either at an earlier point due to an error or here
-		// due to a successful edit.
-		$statusCode = ( $new ? self::AS_SUCCESS_NEW_ARTICLE : self::AS_SUCCESS_UPDATE );
-		return EditPageStatus::newGood( $statusCode );
-	}
-
-	private function getPreliminaryChecksRunner(
-		Authority $authority,
-		bool $new,
-		Content $newContent,
-		User $requestUser,
-		string $submitButtonLabel,
-	): EditConstraintRunner {
-		return new EditConstraintRunner(
-			// Ensure that `$this->unicodeCheck` is the correct unicode
-			new UnicodeConstraint( $this->unicodeCheck ),
-
-			// Ensure that the context request does not have `wpAntispam` set
-			// Use $user since there is no permissions aspect
-			$this->constraintFactory->newSimpleAntiSpamConstraint(
-				$this->context->getRequest()->getText( 'wpAntispam' ),
-				$requestUser,
-				$this->getTitle()
-			),
-
-			// Ensure that the summary and text don't match the spam regex
-			$this->constraintFactory->newSpamRegexConstraint(
-				$this->summary,
-				$this->sectiontitle,
-				$this->textbox1,
-				$this->context->getRequest()->getIP(),
-				$this->getTitle()
-			),
-
-			new ImageRedirectConstraint(
-				$newContent,
-				$this->getTitle(),
-				$authority
-			),
-
-			$this->constraintFactory->newReadOnlyConstraint(),
-
-			new AuthorizationConstraint(
-				$authority,
-				$this->page,
-				$new
-			),
-
-			new ContentModelChangeConstraint(
-				$authority,
-				$this->getTitle(),
-				$this->contentModel
-			),
-
-			$this->constraintFactory->newLinkPurgeRateLimitConstraint( $requestUser->toRateLimitSubject() ),
-
-			// Same constraint is used to check size before and after merging the
-			// edits, which use different failure codes
-			$this->constraintFactory->newPageSizeConstraint(
-				$this->contentLength,
-				PageSizeConstraint::BEFORE_MERGE
-			),
-
-			new ChangeTagsConstraint( $authority, $this->changeTags ),
-
-			// If the article has been deleted while editing, don't save it without confirmation
-			$this->constraintFactory->newAccidentalRecreationConstraint(
-				$this->getTitle(),
-				$this->recreate,
-				$this->starttime,
-				$submitButtonLabel,
-			)
-		);
-	}
-
-	private function getNewPageChecksRunner(
-		Content $content,
-		bool $markAsMinor,
-		UserIdentity $pstUser,
-		string $submitButtonLabel,
-	): EditConstraintRunner {
-		return new EditConstraintRunner(
-			// Don't save a new page if it's blank or if it's a MediaWiki:
-			// message with content equivalent to default (allow empty pages
-			// in this case to disable messages, see T52124)
-			new DefaultTextConstraint(
-				$this->getTitle(),
-				$this->allowBlankArticle,
-				$this->textbox1,
-				$submitButtonLabel
-			),
-
-			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
-				$content,
-				$this->context,
-				$this->summary,
-				$markAsMinor,
-				$this->context->getLanguage(),
-				$pstUser
-			),
-		);
-	}
-
-	private function getExistingPageChecksRunner(
-		Authority $authority,
-		Content $content,
-		bool $markAsMinor,
-		UserIdentity $pstUser,
-		string $submitButtonLabel,
-	): EditConstraintRunner {
-		return new EditConstraintRunner(
-			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
-				$content,
-				$this->context,
-				$this->summary,
-				$markAsMinor,
-				$this->context->getLanguage(),
-				$pstUser
-			),
-			new NewSectionMissingSubjectConstraint(
-				$this->section,
-				$this->sectiontitle ?? '',
-				$this->allowBlankSummary,
-				$submitButtonLabel
-			),
-			new MissingCommentConstraint( $this->section, $this->textbox1 ),
-			new ExistingSectionEditConstraint(
-				$this->section,
-				$this->summary,
-				$this->autoSumm,
-				$this->allowBlankSummary,
-				$content,
-				$this->pageEditingHelper->getOriginalContent(
-					$authority,
-					$this->mArticle,
-					$this->contentModel,
-					$this->section,
-				),
-				$submitButtonLabel
-			),
-			new RevisionDeletedConstraint(
-				$this->mArticle,
-				$this->ignoreRevisionDeletedWarning,
-				$this->oldid,
-				$this->section,
-				$this->getTitle(),
-				$this->getAuthority(),
-				MessageValue::new(
-					'edit-constraint-warning-wrapper-save-deleted-revision',
-					[ MessageValue::new( $submitButtonLabel ) ],
-				),
-			),
-		);
-	}
-
-	private function getPostMergeChecksRunner(
-		Content $content,
-		string $submitButtonLabel,
-	): EditConstraintRunner {
-		$constraintRunner = new EditConstraintRunner();
-		if ( !$this->ignoreProblematicRedirects ) {
-			$constraintRunner->addConstraint(
-				$this->constraintFactory->newRedirectConstraint(
-					$this->allowedProblematicRedirectTarget,
-					$content,
-					$this->getCurrentContent(),
-					$this->getTitle(),
-					MessageValue::new(
-						'edit-constraint-warning-wrapper-save',
-						[ MessageValue::new( $submitButtonLabel ) ],
-					),
-					$this->contentFormat,
-				)
-			);
-		}
-		$constraintRunner->addConstraint(
-			// Same constraint is used to check size before and after merging the
-			// edits, which use different failure codes
-			$this->constraintFactory->newPageSizeConstraint(
-				$this->contentLength,
-				PageSizeConstraint::AFTER_MERGE
-			)
-		);
-		return $constraintRunner;
+		return $pageEditResult->getStatus();
 	}
 
 	/**
@@ -2553,152 +2106,6 @@ class EditPage implements IEditObject {
 		} elseif ( $failed instanceof RevisionDeletedConstraint ) {
 			$this->ignoreRevisionDeletedWarning = true;
 		}
-	}
-
-	/**
-	 * Does checks and compares the automatically generated undo content with the
-	 * one that was submitted by the user. If they match, the undo is considered "clean".
-	 * Otherwise there is no guarantee if anything was reverted at all, as the user could
-	 * even swap out entire content.
-	 */
-	private function isUndoClean( Content $content ): bool {
-		// Check whether the undo was "clean", that is the user has not modified
-		// the automatically generated content.
-		$undoRev = $this->revisionStore->getRevisionById( $this->undidRev );
-		if ( $undoRev === null ) {
-			return false;
-		}
-
-		if ( $this->undoAfter ) {
-			$oldRev = $this->revisionStore->getRevisionById( $this->undoAfter );
-		} else {
-			$oldRev = $this->revisionStore->getPreviousRevision( $undoRev );
-		}
-
-		if ( $oldRev === null ||
-			$undoRev->isDeleted( RevisionRecord::DELETED_TEXT ) ||
-			$oldRev->isDeleted( RevisionRecord::DELETED_TEXT )
-		) {
-			return false;
-		}
-
-		$undoContent = $this->pageEditingHelper->getUndoContent( $this->page, $undoRev, $oldRev, $undoError );
-		if ( !$undoContent ) {
-			return false;
-		}
-
-		// Do a pre-save transform on the retrieved undo content
-		$services = MediaWikiServices::getInstance();
-		$contentLanguage = $services->getContentLanguage();
-		$user = $this->getUserForPreview();
-		$parserOptions = ParserOptions::newFromUserAndLang( $user, $contentLanguage );
-		$contentTransformer = $services->getContentTransformer();
-		$undoContent = $contentTransformer->preSaveTransform( $undoContent, $this->page, $user, $parserOptions );
-
-		if ( $undoContent->equals( $content ) ) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * @param UserIdentity $user
-	 * @param string|false $oldModel false if the page is being newly created
-	 * @param string $newModel
-	 * @param string $reason
-	 */
-	private function addContentModelChangeLogEntry(
-		UserIdentity $user,
-		string|false $oldModel,
-		string $newModel,
-		string $reason
-	): void {
-		$new = $oldModel === false;
-		$log = new ManualLogEntry( 'contentmodel', $new ? 'new' : 'change' );
-		$log->setPerformer( $user );
-		$log->setTarget( $this->page );
-		$log->setComment( $reason );
-		$log->setParameters( [
-			'4::oldmodel' => $oldModel,
-			'5::newmodel' => $newModel
-		] );
-		$logid = $log->insert();
-		$log->publish( $logid );
-	}
-
-	/**
-	 * Register the change of watch status
-	 */
-	private function updateWatchlist(): void {
-		if ( $this->tempUserCreateActive ) {
-			return;
-		}
-		$authority = $this->getAuthority();
-		if ( !$authority->isNamed() ) {
-			return;
-		}
-
-		$watch = $this->watchthis;
-		$watchlistExpiry = $this->watchlistExpiry;
-
-		// This can't run as a DeferredUpdate due to a possible race condition
-		// when the post-edit redirect happens if the pendingUpdates queue is
-		// too large to finish in time (T259564)
-		$this->watchlistManager->setWatch(
-			$watch,
-			$authority,
-			$this->page,
-			$watchlistExpiry,
-			$this->watchlistLabels
-		);
-
-		$this->watchedItemStore->maybeEnqueueWatchlistExpiryJob();
-	}
-
-	/**
-	 * Attempts to do 3-way merge of edit content with a base revision
-	 * and current content, in case of edit conflict, in whichever way appropriate
-	 * for the content type.
-	 *
-	 * @return array{0:Content,1:int}|false either `false` or an array of the new Content and the
-	 *   updated parent revision id
-	 */
-	private function mergeChangesIntoContent( Content $editContent ): array|false {
-		// This is the revision that was current at the time editing was initiated on the client,
-		// even if the edit was based on an old revision.
-		$baseRevRecord = $this->getExpectedParentRevision();
-		$baseContent = $baseRevRecord?->getContent( SlotRecord::MAIN );
-
-		if ( $baseContent === null ) {
-			return false;
-		} elseif ( $baseRevRecord->isCurrent() ) {
-			// Impossible to have a conflict when the user just edited the latest revision. This can
-			// happen e.g. when $wgDiff3 is badly configured.
-			return [ $editContent, $baseRevRecord->getId() ];
-		}
-
-		// The current state, we want to merge updates into it
-		$currentRevisionRecord = $this->revisionStore->getRevisionByTitle(
-			$this->page,
-			0,
-			IDBAccessObject::READ_LATEST
-		);
-		$currentContent = $currentRevisionRecord?->getContent( SlotRecord::MAIN );
-
-		if ( $currentContent === null ) {
-			return false;
-		}
-
-		$mergedContent = $this->contentHandlerFactory
-			->getContentHandler( $baseContent->getModel() )
-			->merge3( $baseContent, $editContent, $currentContent );
-
-		if ( $mergedContent ) {
-			// Also need to update parentRevId to what we just merged.
-			return [ $mergedContent, $currentRevisionRecord->getId() ];
-		}
-
-		return false;
 	}
 
 	/**

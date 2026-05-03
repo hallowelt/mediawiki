@@ -1,5 +1,6 @@
 <?php
-// File created by generateCollationData.php
+// File created by maintenance/language/generateCollationData.php
+// @codeCoverageIgnore
 return [
 	0 => 'ـ',
 	1 => ' ',

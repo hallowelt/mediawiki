@@ -281,7 +281,11 @@ class GenerateCollationData extends Maintenance {
 		$writer = new StaticArrayWriter();
 		file_put_contents(
 			MW_INSTALL_PATH . '/languages/data/first-letters-root.php',
-			$writer->create( $headerChars, 'File created by generateCollationData.php' )
+			$writer->create(
+				$headerChars,
+				"File created by maintenance/language/generateCollationData.php\n"
+					. "@codeCoverageIgnore"
+			)
 		);
 		echo "first-letters-root: file written.\n";
 	}
