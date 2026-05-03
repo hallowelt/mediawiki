@@ -235,9 +235,9 @@ class BitmapHandler extends TransformationalImageHandler {
 		}
 
 		// Use one thread only, to avoid deadlock bugs on OOM
-		$env = [ 'OMP_NUM_THREADS' => 1 ];
+		$env = [ 'OMP_NUM_THREADS' => '1' ];
 		if ( (string)$imageMagickTempDir !== '' ) {
-			$env['MAGICK_TMPDIR'] = $imageMagickTempDir;
+			$env['MAGICK_TMPDIR'] = (string)$imageMagickTempDir;
 		}
 
 		$rotation = isset( $params['disableRotation'] ) ? 0 : $this->getRotation( $image );
@@ -277,8 +277,9 @@ class BitmapHandler extends TransformationalImageHandler {
 			[ $this->escapeMagickOutput( $params['dstPath'] ) ] ) );
 
 		wfDebug( __METHOD__ . ": running ImageMagick: $cmd" );
-		$retval = 0;
-		$err = wfShellExecWithStderr( $cmd, $retval, $env );
+		$shell = Shell::command()->unsafeCommand( $cmd )->environment( $env )->execute();
+		$retval = $shell->getExitCode();
+		$err = $shell->getStderr();
 
 		if ( $retval !== 0 ) {
 			$this->logErrorForExternalProcess( $retval, $err, $cmd );
@@ -415,8 +416,9 @@ class BitmapHandler extends TransformationalImageHandler {
 			'%h' => Shell::escape( $params['physicalHeight'] ),
 		] );
 		wfDebug( __METHOD__ . ": Running custom convert command $cmd" );
-		$retval = 0;
-		$err = wfShellExecWithStderr( $cmd, $retval );
+		$shell = Shell::command()->unsafeCommand( $cmd )->execute();
+		$retval = $shell->getExitCode();
+		$err = $shell->getStderr();
 
 		if ( $retval !== 0 ) {
 			$this->logErrorForExternalProcess( $retval, $err, $cmd );
@@ -618,8 +620,9 @@ class BitmapHandler extends TransformationalImageHandler {
 					" -rotate " . Shell::escape( "-$rotation" ) . " " .
 					Shell::escape( $this->escapeMagickOutput( $params['dstPath'] ) );
 				wfDebug( __METHOD__ . ": running ImageMagick: $cmd" );
-				$retval = 0;
-				$err = wfShellExecWithStderr( $cmd, $retval );
+				$shell = Shell::command()->unsafeCommand( $cmd )->execute();
+				$err = $shell->getStderr();
+				$retval = $shell->getExitCode();
 				if ( $retval !== 0 ) {
 					$this->logErrorForExternalProcess( $retval, $err, $cmd );
 
