@@ -49,8 +49,8 @@
 		"psr/http-message": "2.0",
 		"psr/log": "1.1.4",
 		"ralouphie/getallheaders": "3.0.3",
-		"symfony/polyfill-php84": "1.36.0",
-		"symfony/polyfill-php85": "1.36.0",
+		"symfony/polyfill-php84": "1.37.0",
+		"symfony/polyfill-php85": "1.37.0",
 		"symfony/polyfill-php86": "1.37.0",
 		"symfony/yaml": "7.4.8",
 		"wikimedia/assert": "0.5.1",
@@ -90,7 +90,7 @@
 		"zordius/lightncandy": "1.2.6"
 	},
 	"require-dev": {
-		"composer/spdx-licenses": "1.5.9",
+		"composer/spdx-licenses": "1.6.0",
 		"doctrine/dbal": "3.10.5",
 		"doctrine/sql-formatter": "1.5.4",
 		"ergebnis/phpunit-slow-test-detector": "2.24.0",

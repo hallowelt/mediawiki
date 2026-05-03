@@ -225,11 +225,12 @@ class DjVuHandler extends ImageHandler {
 		}
 		$cmd .= ' > ' . Shell::escape( $dstPath ) . ') 2>&1';
 		wfDebug( __METHOD__ . ": $cmd" );
-		$retval = 0;
-		$err = wfShellExec( $cmd, $retval );
+		$shell = Shell::command()->unsafeCommand( $cmd )->execute();
+		$retval = $shell->getExitCode();
+		$err = $shell->getStderr();
 
 		$removed = $this->removeBadFile( $dstPath, $retval );
-		if ( $retval !== 0 || $removed ) {
+		if ( ( $retval !== 0 || $removed ) && $retval !== null ) {
 			$this->logErrorForExternalProcess( $retval, $err, $cmd );
 			return new MediaTransformError( 'thumbnail_error', $width, $height, $err );
 		}

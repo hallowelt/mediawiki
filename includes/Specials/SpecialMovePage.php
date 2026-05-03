@@ -236,13 +236,24 @@ class SpecialMovePage extends UnlistedSpecialPage {
 				'movepagetext-noredirectsupport' );
 		}
 
-		if ( $this->oldTitle->getNamespace() === NS_USER && !$this->oldTitle->isSubpage() ) {
-			$out->addHTML(
-				Html::warningBox(
-					$out->msg( 'moveuserpage-warning' )->parse(),
-					'mw-moveuserpage-warning'
-				)
-			);
+		if ( $this->oldTitle->getNamespace() === NS_USER ) {
+			if ( !$this->oldTitle->isSubpage() ) {
+				$out->addHTML(
+					Html::warningBox(
+						$out->msg( 'moveuserpage-warning' )->parse(),
+						'mw-moveuserpage-warning'
+						)
+				);
+			} else {
+				$out->addHTML(
+					Html::warningBox(
+						$out->msg( 'moveusersubpage-warning' )->parse(),
+						'mw-moveusersubpage-warning'
+						)
+				);
+
+			}
+
 			// Deselect moveTalk unless it's explicitly given
 			$this->moveTalk = $this->getRequest()->getBool( "wpMovetalk", false );
 		} elseif ( $this->oldTitle->getNamespace() === NS_CATEGORY ) {
@@ -920,7 +931,7 @@ class SpecialMovePage extends UnlistedSpecialPage {
 			return;
 		}
 
-		# Show a warning if procted (showForm handles the warning )
+		# Show a warning if protected (showForm handles the warning )
 		if ( !$this->moveOverProtection ) {
 			if ( $this->restrictionStore->isProtected( $nt, 'create' ) ) {
 				$this->showForm();

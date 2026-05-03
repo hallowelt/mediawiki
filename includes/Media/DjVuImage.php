@@ -317,15 +317,18 @@ class DjVuImage {
 				# djvudump is faster than djvutoxml (now abandoned) as of version 3.5
 				# https://sourceforge.net/p/djvu/bugs/71/
 				$cmd = Shell::escape( $djvuDump ) . ' ' . Shell::escape( $this->mFilename );
-				$dump = wfShellExec( $cmd );
+				$dump = Shell::command()->unsafeCommand( $cmd )->execute()->getStdout();
 			}
 			if ( $djvuTxt !== null ) {
 				$cmd = Shell::escape( $djvuTxt ) . ' --detail=page ' . Shell::escape( $this->mFilename );
 				wfDebug( __METHOD__ . ": $cmd" );
-				$retval = 0;
-				$txt = wfShellExec( $cmd, $retval, [], [ 'memory' => self::DJVUTXT_MEMORY_LIMIT ] );
-				if ( $retval !== 0 ) {
+				$txt = Shell::command()->unsafeCommand( $cmd )->environment(
+					[ 'memory' => (string)self::DJVUTXT_MEMORY_LIMIT ]
+				)->execute();
+				if ( $txt->getExitCode() !== 0 ) {
 					$txt = null;
+				} else {
+					$txt = $txt->getStdout();
 				}
 			}
 		}
