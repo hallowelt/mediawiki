@@ -2542,12 +2542,7 @@ class EditPage implements IEditObject {
 		} elseif ( $failed instanceof EditFilterMergedContentHookConstraint ) {
 			$this->hookError = $failed->getHookError();
 		} elseif (
-			// ExistingSectionEditConstraint also checks for revisions deleted
-			// since the edit was loaded, which doesn't indicate a missing summary
-			(
-				$failed instanceof ExistingSectionEditConstraint
-				&& $status->value === self::AS_SUMMARY_NEEDED
-			) ||
+			$failed instanceof ExistingSectionEditConstraint ||
 			$failed instanceof NewSectionMissingSubjectConstraint
 		) {
 			$this->missingSummary = true;
