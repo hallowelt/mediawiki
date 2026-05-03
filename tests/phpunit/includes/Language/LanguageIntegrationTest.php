@@ -51,7 +51,8 @@ class LanguageIntegrationTest extends LanguageClassesTestCase {
 			$this->createNoOpMock( LanguageFallback::class ),
 			$this->createNoOpMock( LanguageConverterFactory::class ),
 			$this->createHookContainer(),
-			$config
+			$config,
+			$this->getServiceContainer()->getLeximorphFactory()
 		);
 	}
 
@@ -2371,7 +2372,8 @@ class LanguageIntegrationTest extends LanguageClassesTestCase {
 			$this->createNoOpMock( LanguageFallback::class ),
 			$this->createNoOpMock( LanguageConverterFactory::class ),
 			$this->createMock( HookContainer::class ),
-			new MultiConfig( [ new HashConfig( $config ), $services->getMainConfig() ] )
+			new MultiConfig( [ new HashConfig( $config ), $services->getMainConfig() ] ),
+			$services->getLeximorphFactory()
 		);
 		$namespaces = $lang->getNamespaces();
 		$this->assertArraySubmapSame( $expected, $namespaces );

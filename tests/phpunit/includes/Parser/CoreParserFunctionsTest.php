@@ -3,7 +3,9 @@
 namespace MediaWiki\Tests\Parser;
 
 use MediaWiki\Language\RawMessage;
+use MediaWiki\MainConfigNames;
 use MediaWiki\Parser\CoreParserFunctions;
+use MediaWiki\Parser\Parser;
 use MediaWiki\User\User;
 use MediaWikiLangTestCase;
 
@@ -79,6 +81,68 @@ class CoreParserFunctionsTest extends MediaWikiLangTestCase {
 		$parser = $this->getServiceContainer()->getParser();
 
 		$this->assertSame( $expected, CoreParserFunctions::subjectpagename( $parser, $title ) );
+	}
+
+	public function testGrammarRespectsGrammarFormsWithLeximorph(): void {
+		$parser = $this->getMockBuilder( Parser::class )
+			->disableOriginalConstructor()
+			->onlyMethods( [ 'getTargetLanguage', 'killMarkers' ] )
+			->getMock();
+		$parser->method( 'killMarkers' )->willReturnArgument( 0 );
+		$targetLanguage = null;
+		$parser->method( 'getTargetLanguage' )->willReturnCallback(
+			static function () use ( &$targetLanguage ) {
+				return $targetLanguage;
+			}
+		);
+
+		$this->overrideConfigValue( MainConfigNames::GrammarForms, [
+			'en' => [
+				'genitive' => [
+					'Project' => "Project's",
+				],
+			],
+		] );
+
+		$this->overrideConfigValue( MainConfigNames::UseLeximorph, false );
+		$this->resetLeximorphLanguageServices();
+		$targetLanguage = $this->getServiceContainer()->getLanguageFactory()->getLanguage( 'en' );
+		$this->assertSame( "Project's", CoreParserFunctions::grammar( $parser, 'genitive', 'Project' ) );
+
+		$this->overrideConfigValue( MainConfigNames::UseLeximorph, true );
+		$this->resetLeximorphLanguageServices();
+		$targetLanguage = $this->getServiceContainer()->getLanguageFactory()->getLanguage( 'en' );
+		$this->assertSame( "Project's", CoreParserFunctions::grammar( $parser, 'genitive', 'Project' ) );
+	}
+
+	public function testPluralUsesLeximorphWhenEnabled(): void {
+		$parser = $this->getMockBuilder( Parser::class )
+			->disableOriginalConstructor()
+			->onlyMethods( [ 'getTargetLanguage' ] )
+			->getMock();
+		$forms = [ 'zero', 'one', 'two', 'few', 'many', 'other' ];
+		$targetLanguage = null;
+		$parser->method( 'getTargetLanguage' )->willReturnCallback(
+			static function () use ( &$targetLanguage ) {
+				return $targetLanguage;
+			}
+		);
+
+		$this->overrideConfigValue( MainConfigNames::UseLeximorph, false );
+		$this->resetLeximorphLanguageServices();
+		$targetLanguage = $this->getServiceContainer()->getLanguageFactory()->getLanguage( 'ar' );
+		$this->assertSame( 'few', CoreParserFunctions::plural( $parser, '3', ...$forms ) );
+
+		$this->overrideConfigValue( MainConfigNames::UseLeximorph, true );
+		$this->resetLeximorphLanguageServices();
+		$targetLanguage = $this->getServiceContainer()->getLanguageFactory()->getLanguage( 'ar' );
+		$this->assertSame( 'few', CoreParserFunctions::plural( $parser, '3', ...$forms ) );
+	}
+
+	private function resetLeximorphLanguageServices(): void {
+		$services = $this->getServiceContainer();
+		$services->resetServiceForTesting( 'LeximorphFactory' );
+		$services->resetServiceForTesting( 'LanguageFactory' );
 	}
 
 }

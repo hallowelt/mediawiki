@@ -13501,7 +13501,8 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * Whether parser functions should use Leximorph handlers instead of Language methods.
+	 * Whether MediaWiki should use Leximorph handlers and providers for language
+	 * transformations and plural-rule loading.
 	 *
 	 * @unstable Temporary feature flag, T389281
 	 * @since 1.45

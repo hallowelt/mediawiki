@@ -24,6 +24,8 @@ use MediaWiki\MediaWikiServices;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use UnexpectedValueException;
+use Wikimedia\Leximorph\Provider as LeximorphProvider;
+use Wikimedia\Leximorph\Provider\PluralRules as LeximorphPluralRulesProvider;
 
 /**
  * Caching for the contents of localisation files.
@@ -42,7 +44,7 @@ use UnexpectedValueException;
  * @ingroup Language
  */
 class LocalisationCache {
-	public const VERSION = 5;
+	public const VERSION = 6;
 
 	/** @var ServiceOptions */
 	private $options;
@@ -332,6 +334,7 @@ class LocalisationCache {
 		MainConfigNames::ExtensionMessagesFiles,
 		MainConfigNames::MessagesDirs,
 		MainConfigNames::TranslationAliasesDirs,
+		MainConfigNames::UseLeximorph,
 	];
 
 	/**
@@ -949,20 +952,31 @@ class LocalisationCache {
 	 * @return array
 	 */
 	private function readPluralFilesAndRegisterDeps( $code, &$deps ) {
-		$data = [
-			// Load CLDR plural rules for JavaScript
-			'pluralRules' => $this->getPluralRules( $code ),
-			// And for PHP
-			'compiledPluralRules' => $this->getCompiledPluralRules( $code ),
-			// Load plural rule types
-			'pluralRuleTypes' => $this->getPluralRuleTypes( $code ),
-		];
+		if ( $this->isLeximorphEnabled() ) {
+			$provider = ( new LeximorphProvider( $code, $this->logger ) )->getPluralProvider();
+			$pluralRules = $provider->getPluralRules();
+			$compiledPluralRules = $provider->getCompiledPluralRules();
+			$pluralRuleTypes = $provider->getPluralRuleTypes();
+			$depFiles = LeximorphPluralRulesProvider::PLURAL_FILES;
+		} else {
+			$pluralRules = $this->getPluralRules( $code );
+			$compiledPluralRules = $this->getCompiledPluralRules( $code );
+			$pluralRuleTypes = $this->getPluralRuleTypes( $code );
+			$depFiles = self::PLURAL_FILES;
+		}
 
-		foreach ( self::PLURAL_FILES as $fileName ) {
+		foreach ( $depFiles as $fileName ) {
 			$deps[] = new FileDependency( $fileName );
 		}
 
-		return $data;
+		return [
+			// Load CLDR plural rules for JavaScript
+			'pluralRules' => $pluralRules,
+			// And for PHP
+			'compiledPluralRules' => $compiledPluralRules,
+			// Load plural rule types
+			'pluralRuleTypes' => $pluralRuleTypes,
+		];
 	}
 
 	/**
@@ -1305,6 +1319,8 @@ class LocalisationCache {
 			new MainConfigDependency( MainConfigNames::ExtensionMessagesFiles );
 		$deps['wgMessagesDirs'] =
 			new MainConfigDependency( MainConfigNames::MessagesDirs );
+		$deps['wgUseLeximorph'] =
+			new MainConfigDependency( MainConfigNames::UseLeximorph );
 		$deps['version'] = new ConstantDependency( self::class . '::VERSION' );
 
 		# Add dependencies to the cache entry
@@ -1452,6 +1468,13 @@ class LocalisationCache {
 	public function disableBackend() {
 		$this->store = new LCStoreNull;
 		$this->manualRecache = false;
+	}
+
+	/**
+	 * Whether localisation cache data should be loaded from Leximorph providers.
+	 */
+	private function isLeximorphEnabled(): bool {
+		return (bool)$this->options->get( MainConfigNames::UseLeximorph );
 	}
 }
 

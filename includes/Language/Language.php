@@ -158,6 +158,11 @@ class Language implements Bcp47Code {
 	private $config;
 
 	/**
+	 * @noVarDump
+	 */
+	private LeximorphFactory $leximorphFactory;
+
+	/**
 	 * @var array|null
 	 */
 	private $overrideUcfirstCharacters;
@@ -345,7 +350,8 @@ class Language implements Bcp47Code {
 		LanguageFallback $langFallback,
 		LanguageConverterFactory $converterFactory,
 		HookContainer $hookContainer,
-		Config $config
+		Config $config,
+		LeximorphFactory $leximorphFactory
 	) {
 		$this->mCode = $code;
 		$this->namespaceInfo = $namespaceInfo;
@@ -356,6 +362,7 @@ class Language implements Bcp47Code {
 		$this->hookContainer = $hookContainer;
 		$this->hookRunner = new HookRunner( $hookContainer );
 		$this->config = $config;
+		$this->leximorphFactory = $leximorphFactory;
 	}
 
 	/**
@@ -4137,6 +4144,11 @@ class Language implements Bcp47Code {
 			return $grammarForms[$this->getCode()][$case][$word];
 		}
 
+		$manager = $this->leximorphFactory->getManager( $this );
+		if ( $manager ) {
+			return $manager->getGrammar()->process( $word, $case, $grammarForms );
+		}
+
 		$grammarTransformations = $this->getGrammarTransformations();
 
 		if ( isset( $grammarTransformations[$case] ) ) {
@@ -4203,6 +4215,11 @@ class Language implements Bcp47Code {
 	 * @since 1.28
 	 */
 	public function getGrammarTransformations() {
+		$provider = $this->leximorphFactory->getProvider( $this );
+		if ( $provider ) {
+			return $provider->getGrammarTransformationsProvider()->getTransformations();
+		}
+
 		global $IP;
 		if ( $this->grammarTransformCache !== null ) {
 			return $this->grammarTransformCache;
@@ -4243,6 +4260,12 @@ class Language implements Bcp47Code {
 		if ( !count( $forms ) ) {
 			return '';
 		}
+
+		$manager = $this->leximorphFactory->getManager( $this );
+		if ( $manager ) {
+			return $manager->getGender()->process( $gender, $forms );
+		}
+
 		$forms = $this->preConvertPlural( $forms, 2 );
 		if ( $gender === 'male' ) {
 			return $forms[0];
@@ -4269,6 +4292,11 @@ class Language implements Bcp47Code {
 	 * @return string Correct form of plural for $count in this language
 	 */
 	public function convertPlural( $count, $forms ) {
+		$manager = $this->leximorphFactory->getManager( $this );
+		if ( $manager ) {
+			return $manager->getPlural()->process( $count, $forms );
+		}
+
 		// Handle explicit n=pluralform cases
 		$forms = $this->handleExplicitPluralForms( $count, $forms );
 		if ( is_string( $forms ) ) {
@@ -4334,6 +4362,11 @@ class Language implements Bcp47Code {
 	 * @since 1.43
 	 */
 	public function getFormalityIndex(): int {
+		$provider = $this->leximorphFactory->getProvider( $this );
+		if ( $provider ) {
+			return $provider->getFormalityIndexProvider()->getFormalityIndex();
+		}
+
 		return $this->localisationCache->getItem( $this->mCode, 'formalityIndex' ) ?? 0;
 	}
 
@@ -4360,6 +4393,11 @@ class Language implements Bcp47Code {
 	 * @return string Text, wrapped in LRE...PDF or RLE...PDF or nothing
 	 */
 	public function embedBidi( $text = '' ) {
+		$manager = $this->leximorphFactory->getManager( $this );
+		if ( $manager ) {
+			return $manager->getBidi()->process( $text );
+		}
+
 		$dir = self::strongDirFromContent( $text );
 		if ( $dir === 'ltr' ) {
 			// Wrap in LEFT-TO-RIGHT EMBEDDING ... POP DIRECTIONAL FORMATTING
@@ -4882,6 +4920,11 @@ class Language implements Bcp47Code {
 	 * @return array<int,string> Associative array with plural form, and plural rule as key-value pairs
 	 */
 	public function getCompiledPluralRules() {
+		$provider = $this->leximorphFactory->getProvider( $this );
+		if ( $provider ) {
+			return $provider->getPluralProvider()->getCompiledPluralRules();
+		}
+
 		$pluralRules =
 			$this->localisationCache->getItem( strtolower( $this->mCode ), 'compiledPluralRules' );
 		if ( !$pluralRules ) {
@@ -4926,6 +4969,11 @@ class Language implements Bcp47Code {
 	 * @return array<int,string> Associative array with plural form number and plural rule type as key-value pairs
 	 */
 	public function getPluralRuleTypes() {
+		$provider = $this->leximorphFactory->getProvider( $this );
+		if ( $provider ) {
+			return $provider->getPluralProvider()->getPluralRuleTypes();
+		}
+
 		$pluralRuleTypes =
 			$this->localisationCache->getItem( strtolower( $this->mCode ), 'pluralRuleTypes' );
 		if ( !$pluralRuleTypes ) {
@@ -4948,6 +4996,11 @@ class Language implements Bcp47Code {
 	 * @return int The index number of the plural rule
 	 */
 	public function getPluralRuleIndexNumber( $number ) {
+		$provider = $this->leximorphFactory->getProvider( $this );
+		if ( $provider ) {
+			return $provider->getPluralProvider()->getPluralRuleIndexNumber( $number );
+		}
+
 		$pluralRules = $this->getCompiledPluralRules();
 		return Evaluator::evaluateCompiled( $number, $pluralRules );
 	}
@@ -4962,6 +5015,11 @@ class Language implements Bcp47Code {
 	 * @return string The name of the plural rule type, e.g., one, two, few, many
 	 */
 	public function getPluralRuleType( $number ) {
+		$provider = $this->leximorphFactory->getProvider( $this );
+		if ( $provider ) {
+			return $provider->getPluralProvider()->getPluralRuleType( $number );
+		}
+
 		$index = $this->getPluralRuleIndexNumber( $number );
 		$pluralRuleTypes = $this->getPluralRuleTypes();
 		return $pluralRuleTypes[$index] ?? 'other';

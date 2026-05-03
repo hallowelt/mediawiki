@@ -177,12 +177,14 @@ class DjVuHandler extends ImageHandler {
 		}
 
 		if ( !wfMkdirParents( dirname( $dstPath ), null, __METHOD__ ) ) {
+			// @codeCoverageIgnoreStart
 			return new MediaTransformError(
 				'thumbnail_error',
 				$width,
 				$height,
 				wfMessage( 'thumbnail_dest_directory' )
 			);
+			// @codeCoverageIgnoreEnd
 		}
 
 		// Get local copy source for shell scripts
@@ -201,7 +203,9 @@ class DjVuHandler extends ImageHandler {
 			$srcPath = $image->getLocalRefPath();
 		}
 
-		if ( $srcPath === false ) { // Failed to get local copy
+		if ( $srcPath === false ) {
+			// Failed to get local copy
+			// @codeCoverageIgnoreStart
 			wfDebugLog( 'thumbnail',
 				sprintf( 'Thumbnail failed on %s: could not get local copy of "%s"',
 					wfHostname(), $image->getName() ) );
@@ -210,10 +214,11 @@ class DjVuHandler extends ImageHandler {
 				$params['width'], $params['height'],
 				wfMessage( 'filemissing' )
 			);
+			// @codeCoverageIgnoreEnd
 		}
 
-		# Use a subshell (brackets) to aggregate stderr from both pipeline commands
-		# before redirecting it to the overall stdout. This works in both Linux and Windows XP.
+		// Use a subshell (brackets) to aggregate stderr from both pipeline commands
+		// before redirecting it to the overall stdout. This works in both Linux and Windows XP.
 		$cmd = '(' . Shell::escape(
 			$djvuRenderer,
 			"-format=ppm",
@@ -231,8 +236,10 @@ class DjVuHandler extends ImageHandler {
 
 		$removed = $this->removeBadFile( $dstPath, $retval );
 		if ( ( $retval !== 0 || $removed ) && $retval !== null ) {
+			// @codeCoverageIgnoreStart
 			$this->logErrorForExternalProcess( $retval, $err, $cmd );
 			return new MediaTransformError( 'thumbnail_error', $width, $height, $err );
+			// @codeCoverageIgnoreEnd
 		}
 		$params = [
 			'width' => $width,
@@ -246,12 +253,8 @@ class DjVuHandler extends ImageHandler {
 	/**
 	 * Cache an instance of DjVuImage in a MediaHandlerState object, return
 	 * that instance
-	 *
-	 * @param MediaHandlerState $state
-	 * @param string $path
-	 * @return DjVuImage
 	 */
-	private function getDjVuImage( $state, $path ) {
+	private function getDjVuImage( MediaHandlerState $state, string $path ): DjVuImage {
 		$deja = $state->getHandlerState( self::STATE_DJVU_IMAGE );
 		if ( !$deja ) {
 			$deja = new DjVuImage( $path );
@@ -267,7 +270,7 @@ class DjVuHandler extends ImageHandler {
 	 * @param bool $gettext
 	 * @return string|false|array metadata
 	 */
-	private function getMetadataInternal( File $file, $gettext ) {
+	private function getMetadataInternal( File $file, bool $gettext ) {
 		$itemNames = [ 'error', '_error', 'data' ];
 		if ( $gettext ) {
 			$itemNames[] = 'text';

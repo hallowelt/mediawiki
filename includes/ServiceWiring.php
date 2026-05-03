@@ -1235,7 +1235,8 @@ return [
 			$services->getLanguageFallback(),
 			$services->getLanguageConverterFactory(),
 			$services->getHookContainer(),
-			$services->getMainConfig()
+			$services->getMainConfig(),
+			$services->getLeximorphFactory()
 		);
 	},
 

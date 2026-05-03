@@ -47,7 +47,13 @@ For notes on 1.46.x and older releases, see HISTORY.
 * …
 
 === New developer features in 1.47 ===
-
+* (T389281) The Language and LocalisationCache classes now support using the
+  Leximorph library. Language supports Leximorph for grammar, plural, gender,
+  formality, and bidi transformations, which also affects parser functions that
+  use these Language methods. LocalisationCache supports loading plural rules
+  from Leximorph. When $wgUseLeximorph is enabled, these features use
+  Leximorph's modular handlers instead of the legacy implementations and
+  plural-rule files.
 * …
 
 === External library changes in 1.47 ===

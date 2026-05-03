@@ -2,11 +2,14 @@
 
 namespace MediaWiki\Tests\Language;
 
+use FileDependency;
 use MediaWiki\Language\LocalisationCache;
+use MediaWiki\MainConfigNames;
 use MediaWiki\Tests\Mocks\Language\MockLocalisationCacheTrait;
 use MediaWiki\Tests\Unit\DummyServicesTrait;
 use MediaWikiIntegrationTestCase;
 use UnexpectedValueException;
+use Wikimedia\Leximorph\Provider\PluralRules as LeximorphPluralRulesProvider;
 use Wikimedia\TestingAccessWrapper;
 
 /**
@@ -189,5 +192,51 @@ class LocalisationCacheTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( false, $lc->getItem( $invalidCode, 'rtl' ) );
 		$this->assertSame( 'windows-1252', $lc->getItem( $invalidCode, 'fallback8bitEncoding' ) );
+	}
+
+	public function testReadPluralFilesAndRegisterDepsRespectsUseLeximorph(): void {
+		$this->overrideConfigValue( MainConfigNames::UseLeximorph, false );
+		$lc = $this->getMockLocalisationCache( [], [
+			MainConfigNames::UseLeximorph => false,
+		] );
+		$lc->recache( 'en' );
+
+		$deps = TestingAccessWrapper::newFromObject( $lc )->data['en']['deps'];
+		$this->assertContainsFileDependency(
+			MW_INSTALL_PATH . '/languages/data/plurals.xml',
+			$deps
+		);
+		$this->assertContainsFileDependency(
+			MW_INSTALL_PATH . '/languages/data/plurals-mediawiki.xml',
+			$deps
+		);
+
+		$this->overrideConfigValue( MainConfigNames::UseLeximorph, true );
+		$leximorphLc = $this->getMockLocalisationCache( [], [
+			MainConfigNames::UseLeximorph => true,
+		] );
+		$leximorphLc->recache( 'en' );
+
+		$leximorphDeps = TestingAccessWrapper::newFromObject( $leximorphLc )->data['en']['deps'];
+		foreach ( LeximorphPluralRulesProvider::PLURAL_FILES as $fileName ) {
+			$this->assertContainsFileDependency( $fileName, $leximorphDeps );
+		}
+	}
+
+	private function assertContainsFileDependency( string $fileName, array $deps ): void {
+		$fileName = realpath( $fileName ) ?: $fileName;
+		foreach ( $deps as $dep ) {
+			if ( !$dep instanceof FileDependency ) {
+				continue;
+			}
+			$depFileName = TestingAccessWrapper::newFromObject( $dep )->filename;
+			$depFileName = realpath( $depFileName ) ?: $depFileName;
+			if ( $depFileName === $fileName ) {
+				$this->addToAssertionCount( 1 );
+				return;
+			}
+		}
+
+		$this->fail( "Deps should contain FileDependency for $fileName" );
 	}
 }

@@ -7,6 +7,7 @@ use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Language\LanguageFallback;
 use MediaWiki\Language\LanguageNameUtils;
+use MediaWiki\Language\LeximorphFactory;
 use MediaWiki\Language\LocalisationCache;
 use MediaWiki\StubObject\StubObject;
 use MediaWiki\Title\NamespaceInfo;
@@ -26,6 +27,10 @@ class LanguageTest extends MediaWikiUnitTestCase {
 	 * @return Language
 	 */
 	private function getObj( array $options = [] ) {
+		$leximorphFactory = $this->createMock( LeximorphFactory::class );
+		$leximorphFactory->method( 'getManager' )->willReturn( null );
+		$leximorphFactory->method( 'getProvider' )->willReturn( null );
+
 		return new Language(
 			$options['code'] ?? 'en',
 			$this->createNoOpMock( NamespaceInfo::class ),
@@ -34,7 +39,8 @@ class LanguageTest extends MediaWikiUnitTestCase {
 			$this->createNoOpMock( LanguageFallback::class ),
 			$this->createNoOpMock( LanguageConverterFactory::class ),
 			$this->createHookContainer(),
-			new HashConfig( [] )
+			new HashConfig( [] ),
+			$leximorphFactory
 		);
 	}
 

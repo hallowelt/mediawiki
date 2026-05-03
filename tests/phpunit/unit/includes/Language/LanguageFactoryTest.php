@@ -9,6 +9,7 @@ use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Language\LanguageFactory;
 use MediaWiki\Language\LanguageFallback;
 use MediaWiki\Language\LanguageNameUtils;
+use MediaWiki\Language\LeximorphFactory;
 use MediaWiki\Language\LocalisationCache;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWikiUnitTestCase;
@@ -36,7 +37,8 @@ class LanguageFactoryTest extends MediaWikiUnitTestCase {
 			$this->createNoOpMock( LanguageFallback::class ),
 			$this->createNoOpMock( LanguageConverterFactory::class ),
 			$this->createNoOpMock( HookContainer::class ),
-			new HashConfig()
+			new HashConfig(),
+			$this->createNoOpMock( LeximorphFactory::class )
 		);
 		return $factory;
 	}

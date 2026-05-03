@@ -51,6 +51,9 @@ class LanguageFactory {
 	/** @var Config */
 	private $config;
 
+	/** @var LeximorphFactory */
+	private LeximorphFactory $leximorphFactory;
+
 	/** @var array */
 	private $parentLangCache = [];
 
@@ -73,6 +76,7 @@ class LanguageFactory {
 	 * @param LanguageConverterFactory $langConverterFactory
 	 * @param HookContainer $hookContainer
 	 * @param Config $config
+	 * @param LeximorphFactory $leximorphFactory
 	 */
 	public function __construct(
 		ServiceOptions $options,
@@ -82,7 +86,8 @@ class LanguageFactory {
 		LanguageFallback $langFallback,
 		LanguageConverterFactory $langConverterFactory,
 		HookContainer $hookContainer,
-		Config $config
+		Config $config,
+		LeximorphFactory $leximorphFactory
 	) {
 		// We have both ServiceOptions and a Config object because
 		// the Language class hasn't (yet) been updated to use ServiceOptions
@@ -98,6 +103,7 @@ class LanguageFactory {
 		$this->hookContainer = $hookContainer;
 		$this->langObjCache = new MapCacheLRU( self::LANG_CACHE_SIZE );
 		$this->config = $config;
+		$this->leximorphFactory = $leximorphFactory;
 	}
 
 	/**
@@ -182,7 +188,8 @@ class LanguageFactory {
 			$this->langFallback,
 			$this->langConverterFactory,
 			$this->hookContainer,
-			$this->config
+			$this->config,
+			$this->leximorphFactory
 		];
 
 		if ( !$this->langNameUtils->isValidBuiltInCode( $code ) ) {

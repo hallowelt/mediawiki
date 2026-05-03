@@ -5,6 +5,7 @@ namespace MediaWiki\Tests\Mocks\Language;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Language\LCStoreDB;
 use MediaWiki\Language\LocalisationCache;
+use MediaWiki\MainConfigNames;
 use MediaWiki\Tests\Unit\DummyServicesTrait;
 use Psr\Log\NullLogger;
 
@@ -34,6 +35,7 @@ trait MockLocalisationCacheTrait {
 			'ExtensionMessagesFiles' => [],
 			'MessagesDirs' => [],
 			'TranslationAliasesDirs' => [],
+			MainConfigNames::UseLeximorph => false,
 		];
 
 		$lc = $this->getMockBuilder( LocalisationCache::class )
