@@ -2524,7 +2524,7 @@ class ParserTestRunner {
 				isset( $opts['subpage'] )
 			),
 			'wgMaxTocLevel' => $maxtoclevel,
-			'wgAllowExternalImages' => self::getOptionValue( 'wgAllowExternalImages', $opts, true ),
+			'wgAllowExternalImages' => self::getOptionValue( 'wgAllowExternalImages', $opts, false ),
 			'wgThumbLimits' => [ 0, 0, 0, 0, 0, (int)self::getOptionValue( 'thumbsize', $opts, 180 ) ],
 			'wgDefaultLanguageVariant' => $variant,
 			'wgLinkHolderBatchSize' => $linkHolderBatchSize,
