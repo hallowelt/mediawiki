@@ -361,15 +361,18 @@ class SvgHandler extends ImageHandler {
 		$svgConverters = $mainConfig->get( MainConfigNames::SVGConverters );
 		$svgConverter = $mainConfig->get( MainConfigNames::SVGConverter );
 		$svgConverterPath = $mainConfig->get( MainConfigNames::SVGConverterPath );
-		$err = false;
-		$retval = '';
+		$err = '';
+		$retval = null;
+		$cmd = '';
 		if ( isset( $svgConverters[$svgConverter] ) ) {
+			// Handling largely for imagick PHP extension support (T16706) - ::rasterizeImagickExt()
 			if ( is_array( $svgConverters[$svgConverter] ) ) {
 				// This is a PHP callable
 				$func = $svgConverters[$svgConverter][0];
 				if ( !is_callable( $func ) ) {
 					throw new UnexpectedValueException( "$func is not callable" );
 				}
+				// Returns string on error else void
 				$err = $func( $srcPath,
 					$dstPath,
 					$width,
@@ -377,7 +380,9 @@ class SvgHandler extends ImageHandler {
 					$lang,
 					...array_slice( $svgConverters[$svgConverter], 1 )
 				);
-				$retval = (bool)$err;
+				$retval = is_string( $err ) ? 1 : 0;
+				$err = is_string( $err ) ? $err : '';
+				$cmd = 'PHP Callback: ' . (string)$func;
 			} else {
 				// External command
 				$cmd = strtr( $svgConverters[$svgConverter], [
@@ -394,12 +399,14 @@ class SvgHandler extends ImageHandler {
 				}
 
 				wfDebug( __METHOD__ . ": $cmd" );
-				$err = wfShellExecWithStderr( $cmd, $retval, $env );
+				$err = Shell::command()->unsafeCommand( $cmd )->environment( $env )->execute();
+				$retval = $err->getExitCode();
+				$err = $err->getStderr();
+				$err = $err === null ? '' : $err;
 			}
 		}
-		$removed = $this->removeBadFile( $dstPath, $retval );
-		if ( $retval != 0 || $removed ) {
-			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable cmd is set when used
+		$removed = $this->removeBadFile( $dstPath, (int)$retval );
+		if ( ( $retval != 0 || $removed ) && $retval !== null ) {
 			$this->logErrorForExternalProcess( $retval, $err, $cmd );
 			return new MediaTransformError( 'thumbnail_error', $width, $height, $err );
 		}
