@@ -27,6 +27,7 @@ class DeprecatedHooks {
 		'AutopromoteCondition' => [ 'deprecatedVersion' => '1.46' ],
 		'ConditionalDefaultOptionsAddCondition' => [ 'deprecatedVersion' => '1.46' ],
 		'EditFilter' => [ 'deprecatedVersion' => '1.47' ],
+		'EditPageBeforeConflictDiff' => [ 'deprecatedVersion' => '1.47' ],
 		'EditPageBeforeEditToolbar' => [ 'deprecatedVersion' => '1.36' ],
 		'EmailUser' => [ 'deprecatedVersion' => '1.41', 'silent' => true ],
 		'EmailUserPermissionsErrors' => [ 'deprecatedVersion' => '1.41' ],

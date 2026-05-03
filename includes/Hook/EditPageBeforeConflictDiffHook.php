@@ -9,8 +9,8 @@ use MediaWiki\Output\OutputPage;
  * This is a hook handler interface, see docs/Hooks.md.
  * Use the hook name "EditPageBeforeConflictDiff" to register handlers implementing this interface.
  *
- * @stable to implement
  * @ingroup Hooks
+ * @deprecated since 1.47
  */
 interface EditPageBeforeConflictDiffHook {
 	/**

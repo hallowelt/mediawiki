@@ -130,6 +130,8 @@ because of Phabricator reports.
   be used any more.
 * The EditFilter hook has been deprecated and will trigger deprecation warnings.
   Use EditFilterMergedContent or MultiContentSave instead.
+* The EditPageBeforeConflictDiff hook has been deprecated and will trigger
+  deprecation warnings.
 * …
 
 === Other changes in 1.47 ===
