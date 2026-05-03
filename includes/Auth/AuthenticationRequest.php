@@ -246,7 +246,7 @@ abstract class AuthenticationRequest {
 	 * handled by methods with allow the user to redo the request without
 	 * restarting the process (e.g. the AuthChangeFormFields hook).
 	 *
-	 * Note that this check was added in MediaWiki 1.33 so don't use it as a
+	 * Note that this check was added in MediaWiki 1.46 so don't use it as a
 	 * security guarantee if you want to support older versions as well.
 	 *
 	 * @return StatusValue
