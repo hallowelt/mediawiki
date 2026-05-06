@@ -10,6 +10,7 @@ use MediaWiki\Permissions\Authority;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 use RuntimeException;
+use Wikimedia\Message\MessageSpecifier;
 
 /**
  * @internal
@@ -50,13 +51,11 @@ class PageEditInputs {
 	 * @param string $section
 	 * @param string|null $sectiontitle
 	 * @param string|null $starttime
-	 * @param string $submitButtonLabel
+	 * @param MessageSpecifier $submitButtonLabel
 	 * @param string $summary
-	 * @param bool $tempUserCreateActive
 	 * @param string $textbox1
 	 * @param int $undidRev
 	 * @param int $undoAfter
-	 * @param string $unicodeCheck
 	 * @param UserIdentity $userForPreview
 	 * @param UserIdentity $userForSave
 	 * @param string|null $watchlistExpiry
@@ -90,13 +89,11 @@ class PageEditInputs {
 		private string $section,
 		private ?string $sectiontitle,
 		private ?string $starttime,
-		private string $submitButtonLabel,
+		private MessageSpecifier $submitButtonLabel,
 		private string $summary,
-		private bool $tempUserCreateActive,
 		private string $textbox1,
 		private int $undidRev,
 		private int $undoAfter,
-		private string $unicodeCheck,
 		private UserIdentity $userForPreview,
 		private UserIdentity $userForSave,
 		private ?string $watchlistExpiry,
@@ -218,16 +215,12 @@ class PageEditInputs {
 		return $this->starttime;
 	}
 
-	public function getSubmitButtonLabel(): string {
+	public function getSubmitButtonLabel(): MessageSpecifier {
 		return $this->submitButtonLabel;
 	}
 
 	public function getSummary(): string {
 		return $this->summary;
-	}
-
-	public function isTempUserCreateActive(): bool {
-		return $this->tempUserCreateActive;
 	}
 
 	public function getTextbox1(): string {
@@ -240,10 +233,6 @@ class PageEditInputs {
 
 	public function getUndoAfter(): int {
 		return $this->undoAfter;
-	}
-
-	public function getUnicodeCheck(): string {
-		return $this->unicodeCheck;
 	}
 
 	public function getUserForPreview(): UserIdentity {

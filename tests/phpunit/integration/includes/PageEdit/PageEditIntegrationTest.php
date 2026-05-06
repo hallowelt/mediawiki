@@ -3,7 +3,6 @@
 namespace MediaWiki\Tests\PageEdit;
 
 use MediaWiki\Context\RequestContext;
-use MediaWiki\EditPage\EditPage;
 use MediaWiki\Page\Article;
 use MediaWiki\Page\WikiPage;
 use MediaWiki\PageEdit\PageEdit;
@@ -11,6 +10,7 @@ use MediaWiki\PageEdit\PageEditFactory;
 use MediaWiki\PageEdit\PageEditInputs;
 use MediaWikiIntegrationTestCase;
 use TestUser;
+use Wikimedia\Message\MessageValue;
 use Wikimedia\TestingAccessWrapper;
 
 /**
@@ -57,13 +57,11 @@ class PageEditIntegrationTest extends MediaWikiIntegrationTestCase {
 			section: '',
 			sectiontitle: null,
 			starttime: null,
-			submitButtonLabel: '',
+			submitButtonLabel: new MessageValue( '' ),
 			summary: 'Edit summary',
-			tempUserCreateActive: false,
 			textbox1: $textbox1,
 			undidRev: $undidRev,
 			undoAfter: $undoAfter,
-			unicodeCheck: EditPage::UNICODE_CHECK,
 			userForPreview: $user->getUser(),
 			userForSave: $user->getUser(),
 			watchlistExpiry: null,

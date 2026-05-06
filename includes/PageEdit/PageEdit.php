@@ -21,7 +21,6 @@ use MediaWiki\EditPage\Constraint\MissingCommentConstraint;
 use MediaWiki\EditPage\Constraint\NewSectionMissingSubjectConstraint;
 use MediaWiki\EditPage\Constraint\PageSizeConstraint;
 use MediaWiki\EditPage\Constraint\RevisionDeletedConstraint;
-use MediaWiki\EditPage\Constraint\UnicodeConstraint;
 use MediaWiki\EditPage\EditPageStatus;
 use MediaWiki\EditPage\IEditObject;
 use MediaWiki\EditPage\NotDirectlyEditableException;
@@ -429,9 +428,6 @@ class PageEdit implements IEditObject {
 		User $requestUser,
 	): EditConstraintRunner {
 		return new EditConstraintRunner(
-			// Ensure that `$this->unicodeCheck` is the correct unicode
-			new UnicodeConstraint( $this->inputs->getUnicodeCheck() ),
-
 			// Ensure that the context request does not have `wpAntispam` set
 			// Use $user since there is no permissions aspect
 			$this->constraintFactory->newSimpleAntiSpamConstraint(
@@ -559,7 +555,7 @@ class PageEdit implements IEditObject {
 				$this->inputs->getAuthority(),
 				MessageValue::new(
 					'edit-constraint-warning-wrapper-save-deleted-revision',
-					[ MessageValue::new( $this->inputs->getSubmitButtonLabel() ) ],
+					[ $this->inputs->getSubmitButtonLabel() ],
 				),
 			),
 		);
@@ -580,7 +576,7 @@ class PageEdit implements IEditObject {
 					$this->inputs->getTitle(),
 					MessageValue::new(
 						'edit-constraint-warning-wrapper-save',
-						[ MessageValue::new( $this->inputs->getSubmitButtonLabel() ) ],
+						[ $this->inputs->getSubmitButtonLabel() ],
 					),
 					$this->inputs->getContentFormat(),
 				)
@@ -744,9 +740,6 @@ class PageEdit implements IEditObject {
 	 * Register the change of watch status
 	 */
 	private function updateWatchlist(): void {
-		if ( $this->inputs->isTempUserCreateActive() ) {
-			return;
-		}
 		$authority = $this->inputs->getAuthority();
 		if ( !$authority->isNamed() ) {
 			return;
