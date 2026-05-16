@@ -1232,7 +1232,7 @@ class Parser {
 	/**
 	 * Get a list of strippable XML-like elements
 	 *
-	 * @return array
+	 * @return string[]
 	 */
 	public function getStripList() {
 		return $this->mStripList;
@@ -2168,6 +2168,7 @@ class Parser {
 	 * Get the rel attribute for a particular external link.
 	 *
 	 * @since 1.21
+	 * @deprecated since 1.47 use LinkRenderer::getExternalLinkRel()
 	 * @internal
 	 * @param string|false $url Optional URL, to extract the domain from for rel =>
 	 *   nofollow if appropriate
@@ -2175,19 +2176,9 @@ class Parser {
 	 * @return string|null Rel attribute for $url
 	 */
 	public static function getExternalLinkRel( $url = false, $title = null ): ?string {
-		$mainConfig = MediaWikiServices::getInstance()->getMainConfig();
-		$noFollowLinks = $mainConfig->get( MainConfigNames::NoFollowLinks );
-		$noFollowNsExceptions = $mainConfig->get( MainConfigNames::NoFollowNsExceptions );
-		$noFollowDomainExceptions = $mainConfig->get( MainConfigNames::NoFollowDomainExceptions );
-		$urlUtils = MediaWikiServices::getInstance()->getUrlUtils();
-		$ns = $title ? $title->getNamespace() : false;
-		if (
-			$noFollowLinks && !in_array( $ns, $noFollowNsExceptions )
-			&& !$urlUtils->matchesDomainList( (string)$url, $noFollowDomainExceptions )
-		) {
-			return 'nofollow';
-		}
-		return null;
+		wfDeprecated( __METHOD__, '1.47' );
+		return MediaWikiServices::getInstance()->getLinkRenderer()
+			->getExternalLinkRel( $url, $title );
 	}
 
 	/**
@@ -2203,7 +2194,7 @@ class Parser {
 	 */
 	public function getExternalLinkAttribs( $url ) {
 		$attribs = [];
-		$rel = self::getExternalLinkRel( $url, $this->getTitle() ) ?? '';
+		$rel = $this->getLinkRenderer()->getExternalLinkRel( $url, $this->getTitle() ) ?? '';
 
 		$target = $this->mOptions->getExternalLinkTarget();
 		if ( $target ) {
@@ -3636,7 +3627,14 @@ class Parser {
 	 * @param LinkTarget $link
 	 * @param Parser|false $parser
 	 *
-	 * @return array
+	 * @return array An associative array with the following keys:
+	 *   - revision-record: RevisionRecord|false Optional, for b/c
+	 *   - text: string|false The wikitext
+	 *   - finalTitle: Title The title after any redirection has been applied
+	 *   - deps: An array of associative arrays, each describing a dependency, with keys:
+	 *     - title: Title
+	 *     - page_id: int
+	 *     - rev_id: int|null
 	 * @since 1.12
 	 */
 	public static function defaultFetchTemplate(
@@ -3807,7 +3805,7 @@ class Parser {
 	 * If 'broken' is a key in $options then the file will appear as a broken thumbnail.
 	 * @param LinkTarget $link
 	 * @param array $options Array of options to RepoGroup::findFile
-	 * @return array ( File or false, Title of file )
+	 * @return array{File|false,Title}
 	 * @since 1.18
 	 */
 	public function fetchFileAndTitle( LinkTarget $link, array $options = [] ) {
@@ -3929,7 +3927,7 @@ class Parser {
 	 * @param array $piece
 	 * @param PPFrame $frame
 	 *
-	 * @return array
+	 * @return array{object:PPNode}|array{text:string}
 	 * @internal
 	 */
 	public function argSubstitution( array $piece, PPFrame $frame ) {
@@ -5126,7 +5124,7 @@ class Parser {
 	/**
 	 * Get all registered function hook identifiers
 	 *
-	 * @return array
+	 * @return string[]
 	 * @since 1.8
 	 */
 	public function getFunctionHooks() {
@@ -5793,7 +5791,7 @@ class Parser {
 	/**
 	 * Accessor
 	 *
-	 * @return array
+	 * @return string[]
 	 * @since 1.6
 	 */
 	public function getTags(): array {
@@ -6388,7 +6386,7 @@ class Parser {
 	 *   has already been matched against `img_width` to localize the `px`
 	 *   suffix.
 	 *
-	 * @return array
+	 * @return array{width?:int,height?:int}
 	 * @since 1.20
 	 * @internal
 	 */
