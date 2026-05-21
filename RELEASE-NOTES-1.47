@@ -174,6 +174,12 @@ because of Phabricator reports.
   deprecation warnings. Use PatrolManager::createPatrolLog instead.
 * The MarkPatrolledComplete hook has been deprecated and will trigger
   deprecation warnings. Use the MarkPatrolledAudit hook instead.
+* FileBackendStore::memCache is now deprecated. Instead, subclasses should
+  use FileBackendStore::wanStatCache.
+* FileBackendStore::cheapCache is now deprecated. Instead, subclasses should
+  use FileBackendStore::procFileStatCache.
+* FileBackendStore::expensiveCache is now deprecated. Instead, subclasses should
+  use FileBackendStore::procFileDataCache.
 * ResourceLoader::inDebugMode is now deprecated and emits deprecation warnings.
 * QuickTemplate::msg() and QuickTemplate::haveMsg() got deprecated and shouldn't
   be used any more.
@@ -189,6 +195,10 @@ because of Phabricator reports.
   been deprecated. Use ParserOptions::getTemplateCallback() to get the original
   handler.
 * Parser::getExternalLinkRel() has been deprecated. Use LinkRenderer.
+* Passing $revision as a string to LintErrorChecker::check() and ::checkSome()
+  is deprecated and will trigger deprecation warnings.  Use
+  MutableRevisionRecord::newFromContent() to pass a WikitextContent constructed
+  with your string.
 * …
 
 === Other changes in 1.47 ===
