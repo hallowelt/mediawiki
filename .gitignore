@@ -93,6 +93,7 @@ Thumbs.db
 docker-compose.override.yml
 .env
 /.stylelintcache
+.devcontainer/*
 
 # BlueSpice
 BLUESPICE-INSTALL
