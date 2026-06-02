@@ -725,6 +725,7 @@ class Article implements Page {
 
 		// Augment the parser options
 		$skin = $outputPage->getSkin();
+		$skin->setParserOptions( $parserOptions );
 		$skinOptions = $skin->getOptions();
 		$textOptions += [
 			// T371022, T410923
@@ -1713,7 +1714,7 @@ class Article implements Page {
 		// Try shadow page
 		$oldid = $this->getOldID();
 		if ( !$oldid ) {
-			$view = $this->shadowPageLoader->get( $this->getTitle() )?->getView();
+			$view = $this->shadowPageLoader->get( $this->getTitle() )?->getView( $this->getParserOptions() );
 			if ( $view ) {
 				$outputPage->addParserOutputContent(
 					$view->getParserOutput(), $view->getParserOptions() );
