@@ -2070,10 +2070,10 @@ config-schema:
     ContentHandlers:
         default:
             wikitext: { class: MediaWiki\Content\WikitextContentHandler, services: [TitleFactory, ParserFactory, GlobalIdGenerator, LanguageNameUtils, LinkRenderer, MagicWordFactory, ParsoidParserFactory] }
-            javascript: { class: MediaWiki\Content\JavaScriptContentHandler, services: [MainConfig, ParserFactory, UserOptionsLookup] }
+            javascript: { class: MediaWiki\Content\JavaScriptContentHandler, services: [MainConfig, ParserFactory, UserOptionsLookup, CodeHighlighter] }
             json: { class: MediaWiki\Content\JsonContentHandler, services: [ParsoidParserFactory, TitleFactory] }
-            css: { class: MediaWiki\Content\CssContentHandler, services: [MainConfig, ParserFactory, UserOptionsLookup] }
-            vue: { class: MediaWiki\Content\VueContentHandler, services: [MainConfig, ParserFactory] }
+            css: { class: MediaWiki\Content\CssContentHandler, services: [MainConfig, ParserFactory, UserOptionsLookup, CodeHighlighter] }
+            vue: { class: MediaWiki\Content\VueContentHandler, services: [MainConfig, ParserFactory, CodeHighlighter] }
             text: MediaWiki\Content\TextContentHandler
             unknown: MediaWiki\Content\FallbackContentHandler
         type: object
@@ -5120,7 +5120,7 @@ config-schema:
             additionalProperties: { type: boolean }
         mergeStrategy: array_plus_2d
         default:
-            '*': { createaccount: true, read: true, edit: true, createpage: true, createtalk: true, viewmyprivateinfo: true, editmyprivateinfo: true, editmyoptions: true }
+            '*': { createaccount: true, autocreateaccount: true, read: true, edit: true, createpage: true, createtalk: true, viewmyprivateinfo: true, editmyprivateinfo: true, editmyoptions: true }
             user: { move: true, move-subpages: true, move-rootuserpages: true, move-categorypages: true, movefile: true, read: true, edit: true, createpage: true, createtalk: true, upload: true, reupload: true, reupload-shared: true, minoredit: true, editmyusercss: true, editmyuserjson: true, editmyuserjs: true, editmyuserjsredirect: true, sendemail: true, applychangetags: true, changetags: true, viewmywatchlist: true, editmywatchlist: true, createwithcontentmodel: true, logout: true }
             autoconfirmed: { autoconfirmed: true, editsemiprotected: true }
             bot: { bot: true, autoconfirmed: true, editsemiprotected: true, nominornewtalk: true, autopatrol: true, suppressredirect: true, apihighlimits: true }

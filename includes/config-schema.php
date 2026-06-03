@@ -425,6 +425,7 @@ return [
 						'MainConfig',
 						'ParserFactory',
 						'UserOptionsLookup',
+						'CodeHighlighter',
 					],
 				],
 				'json' => [
@@ -440,6 +441,7 @@ return [
 						'MainConfig',
 						'ParserFactory',
 						'UserOptionsLookup',
+						'CodeHighlighter',
 					],
 				],
 				'vue' => [
@@ -447,6 +449,7 @@ return [
 					'services' => [
 						'MainConfig',
 						'ParserFactory',
+						'CodeHighlighter',
 					],
 				],
 				'text' => 'MediaWiki\\Content\\TextContentHandler',
@@ -1243,6 +1246,7 @@ return [
 			'GroupPermissions' => [
 				'*' => [
 					'createaccount' => true,
+					'autocreateaccount' => true,
 					'read' => true,
 					'edit' => true,
 					'createpage' => true,
