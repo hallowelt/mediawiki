@@ -7,6 +7,7 @@
 namespace MediaWiki\User;
 
 use MediaWiki\Auth\AuthenticationResponse;
+use MediaWiki\Auth\AuthManager;
 use MediaWiki\Auth\Throttler;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Json\FormatJson;
@@ -136,38 +137,27 @@ class BotPassword {
 
 	/**
 	 * Indicate whether this is known to be saved
-	 * @return bool
 	 */
-	public function isSaved() {
+	public function isSaved(): bool {
 		return $this->isSaved;
 	}
 
 	/**
 	 * Get the central user ID
-	 * @return int
 	 */
-	public function getUserCentralId() {
+	public function getUserCentralId(): int {
 		return $this->centralId;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getAppId() {
+	public function getAppId(): string {
 		return $this->appId;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getToken() {
+	public function getToken(): string {
 		return $this->token;
 	}
 
-	/**
-	 * @return MWRestrictions
-	 */
-	public function getRestrictions() {
+	public function getRestrictions(): MWRestrictions {
 		return $this->restrictions;
 	}
 
@@ -180,18 +170,14 @@ class BotPassword {
 
 	/**
 	 * Get the separator for combined username + app ID
-	 * @return string
 	 */
-	public static function getSeparator() {
+	public static function getSeparator(): string {
 		return MediaWikiServices::getInstance()
 			->getMainConfig()->get( MainConfigNames::UserrightsInterwikiDelimiter );
 	}
 
-	/**
-	 * @return Password
-	 */
-	private function getPassword() {
-		if ( ( $this->flags & IDBAccessObject::READ_LATEST ) == IDBAccessObject::READ_LATEST ) {
+	private function getPassword(): Password {
+		if ( ( $this->flags & IDBAccessObject::READ_LATEST ) === IDBAccessObject::READ_LATEST ) {
 			$db = self::getPrimaryDatabase();
 		} else {
 			$db = self::getReplicaDatabase();
@@ -218,9 +204,8 @@ class BotPassword {
 	/**
 	 * Whether the password is currently invalid
 	 * @since 1.32
-	 * @return bool
 	 */
-	public function isInvalid() {
+	public function isInvalid(): bool {
 		return $this->getPassword() instanceof InvalidPassword;
 	}
 
@@ -278,10 +263,10 @@ class BotPassword {
 	 * @param string $username
 	 * @return bool Whether any passwords were invalidated
 	 */
-	public static function invalidateAllPasswordsForUser( $username ) {
+	public static function invalidateAllPasswordsForUser( string $username ): bool {
 		return MediaWikiServices::getInstance()
 			->getBotPasswordStore()
-			->invalidateUserPasswords( (string)$username );
+			->invalidateUserPasswords( $username );
 	}
 
 	/**
@@ -289,18 +274,16 @@ class BotPassword {
 	 * @param string $username
 	 * @return bool Whether any passwords were removed
 	 */
-	public static function removeAllPasswordsForUser( $username ) {
+	public static function removeAllPasswordsForUser( string $username ): bool {
 		return MediaWikiServices::getInstance()
 			->getBotPasswordStore()
-			->removeUserPasswords( (string)$username );
+			->removeUserPasswords( $username );
 	}
 
 	/**
 	 * Returns a (raw, unhashed) random password string.
-	 *
-	 * @return string
 	 */
-	public static function generatePassword() {
+	public static function generatePassword(): string {
 		return PasswordFactory::generateRandomPasswordString( self::PASSWORD_MINLENGTH );
 	}
 
@@ -313,7 +296,7 @@ class BotPassword {
 	 * @param string $password
 	 * @return string[]|false
 	 */
-	public static function canonicalizeLoginData( $username, $password ) {
+	public static function canonicalizeLoginData( string $username, string $password ) {
 		$sep = self::getSeparator();
 		// the strlen check helps minimize the password information obtainable from timing
 		if ( strlen( $password ) >= self::PASSWORD_MINLENGTH && str_contains( $username, $sep ) ) {
@@ -339,15 +322,15 @@ class BotPassword {
 	 * @param WebRequest $request
 	 * @return Status On success, the good status's value is the new Session object
 	 */
-	public static function login( $username, $password, WebRequest $request ) {
+	public static function login( string $username, string $password, WebRequest $request ) {
 		$services = MediaWikiServices::getInstance();
-		$sessionManager = $services->getSessionManager();
 		$config = $services->getMainConfig();
 		$enableBotPasswords = $config->get( MainConfigNames::EnableBotPasswords );
-		$passwordAttemptThrottle = $config->get( MainConfigNames::PasswordAttemptThrottle );
 		if ( !$enableBotPasswords ) {
 			return Status::newFatal( 'botpasswords-disabled' );
 		}
+
+		$sessionManager = $services->getSessionManager();
 
 		// @phan-suppress-next-line PhanUndeclaredMethod
 		$provider = $sessionManager->getProvider( BotPasswordSessionProvider::class );
@@ -368,15 +351,23 @@ class BotPassword {
 
 		// Find the named user
 		$user = User::newFromName( $name );
-		if ( !$user || $user->isAnon() ) {
-			return self::loginHook( $user ?: $name, null, $performer, Status::newFatal( 'nosuchuser', $name ) );
+		if ( !$user ) {
+			return self::loginHook( $name, null, $performer, Status::newFatal( 'noname' ) );
 		}
 
+		$centralIdLookup = $services->getCentralIdLookup();
+		// Since bot passwords may be shared within a wiki farm, only allow them for globally owned accounts
+		[ $user->getName() => $centralId ] = $centralIdLookup->lookupOwnedUserNames(
+			[ $user->getName() => 0 ], $centralIdLookup::AUDIENCE_RAW );
+		if ( !$centralId ) {
+			return self::loginHook( $user, null, $performer, Status::newFatal( 'nosuchuser', $name ) );
+		}
 		if ( $user->isLocked() ) {
 			return Status::newFatal( 'botpasswords-locked' );
 		}
 
 		$throttle = null;
+		$passwordAttemptThrottle = $config->get( MainConfigNames::PasswordAttemptThrottle );
 		if ( $passwordAttemptThrottle ) {
 			$throttle = new Throttler( $passwordAttemptThrottle, [
 				'type' => 'botpassword',
@@ -390,7 +381,7 @@ class BotPassword {
 		}
 
 		// Get the bot password
-		$bp = self::newFromUser( $user, $appId );
+		$bp = self::newFromCentralId( $centralId, $appId );
 		if ( !$bp ) {
 			return self::loginHook( $user, $bp, $performer,
 				Status::newFatal( 'botpasswords-not-exist', $name, $appId ) );
@@ -414,9 +405,19 @@ class BotPassword {
 		}
 
 		// Ok! Create the session.
-		if ( $throttle ) {
-			$throttle->clear( $user->getName(), $request->getIP() );
+		$throttle?->clear( $user->getName(), $request->getIP() );
+
+		if ( !$user->isRegistered() ) {
+			$status = $services->getAuthManager()->autoCreateUser(
+				$user,
+				AuthManager::AUTOCREATE_SOURCE_SESSION,
+				false
+			);
+			if ( !$status->isOK() ) {
+				return self::loginHook( $user, $bp, $performer, $status );
+			}
 		}
+
 		return self::loginHook( $user, $bp, $performer,
 			Status::newGood( $provider->newSessionForRequest( $user, $bp, $request ) ) );
 	}

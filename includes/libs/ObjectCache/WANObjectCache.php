@@ -419,12 +419,12 @@ class WANObjectCache implements
 	 *
 	 * When using the $info parameter, it should be passed in as WANObjectCache::PASS_BY_REF.
 	 * In that case, it becomes a key metadata map. Otherwise, for backwards compatibility,
-	 * $info becomes the value generation timestamp (null if the key is nonexistant/tombstoned).
+	 * $info becomes the value generation timestamp (null if the key is non-existent/tombstoned).
 	 * Key metadata map fields include:
-	 *   - WANObjectCache::KEY_VERSION: value version number; null if key is nonexistant
-	 *   - WANObjectCache::KEY_AS_OF: value generation timestamp (UNIX); null if key is nonexistant
-	 *   - WANObjectCache::KEY_TTL: assigned TTL (seconds); null if key is nonexistant/tombstoned
-	 *   - WANObjectCache::KEY_CUR_TTL: remaining TTL (seconds); null if key is nonexistant
+	 *   - WANObjectCache::KEY_VERSION: value version number; null if key is non-existent
+	 *   - WANObjectCache::KEY_AS_OF: value generation timestamp (UNIX); null if key is non-existent
+	 *   - WANObjectCache::KEY_TTL: assigned TTL (seconds); null if key is non-existent/tombstoned
+	 *   - WANObjectCache::KEY_CUR_TTL: remaining TTL (seconds); null if key is non-existent
 	 *   - WANObjectCache::KEY_TOMB_AS_OF: tombstone timestamp (UNIX); null if key is not tombstoned
 	 *   - WANObjectCache::KEY_CHECK_AS_OF: highest "check" key timestamp (UNIX); null if none
 	 *
@@ -1558,8 +1558,8 @@ class WANObjectCache implements
 	 *      incompatibly versioned value at the provided key, a "variant key" will be used for
 	 *      reading from and saving to cache. The variant key is specific to the key and version
 	 *      number provided to this method. If the variant key value is older than that of the
-	 *      provided key, or the provided key is non-existant, then the variant key will be seen
-	 *      as non-existant. Therefore, delete() calls purge the provided key's variant keys.
+	 *      provided key, or the provided key is non-existent, then the variant key will be seen
+	 *      as non-existent. Therefore, delete() calls purge the provided key's variant keys.
 	 *      The "checkKeys" and "touchedCallback" options still apply to variant keys as usual.
 	 *      Avoid storing class objects, as this reduces compatibility (due to serialization).
 	 *      Default: null.
@@ -2813,7 +2813,7 @@ class WANObjectCache implements
 	}
 
 	/**
-	 * @param array|string|false $wrapped The entry at a cache key (false if key is nonexistant)
+	 * @param array|string|false $wrapped The entry at a cache key (false if key is non-existent)
 	 * @param float $now Unix Current timestamp (preferably pre-query)
 	 * @return array<int,mixed> Result map/n-tuple that includes the following:
 	 *   - WANObjectCache::RES_VALUE: value or false if absent/tombstoned/malformed

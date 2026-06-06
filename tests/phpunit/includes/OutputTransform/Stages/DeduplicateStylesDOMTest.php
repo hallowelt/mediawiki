@@ -15,12 +15,15 @@ use Psr\Log\NullLogger;
 use Wikimedia\Parsoid\Core\HtmlPageBundle;
 
 /**
- * @covers \MediaWiki\OutputTransform\Stages\DeduplicateStyles
+ * @covers \MediaWiki\OutputTransform\Stages\DeduplicateStylesDOM
  */
 class DeduplicateStylesDOMTest extends OutputTransformStageTestBase {
 
 	public function createStage(): OutputTransformStage {
-		return new DeduplicateStylesDOM( new ServiceOptions( [] ), new NullLogger(), false );
+		return new DeduplicateStylesDOM(
+		new ServiceOptions( [] ),
+		new NullLogger(),
+		);
 	}
 
 	public static function provideShouldRun(): array {
