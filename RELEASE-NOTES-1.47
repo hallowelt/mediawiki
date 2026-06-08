@@ -34,6 +34,9 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== New configuration ====
 
+* $wgRestModuleOverrides - (T422756) Defaults to `[]`, allows overriding the
+  default behavior mode of REST modules. See MediaWiki\Rest\Module\ModuleMode
+  for details on available modes.
 * …
 
 ==== Changed configuration ====
@@ -79,6 +82,10 @@ For notes on 1.46.x and older releases, see HISTORY.
   at the ElevatedSecurityAuthenticationRequest (or lack thereof).
   Reauthentication can be triggered via a new 'securityLevel' option to
   AuthManager::getAuthenticationRequests().
+* (T422551) The REST API framework now supports audience designations on REST
+  modules. See MediaWiki\Rest\Module\AudienceDesignation for details. Modules
+  requiring a different behavior mode can use the new RestModuleOverrides
+  configuration variable.
 * (T412542) The UrlUtils class now has an option to allow any URL protocol:
   `UrlUtils::VALID_PROTOCOLS => UrlUtils::ALL_PROTOCOLS`.
 * …
@@ -92,10 +99,12 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ===== New development-only external libraries =====
 
+* Added fig/log-test at 1.2.1.
 * …
 
 ==== Changed external libraries ====
 
+* Updated psr/log from 1.1.4 to 3.0.2.
 * Updated symfony/polyfill-php84 from 1.36.0 to 1.37.0.
 * Updated symfony/polyfill-php85 from 1.36.0 to 1.37.0.
 * Updated symfony/yaml from 7.4.6 to 7.4.8.
@@ -127,6 +136,9 @@ For notes on 1.46.x and older releases, see HISTORY.
   truish, the user will be logged out on all devices, not just the current one.
   Unlike the old behavior, global logout can be performed via an authentication
   type where "log out on the current device" doesn't make sense (e.g. OAuth).
+* (T426802) prop=imageinfo now includes timestamp, user, size, and comment
+  fields for file revisions where the file blob is missing from storage,
+  alongside the existing "filemissing" flag.
 * …
 
 === Action API internal changes in 1.47 ===
@@ -225,6 +237,8 @@ because of Phabricator reports.
   with your string.
 * The ParserOptionsRegister hook has been deprecated and replaced by
   ParserOptionsDefaults.
+* MediaWikiIntegrationTestCase::assertSelect() has been deprecated,
+  use MediaWikiIntegrationTestCase::newSelectQueryBuilder() instead.
 * …
 
 === Other changes in 1.47 ===
