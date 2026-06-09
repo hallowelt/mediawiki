@@ -15,7 +15,7 @@ for use in production.
 Don't forget to always back up your database before upgrading!
 
 See the file UPGRADE for more detailed per-version upgrade instructions from the
-oldest supported upgrading version, MediaWiki 1.35.
+oldest supported upgrading version, MediaWiki 1.39.
 
 Some specific notes for MediaWiki 1.47 upgrades are below:
 
@@ -74,6 +74,10 @@ For notes on 1.46.x and older releases, see HISTORY.
   from Leximorph. When $wgUseLeximorph is enabled, these features use
   Leximorph's modular handlers instead of the legacy implementations and
   plural-rule files.
+* Two new hooks, OutputTransformFirstStageHook and
+  OutputTransformLastStageHook, provide a modern replacement for the
+  ParserOutputPostCacheTransform hook, allowing DOM-based manipulation in
+  the postprocessing phase.
 * (T318376) The SkinTemplateNavigation::Universal hook now supports
   'footer-info' and 'footer-places' keys for modifying footer menus, as
   an alternative to the SkinAddFooterLinks hook.
@@ -109,6 +113,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated symfony/polyfill-php85 from 1.36.0 to 1.37.0.
 * Updated symfony/yaml from 7.4.6 to 7.4.8.
 * Updated wikimedia/json-codec from 4.0.0 to 5.0.0.
+* Updated codex, codex-design-tokens and codex-icons
+  from v2.5.1 to v2.6.0.
 * …
 
 ===== Changed development-only external libraries =====
@@ -193,6 +199,30 @@ because of Phabricator reports.
 
 === Deprecations in 1.47 ===
 
+* (T166010) All PHP code in MediaWiki is slowly being moved to be in a class
+  namespace as appropriate, so that we can use PSR-4 auto-loading, which will
+  speed up general code loading of MediaWiki. The old global namespace class
+  names are being left behind as deprecated aliases.
+
+  In this release of MediaWiki, XXX classes now have a namespace and XXX do
+  not yet (XXX% done, up from 99% in MediaWiki 1.46.0). The following have newly
+  been moved:
+  - Wikimedia:
+    - Cookie
+    - CookieJar
+    - Deflate
+    - DnsSrvDiscoverer
+    - MWCryptHash
+    - RiffExtractor
+    - UDPTransport
+    - XhprofData
+  - Wikimedia\Iterators:
+    - IteratorDecorator
+    - MappedIterator
+    - NotRecursiveIterator
+  - Wikimedia\ObjectCache:
+    - MemoizedCallable
+  - …
 * The PatrolLog::record method is deprecated and will trigger
   deprecation warnings. Use PatrolManager::createPatrolLog instead.
 * Title::canUseNoindex() is deprecated with warnings. Please use

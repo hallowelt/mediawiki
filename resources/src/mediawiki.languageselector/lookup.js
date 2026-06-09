@@ -1,15 +1,14 @@
 const Vue = require( 'vue' );
 const { h } = Vue;
-const LookupLanguageSelector = require( './LookupLanguageSelector.vue' );
-const MultiselectLookupLanguageSelector = require( './MultiselectLookupLanguageSelector.vue' );
+const LanguageSelector = require( './LanguageSelector.vue' );
 const useLanguageLookup = require( './useLanguageLookup.js' );
 
 /**
  * @param {Object} config
- * @param {Object} Component The wrapper component to render.
+ * @param {boolean} isMultiple Whether it is a multi-select.
  * @return {Object} Vue app
  */
-function getLanguageSelector( config, Component ) {
+function getLanguageSelector( config, isMultiple = false ) {
 	const {
 		selectableLanguages = null,
 		selectedLanguage = null,
@@ -37,7 +36,8 @@ function getLanguageSelector( config, Component ) {
 			};
 		},
 		render() {
-			return h( Component, {
+			return h( LanguageSelector, {
+				isMultiple,
 				searchApiUrl: this.apiUrl,
 				selectableLanguages: this.selectableLanguages,
 				selected: this.selectedLanguage,
@@ -60,9 +60,8 @@ function getLanguageSelector( config, Component ) {
 }
 
 module.exports = {
-	LookupLanguageSelector,
-	MultiselectLookupLanguageSelector,
-	getLookupLanguageSelector: ( config ) => getLanguageSelector( config, LookupLanguageSelector ),
-	getMultiselectLookupLanguageSelector: ( config ) => getLanguageSelector( config, MultiselectLookupLanguageSelector ),
+	LanguageSelector,
+	getLookupLanguageSelector: ( config ) => getLanguageSelector( config, false ),
+	getMultiselectLookupLanguageSelector: ( config ) => getLanguageSelector( config, true ),
 	useLanguageLookup
 };

@@ -148,8 +148,6 @@ return [
 			'lookup.js',
 			'useLanguageLookup.js',
 			'LanguageSelector.vue',
-			'LookupLanguageSelector.vue',
-			'MultiselectLookupLanguageSelector.vue',
 		],
 		'codexComponents' => [
 			'CdxField',

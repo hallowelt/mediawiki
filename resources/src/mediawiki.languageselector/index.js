@@ -1,15 +1,13 @@
 const {
-	LookupLanguageSelector,
+	LanguageSelector,
 	getLookupLanguageSelector,
-	MultiselectLookupLanguageSelector,
 	getMultiselectLookupLanguageSelector
 } = require( 'mediawiki.languageselector.lookup' );
 const { useLanguageSelector } = require( 'mediawiki.languageselector.core' );
 
 module.exports = {
-	LookupLanguageSelector,
+	LanguageSelector,
 	getLookupLanguageSelector,
-	MultiselectLookupLanguageSelector,
 	getMultiselectLookupLanguageSelector,
 	useLanguageSelector
 };
