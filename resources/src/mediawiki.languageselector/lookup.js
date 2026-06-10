@@ -1,7 +1,6 @@
 const Vue = require( 'vue' );
 const { h } = Vue;
 const LanguageSelector = require( './LanguageSelector.vue' );
-const useLanguageLookup = require( './useLanguageLookup.js' );
 
 /**
  * @param {Object} config
@@ -17,6 +16,7 @@ function getLanguageSelector( config, isMultiple = false ) {
 		placeholder = null,
 		disabled = false,
 		required = false,
+		debounceDelayMs = 300,
 		menuItemSlot = null,
 		onLanguageChange = null,
 		inputId = ''
@@ -32,7 +32,8 @@ function getLanguageSelector( config, isMultiple = false ) {
 				menuConfig,
 				placeholder,
 				disabled,
-				required
+				required,
+				debounceDelayMs
 			};
 		},
 		render() {
@@ -45,6 +46,7 @@ function getLanguageSelector( config, isMultiple = false ) {
 				placeholder: this.placeholder,
 				disabled: this.disabled,
 				required: this.required,
+				debounceDelayMs: this.debounceDelayMs,
 				'onUpdate:selected': ( newValue ) => {
 					this.selectedLanguage = newValue;
 					if ( onLanguageChange ) {
@@ -62,6 +64,5 @@ function getLanguageSelector( config, isMultiple = false ) {
 module.exports = {
 	LanguageSelector,
 	getLookupLanguageSelector: ( config ) => getLanguageSelector( config, false ),
-	getMultiselectLookupLanguageSelector: ( config ) => getLanguageSelector( config, true ),
-	useLanguageLookup
+	getMultiselectLookupLanguageSelector: ( config ) => getLanguageSelector( config, true )
 };
