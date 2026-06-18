@@ -1883,6 +1883,9 @@ class Parser {
 				$text
 			);
 		}
+		// T428677: temporarily mark parser output generated with the
+		// data-mw-wikitext marking of wikitext headings.
+		$this->getOutput()->setExtensionData( 'core:new-heading-attr', true );
 		return $text;
 	}
 
@@ -2206,15 +2209,8 @@ class Parser {
 		$target = $this->mOptions->getExternalLinkTarget();
 		if ( $target ) {
 			$attribs['target'] = $target;
-			if ( !in_array( $target, [ '_self', '_parent', '_top' ] ) ) {
-				// T133507. New windows can navigate parent cross-origin.
-				// Including noreferrer due to lacking browser
-				// support of noopener. Eventually noreferrer should be removed.
-				if ( $rel !== '' ) {
-					$rel .= ' ';
-				}
-				$rel .= 'noreferrer noopener';
-			}
+			// T133507/T427561: we used to set additional 'rel' attributes
+			// here, but no longer need to do so.
 		}
 		if ( $rel !== '' ) {
 			$attribs['rel'] = $rel;
@@ -2842,7 +2838,6 @@ class Parser {
 	 *  - 'parsoidTopLevelCall' Is this coming from Parsoid for top-level templates?
 	 *   This is used to set start-of-line flag to true for template expansions since that
 	 *   is how Parsoid models templates.
-	 *  - 'processNowiki' expands <nowiki> and stores in strip state
 	 *
 	 * @return string
 	 * @since 1.24 method is public
@@ -2873,12 +2868,7 @@ class Parser {
 		}
 		$dom = $this->preprocessToDom( $text, $ppFlags );
 		$flags = $argsOnly ? PPFrame::NO_TEMPLATES : 0;
-		if ( $options['processNowiki'] ?? false ) {
-			$flags |= PPFrame::PROCESS_NOWIKI;
-		}
-		$text = $frame->expand( $dom, $flags );
-
-		return $text;
+		return $frame->expand( $dom, $flags );
 	}
 
 	/** @internal */
@@ -3987,15 +3977,11 @@ class Parser {
 	 *     inner      Contents of extension element
 	 *     noClose    Original text did not have a close tag
 	 * @param PPFrame $frame
-	 * @param bool $processNowiki Process nowiki tags by running the nowiki tag handler
-	 *     Normally, nowikis are only processed for the HTML output type. With this
-	 *     arg set to true, they are processed (and converted to a nowiki strip marker)
-	 *     for all output types.
 	 * @return string
 	 * @internal
 	 * @since 1.12
 	 */
-	public function extensionSubstitution( array $params, PPFrame $frame, bool $processNowiki = false ): string {
+	public function extensionSubstitution( array $params, PPFrame $frame ): string {
 		static $errorStr = '<span class="error">';
 
 		$name = $frame->expand( $params['name'] );
@@ -4023,11 +4009,12 @@ class Parser {
 		$normalizedName = strtolower( $name );
 		$isNowiki = $normalizedName === 'nowiki';
 		$markerType = $isNowiki ? 'nowiki' : 'general';
-		$extra = $isNowiki ? 'nowiki' : null;
-		if ( !$this->mStripExtTags ) {
-			$processNowiki = true;
-		}
-		if ( $this->ot['html'] || ( $processNowiki && $isNowiki ) ) {
+
+		// The content is stored as extra data to potentially be pulled out
+		// with StripState::replaceNoWikis
+		$extra = $isNowiki ? ( $content ?? '' ) : null;
+
+		if ( $this->ot['html'] || ( $isNowiki && !$this->mStripExtTags ) ) {
 			$attributes = Sanitizer::decodeTagAttributes( $attrText );
 			// Merge in attributes passed via {{#tag:}} parser function
 			if ( isset( $params['attributes'] ) ) {

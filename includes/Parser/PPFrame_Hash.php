@@ -342,8 +342,7 @@ class PPFrame_Hash implements Stringable, PPFrame {
 					}
 					$out .= $s;
 				} else {
-					$out .= $this->parser->extensionSubstitution( $bits, $this,
-						(bool)( $flags & PPFrame::PROCESS_NOWIKI ) );
+					$out .= $this->parser->extensionSubstitution( $bits, $this );
 				}
 			} elseif ( $contextName === 'h' ) {
 				# Heading

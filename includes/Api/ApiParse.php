@@ -537,7 +537,7 @@ class ApiParse extends ApiBase {
 		}
 
 		if ( isset( $prop['langlinks'] ) ) {
-			if ( $skin ) {
+			if ( $outputPage ) {
 				$langlinks = $outputPage->getLanguageLinks();
 			} else {
 				$langlinks = array_map(
@@ -599,6 +599,11 @@ class ApiParse extends ApiBase {
 				$p_result->getTOCData(), TOCData::class
 			);
 		}
+		if ( isset( $prop['parseroutput'] ) ) {
+			$result_array['parseroutput'] = $this->jsonCodec->toJsonArray(
+				$p_result, ParserOutput::class
+			);
+		}
 		if ( isset( $prop['sections'] ) || isset( $prop['tocdata'] ) ) {
 			$result_array['showtoc'] = $p_result->getOutputFlag( ParserOutputFlags::SHOW_TOC );
 		}
@@ -640,7 +645,7 @@ class ApiParse extends ApiBase {
 		}
 
 		if ( isset( $prop['headitems'] ) ) {
-			if ( $skin ) {
+			if ( $outputPage ) {
 				$result_array['headitems'] = $this->formatHeadItems( $outputPage->getHeadItemsArray() );
 			} else {
 				$result_array['headitems'] = $this->formatHeadItems( $p_result->getHeadItems() );
@@ -653,7 +658,7 @@ class ApiParse extends ApiBase {
 		}
 
 		if ( isset( $prop['modules'] ) ) {
-			if ( $skin ) {
+			if ( $outputPage ) {
 				$result_array['modules'] = $outputPage->getModules();
 				// Deprecated since 1.32 (T188689)
 				$result_array['modulescripts'] = [];
@@ -668,12 +673,13 @@ class ApiParse extends ApiBase {
 
 		if ( isset( $prop['jsconfigvars'] ) ) {
 			$showStrategyKeys = (bool)( $params['showstrategykeys'] );
-			$jsconfigvars = $skin ? $outputPage->getJsConfigVars() : $p_result->getJsConfigVars( $showStrategyKeys );
+			$jsconfigvars = $outputPage ? $outputPage->getJsConfigVars() :
+				$p_result->getJsConfigVars( $showStrategyKeys );
 			$result_array['jsconfigvars'] = ApiResult::addMetadataToResultVars( $jsconfigvars );
 		}
 
 		if ( isset( $prop['encodedjsconfigvars'] ) ) {
-			$jsconfigvars = $skin ? $outputPage->getJsConfigVars() : $p_result->getJsConfigVars();
+			$jsconfigvars = $outputPage ? $outputPage->getJsConfigVars() : $p_result->getJsConfigVars();
 			$result_array['encodedjsconfigvars'] = FormatJson::encode(
 				$jsconfigvars,
 				false,
@@ -1143,6 +1149,7 @@ class ApiParse extends ApiBase {
 					'properties',
 					'limitreportdata',
 					'limitreporthtml',
+					'parseroutput',
 					'parsetree',
 					'parsewarnings',
 					'parsewarningshtml',
@@ -1155,6 +1162,9 @@ class ApiParse extends ApiBase {
 					'headitems' => 'apiwarn-deprecation-parse-headitems',
 					// deprecated since 1.46: T319141
 					'sections' => [ 'apiwarn-deprecation-withreplacement', 'prop=sections', 'prop=tocdata' ],
+				],
+				EnumDef::PARAM_INTERNAL_VALUES => [
+					'parseroutput' => true, // since 1.47: T428786
 				],
 			],
 			'wrapoutputclass' => 'mw-parser-output',

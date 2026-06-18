@@ -2713,17 +2713,41 @@ class LocalFile extends File {
 	}
 
 	/**
-	 * Acquire an exclusive lock on the file, indicating an intention to write
-	 * to the file backend.
+	 * Acquire an exclusive lock on the file, indicating an intention to perform writes to
+	 * the registry database and/or file backend as part of an operation affecting this file.
+	 *
+	 * This lock represents all uploaded versions of the file by name. Since archived files
+	 * use hash-based paths, additional locking is required when removing them, necessitating
+	 * the use of {@link LocalRepo::cleanupDeletedBatch()}.
 	 *
 	 * @param float|int $timeout The timeout in seconds
 	 * @return Status
 	 * @since 1.28
 	 */
 	public function acquireFileLock( $timeout = 0 ) {
-		return Status::wrap( $this->getRepo()->getBackend()->lockFiles(
+		$status = Status::wrap( $this->getRepo()->getBackend()->lockFiles(
 			[ $this->getPath() ], LockManager::LOCK_EX, $timeout
 		) );
+
+		if ( !$status->isOK() ) {
+			$logger = LoggerFactory::getInstance( 'LocalFile' );
+			if ( $status->hasMessage( 'lockmanager-fail-conflict' ) ) {
+				$errorKey = 'lockmanager-fail-conflict';
+			} else {
+				$messages = $status->getMessages( 'error' );
+				$errorKey = $messages ? $messages[0]->getKey() : 'unknown';
+			}
+			$logger->warning(
+				"Failed to lock '{file}'",
+				[
+					'file' => $this->name,
+					'error_key' => $errorKey,
+					'exception' => new RuntimeException()
+				]
+			);
+		}
+
+		return $status;
 	}
 
 	/**
@@ -2733,9 +2757,25 @@ class LocalFile extends File {
 	 * @since 1.28
 	 */
 	public function releaseFileLock() {
-		return Status::wrap( $this->getRepo()->getBackend()->unlockFiles(
+		$status = Status::wrap( $this->getRepo()->getBackend()->unlockFiles(
 			[ $this->getPath() ], LockManager::LOCK_EX
 		) );
+
+		if ( !$status->isOK() ) {
+			$logger = LoggerFactory::getInstance( 'LocalFile' );
+			$messages = $status->getMessages( 'error' );
+			$errorKey = $messages ? $messages[0]->getKey() : 'unknown';
+			$logger->error(
+				"Failed to unlock '{file}'",
+				[
+					'file' => $this->name,
+					'error_key' => $errorKey,
+					'exception' => new RuntimeException()
+				]
+			);
+		}
+
+		return $status;
 	}
 
 	/**
@@ -2744,11 +2784,12 @@ class LocalFile extends File {
 	 *
 	 * This method should not be used outside of LocalFile/LocalFile*Batch
 	 *
-	 * @deprecated since 1.38 Use acquireFileLock()
+	 * @deprecated since 1.38 Use acquireFileLock(); hard-deprecated in 1.47
 	 * @throws LocalFileLockError Throws an error if the lock was not acquired
 	 * @return bool Whether the file lock owns/spawned the DB transaction
 	 */
 	public function lock() {
+		wfDeprecated( __METHOD__, '1.38' );
 		if ( !$this->locked ) {
 			$logger = LoggerFactory::getInstance( 'LocalFile' );
 
@@ -2793,10 +2834,12 @@ class LocalFile extends File {
 	 * The commit and lock release will happen when no atomic sections are active, which
 	 * may happen immediately or at some point after calling this
 	 *
-	 * @deprecated since 1.38 Use releaseFileLock()
+	 * @deprecated since 1.38 Use releaseFileLock(); hard-deprecated in 1.47
 	 */
 	public function unlock() {
+		wfDeprecated( __METHOD__, '1.47' );
 		if ( $this->locked ) {
+			wfDeprecated( __METHOD__, '1.38' );
 			--$this->locked;
 			if ( !$this->locked ) {
 				$dbw = $this->repo->getPrimaryDB();
@@ -2818,7 +2861,9 @@ class LocalFile extends File {
 	 * Clean up any dangling locks
 	 */
 	public function __destruct() {
-		$this->unlock();
+		if ( $this->locked ) {
+			$this->unlock();
+		}
 	}
 }
 

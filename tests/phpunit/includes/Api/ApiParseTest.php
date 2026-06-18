@@ -12,6 +12,8 @@ namespace MediaWiki\Tests\Api;
 use MediaWiki\Api\ApiUsageException;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MainConfigNames;
+use MediaWiki\MediaWikiServices;
+use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Skin\SkinFactory;
 use MediaWiki\Skin\SkinFallback;
@@ -856,6 +858,34 @@ class ApiParseTest extends ApiTestCase {
 		);
 	}
 
+	public function testModulesFromApiParseMakeOutputPageHook() {
+		$this->setTemporaryHook( 'ApiParseMakeOutputPage',
+			static function ( $module, $outputPage ) {
+				$outputPage->addModules( [ 'hook.foo', 'hook.bar' ] );
+				$outputPage->addModuleStyles( [ 'hook.foo.styles' ] );
+			}
+		);
+
+		$res = $this->doApiRequest( [
+			'action' => 'parse',
+			'title' => __CLASS__,
+			'text' => 'Content',
+			'prop' => 'headhtml|modules|jsconfigvars',
+		] );
+
+		$this->assertArrayContains(
+			[ 'hook.foo', 'hook.bar' ],
+			$res[0]['parse']['modules'],
+			'resp.parse.modules'
+		);
+		$this->assertArrayContains(
+			[ 'hook.foo.styles' ],
+			$res[0]['parse']['modulestyles'],
+			'resp.parse.modulestyles'
+		);
+		$this->assertArrayNotHasKey( 'warnings', $res[0] );
+	}
+
 	public function testIndicators() {
 		$res = $this->doApiRequest( [
 			'action' => 'parse',
@@ -1077,5 +1107,27 @@ class ApiParseTest extends ApiTestCase {
 			'text' => '[[File:1]]',
 		] );
 		$this->assertSame( [ '1' ], $res[0]['parse']['images'] );
+	}
+
+	public function testParseroutputProp() {
+		// The parseroutput property is internal and unstable, so we don't
+		// want to assert any particular shape of the output.  Just check
+		// that the result can be deserialized as a ParserOutput.
+		$res = $this->doApiRequest( [
+			'action' => 'parse',
+			'title' => __CLASS__,
+			'text' => '[[Category:Foo]] [[bar]] [[en:Link]]',
+			'prop' => 'parseroutput',
+		] );
+
+		$this->assertArrayNotHasKey( 'warnings', $res[0] );
+
+		$this->assertArrayHasKey( 'parseroutput', $res[0]['parse'] );
+		$codec = MediaWikiServices::getInstance()->getJsonCodec();
+		$po = $codec->newFromJsonArray(
+			$res[0]['parse']['parseroutput'],
+			ParserOutput::class
+		);
+		$this->assertInstanceOf( ParserOutput::class, $po );
 	}
 }

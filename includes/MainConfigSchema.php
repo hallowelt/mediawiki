@@ -6750,11 +6750,9 @@ class MainConfigSchema {
 	/**
 	 * Set a default target for external links, e.g. _blank to pop up a new window.
 	 *
-	 * This will also set the "noreferrer" and "noopener" link rel to prevent the
-	 * attack described at https://mathiasbynens.github.io/rel-noopener/ .
-	 * Some older browsers may not support these link attributes, hence
-	 * setting $wgExternalLinkTarget to _blank may represent a security risk
-	 * to some of your users.
+	 * For some very old browsers this could represent a security risk
+	 * (T427561) but this has not been the case for modern browsers since
+	 * ~2019-2021.
 	 */
 	public const ExternalLinkTarget = [
 		'default' => false,
@@ -11718,9 +11716,10 @@ class MainConfigSchema {
 	 * view said file. When the 'license-name' key is specified, this file is
 	 * interpreted as wikitext.
 	 *
-	 * - $type: One of 'specialpage', 'parserhook', 'variable', 'media', 'antispam',
-	 *    'skin', 'api', or 'other', or any additional types as specified through the
-	 *    ExtensionTypes hook as used in SpecialVersion::getExtensionTypes().
+	 * - $type: One of 'specialpage', 'parserhook', 'wikifamily', 'variable', 'media',
+	 *    'antispam', 'skin', 'api', or 'other', or any additional types as specified
+	 *    through the ExtensionTypes hook as used in
+	 *    SpecialVersion::getExtensionTypes().
 	 *
 	 * - name: Name of extension as an inline string instead of localizable message.
 	 *    Do not omit this even if 'namemsg' is provided, as it is used to override

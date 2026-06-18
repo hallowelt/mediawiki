@@ -1306,10 +1306,6 @@ return [
 	'mediawiki.experiments' => [
 		'scripts' => 'resources/src/mediawiki.experiments.js',
 	],
-	'mediawiki.emailConfirmationBanner.abTest' => [
-		'scripts' => 'resources/src/mediawiki.emailConfirmationBanner/abTest.js',
-	],
-
 	'mediawiki.editfont.styles' => [
 		'styles' => 'resources/src/mediawiki.editfont.less',
 	],
@@ -1497,6 +1493,12 @@ return [
 			'postedit-confirmation-published',
 			'postedit-temp-created-label',
 			'postedit-temp-created',
+			'postedit-confirmation-published-title',
+			'postedit-temp-created-createaccount-benefits',
+			'postedit-temp-created-createaccount-benefit-1',
+			'postedit-temp-created-createaccount-benefit-2',
+			'postedit-temp-created-createaccount-benefit-3',
+			'createaccount',
 		],
 	],
 	'mediawiki.action.view.redirect' => [
@@ -1744,6 +1746,7 @@ return [
 			'clearAddressBar.js',
 			'teleportTarget.js',
 			'toggleAllCollapsibles.js',
+			'wprovStrip.js',
 			[ 'name' => 'config.json', 'callback' => static function (
 				Context $context,
 				Config $config
@@ -3012,6 +3015,7 @@ return [
 		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.tempUserCreated",
 		'packageFiles' => [
 			'mediawiki.tempUserCreated.js',
+			'UserCreatedPopover.vue',
 			[ 'name' => 'contLangMessages.json', 'callback' => static function ( MessageLocalizer $messageLocalizer ) {
 				return [
 					'tempuser-helppage' => $messageLocalizer->msg( 'tempuser-helppage' )->inContentLanguage()->text(),
@@ -3020,6 +3024,8 @@ return [
 		],
 		'dependencies' => [
 			'mediawiki.util',
+			'vue',
+			'@wikimedia/codex',
 		],
 	],
 

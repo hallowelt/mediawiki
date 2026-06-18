@@ -17,7 +17,6 @@ use MediaWiki\Parser\ParserOutputFlags;
 use MediaWiki\Parser\Parsoid\Config\DataAccess;
 use MediaWiki\Parser\Parsoid\Config\PageConfigFactory;
 use MediaWiki\Revision\MutableRevisionRecord;
-use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
@@ -34,6 +33,10 @@ use Wikimedia\Parsoid\Parsoid;
  *
  * @since 1.41
  * @unstable since 1.41; see T236809 for plan.
+ *
+ * This class can generate the following messages through the Parsoid library.
+ * Although they are not used within MediaWiki core, their translations should be kept:
+ * - apierror-imagelimitexceeded
  */
 class ParsoidParser /* eventually this will extend \Parser */ {
 	public function __construct(
@@ -48,7 +51,7 @@ class ParsoidParser /* eventually this will extend \Parser */ {
 	}
 
 	/**
-	 * Internal helper to avoid code deduplication across two methods
+	 * Internal helper
 	 *
 	 * @param PageConfig $pageConfig
 	 * @param ParserOptions $options
@@ -316,36 +319,5 @@ class ParsoidParser /* eventually this will extend \Parser */ {
 		}
 
 		return $this->genParserOutput( $pageConfig, $options, $previousOutput );
-	}
-
-	/**
-	 * @internal
-	 *
-	 * Convert custom wikitext (stored in main slot of the $fakeRev arg) to HTML.
-	 * Callers are expected NOT to stuff the result into ParserCache.
-	 *
-	 * @param RevisionRecord $fakeRev Revision to parse
-	 * @param PageReference $page
-	 * @param ParserOptions $options
-	 * @return ParserOutput
-	 * @unstable since 1.41
-	 */
-	public function parseFakeRevision(
-		RevisionRecord $fakeRev, PageReference $page, ParserOptions $options
-	): ParserOutput {
-		wfDeprecated( __METHOD__, '1.43' );
-		$title = Title::newFromPageReference( $page );
-		$lang = $options->getTargetLanguage();
-		if ( $lang === null && $options->getInterfaceMessage() ) {
-			$lang = $options->getUserLangObj();
-		}
-		$pageConfig = $this->pageConfigFactory->createFromParserOptions(
-			$options,
-			$title,
-			$fakeRev,
-			$lang // defaults to title page language if null
-		);
-
-		return $this->genParserOutput( $pageConfig, $options, null );
 	}
 }

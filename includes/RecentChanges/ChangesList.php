@@ -10,7 +10,6 @@ use MediaWiki\ChangeTags\ChangeTags;
 use MediaWiki\CommentFormatter\RowCommentFormatter;
 use MediaWiki\Context\ContextSource;
 use MediaWiki\Context\IContextSource;
-use MediaWiki\Context\RequestContext;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\HookContainer\ProtectedHookAccessorTrait;
 use MediaWiki\Html\Html;
@@ -27,9 +26,9 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\RecentChanges\ChangesListQuery\WatchlistLabelCondition;
+use MediaWiki\RecentChanges\ChangeTools\ChangeToolsFactory;
 use MediaWiki\Revision\MutableRevisionRecord;
 use MediaWiki\Revision\RevisionRecord;
-use MediaWiki\Specials\Pager\PagerTools;
 use MediaWiki\Specials\SpecialWatchlist;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
@@ -111,13 +110,20 @@ class ChangesList extends ContextSource {
 
 	protected UserLinkRenderer $userLinkRenderer;
 
+	private ChangeToolsFactory $changeToolsFactory;
+
 	protected array $userLabels;
 
 	/**
 	 * @param IContextSource $context
 	 * @param ChangesListFilterGroupContainer|null $filterGroups
+	 * @param ChangeToolsFactory|null $changeToolsFactory
 	 */
-	public function __construct( $context, ?ChangesListFilterGroupContainer $filterGroups = null ) {
+	public function __construct(
+		$context,
+		?ChangesListFilterGroupContainer $filterGroups = null,
+		?ChangeToolsFactory $changeToolsFactory = null,
+	) {
 		$this->setContext( $context );
 		$this->preCacheMessages();
 		$this->watchMsgCache = new MapCacheLRU( 50 );
@@ -128,6 +134,7 @@ class ChangesList extends ContextSource {
 		$this->commentFormatter = $services->getRowCommentFormatter();
 		$this->logFormatterFactory = $services->getLogFormatterFactory();
 		$this->userLinkRenderer = $services->getUserLinkRenderer();
+		$this->changeToolsFactory = $changeToolsFactory ?? $services->getChangeToolsFactory();
 		$this->tagsCache = new MapCacheLRU( 50 );
 		$this->userLinkCache = new MapCacheLRU( 50 );
 	}
@@ -320,10 +327,10 @@ class ChangesList extends ContextSource {
 	 * Styling for these flags is provided through mediawiki.interface.helpers.styles.
 	 *
 	 * @param string $flag One key of $wgRecentChangesFlags
-	 * @param IContextSource|null $context
+	 * @param IContextSource $context
 	 * @return string HTML
 	 */
-	public static function flag( $flag, ?IContextSource $context = null ) {
+	public static function flag( $flag, IContextSource $context ) {
 		static $map = [ 'minoredit' => 'minor', 'botedit' => 'bot' ];
 		static $flagInfos = null;
 
@@ -337,14 +344,6 @@ class ChangesList extends ContextSource {
 				// Allow customized class name, fall back to flag name
 				$flagInfos[$key]['class'] = $value['class'] ?? $key;
 			}
-		}
-
-		if ( !$context ) {
-			wfDeprecatedMsg(
-				'Calling ChangesList::flag without specifying a context is deprecated since 1.46',
-				'1.46'
-			);
-			$context = RequestContext::getMain();
 		}
 
 		// Inconsistent naming, kept for b/c
@@ -401,18 +400,10 @@ class ChangesList extends ContextSource {
 	 *
 	 * @param int $old Number of bytes
 	 * @param int $new Number of bytes
-	 * @param IContextSource|null $context
+	 * @param IContextSource $context
 	 * @return string
 	 */
-	public static function showCharacterDifference( $old, $new, ?IContextSource $context = null ) {
-		if ( !$context ) {
-			wfDeprecatedMsg(
-				'Calling ChangesList::showCharacterDifference without specifying a context is deprecated since 1.46',
-				'1.46'
-			);
-			$context = RequestContext::getMain();
-		}
-
+	public static function showCharacterDifference( $old, $new, IContextSource $context ) {
 		$new = (int)$new;
 		$old = (int)$old;
 		$szdiff = $new - $old;
@@ -874,23 +865,14 @@ class ChangesList extends ContextSource {
 	}
 
 	/**
-	 * Determine if the current user is allowed to view a particular
+	 * Determine if the given user is allowed to view a particular
 	 * field of this revision, if it's marked as deleted.
 	 * @param RCCacheEntry|RecentChange $rc
 	 * @param int $field
-	 * @param Authority|null $performer to check permissions against. If null, the global RequestContext's
-	 * User is assumed instead.
+	 * @param Authority $performer to check permissions against
 	 * @return bool
 	 */
-	public static function userCan( $rc, $field, ?Authority $performer = null ) {
-		if ( !$performer ) {
-			wfDeprecatedMsg(
-				'Calling ChangesList::userCan without specifying a performer is deprecated since 1.46',
-				'1.46'
-			);
-			$performer = RequestContext::getMain()->getAuthority();
-		}
-
+	public static function userCan( $rc, $field, Authority $performer ) {
 		if ( $rc->mAttribs['rc_source'] === RecentChange::SRC_LOG ) {
 			return LogEventsList::userCanBitfield( $rc->mAttribs['rc_deleted'], $field, $performer );
 		}
@@ -938,7 +920,7 @@ class ChangesList extends ContextSource {
 			return;
 		}
 
-		// Construct a fake revision for PagerTools. FIXME can't we just obtain the real one?
+		// Construct a fake revision for ChangeTools. FIXME can't we just obtain the real one?
 		$title = $rc->getTitle();
 		$revRecord = new MutableRevisionRecord( $title );
 		$revRecord->setId( (int)$rc->mAttribs['rc_this_oldid'] );
@@ -949,17 +931,13 @@ class ChangesList extends ContextSource {
 		);
 		$revRecord->setUser( $user );
 
-		$tools = new PagerTools(
+		$tools = $this->changeToolsFactory->buildChangeTools(
 			$revRecord,
 			null,
 			// only show a rollback link on the top-most revision
 			$rc->getAttribute( 'page_latest' ) == $rc->mAttribs['rc_this_oldid']
-				&& $rc->mAttribs['rc_source'] !== RecentChange::SRC_NEW,
-			$this->getHookRunner(),
-			$title,
+			&& $rc->mAttribs['rc_source'] !== RecentChange::SRC_NEW,
 			$this->getContext(),
-			// @todo: Inject
-			MediaWikiServices::getInstance()->getLinkRenderer()
 		);
 
 		$s .= $tools->toHTML();

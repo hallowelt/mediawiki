@@ -25,7 +25,6 @@ use MediaWiki\EditPage\IEditObject;
 use MediaWiki\EditPage\NotDirectlyEditableException;
 use MediaWiki\EditPage\PageEditingHelper;
 use MediaWiki\Language\Language;
-use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Page\WikiPage;
@@ -44,6 +43,7 @@ use MediaWiki\User\User;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\Watchlist\WatchedItemStoreInterface;
 use MediaWiki\Watchlist\WatchlistManager;
+use Psr\Log\LoggerInterface;
 use Wikimedia\Message\MessageSpecifier;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\Rdbms\IConnectionProvider;
@@ -68,7 +68,6 @@ class PageEdit implements IEditObject {
 	private ?bool $redirect = null;
 	private string $section;
 	private ?string $sectionanchor = null;
-	private string $summary;
 	private string $textbox1;
 
 	public function __construct(
@@ -79,6 +78,7 @@ class PageEdit implements IEditObject {
 		private readonly IConnectionProvider $connectionProvider,
 		private readonly Language $contentLanguage,
 		private readonly ContentTransformer $contentTransformer,
+		private readonly LoggerInterface $editConflictLogger,
 		private readonly PageEditingHelper $pageEditingHelper,
 		private readonly RateLimiter $rateLimiter,
 		private readonly RevisionStore $revisionStore,
@@ -90,7 +90,6 @@ class PageEdit implements IEditObject {
 		$this->options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->parentRevId = $inputs->getParentRevId();
 		$this->section = $inputs->getSection();
-		$this->summary = $inputs->getSummary();
 		$this->textbox1 = $inputs->getTextbox1();
 	}
 
@@ -109,7 +108,6 @@ class PageEdit implements IEditObject {
 			redirect: $this->redirect,
 			section: $this->section,
 			sectionanchor: $this->sectionanchor,
-			summary: $this->summary,
 			textbox1: $this->textbox1,
 		);
 	}
@@ -199,54 +197,13 @@ class PageEdit implements IEditObject {
 			# Article exists. Check for edit conflict.
 
 			$timestamp = $page->getTimestamp();
-			$latest = $page->getLatest();
 			$edittime = $this->inputs->getEdittime();
 			$editRevId = $this->inputs->getEditRevId();
 
-			wfDebug( "timestamp: {$timestamp}, edittime: {$edittime}" );
-			wfDebug( "revision: {$latest}, editRevId: {$editRevId}" );
-
-			$editConflictLogger = LoggerFactory::getInstance( 'EditConflict' );
-			// An edit conflict is detected if the latest revision is different from the
-			// revision that was current when editing was initiated on the client.
-			// This is checked based on the timestamp and revision ID.
-			// TODO: the timestamp based check can probably go away now.
-			if ( ( $edittime !== null && $edittime != $timestamp )
-				|| ( $editRevId !== null && $editRevId != $latest )
-			) {
-				$this->isConflict = true;
-				if ( $this->section === 'new' ) {
-					if ( $page->getUserText() === $requestUser->getName() &&
-						$page->getComment() === $this->summary
-					) {
-						// Probably a duplicate submission of a new comment.
-						// This can happen when CDN resends a request after
-						// a timeout but the first one actually went through.
-						$editConflictLogger->debug(
-							'Duplicate new section submission; trigger edit conflict!'
-						);
-					} else {
-						// New comment; suppress conflict.
-						$this->isConflict = false;
-						$editConflictLogger->debug( 'Conflict suppressed; new section' );
-					}
-				} elseif ( $this->section === ''
-					&& $edittime
-					&& $this->revisionStore->userWasLastToEdit(
-						$this->connectionProvider->getPrimaryDatabase(),
-						$this->inputs->getPage()->getId(),
-						$requestUser->getId(),
-						$edittime
-					)
-				) {
-					# Suppress edit conflict with self, except for section edits where merging is required.
-					$editConflictLogger->debug( 'Suppressing edit conflict, same user.' );
-					$this->isConflict = false;
-				}
-			}
+			$this->isConflict = $this->hasConflict( $page );
 
 			if ( $this->isConflict ) {
-				$editConflictLogger->debug(
+				$this->editConflictLogger->debug(
 					'Conflict! Getting section {section} for time {editTime}'
 					. ' (id {editRevId}, article time {timestamp})',
 					[
@@ -274,7 +231,7 @@ class PageEdit implements IEditObject {
 					);
 				}
 			} else {
-				$editConflictLogger->debug(
+				$this->editConflictLogger->debug(
 					'Getting section {section}',
 					[ 'section' => $this->section ]
 				);
@@ -286,7 +243,7 @@ class PageEdit implements IEditObject {
 			}
 
 			if ( $content === null ) {
-				$editConflictLogger->debug( 'Activating conflict; section replace failed.' );
+				$this->editConflictLogger->debug( 'Activating conflict; section replace failed.' );
 				$this->isConflict = true;
 				$content = $textbox_content; // do not try to merge here!
 			} elseif ( $this->isConflict ) {
@@ -297,11 +254,11 @@ class PageEdit implements IEditObject {
 					$content = $mergedChange[0];
 					$this->parentRevId = $mergedChange[1];
 					$this->isConflict = false;
-					$editConflictLogger->debug( 'Suppressing edit conflict, successful merge.' );
+					$this->editConflictLogger->debug( 'Suppressing edit conflict, successful merge.' );
 				} else {
 					$this->section = '';
 					$this->textbox1 = ( $content instanceof TextContent ) ? $content->getText() : '';
-					$editConflictLogger->debug( 'Keeping edit conflict, failed merge.' );
+					$this->editConflictLogger->debug( 'Keeping edit conflict, failed merge.' );
 				}
 			}
 
@@ -384,7 +341,7 @@ class PageEdit implements IEditObject {
 		$pageUpdater
 			->addTags( $this->inputs->getChangeTags() )
 			->saveRevision(
-				CommentStoreComment::newUnsavedComment( trim( $this->summary ) ),
+				CommentStoreComment::newUnsavedComment( trim( $this->inputs->getSummary() ) ),
 				$flags
 			);
 		$doEditStatus = $pageUpdater->getStatus();
@@ -423,7 +380,7 @@ class PageEdit implements IEditObject {
 				// $oldContentModel is set when $changingContentModel is true
 				$new ? false : $oldContentModel,
 				$this->inputs->getContentModel(),
-				$this->summary
+				$this->inputs->getSummary()
 			);
 		}
 
@@ -432,6 +389,60 @@ class PageEdit implements IEditObject {
 		// due to a successful edit.
 		$statusCode = ( $new ? self::AS_SUCCESS_NEW_ARTICLE : self::AS_SUCCESS_UPDATE );
 		return PageEditStatus::newGood( $statusCode );
+	}
+
+	/**
+	 * @param WikiPage $page
+	 * @return bool Whether there is an edit conflict
+	 */
+	private function hasConflict( $page ): bool {
+		$latest = $page->getLatest();
+		$timestamp = $page->getTimestamp();
+		$edittime = $this->inputs->getEdittime();
+		$editRevId = $this->inputs->getEditRevId();
+
+		wfDebug( "timestamp: {$timestamp}, edittime: {$edittime}" );
+		wfDebug( "revision: {$latest}, editRevId: {$editRevId}" );
+
+		// An edit conflict is detected if the latest revision is different from the
+		// revision that was current when editing was initiated on the client.
+		// This is checked based on the timestamp and revision ID.
+		// TODO: the timestamp based check can probably go away now.
+		if ( ( $edittime !== null && $edittime != $timestamp )
+			|| ( $editRevId !== null && $editRevId != $latest )
+		) {
+			if ( $this->section === 'new' ) {
+				if ( $page->getUserText() === $this->inputs->getContext()->getUser()->getName() &&
+					$page->getComment() === $this->inputs->getSummary()
+				) {
+					// Probably a duplicate submission of a new comment.
+					// This can happen when CDN resends a request after
+					// a timeout but the first one actually went through.
+					$this->editConflictLogger->debug(
+						'Duplicate new section submission; trigger edit conflict!'
+					);
+				} else {
+					// New comment; suppress conflict.
+					$this->editConflictLogger->debug( 'Conflict suppressed; new section' );
+					return false;
+				}
+			} elseif ( $this->section === ''
+				&& $edittime
+				&& $this->revisionStore->userWasLastToEdit(
+					$this->connectionProvider->getPrimaryDatabase(),
+					$this->inputs->getPage()->getId(),
+					$this->inputs->getContext()->getUser()->getId(),
+					$edittime
+				)
+			) {
+				# Suppress edit conflict with self, except for section edits where merging is required.
+				$this->editConflictLogger->debug( 'Suppressing edit conflict, same user.' );
+				return false;
+			}
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -449,7 +460,7 @@ class PageEdit implements IEditObject {
 		return new EditConstraintRunner(
 			// Ensure that the summary and text don't match the spam regex
 			$this->constraintFactory->newSpamRegexConstraint(
-				$this->summary,
+				$this->inputs->getSummary(),
 				$this->inputs->getSectiontitle(),
 				$this->textbox1,
 				$this->inputs->getContext()->getRequest()->getIP(),
@@ -517,7 +528,7 @@ class PageEdit implements IEditObject {
 			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
 				$content,
 				$this->inputs->getContext(),
-				$this->summary,
+				$this->inputs->getSummary(),
 				$markAsMinor,
 				$this->inputs->getContext()->getLanguage(),
 				$pstUser
@@ -544,7 +555,7 @@ class PageEdit implements IEditObject {
 			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
 				$content,
 				$this->inputs->getContext(),
-				$this->summary,
+				$this->inputs->getSummary(),
 				$markAsMinor,
 				$this->inputs->getContext()->getLanguage(),
 				$pstUser
@@ -558,7 +569,7 @@ class PageEdit implements IEditObject {
 			new MissingCommentConstraint( $this->section, $this->textbox1 ),
 			new ExistingSectionEditConstraint(
 				$this->section,
-				$this->summary,
+				$this->inputs->getSummary(),
 				$this->inputs->getAutoSumm(),
 				$this->inputs->shouldAllowBlankSummary(),
 				$content,

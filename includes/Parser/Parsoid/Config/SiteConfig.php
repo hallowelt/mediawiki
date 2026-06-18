@@ -24,6 +24,7 @@ use MediaWiki\Language\LanguageConverter;
 use MediaWiki\Language\LanguageConverterFactory;
 use MediaWiki\Language\LanguageFactory;
 use MediaWiki\Language\LanguageNameUtils;
+use MediaWiki\Linker\Linker;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Parser\MagicWordArray;
@@ -42,6 +43,7 @@ use Wikimedia\Bcp47Code\Bcp47Code;
 use Wikimedia\ObjectFactory\ObjectFactory;
 use Wikimedia\Parsoid\Config\SiteConfig as ISiteConfig;
 use Wikimedia\Parsoid\Core\ContentMetadataCollector;
+use Wikimedia\Parsoid\Core\LinkTarget as ParsoidLinkTarget;
 use Wikimedia\Parsoid\DOM\Document;
 use Wikimedia\Parsoid\Utils\Utils;
 use Wikimedia\Stats\PrefixingStatsdDataFactoryProxy;
@@ -787,6 +789,10 @@ class SiteConfig extends ISiteConfig {
 		return $this->config->get( MainConfigNames::ExternalLinkTarget );
 	}
 
+	public function getUploadUrl( ParsoidLinkTarget $fileName ): string {
+		return Linker::getUploadUrl( $fileName, prefixedURL: true );
+	}
+
 	/**
 	 * Return the localization key we should use for asynchronous
 	 * fallback content.
@@ -837,4 +843,13 @@ class SiteConfig extends ISiteConfig {
 	public function clearDeprecationFilters(): void {
 		MWDebug::clearDeprecationFilters();
 	}
+
+	/** @inheritDoc */
+	public function tagNeedsNowikiStrippedInTagPF( string $lowerTagName ): bool {
+		// FIXME: Temporarily call until the parent does it
+		$this->getExtConfig();
+
+		return parent::tagNeedsNowikiStrippedInTagPF( $lowerTagName );
+	}
+
 }

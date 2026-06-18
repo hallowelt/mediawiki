@@ -490,10 +490,6 @@ class DataAccess extends IDataAccess {
 		$wikitext = $parser->replaceVariables(
 			$wikitext, $this->ppFrame, false, [
 				'parsoidTopLevelCall' => true,
-				// This is implied by stripExtTags=false and
-				// probably doesn't need to be explicitly passed
-				// any more.
-				'processNowiki' => true,
 			]
 		);
 		// Where the result has strip state markers, tunnel this content
@@ -512,7 +508,7 @@ class DataAccess extends IDataAccess {
 					$extra = $pieces[$i]['extra'] ?? null;
 					// T388819: If this is from an actual <nowiki>, we
 					// wrap <span typeof="mw:Nowiki"> around $contents.
-					if ( $extra === 'nowiki' ) {
+					if ( $extra !== null ) {
 						$content = Html::rawElement( 'span', [
 							'typeof' => 'mw:Nowiki',
 						], $content );

@@ -756,7 +756,7 @@ END
 
 	public static function provideMakeModuleResponseConcat() {
 		$testcases = [
-			[
+			'Script without semi-colon' => [
 				'modules' => [
 					'foo' => 'foo()',
 				],
@@ -764,9 +764,8 @@ END
     "foo": "ready"
 });',
 				'minified' => "foo()\n" . 'mw.loader.state({"foo":"ready"});',
-				'message' => 'Script without semi-colon',
 			],
-			[
+			'Two scripts without semi-colon' => [
 				'modules' => [
 					'foo' => 'foo()',
 					'bar' => 'bar()',
@@ -776,9 +775,8 @@ END
     "bar": "ready"
 });',
 				'minified' => "foo()\nbar()\n" . 'mw.loader.state({"foo":"ready","bar":"ready"});',
-				'message' => 'Two scripts without semi-colon',
 			],
-			[
+			'Script with semi-colon in comment (T162719)' => [
 				'modules' => [
 					'foo' => "foo()\n// bar();"
 				],
@@ -786,22 +784,19 @@ END
     "foo": "ready"
 });',
 				'minified' => "foo()\n" . 'mw.loader.state({"foo":"ready"});',
-				'message' => 'Script with semi-colon in comment (T162719)',
 			],
 		];
 		$ret = [];
-		foreach ( $testcases as $i => $case ) {
-			$ret["#$i"] = [
+		foreach ( $testcases as $message => $case ) {
+			$ret[$message] = [
 				$case['modules'],
 				$case['expected'],
 				true, // debug
-				$case['message'],
 			];
-			$ret["#$i (minified)"] = [
+			$ret["$message (minified)"] = [
 				$case['modules'],
 				$case['minified'],
 				false, // debug
-				$case['message'],
 			];
 		}
 		return $ret;
@@ -812,7 +807,7 @@ END
 	 *
 	 * @dataProvider provideMakeModuleResponseConcat
 	 */
-	public function testMakeModuleResponseConcat( $scripts, $expected, $debug, $message = null ) {
+	public function testMakeModuleResponseConcat( $scripts, $expected, $debug ) {
 		$rl = new EmptyResourceLoader();
 		$modules = array_map( $this->getSimpleModuleMock( ... ), $scripts );
 
@@ -827,7 +822,7 @@ END
 
 		$response = $rl->makeModuleResponse( $context, $modules );
 		$this->assertSame( [], $rl->getErrors(), 'Errors' );
-		$this->assertEquals( $expected, $response, $message ?: 'Response' );
+		$this->assertEquals( $expected, $response, 'Response' );
 	}
 
 	public function testMakeModuleResponseEmpty() {
@@ -1339,7 +1334,7 @@ JS
 		$extraHeaders = TestingAccessWrapper::newFromObject( $rl )->extraHeaders;
 		$this->assertEquals(
 			[
-				'SourceMap: /load.php?lang=en&modules=test1%2Ctest2&only=scripts&sourcemap=1&version=pq39u'
+				'SourceMap: /load.php?lang=en&modules=test1%2Ctest2&only=scripts&sourcemap=1&version=zixoj'
 			],
 			$extraHeaders,
 			'Extra headers'

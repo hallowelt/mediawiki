@@ -99,6 +99,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 ==== New external libraries ====
 
 * Added symfony/polyfill-php86 at 1.37.0.
+* Added symfony/mailer at 7.4.12.
+* Added symfony/mime at 7.4.12.
 * …
 
 ===== New development-only external libraries =====
@@ -109,12 +111,14 @@ For notes on 1.46.x and older releases, see HISTORY.
 ==== Changed external libraries ====
 
 * Updated psr/log from 1.1.4 to 3.0.2.
-* Updated symfony/polyfill-php84 from 1.36.0 to 1.37.0.
-* Updated symfony/polyfill-php85 from 1.36.0 to 1.37.0.
-* Updated symfony/yaml from 7.4.6 to 7.4.8.
+* Updated symfony/polyfill-php84 from 1.36.0 to 1.38.1.
+* Updated symfony/polyfill-php85 from 1.36.0 to 1.38.1.
+* Updated symfony/polyfill-php86 from 1.36.0 to 1.38.0.
+* Updated symfony/yaml from 7.4.6 to 7.4.12.
 * Updated wikimedia/json-codec from 4.0.0 to 5.0.0.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.5.1 to v2.6.0.
+* Updated OOUI from v0.53.2 to v0.54.0
 * …
 
 ===== Changed development-only external libraries =====
@@ -125,6 +129,9 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== Removed external libraries ====
 
+* Removed pear/mail, pear/mail_mime and pear/net_smtp (and their abandoned
+  transitive dependency pear/net_socket), replaced by symfony/mailer and
+  symfony/mime.
 * …
 
 === Bug fixes in 1.47 ===
@@ -145,10 +152,19 @@ For notes on 1.46.x and older releases, see HISTORY.
 * (T426802) prop=imageinfo now includes timestamp, user, size, and comment
   fields for file revisions where the file blob is missing from storage,
   alongside the existing "filemissing" flag.
+* The `action=parse` API has a new `prop=parseroutput` parameter.
+  This returns the JSON serialization of the ParserOutput.  This API
+  is marked internal as there are no guarantees about the format of
+  the result; the format of the ParserOutput is governed by
+  [[mw:Manual:Parser cache/Serialization compatibility]] not by an
+  Action API policy. (T428786)
 * …
 
 === Action API internal changes in 1.47 ===
 
+* Added EnumDef::PARAM_INTERNAL_VALUES to mark individual enum parameter values
+  as internal/unstable; these appear in action=paraminfo output as
+  "internalvalues".
 * …
 
 === Languages updated in 1.47 ===
@@ -160,6 +176,8 @@ because of Phabricator reports.
 
 === Breaking changes in 1.47 ===
 
+* The minimum supported version of MariaDB has been raised to 10.11 (from 2022),
+  up from 10.3 (from 2017).
 * It is no longer possible to pass null to the $output parameter of
   FeedUtils::checkFeedOutput. This behaviour was deprecated in 1.46.
 * ChannelFeed::outHeader(), ::outItem(), ::outFooter(), ::httpHeaders() and
@@ -196,8 +214,32 @@ because of Phabricator reports.
   removed. There is no replacement.
 * The ability to construct a HTMLFormField without a parent, deprecated in 1.40,
   has been removed.
+* The HtmlCacheUpdater service, a deprecated alias of the HTMLCacheUpdater
+  service since 1.46, has been removed. Use the new service name instead.
 * The EditFilter hook, deprecated in 1.46, has been removed. Use
   EditFilterMergedContent or MultiContentSave instead.
+* Passing a MessageLocalizer to ChangesList::formatSummaryRow is now mandatory.
+  Passing null was deprecated in 1.46.
+* Passing an IContextSource to ChangesList::buildTagFilterSelector is now
+  mandatory. Passing null was deprecated in 1.46.
+* Passing a performer to WikiImporterFactory::getImporter is mandatory now.
+  Passing null was deprecated in 1.42.
+* Passing a performer to ChangesList::userCan is mandatory now. Passing null was
+  deprecated in 1.46.
+* Passing a context to ChangesList::showCharacterDifference
+  and ChangesList::flag is mandatory now. Passing null was deprecated in 1.46.
+* RecentChange::getCharacterDifference, deprecated in 1.46, has been removed.
+  Use ChangesList::showCharacterDifference or
+  ChangesList::formatCharacterDifference instead.
+* Passing a context so SpecialPageFactory::getUsablePages is mandatory now.
+  Passing null was deprecated in 1.46.
+* Passing a performer to UploadBase::checkWarnings is mandatory now. Passing
+  null was deprecated in 1.46.
+* The protected static method UserMailer::sendWithPear() has been removed
+  following the migration from PEAR Mail to symfony/mailer.
+* Passing null to any of the three constructor parameters of TextboxBuilder,
+  deprecated in 1.46, will now throw a PHP error. Use the service to get an
+  instance of the class.
 * …
 
 === Deprecations in 1.47 ===
@@ -268,10 +310,26 @@ because of Phabricator reports.
   is deprecated and will trigger deprecation warnings.  Use
   MutableRevisionRecord::newFromContent() to pass a WikitextContent constructed
   with your string.
+* A non-empty $query parameter to Linker::makeBrokenImageLinkObj() and
+  Linker::getUploadUrl() has been deprecated and will trigger deprecation
+  warnings. There appear to be few users of these methods and no users
+  of this parameter since around MW 1.21 when they were removed from Skin.
+* Linker::makeBrokenImageLinkObj() used to wfWarn if the first argument
+  was not a LinkTarget.  This has been changed to a deprecation warning.
+  In a future release this will be a type hint on the argument.
 * The ParserOptionsRegister hook has been deprecated and replaced by
   ParserOptionsDefaults.
+* The PagerTools class has been deprecated and emits deprecation warnings. Use
+  the new ChangeToolsFactory service instead.
 * MediaWikiIntegrationTestCase::assertSelect() has been deprecated,
   use MediaWikiIntegrationTestCase::newSelectQueryBuilder() instead.
+* MediaWikiIntegrationTestCase::assertArraySubmapSame() has been deprecated,
+  use MediaWikiTestCaseTrait::assertArrayContains() instead.
+* MediaTransformOutput::streamFile(), deprecated since 1.26, now emits
+  deprecation warnings. Use streamFileWithStatus() instead.
+* LocalFile::lock() and LocalFile::unlock(), deprecated since 1.38, now emit
+  deprecation warnings. Use acquireFileLock() and releaseFileLock() instead.
+  LocalFileLockError is deprecated along with these methods.
 * …
 
 === Other changes in 1.47 ===
@@ -294,7 +352,7 @@ be used instead, but support for them is somewhat less mature.
 
 The supported versions are:
 
-* MariaDB 10.3 or higher
+* MariaDB 10.11 or higher
 * MySQL 5.7.0 or higher
 * PostgreSQL 10 or later
 * SQLite 3.8.0 or later

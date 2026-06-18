@@ -205,6 +205,7 @@ use MediaWiki\Preferences\PreferencesFactory;
 use MediaWiki\Preferences\SignatureValidator;
 use MediaWiki\Preferences\SignatureValidatorFactory;
 use MediaWiki\RecentChanges\ChangesListQuery\ChangesListQueryFactory;
+use MediaWiki\RecentChanges\ChangeTools\ChangeToolsFactory;
 use MediaWiki\RecentChanges\ChangeTrackingEventIngress;
 use MediaWiki\RecentChanges\PatrolManager;
 use MediaWiki\RecentChanges\RecentChangeFactory;
@@ -615,6 +616,13 @@ return [
 				ChangeTagsStore::CONSTRUCTOR_OPTIONS,
 				$services->getMainConfig()
 			)
+		);
+	},
+
+	'ChangeToolsFactory' => static function ( MediaWikiServices $services ): ChangeToolsFactory {
+		return new ChangeToolsFactory(
+			new HookRunner( $services->getHookContainer() ),
+			$services->getLinkRenderer(),
 		);
 	},
 
@@ -1105,11 +1113,6 @@ return [
 			new StaticHookRegistry( $configHooks, $extHooks, $extDeprecatedHooks ),
 			$services->getObjectFactory()
 		);
-	},
-
-	'HtmlCacheUpdater' => static function ( MediaWikiServices $services ): HTMLCacheUpdater {
-		wfDeprecatedMsg( 'The "HtmlCacheUpdater" service alias was deprecated in 1.46', '1.46' );
-		return $services->getHTMLCacheUpdater();
 	},
 
 	'HTMLCacheUpdater' => static function ( MediaWikiServices $services ): HTMLCacheUpdater {
@@ -3279,6 +3282,7 @@ return [
 			$services->getConnectionProvider(),
 			$services->getContentLanguage(),
 			$services->getContentTransformer(),
+			LoggerFactory::getInstance( 'EditConflict' ),
 			$services->getService( '_PageEditingHelper' ),
 			$services->getRateLimiter(),
 			$services->getRevisionStore(),
