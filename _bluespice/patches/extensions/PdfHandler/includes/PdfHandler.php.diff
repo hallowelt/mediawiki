@@ -1,0 +1,13 @@
+diff --git a/includes/PdfHandler.php b/includes/PdfHandler.php
+index cc3b1bd..7363209 100644
+--- a/includes/PdfHandler.php
++++ b/includes/PdfHandler.php
+@@ -227,7 +227,7 @@ class PdfHandler extends ImageHandler {
+		);
+		$cmd .= " | " . wfEscapeShellArg(
+			$wgPdfPostProcessor,
+-			"-",
++			"jpeg:-",
+			"-depth",
+			"8",
+			"-quality",

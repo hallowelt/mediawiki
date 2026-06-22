@@ -1,0 +1,31 @@
+diff --git a/resources/mmv/provider/mmv.provider.ImageInfo.js b/resources/mmv/provider/mmv.provider.ImageInfo.js
+index e8302b1f..445d071c 100644
+--- a/resources/mmv/provider/mmv.provider.ImageInfo.js
++++ b/resources/mmv/provider/mmv.provider.ImageInfo.js
+@@ -91,7 +91,7 @@ class ImageInfo extends Api {
+	 * @return {jQuery.Promise} a promise which resolves to an Image object.
+	 */
+	get( file ) {
+-		return this.getCachedPromise( file.getPrefixedDb(), () => this.apiGetWithMaxAge( {
++		const params = {
+			formatversion: 2,
+			action: 'query',
+			prop: 'imageinfo',
+@@ -100,7 +100,16 @@ class ImageInfo extends Api {
+			iiextmetadatafilter: this.iiextmetadatafilter,
+			iiextmetadatalanguage: this.options.language,
+			uselang: 'content'
+-		} ).then( ( data ) => this.getQueryPage( data ) ).then( ( page ) => {
++		};
++
++		if ( file.timestamp ) {
++			// To get the old image we have to reduce the timestamp and set the iistart for the imageinfo api.
++			params.iistart = file.timestamp -1;
++		}
++
++		return this.getCachedPromise( file.getPrefixedDb() + ( file.timestamp || '' ), () => this.apiGetWithMaxAge(
++			params
++		).then( ( data ) => this.getQueryPage( data ) ).then( ( page ) => {
+			if ( page.imageinfo && page.imageinfo.length ) {
+				return ImageModel.newFromImageInfo( file, page );
+			} else if ( page.missing === true && page.imagerepository === '' ) {

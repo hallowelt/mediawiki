@@ -1,0 +1,71 @@
+diff --git a/resources/mmv.bootstrap/mmv.bootstrap.js b/resources/mmv.bootstrap/mmv.bootstrap.js
+index f5d19919..7d7edc8e 100644
+--- a/resources/mmv.bootstrap/mmv.bootstrap.js
++++ b/resources/mmv.bootstrap/mmv.bootstrap.js
+@@ -276,7 +276,7 @@ class MultimediaViewerBootstrap {
+			// if this is a PDF filetype thumbnail, it can trick us,
+			// so we short-circuit that logic and use the file page title
+			// instead of the thumbnail logic.
+-			title = mw.Title.newFromText( mw.config.get( 'wgTitle' ), mw.config.get( 'wgNamespaceNumber' ) );
++			title = mw.Title.makeTitle( mw.config.get( 'wgNamespaceNumber' ), mw.config.get( 'wgTitle' ) );
+		} else {
+			title = mw.Title.newFromImg( $thumb );
+		}
+@@ -329,7 +329,56 @@ class MultimediaViewerBootstrap {
+			// no longer supported
+			'[typeof*="mw:Image"]'
+		);
+-		const title = mw.Title.newFromImg( $thumb );
++
++		/**
++		 * nsfr_img_auth.php/3000/e/ea/Image.png
++		 * nsfr_img_auth.php/thumb/4/4c/Image.png/300px-Image.png
++		 * nsfr_img_auth.php/thumb/archive/3000/e/ea/20250326041929!Image.png/300px-Image.png
++		 */
++		const src = decodeURI( thumb.src );
++		const parts = src.split( '/' );
++
++		let title;
++		let isArchive;
++		let namespaceNumber;
++		let namespaceName;
++		let fileName;
++		let timestamp;
++
++		parts.forEach( ( part, index ) => {
++			if ( part === 'archive' ) {
++				isArchive = true;
++			} else if ( /^\d{4}$/.test( part ) ) {
++				namespaceNumber = part;
++			} else if ( part.length === 2 && parts[ index - 1 ].length === 1 ) {
++				// /e/ea/filename
++				fileName = parts[ index + 1 ];
++			}
++		} );
++
++		if ( isArchive && fileName && fileName.includes( '!' ) ) {
++			const archiveFileName = fileName.split( '!' );
++			timestamp = archiveFileName[ 0 ];
++			fileName = archiveFileName[ 1 ];
++		}
++
++		if ( namespaceNumber ) {
++			const formattedNamespaces = mw.config.get( 'wgFormattedNamespaces' );
++			namespaceName = formattedNamespaces[ namespaceNumber ];
++			fileName = `${ namespaceName }:${ fileName }`;
++		}
++
++		// File = 6
++		title = mw.Title.makeTitle( 6, fileName );
++
++		if ( !title ) {
++			title = mw.Title.newFromImg( $thumb );
++		}
++
++		if ( isArchive && timestamp ) {
++			title.timestamp = timestamp;
++		}
++
+		let caption;
+ 
+		if ( !this.isValidExtension( title ) ) {

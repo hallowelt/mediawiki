@@ -1,0 +1,13 @@
+diff --git a/includes/ExtractFormatter.php b/includes/ExtractFormatter.php
+index 2612573..6705ec4 100644
+--- a/includes/ExtractFormatter.php
++++ b/includes/ExtractFormatter.php
+@@ -56,6 +56,8 @@ class ExtractFormatter extends HtmlFormatter {
+			$text = str_replace( "\r", "\n", $text );
+			// normalise newlines
+			$text = preg_replace( "/\n{3,}/", "\n\n", $text );
++			// Remove header syntax
++			$text = preg_replace( "/\\x01\\x02(\d)\\x02\\x01/", '', $text );
+		}
+		return trim( $text );
+	}

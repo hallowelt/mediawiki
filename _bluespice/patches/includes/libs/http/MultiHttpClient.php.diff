@@ -1,0 +1,47 @@
+diff --git a/includes/libs/http/MultiHttpClient.php b/includes/libs/http/MultiHttpClient.php
+index 4c2734506e3..890fe64dc2d 100644
+--- a/includes/libs/http/MultiHttpClient.php
++++ b/includes/libs/http/MultiHttpClient.php
+@@ -89,6 +89,10 @@ class MultiHttpClient implements LoggerAwareInterface {
+	protected $logger;
+	/** @var array */
+	protected array $headers = [];
++	/** @var bool */
++	protected $sslVerifyCert = false;
++	/** @var bool */
++	protected $sslVerifyHost = false;
+ 
+	// In PHP 7 due to https://bugs.php.net/bug.php?id=76480 the request/connect
+	// timeouts are periodically polled instead of being accurately respected.
+@@ -117,6 +121,8 @@ class MultiHttpClient implements LoggerAwareInterface {
+	 *   - caBundlePath      : path to specific Certificate Authority bundle (if any)
+	 *   - headers	   : an array of default headers to send with every request
+	 *   - telemetry	 : a \Wikimedia\Http\RequestTelemetry instance to track telemetry data
++	 *   - sslVerifyCert     :
++	 *   - sslVerifyHost     :
+	 * @throws \Exception
+	 */
+	public function __construct( array $options ) {
+@@ -129,7 +135,8 @@ class MultiHttpClient implements LoggerAwareInterface {
+		static $opts = [
+			'connTimeout', 'maxConnTimeout', 'reqTimeout', 'maxReqTimeout',
+			'usePipelining', 'maxConnsPerHost', 'proxy', 'userAgent', 'logger',
+-			'localProxy', 'localVirtualHosts', 'headers', 'telemetry'
++			'localProxy', 'localVirtualHosts', 'headers', 'telemetry',
++			'sslVerifyCert', 'sslVerifyHost'
+		];
+		foreach ( $opts as $key ) {
+			if ( isset( $options[$key] ) ) {
+@@ -373,6 +380,12 @@ class MultiHttpClient implements LoggerAwareInterface {
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+			curl_setopt( $ch, CURLOPT_CAINFO, $this->caBundlePath );
+		}
++		if ( $this->sslVerifyCert ) {
++			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, $this->sslVerifyCert ? 1 : 0 );
++		}
++		if ( $this->sslVerifyHost ) {
++			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, $this->sslVerifyHost ? 1 : 0);
++		}
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+ 
+		$url = $req['url'];
