@@ -174,6 +174,12 @@ class ContentHolder implements JsonCodecable {
 	 * @note All fragments may be converted to HTML strings as a side-effect.
 	 */
 	public function setAsHtmlString( string $fragmentName = self::BODY_FRAGMENT, ?string $html = null ): void {
+		if ( $this->domFormat && $html !== null ) {
+			// Convert just this fragment if we can.
+			$this->setAsDom( $fragmentName, $this->createFragment( $html ) );
+			return;
+		}
+
 		// no need to convert the fragment that we're going to replace
 		unset( $this->domMap[ $fragmentName ] );
 
@@ -182,15 +188,47 @@ class ContentHolder implements JsonCodecable {
 			return;
 		}
 
-		if ( $this->domFormat ) {
-			$this->convertDomToHtml();
-		}
+		Assert::invariant( !$this->domFormat, "should be in HTML format" );
 
 		if ( $fragmentName === self::BODY_FRAGMENT ) {
 			Assert::invariant( !str_starts_with( $html, '<body' ),
 							   "Body fragment should not contain a body tag" );
 		}
 		$this->htmlMap[ $fragmentName ] = $html;
+	}
+
+	/**
+	 * Helper method to prepend the given HTML string to the
+	 * named content fragment.
+	 */
+	public function prependHtmlString( string $html, string $fragmentName = self::BODY_FRAGMENT ): void {
+		if ( $this->domFormat ) {
+			$df = $this->createFragment( $html );
+			$this->prependDom( $df, $fragmentName );
+		} else {
+			$prev = $this->htmlMap[ $fragmentName ] ?? '';
+			$this->htmlMap[ $fragmentName ] = $html . $prev;
+		}
+	}
+
+	/**
+	 * Helper method to prepend the given DocumentFragment to the
+	 * named content fragment.
+	 */
+	public function prependDom( DocumentFragment $df, string $fragmentName = self::BODY_FRAGMENT ) {
+		if ( !$this->domFormat ) {
+			// Note: in order to have a fragment with the right owner, the
+			// ContentHolder is already in dom format.
+			$this->convertHtmlToDom();
+		}
+		Assert::invariant( $df->ownerDocument === $this->ownerDocument,
+			"Fragment not owned by the ContentHolder document." );
+
+		$prev = $this->domMap[ $fragmentName ] ??
+			  $this->ownerDocument->createDocumentFragment();
+		// @phan-suppress-next-line PhanParamTooManyInternal phan bug
+		$prev->prepend( $df );
+		$this->domMap[ $fragmentName ] = $prev;
 	}
 
 	/**
@@ -213,11 +251,17 @@ class ContentHolder implements JsonCodecable {
 	 */
 	public function appendDom( DocumentFragment $df, string $fragmentName = self::BODY_FRAGMENT ) {
 		if ( !$this->domFormat ) {
+			// Note: in order to have a fragment with the right owner, the
+			// ContentHolder is already in dom format.
 			$this->convertHtmlToDom();
 		}
+		Assert::invariant( $df->ownerDocument === $this->ownerDocument,
+			"Fragment not owned by the ContentHolder document." );
+
 		$prev = $this->domMap[ $fragmentName ] ??
 			  $this->ownerDocument->createDocumentFragment();
-		DOMCompat::append( $prev, $df );
+		// @phan-suppress-next-line PhanParamTooManyInternal phan bug
+		$prev->append( $df );
 		$this->domMap[ $fragmentName ] = $prev;
 	}
 
@@ -234,6 +278,11 @@ class ContentHolder implements JsonCodecable {
 	 * side-effect.
 	 */
 	public function setAsDom( string $fragmentName = self::BODY_FRAGMENT, ?DocumentFragment $fragment = null ) {
+		// Note that it doesn't really make sense to special case setting
+		// a DocumentFragment when !$this->domFormat, because in order to
+		// create a DocumentFragment owned by the ContentHolder document
+		// we must have already done convertHtmlToDom().
+
 		// no need to convert the fragment that we're going to replace
 		unset( $this->htmlMap[ $fragmentName ] );
 
