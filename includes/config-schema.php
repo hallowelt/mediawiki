@@ -2698,6 +2698,8 @@ return [
 			],
 			'RestModuleOverrides' => [
 			],
+			'RestExternalModules' => [
+			],
 			'MaxShellMemory' => 307200,
 			'MaxShellFileSize' => 102400,
 			'MaxShellTime' => 180,
@@ -2772,6 +2774,8 @@ return [
 			'UsePostprocCacheLegacy' => false,
 			'UsePostprocCacheParsoid' => true,
 			'ParserOptionsLogUnsafeSampleRate' => 0,
+			'ReturnExperimentalPFragmentTypes' => [
+			],
 		],
 		'type' => [
 			'ConfigRegistry' => 'object',
@@ -3242,6 +3246,7 @@ return [
 			'RestAPIAdditionalRouteFiles' => 'array',
 			'RestSandboxSpecs' => 'object',
 			'RestModuleOverrides' => 'object',
+			'RestExternalModules' => 'object',
 			'ShellRestrictionMethod' => [
 				'string',
 				'boolean',
@@ -3290,6 +3295,7 @@ return [
 			'UsePostprocCacheLegacy' => 'boolean',
 			'UsePostprocCacheParsoid' => 'boolean',
 			'ParserOptionsLogUnsafeSampleRate' => 'integer',
+			'ReturnExperimentalPFragmentTypes' => 'array',
 		],
 		'mergeStrategy' => [
 			'TiffThumbnailType' => 'replace',
@@ -3307,6 +3313,7 @@ return [
 			'Profiler' => 'replace',
 			'Hooks' => 'array_merge_recursive',
 			'RestModuleOverrides' => 'array_replace_recursive',
+			'RestExternalModules' => 'array_replace_recursive',
 			'VirtualRestConfig' => 'array_plus_2d',
 		],
 		'dynamicDefault' => [
@@ -3732,6 +3739,49 @@ return [
 				],
 				'required' => [
 					'mode',
+				],
+			],
+		],
+		'RestExternalModules' => [
+			'additionalProperties' => [
+				'type' => 'object',
+				'properties' => [
+					'info' => [
+						'type' => 'object',
+						'properties' => [
+							'version' => [
+								'type' => 'string',
+							],
+							'title' => [
+								'type' => 'string',
+							],
+							'x-i18n-title' => [
+								'type' => 'string',
+							],
+							'description' => [
+								'type' => 'string',
+							],
+							'x-i18n-description' => [
+								'type' => 'string',
+							],
+						],
+						'required' => [
+							'version',
+						],
+					],
+					'base' => [
+						'type' => 'string',
+						'format' => 'uri',
+					],
+					'spec' => [
+						'type' => 'string',
+						'format' => 'uri',
+					],
+				],
+				'required' => [
+					'info',
+					'base',
+					'spec',
 				],
 			],
 		],

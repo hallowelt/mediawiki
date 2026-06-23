@@ -33,11 +33,13 @@ use Wikimedia\Parsoid\Utils\DOMDataUtils;
  * It should, as much as possible, be used in a consistent format and/or limit format switches, as conversions of
  * all the fragments happen on all accessors, which has a performance impact.
  *
- * ContentHolder currently makes no guarantee on the preservation of the document outside of the <body> tag. In
- * particular, if a full Parsoid document with a <head> tag is passed as a string, and converted to DOM, the
- * <head> content is lost. This must be taken into account in particular if we create an ExtractBody DOM pass, in
- * which case the <base> tag contained in the <head> must be handled before conversion. OutputTransform steps
- * after ExtractBody should however be unaffected.
+ * @note ContentHolder currently makes no guarantee on the
+ * preservation of the document outside of the <body> tag. In
+ * particular, if a full Parsoid document with a <head> tag is passed
+ * as a string, and converted to DOM, the <head> content is lost.
+ * After T393295 is resolved (and cached content expires),
+ * ContentHolder should never contain <head> content in the
+ * BODY_FRAGMENT.
  */
 class ContentHolder implements JsonCodecable {
 	use JsonCodecableTrait;
@@ -61,7 +63,22 @@ class ContentHolder implements JsonCodecable {
 		private bool $isParsoidContent = false,
 		private bool $domFormat = false,
 		private ?SiteConfig $siteConfig = null,
+		/**
+		 * False if $htmlMap[BODY_FRAGMENT] currently holds a *full document*
+		 * (with a <body> tag and possibly a <head>) rather than a body
+		 * fragment.
+		 * @see ::getAsRawHtmlString() (T393925)
+		 */
+		private bool $bodyOnly = true,
 	) {
+	}
+
+	/**
+	 * Helper: does this HTML string carry a full document or a bare
+	 * body fragment? Checks '<body', matching Parser::extractBody().
+	 */
+	private static function detectBodyOnly( string $html ): bool {
+		return !str_contains( $html, '<body' );
 	}
 
 	/**
@@ -94,8 +111,11 @@ class ContentHolder implements JsonCodecable {
 			),
 			pageBundle: $pb->toBasePageBundle(),
 			htmlMap: $htmlMap,
+			// T429391: We shouldn't assume this is Parsoid-generated HTML
+			// (MediaWiki DOM Spec HTML) just because it has a page bundle
 			isParsoidContent: true,
 			siteConfig: $siteConfig,
+			bodyOnly: self::detectBodyOnly( $pb->html ),
 		);
 		return $ch;
 	}
@@ -139,11 +159,49 @@ class ContentHolder implements JsonCodecable {
 	 *
 	 * @note If a conversion is needed, at present all fragments of the
 	 * document are converted to HTML strings.
+	 * @note The BODY_FRAGMENT will always return body-only content
+	 * (T393925); use ::getAsRawHtmlString() (transitional) or
+	 * PageBundleParserOutputConverter::htmlPageBundleFromParserOutput()
+	 * with `bodyOnly: false` to obtain a full document.
 	 */
 	public function getAsHtmlString( string $fragmentName = self::BODY_FRAGMENT ): ?string {
 		if ( $this->domFormat ) {
 			$this->convertDomToHtml();
 		}
+		$html = $this->htmlMap[$fragmentName] ?? null;
+		if ( $fragmentName === self::BODY_FRAGMENT && $html !== null && !$this->bodyOnly ) {
+			// The body fragment currently holds a full document; strip the
+			// wrapper so callers see body-only content.
+			$html = Parser::extractBody( $html );
+		}
+		return $html;
+	}
+
+	/**
+	 * Returns the designated fragment as an HTML string *without* stripping a
+	 * full-document wrapper, or null if the fragment is not present.
+	 *
+	 * This is a transitional method for migration of ParserOutput to
+	 * body-only content (T393925).  Code which uses ::getAsRawHtmlString()
+	 * should migrate to using
+	 * PageBundleParserOutputConverter::htmlPageBundleFromParserOutput()
+	 * with `bodyOnly: false` to obtain a full document.
+	 *
+	 * @unstable Will be removed once migration is complete.
+	 */
+	public function getAsRawHtmlString( string $fragmentName = self::BODY_FRAGMENT ): ?string {
+		Assert::invariant(
+			$fragmentName === self::BODY_FRAGMENT,
+			"only the body fragment is available as a full document"
+		);
+		Assert::invariant(
+			!$this->domFormat,
+			"Conversion from DOM does not preserve the <head>"
+		);
+		Assert::invariant(
+			!$this->bodyOnly,
+			"Body fragment expected to contain full document"
+		);
 		return $this->htmlMap[$fragmentName] ?? null;
 	}
 
@@ -191,8 +249,9 @@ class ContentHolder implements JsonCodecable {
 		Assert::invariant( !$this->domFormat, "should be in HTML format" );
 
 		if ( $fragmentName === self::BODY_FRAGMENT ) {
-			Assert::invariant( !str_starts_with( $html, '<body' ),
-							   "Body fragment should not contain a body tag" );
+			$this->bodyOnly = self::detectBodyOnly( $html );
+			// T393925: Eventually we'll deprecate calling this method
+			// with a full document.
 		}
 		$this->htmlMap[ $fragmentName ] = $html;
 	}
@@ -206,7 +265,7 @@ class ContentHolder implements JsonCodecable {
 			$df = $this->createFragment( $html );
 			$this->prependDom( $df, $fragmentName );
 		} else {
-			$prev = $this->htmlMap[ $fragmentName ] ?? '';
+			$prev = $this->getAsHtmlString( $fragmentName ) ?? '';
 			$this->htmlMap[ $fragmentName ] = $html . $prev;
 		}
 	}
@@ -217,8 +276,9 @@ class ContentHolder implements JsonCodecable {
 	 */
 	public function prependDom( DocumentFragment $df, string $fragmentName = self::BODY_FRAGMENT ) {
 		if ( !$this->domFormat ) {
-			// Note: in order to have a fragment with the right owner, the
-			// ContentHolder is already in dom format.
+			// Not worth optimizing, because you almost certainly were in
+			// DOM format already in order to generate $df with the right
+			// owner. We'll still convert here for correctness in corner cases.
 			$this->convertHtmlToDom();
 		}
 		Assert::invariant( $df->ownerDocument === $this->ownerDocument,
@@ -240,7 +300,7 @@ class ContentHolder implements JsonCodecable {
 			$df = $this->createFragment( $html );
 			$this->appendDom( $df, $fragmentName );
 		} else {
-			$prev = $this->htmlMap[ $fragmentName ] ?? '';
+			$prev = $this->getAsHtmlString( $fragmentName ) ?? '';
 			$this->htmlMap[ $fragmentName ] = $prev . $html;
 		}
 	}
@@ -251,8 +311,9 @@ class ContentHolder implements JsonCodecable {
 	 */
 	public function appendDom( DocumentFragment $df, string $fragmentName = self::BODY_FRAGMENT ) {
 		if ( !$this->domFormat ) {
-			// Note: in order to have a fragment with the right owner, the
-			// ContentHolder is already in dom format.
+			// Not worth optimizing, because you almost certainly were in
+			// DOM format already in order to generate $df with the right
+			// owner. We'll still convert here for correctness in corner cases.
 			$this->convertHtmlToDom();
 		}
 		Assert::invariant( $df->ownerDocument === $this->ownerDocument,
@@ -299,9 +360,13 @@ class ContentHolder implements JsonCodecable {
 			"Fragment not owned by the ContentHolder document." );
 
 		$firstChild = $fragment->firstElementChild;
-		if ( $fragmentName === self::BODY_FRAGMENT && $firstChild ) {
-			Assert::invariant( DOMUtils::nodeName( $firstChild ) !== "body",
-				"Body fragment should not contain a body tag" );
+		if ( $fragmentName === self::BODY_FRAGMENT ) {
+			if ( $firstChild ) {
+				Assert::invariant( DOMUtils::nodeName( $firstChild ) !== "body",
+					"Body fragment should not contain a body tag" );
+			}
+			// A DOM body fragment never carries the <body> wrapper.
+			$this->bodyOnly = true;
 		}
 
 		$this->domMap[$fragmentName] = $fragment;
@@ -429,6 +494,9 @@ class ContentHolder implements JsonCodecable {
 			$this->pageBundle = $pb->toBasePageBundle();
 			$this->htmlMap = $pb->fragments;
 			$this->htmlMap[self::BODY_FRAGMENT] = $pb->html;
+			// A DOM round-trip serializes with body_only=true (and drops the
+			// <head>), so the body fragment is now body-only.
+			$this->bodyOnly = true;
 		} else {
 			foreach ( $this->domMap as $name => $df ) {
 				$this->htmlMap[ $name ] = ContentUtils::toXML( $df, [ 'innerXML' => true ] );
@@ -490,6 +558,10 @@ class ContentHolder implements JsonCodecable {
 		$holder->pageBundle = $json['pageBundle'] ?? ( $holder->isParsoidContent ? new BasePageBundle() : null );
 		if ( isset( $json['htmlMap'] ) ) {
 			$holder->htmlMap = $json['htmlMap'];
+			// Recognize legacy cache entries whose stored body fragment is
+			// actually a full document (aka where bodyOnly=false)
+			$body = $json['htmlMap'][self::BODY_FRAGMENT] ?? '';
+			$holder->bodyOnly = self::detectBodyOnly( $body );
 		}
 		return $holder;
 	}
@@ -504,6 +576,6 @@ class ContentHolder implements JsonCodecable {
 
 	/** Helper for serialization compatibility testing. */
 	private static function normalizeForObjectEquality(): array {
-		return [ 'ownerDocument' => false, 'siteConfig' => false ];
+		return [ 'ownerDocument' => false, 'siteConfig' => false, 'bodyOnly' => false ];
 	}
 }

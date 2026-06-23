@@ -1192,12 +1192,13 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 		] );
 		$this->assertSame( [ 'fr:A#x', 'it:B', 'de:C', 'es:D' ], $op->getLanguageLinks() );
 
-		$this->filterDeprecated( '/OutputPage::setLanguageLinks was deprecated/' );
-		$op->setLanguageLinks( [ TitleValue::tryNew( NS_MAIN, 'E', '', 'pt' ) ] );
+		$op->getMetadata()->clearLanguageLinks();
+		$op->getMetadata()->addLanguageLink(
+			TitleValue::tryNew( NS_MAIN, 'E', '', 'pt' )
+		);
 		$this->assertSame( [ 'pt:E' ], $op->getLanguageLinks() );
 
 		$pOut1 = $this->createParserOutputStub( [
-			'getLanguageLinks' => [ 'he:F', 'ar:G#y' ],
 			'getLinkList' => static function ( $type ) {
 				if ( $type !== ParserOutputLinkTypes::LANGUAGE ) {
 					return [];
@@ -1213,7 +1214,6 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 
 		# Duplicates are removed in OutputPage (T26502)
 		$pOut2 = $this->createParserOutputStub( [
-			'getLanguageLinks' => [ 'pt:H' ],
 			'getLinkList' => static function ( $type ) {
 				if ( $type !== ParserOutputLinkTypes::LANGUAGE ) {
 					return [];
@@ -1279,29 +1279,6 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 		}
 
 		$this->doCategoryAsserts( $op, $expectedNormal, $expectedHidden );
-		$this->doCategoryLinkAsserts( $op, $expectedNormal, $expectedHidden );
-	}
-
-	/**
-	 * @dataProvider provideGetCategories
-	 */
-	public function testSetCategoryLinks(
-		array $args, array $fakeResults, ?callable $variantLinkCallback,
-		array $expectedNormal, array $expectedHidden
-	) {
-		$expectedNormal = $this->extractExpectedCategories( $expectedNormal, 'set' );
-		$expectedHidden = $this->extractExpectedCategories( $expectedHidden, 'set' );
-
-		$op = $this->setupCategoryTests( $fakeResults, $variantLinkCallback );
-
-		$this->filterDeprecated( '/OutputPage::setCategoryLinks was deprecated/' );
-		$op->setCategoryLinks( [ 'Initial page' => 'Initial page' ] );
-		$op->setCategoryLinks( $args );
-
-		// We don't reset the categories, for some reason, only the links
-		$expectedNormalCats = array_merge( [ 'Initial page' ], $expectedNormal );
-
-		$this->doCategoryAsserts( $op, $expectedNormalCats, $expectedHidden );
 		$this->doCategoryLinkAsserts( $op, $expectedNormal, $expectedHidden );
 	}
 
@@ -1658,6 +1635,7 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testRevisionTimestamp() {
+		$this->filterDeprecated( '/OutputPage::getRevisionTimestamp was deprecated/' );
 		$this->filterDeprecated( '/OutputPage::setRevisionTimestamp was deprecated/' );
 		$op = $this->newInstance();
 		$this->assertNull( $op->getRevisionTimestamp() );
@@ -1748,18 +1726,14 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 		$arrayReturningMethods = [
 			'getCategoryNames',
 			'getCategoryMap',
-			'getFileSearchOptions',
 			'getHeadItems',
-			'getImages',
 			'getIndicators',
 			'getSections',
 			'getModules',
 			'getModuleStyles',
 			'getWarningMsgs',
 			'getJsConfigVars',
-			'getLanguageLinks',
 			'getLinkList',
-			'getTemplateIds',
 			'getExtraCSPDefaultSrcs',
 			'getExtraCSPStyleSrcs',
 			'getExtraCSPScriptSrcs',
@@ -1914,16 +1888,9 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 		$op = $this->newInstance();
 		$this->assertSame( '', $op->getHTML() );
 
-		if ( in_array(
-			$method,
-			[ 'addWikiTextAsInterface', 'addWikiTextAsContent' ]
-		) && count( $args ) >= 3 && $args[2] === null ) {
+		if ( count( $args ) >= 3 && $args[2] === null ) {
 			// Special placeholder because we can't get the actual title in the provider
 			$args[2] = $op->getTitle();
-		}
-
-		if ( $method === 'wrapWikiTextAsInterface' ) {
-			$this->expectDeprecationAndContinue( '/wrapWikiTextAsInterface/' );
 		}
 
 		$op->$method( ...$args );
@@ -1980,21 +1947,6 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 				], 'EditPage' => [
 					[ "<div class='mw-editintro'>{{PAGENAME}}", true, $somePageRef ],
 					'<div class="mw-editintro">' . "Some page</div>"
-				],
-			],
-			'wrapWikiTextAsInterface' => [
-				'Simple' => [
-					[ 'wrapperClass', 'text' ],
-					"<div class=\"mw-content-ltr wrapperClass\" lang=\"en\" dir=\"ltr\"><p>text\n</p></div>"
-				], 'Spurious </div>' => [
-					[ 'wrapperClass', 'text</div><div>more' ],
-					"<div class=\"mw-content-ltr wrapperClass\" lang=\"en\" dir=\"ltr\"><p>text</p><div>more</div></div>"
-				], 'Extra newlines would break <p> wrappers' => [
-					[ 'two classes', "1\n\n2\n\n3" ],
-					"<div class=\"mw-content-ltr two classes\" lang=\"en\" dir=\"ltr\"><p>1\n</p><p>2\n</p><p>3\n</p></div>"
-				], 'Other unclosed tags' => [
-					[ 'error', 'a<b>c<i>d' ],
-					"<div class=\"mw-content-ltr error\" lang=\"en\" dir=\"ltr\"><p>a<b>c<i>d\n</i></b></p></div>"
 				],
 			],
 		];

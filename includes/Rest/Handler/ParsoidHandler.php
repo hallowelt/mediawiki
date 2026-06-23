@@ -19,6 +19,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\ProperPageIdentity;
+use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutput;
 use MediaWiki\Parser\Parsoid\Config\SiteConfig;
@@ -763,6 +764,10 @@ abstract class ParsoidHandler extends Handler {
 				);
 			}
 
+			if ( $attribs['body_only'] ) {
+				$pb->html = Parser::extractBody( $pb->html );
+			}
+
 			$response = $this->getResponseFactory()->createJson( $pb->responseData() );
 			$helper->putHeaders( $response, false );
 
@@ -778,7 +783,17 @@ abstract class ParsoidHandler extends Handler {
 			// Once the OutputTransform framework lands, we might revisit this.
 
 			$response = $this->getResponseFactory()->create();
-			$response->getBody()->write( $out->getContentHolderText() );
+			if ( $attribs['body_only'] ) {
+				// body_only must yield body-only output. getContentHolderText()
+				// lazily strips a full-document wrapper, so it both honors
+				// body_only and keeps fixing the variant-conversion case (which
+				// re-wraps the fragment into a full document).
+				$response->getBody()->write( $out->getContentHolderText() );
+			} else {
+				// The 'edit' flavor is a full document (with inline data-parsoid
+				// attributes); emit it from the page bundle.
+				$response->getBody()->write( $helper->getPageBundle()->html );
+			}
 
 			$helper->putHeaders( $response, true );
 

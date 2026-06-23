@@ -481,7 +481,12 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 			$stashSuccess = $this->parsoidOutputStash->set(
 				$parsoidStashKey,
 				new SelserContext(
-					PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput ),
+					// Stash a full document (head + body) so the later html2wt
+					// selser round-trip keeps working once the canonical
+					// ParserOutput is body-only (T393295)
+					PageBundleParserOutputConverter::htmlPageBundleFromParserOutput(
+						$parserOutput, $this->parsoidSiteConfig, bodyOnly: false,
+					),
 					$parsoidStashKey->getRevisionID(),
 					$isFakeRevision ? $this->revisionOrId->getContent( SlotRecord::MAIN ) : null
 				)
@@ -507,15 +512,6 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 				->increment();
 		}
 
-		if ( $this->flavor === 'edit' ) {
-			$pb = $this->getPageBundle();
-
-			// Inject data-parsoid and data-mw attributes.
-			$parserOutput->setContentHolderText( $pb->toInlineAttributeHtml(
-				siteConfig: $this->parsoidSiteConfig
-			) );
-		}
-
 		// Check if variant conversion has to be performed
 		// NOTE: Variant conversion is performed on the fly, and kept outside the stash.
 		if ( $this->targetLanguage ) {
@@ -527,8 +523,37 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 			);
 		}
 
+		if ( $this->flavor === 'edit' ) {
+			// The 'edit' flavor inlines data-parsoid/data-mw attributes so the
+			// editor can round-trip.
+			$pb = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput(
+				$parserOutput, $this->parsoidSiteConfig, bodyOnly: true
+			);
+			$parserOutput->setContentHolder(
+				ContentHolder::createFromParsoidPageBundle(
+					$this->convertToInline( $pb ), $this->parsoidSiteConfig
+				)
+			);
+		}
+
 		$this->processedParserOutput = $parserOutput;
 		return $parserOutput;
+	}
+
+	private function convertToInline( HtmlPageBundle $pb ): HtmlPageBundle {
+		$fragments = [];
+		$html = $pb->toInlineAttributeHtml(
+			siteConfig: $this->parsoidSiteConfig,
+			fragments: $fragments
+		);
+		return new HtmlPageBundle(
+			html: $html,
+			counters: $pb->counters,
+			version: $pb->version,
+			headers: $pb->headers,
+			contentmodel: $pb->contentmodel,
+			fragments: $fragments,
+		);
 	}
 
 	/**
@@ -759,7 +784,13 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 	public function getPageBundle(): HtmlPageBundle {
 		// XXX: converting between HtmlPageBundle and ParserOutput is inefficient!
 		$parserOutput = $this->getParserOutput();
-		$pb = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput( $parserOutput );
+		// An HtmlPageBundle always carries the full document (head +
+		// body, with the <head> rebuilt from metadata). Request it
+		// explicitly so this keeps emitting a full document once the
+		// canonical ParserOutput is body-only (T393295).
+		$pb = PageBundleParserOutputConverter::htmlPageBundleFromParserOutput(
+			$parserOutput, $this->parsoidSiteConfig, bodyOnly: false,
+		);
 
 		// Check if variant conversion has to be performed
 		// NOTE: Variant conversion is performed on the fly, and kept outside the stash.
@@ -770,6 +801,12 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 				$this->targetLanguage,
 				$this->sourceLanguage
 			);
+		}
+
+		if ( $this->flavor === 'edit' ) {
+			// The 'edit' flavor inlines data-parsoid/data-mw attributes so the
+			// editor can round-trip.
+			$pb = $this->convertToInline( $pb );
 		}
 
 		return $pb;
@@ -994,9 +1031,7 @@ class HtmlOutputRendererHelper implements HtmlOutputHelper {
 	}
 
 	public function isParsoidContent(): bool {
-		return PageBundleParserOutputConverter::hasPageBundle(
-			$this->getParserOutput()
-		);
+		return $this->getParserOutput()->getContentHolder()->isParsoidContent();
 	}
 
 }

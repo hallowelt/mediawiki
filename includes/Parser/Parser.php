@@ -2876,6 +2876,11 @@ class Parser {
 		$this->useParsoidFragments = $val;
 	}
 
+	/** @internal */
+	public function useParsoidFragments(): bool {
+		return $this->useParsoidFragments;
+	}
+
 	/**
 	 * Warn the user when a parser limitation is reached
 	 * Will warn at most once the user per limitation type
@@ -4070,7 +4075,7 @@ class Parser {
 		} elseif ( $markerType === 'general' ) {
 			$this->mStripState->addGeneral( $marker, $output );
 		} elseif ( $markerType === 'exttag' ) {
-			$this->mStripState->addExtTag( $marker, $output );
+			$this->mStripState->addExtTag( $marker, $output, $frame );
 		} else {
 			throw new UnexpectedValueException( __METHOD__ . ': invalid marker type' );
 		}

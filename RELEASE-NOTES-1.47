@@ -119,6 +119,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.5.1 to v2.6.0.
 * Updated OOUI from v0.53.2 to v0.54.0
+* Updated pinia from 2.0.16 to 3.0.4.
+* Updated @pinia/testing from 0.0.12 to 1.0.3.
 * …
 
 ===== Changed development-only external libraries =====
@@ -180,6 +182,26 @@ because of Phabricator reports.
   up from 10.3 (from 2017).
 * It is no longer possible to pass null to the $output parameter of
   FeedUtils::checkFeedOutput. This behaviour was deprecated in 1.46.
+* The following deprecated methods of ParserOutput have been removed, with
+  the version they were deprecated in square brackets:
+  - ::getRawText()           [1.45] use ::getContentHolderText()
+  - ::getLanguageLinks()     [1.43] use ::getLinkList(::LANGUAGE)
+  - ::getInterwikiLinks()    [1.43] use ::getLinkList(::INTERWIKI)
+  - ::getLinks()             [1.43] use ::getLinkList(::LOCAL)
+  - ::getLinksSpecial()      [1.43] use ::getLinkList(::SPECIAL)
+  - ::getTemplates()         [1.43] use ::getLinkList(::TEMPLATE)
+  - ::getTemplateIds()       [1.43] use ::getLinkList(::TEMPLATE)
+  - ::getImages()            [1.43] use ::getLinkList(::MEDIA)
+  - ::getFileSearchOptions() [1.43] use ::getLinkList(::MEDIA)
+  - ::getTimestamp()         [1.42] use ::getRevisionTimestamp()
+  - ::setRawText()           [1.45] use ::setContentHolderText()
+  - ::setText()              [1.42] use ::setContentHolderText()
+  - ::setLanguageLinks()     [1.42] use ::addLanguageLink()
+  - ::setTimestamp()         [1.42] use ::setRevisionTimestamp()
+  - ::__serialize()          [1.39] use JSON serialization
+* ParserOutput::getExternalLinks(), which used to return a mutable reference
+  to its array, now returns the array by value.  Mutating the array returned
+  by ::getExternalLinks() has been deprecated since 1.43.
 * ChannelFeed::outHeader(), ::outItem(), ::outFooter(), ::httpHeaders() and
   ::outXmlHeader() have been removed. Use/override ::outputHeader(),
   ::outputItem(), ::outputFooter(), ::sendHttpHeaders() and ::outputXmlHeader()
@@ -191,6 +213,8 @@ because of Phabricator reports.
   For non-blocking locks, use IDatabase::lock with timeout 0 instead.
 * BaseSearchResultSet::next() and ::rewind(), deprecated since 1.32 have now
   been removed. Use ::extractResults() or a foreach loop instead.
+* LinksUpdate::getImages(), deprecated since 1.44, has been removed. Use
+  LinksUpdate::getParserOutput()->getLinkList(::MEDIA) instead.
 * The ParsoidService class, deprecated since 1.39, has been removed. Use the
   relevant MediaWikiServices access points instead.
 * The method Action::getArticle is now final. Overriding of this method fails
@@ -208,6 +232,11 @@ because of Phabricator reports.
   File::getDescriptionText, File::getDimensionsString,
   MediaHandler::getGeneralShortDesc or MediaHandler::getGeneralLongDesc without
   specifying a language, deprecated in 1.46.
+* The following methods of OutputPage have been removed:
+  - setLanguageLinks (deprecated in 1.43)
+  - setCategoryLinks (deprecated in 1.43)
+  - parserOptions (deprecated in 1.44)
+  - wrapWikiTextAsInterface (deprecated in 1.45)
 * The unused method SpecialVersion::getVersionLinked, deprecated in 1.46, has
   been removed.
 * The ConditionalDefaultOptionsAddCondition hook, deprecated in 1.46, has been
