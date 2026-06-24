@@ -228,12 +228,18 @@ because of Phabricator reports.
   - IncludableSpecialPage
   - UnlistedSpecialPage
   Instantiate a subclass instead.
+* The following LogPager methods, deprecated in 1.45, were removed:
+  getType, getPage, getPattern, getYear, getMonth, getDay, getTagFilter,
+  getTagInvert, getAction.
 * It is no longer possible to call File::getShortDesc, File::getLongDesc,
   File::getDescriptionText, File::getDimensionsString,
   MediaHandler::getGeneralShortDesc or MediaHandler::getGeneralLongDesc without
   specifying a language, deprecated in 1.46.
 * The following methods of OutputPage have been removed:
+  - showNewSectionLink (deprecated in 1.44)
+  - forceHideNewSectionLink (deprecated in 1.44)
   - setLanguageLinks (deprecated in 1.43)
+  - getNoGallery (deprecated in 1.44)
   - setCategoryLinks (deprecated in 1.43)
   - parserOptions (deprecated in 1.44)
   - wrapWikiTextAsInterface (deprecated in 1.45)
@@ -264,6 +270,11 @@ because of Phabricator reports.
   Passing null was deprecated in 1.46.
 * Passing a performer to UploadBase::checkWarnings is mandatory now. Passing
   null was deprecated in 1.46.
+* OutputPage::showNewSectionLink(), ::forceHideNewSectionLink(), and
+  ::noGallery() are now merged like all other ParserOutput flags in
+  ::addParserOutputMetadata().  That is, these flags are now set if *any*
+  ParserOutput added to the page sets the flag; previously they were
+  last-ParserOutput-wins.
 * The protected static method UserMailer::sendWithPear() has been removed
   following the migration from PEAR Mail to symfony/mailer.
 * Passing null to any of the three constructor parameters of TextboxBuilder,
