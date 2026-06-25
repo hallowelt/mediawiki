@@ -1900,6 +1900,12 @@ return [
 			'JwtPrivateKey' => false,
 			'JwtPublicKey' => false,
 			'AllowUserJs' => false,
+			'ReauthenticateForActions' => [
+				'edituserjs' => 'edituserjscss',
+				'editusercss' => 'edituserjscss',
+				'editsitejs' => 'editsitejscss',
+				'editsitecss' => 'editsitejscss',
+			],
 			'AllowUserCss' => false,
 			'AllowUserCssPrefs' => true,
 			'UseSiteJs' => true,
@@ -3125,6 +3131,7 @@ return [
 				'boolean',
 			],
 			'BotPasswordsLimit' => 'integer',
+			'ReauthenticateForActions' => 'object',
 			'CSPHeader' => [
 				'boolean',
 				'object',

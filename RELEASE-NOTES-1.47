@@ -37,6 +37,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 * $wgRestModuleOverrides - (T422756) Defaults to `[]`, allows overriding the
   default behavior mode of REST modules. See MediaWiki\Rest\Module\ModuleMode
   for details on available modes.
+* $wgReauthenticateForActions - Allows overriding which sensitive actions
+  require reauthentication.
 * …
 
 ==== Changed configuration ====
@@ -242,7 +244,10 @@ because of Phabricator reports.
   - getNoGallery (deprecated in 1.44)
   - setCategoryLinks (deprecated in 1.43)
   - parserOptions (deprecated in 1.44)
+  - setRevisionTimestamp (deprecated in 1.44)
   - wrapWikiTextAsInterface (deprecated in 1.45)
+* The following changes have been made to methods of OutputPage:
+  - getModules, getModuleStyles: now take only 1 argument (deprecated in 1.44)
 * The unused method SpecialVersion::getVersionLinked, deprecated in 1.46, has
   been removed.
 * The ConditionalDefaultOptionsAddCondition hook, deprecated in 1.46, has been
@@ -275,6 +280,9 @@ because of Phabricator reports.
   ::addParserOutputMetadata().  That is, these flags are now set if *any*
   ParserOutput added to the page sets the flag; previously they were
   last-ParserOutput-wins.
+* ContentHandler::getAutoDeleteReason() and WikiPage::getAutoDeleteReason()
+  no longer accept the $hasHistory parameter. This parameter has been
+  emitting warnings since 1.38 and has no replacement.
 * The protected static method UserMailer::sendWithPear() has been removed
   following the migration from PEAR Mail to symfony/mailer.
 * Passing null to any of the three constructor parameters of TextboxBuilder,
