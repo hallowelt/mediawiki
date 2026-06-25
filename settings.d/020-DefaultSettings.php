@@ -137,3 +137,6 @@ $GLOBALS['wgGroupTypes'] = [
 	'widgeteditor'     => 'extension-extended'
 ];
 
+// Enable MediaWiki OpenAPI spec endpoints
+$GLOBALS['wgRestAPIAdditionalRouteFiles'][] = 'includes/Rest/specs.v0.json';
+
