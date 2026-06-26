@@ -96,7 +96,6 @@ use OOUI\CheckboxMultiselectInputWidget;
 use OOUI\DropdownInputWidget;
 use OOUI\FieldLayout;
 use RuntimeException;
-use SpecialPage;
 use StatusValue;
 use Wikimedia\Assert\Assert;
 use Wikimedia\Message\MessageSpecifier;
@@ -131,6 +130,7 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
 #[\AllowDynamicProperties]
 class EditPage implements IEditObject {
 	use ProtectedHookAccessorTrait;
+	use DataStashTrait;
 
 	/**
 	 * Used for Unicode support checks
@@ -246,8 +246,8 @@ class EditPage implements IEditObject {
 	/** Corresponds to $wgEnableWatchlistLabels */
 	private bool $watchlistLabelsEnabled;
 
-	/** @var int[] Watchlist label IDs submitted in the form */
-	private array $watchlistLabels = [];
+	/** @var ?int[] Watchlist label IDs submitted in the form, or null if not submitted */
+	private ?array $watchlistLabels = null;
 
 	private bool $recreate = false;
 
@@ -286,8 +286,6 @@ class EditPage implements IEditObject {
 	public string $section = '';
 
 	public ?string $sectiontitle = null;
-
-	private ?string $newSectionAnchor = null;
 
 	/**
 	 * Timestamp from the first time the edit form was rendered.
@@ -411,6 +409,9 @@ class EditPage implements IEditObject {
 	/** Whether temp username acquisition failed (false indicates no failure or not attempted) */
 	private bool $unableToAcquireTempName = false;
 
+	/** Whether reauthentication is required for saving the edit (operation name, or null) */
+	private ?string $reauthRequired = null;
+
 	/**
 	 * @stable to call
 	 * @param Article $article
@@ -515,6 +516,21 @@ class EditPage implements IEditObject {
 	}
 
 	/**
+	 * Overriden for DataStashTrait
+	 */
+	protected function handleRetrievedData( array $data ): void {
+		$this->textbox1 = $data['wpTextbox1'] ?? $this->textbox1;
+		$this->summary = $data['wpSummary'] ?? $this->summary;
+		$this->minoredit = array_key_exists( 'wpMinoredit', $data );
+		$this->watchthis = array_key_exists( 'wpWatchthis', $data );
+		$this->edittime = $data['wpEdittime'] ?? $this->edittime;
+		$this->editRevId = isset( $data['editRevId'] ) ? (int)$data['editRevId'] : $this->editRevId;
+		$this->starttime = $data['wpStarttime'] ?? $this->starttime;
+		$this->section = $data['wpSection'] ?? $this->section;
+		$this->diff = true;
+	}
+
+	/**
 	 * This is the function that gets called for "action=edit". It
 	 * sets up various member variables, then passes execution to
 	 * another function, usually showEditForm()
@@ -540,7 +556,14 @@ class EditPage implements IEditObject {
 			return;
 		}
 
-		$this->importFormData();
+		// check for stashed form data for post-submit reauths, set
+		// EditPage request context if data exists, prior to importFormData
+		$this->setStashKey( self::EDITFORM_ID . ':' . $this->getTitle()->getPrefixedDBkey() );
+		$stashedDataRetrieved = $this->retrieveStashedData();
+		if ( !$stashedDataRetrieved ) {
+			$this->importFormData();
+		}
+
 		$this->firsttime = false;
 
 		$readOnlyMode = MediaWikiServices::getInstance()->getReadOnlyMode();
@@ -574,7 +597,7 @@ class EditPage implements IEditObject {
 		$status = $this->getEditPermissionStatus(
 			$this->save ? PermissionManager::RIGOR_SECURE : PermissionManager::RIGOR_FULL
 		);
-		if ( !$status->isGood() ) {
+		if ( !$status->isGood() && $this->formtype !== 'save' ) {
 			wfDebug( __METHOD__ . ": User can't edit" );
 
 			$user = $this->context->getUser();
@@ -586,20 +609,7 @@ class EditPage implements IEditObject {
 
 			return;
 		}
-
-		if ( $status->getReauthOperation() !== null ) {
-			// Reauthentication is required. Ideally we would prompt for reauthentication after
-			// submitting the edit (T427955), but for now, force reauthentication when they enter
-			// the editor.
-			$this->context->getOutput()->redirect( SpecialPage::getTitleFor( 'Userlogin' )->getFullURL( [
-				'force' => $status->getReauthOperation(),
-				'returnto' => $this->getTitle()->getPrefixedDBkey(),
-				'returntoquery' => wfArrayToCgi( array_diff_key(
-					$this->context->getRequest()->getQueryValues(),
-					[ 'title' => true, 'returnto' => true, 'returntoquery' => true ]
-				) ),
-			], false, PROTO_HTTPS ) );
-		}
+		$this->reauthRequired = $status->getReauthOperation();
 
 		$revRecord = $this->mArticle->fetchRevisionRecord();
 		// Disallow editing revisions with content models different from the current one
@@ -646,6 +656,26 @@ class EditPage implements IEditObject {
 		# in the back door with a hand-edited submission URL.
 
 		if ( $this->formtype === 'save' ) {
+			if ( $this->reauthRequired !== null ) {
+				// reauth at the attempted post/form save, stash user-submitted data
+				$this->setStashKey( self::EDITFORM_ID . ':' . $this->getTitle()->getPrefixedDBkey() );
+				$queryParams = $this->stashDataOnPost();
+				$this->doReauthRedirect( $status, $queryParams );
+			}
+
+			// we need to check this again here, for other potential issues, since
+			// we're not checking formtype == save for the same validation above
+			if ( !$status->isGood() ) {
+				wfDebug( __METHOD__ . ": User can't edit" );
+				$user = $this->context->getUser();
+				if ( $user->getBlock() && !$readOnlyMode->isReadOnly() ) {
+					// Auto-block user's IP if the account was "hard" blocked
+					$user->scheduleSpreadBlock();
+				}
+				$this->displayPermissionStatus( $status );
+				return;
+			}
+
 			$resultDetails = null;
 			$status = $this->attemptSave( $resultDetails );
 			if ( !( $status instanceof PageEditStatus ) ) {
@@ -660,7 +690,7 @@ class EditPage implements IEditObject {
 		# First time through: get contents, set time for conflict
 		# checking, etc.
 		if ( $this->formtype === 'initial' || $this->firsttime ) {
-			if ( !$this->initialiseForm() ) {
+			if ( !$stashedDataRetrieved && !$this->initialiseForm() ) {
 				return;
 			}
 
@@ -1282,7 +1312,10 @@ class EditPage implements IEditObject {
 			}
 		}
 		if ( $this->watchlistLabelsEnabled ) {
-			$this->watchlistLabels = $request->getIntArray( 'wpWatchlistLabels', [] );
+			$watchlistLabelsSubmitted = $request->getCheck( 'wpWatchlistLabelsSubmitted' );
+			$this->watchlistLabels = $watchlistLabelsSubmitted
+				? $request->getIntArray( 'wpWatchlistLabels', [] )
+				: null;
 		}
 
 		$this->autoSumm = $request->getText( 'wpAutoSummary' );
@@ -1811,7 +1844,7 @@ class EditPage implements IEditObject {
 				if ( $extraQueryRedirect ) {
 					$queryParts[] = $extraQueryRedirect;
 				}
-				$anchor = $resultDetails['sectionanchor'] ?? '';
+				$anchor = $resultDetails['sectionanchor'];
 				$this->doPostEditRedirect( implode( '&', $queryParts ), $anchor );
 				return false;
 
@@ -1936,18 +1969,13 @@ class EditPage implements IEditObject {
 			$services->getContentLanguageCode()->toString()
 		);
 
-		if ( $this->sectiontitle !== '' ) {
-			$this->newSectionAnchor = $this->pageEditingHelper->guessSectionName( $this->sectiontitle );
-			// If no edit summary was specified, create one automatically from the section
-			// title and have it link to the new section. Otherwise, respect the summary as
-			// passed.
-			if ( $this->summary === '' ) {
-				$messageValue = MessageValue::new( 'newsectionsummary' )
-					->plaintextParams( $parser->stripSectionName( $this->sectiontitle ) );
-				$this->summary = $textFormatter->format( $messageValue );
-			}
-		} else {
-			$this->newSectionAnchor = '';
+		// If no edit summary was specified and the section title is not empty, create
+		// a summary automatically from the section title and have it link to the new section.
+		// Otherwise, respect the summary as passed.
+		if ( $this->sectiontitle !== '' && $this->summary === '' ) {
+			$messageValue = MessageValue::new( 'newsectionsummary' )
+				->plaintextParams( $parser->stripSectionName( $this->sectiontitle ) );
+			$this->summary = $textFormatter->format( $messageValue );
 		}
 	}
 
@@ -2043,7 +2071,6 @@ class EditPage implements IEditObject {
 			->setIgnoreRevisionDeletedWarning( $this->ignoreRevisionDeletedWarning )
 			->setMarkAsBot( $this->markAsBot )
 			->setMarkAsMinor( $this->minoredit )
-			->setNewSectionAnchor( $this->newSectionAnchor )
 			->setOldid( $this->oldid )
 			->setParentRevId( $this->parentRevId )
 			->setRecreate( $this->recreate )
@@ -3123,7 +3150,7 @@ class EditPage implements IEditObject {
 			$out->addHTML( Html::rawElement(
 				'div',
 				[ 'class' => $watchlistLabelClass . ' mw-editpage-watchlistLabels' ],
-				(string)$watchlistLabelsWidget
+				Html::hidden( 'wpWatchlistLabelsSubmitted', 1 ) . (string)$watchlistLabelsWidget
 			) . "\n" );
 		}
 
@@ -3801,8 +3828,6 @@ class EditPage implements IEditObject {
 			'tabIndex' => ++$tabindex,
 			'id' => 'wpSaveWidget',
 			'inputId' => 'wpSave',
-			// Support: IE 6 – Use <input>, otherwise it can't distinguish which button was clicked
-			'useInputTag' => true,
 			'flags' => [ 'progressive', 'primary' ],
 			'label' => $buttonLabel,
 			'infusable' => true,
@@ -3811,15 +3836,19 @@ class EditPage implements IEditObject {
 			'title' => Linker::titleAttrib( $buttonTooltip ),
 			// Messages used: accesskey-save, accesskey-publish
 			'accessKey' => Linker::accesskey( $buttonTooltip ),
+			'icon' => $this->reauthRequired ? 'lock' : null,
 		] );
+
+		// Make sure the lock icon is loaded if we need it
+		if ( $this->reauthRequired ) {
+			$this->context->getOutput()->addModuleStyles( 'oojs-ui.styles.icons-moderation' );
+		}
 
 		$buttons['preview'] = new OOUI\ButtonInputWidget( [
 			'name' => 'wpPreview',
 			'tabIndex' => ++$tabindex,
 			'id' => 'wpPreviewWidget',
 			'inputId' => 'wpPreview',
-			// Support: IE 6 – Use <input>, otherwise it can't distinguish which button was clicked
-			'useInputTag' => true,
 			'label' => $this->context->msg( 'showpreview' )->text(),
 			'infusable' => true,
 			'type' => 'submit',
@@ -3836,8 +3865,6 @@ class EditPage implements IEditObject {
 			'tabIndex' => ++$tabindex,
 			'id' => 'wpDiffWidget',
 			'inputId' => 'wpDiff',
-			// Support: IE 6 – Use <input>, otherwise it can't distinguish which button was clicked
-			'useInputTag' => true,
 			'label' => $this->context->msg( 'showdiff' )->text(),
 			'infusable' => true,
 			'type' => 'submit',

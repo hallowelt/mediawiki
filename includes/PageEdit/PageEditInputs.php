@@ -31,7 +31,6 @@ class PageEditInputs {
 	private bool $ignoreRevisionDeletedWarning = false;
 	private bool $markAsBot = false;
 	private bool $markAsMinor = false;
-	private ?string $newSectionAnchor = null;
 	private int $oldid = 0;
 	private int $parentRevId = 0;
 	private bool $recreate = false;
@@ -44,8 +43,8 @@ class PageEditInputs {
 	private ?UserIdentity $userForPreview = null;
 	private ?UserIdentity $userForSave = null;
 	private ?string $watchlistExpiry = null;
-	/** @var int[] */
-	private array $watchlistLabels = [];
+	/** @var ?int[] */
+	private ?array $watchlistLabels = null;
 	private bool $watchthis = false;
 
 	public function __construct(
@@ -213,15 +212,6 @@ class PageEditInputs {
 		return $this;
 	}
 
-	public function getNewSectionAnchor(): ?string {
-		return $this->newSectionAnchor;
-	}
-
-	public function setNewSectionAnchor( ?string $newSectionAnchor ): self {
-		$this->newSectionAnchor = $newSectionAnchor;
-		return $this;
-	}
-
 	public function getOldid(): int {
 		return $this->oldid;
 	}
@@ -343,16 +333,16 @@ class PageEditInputs {
 	}
 
 	/**
-	 * @return int[]
+	 * @return ?int[]
 	 */
-	public function getWatchlistLabels(): array {
+	public function getWatchlistLabels(): ?array {
 		return $this->watchlistLabels;
 	}
 
 	/**
-	 * @param int[] $watchlistLabels
+	 * @param ?int[] $watchlistLabels
 	 */
-	public function setWatchlistLabels( array $watchlistLabels ): self {
+	public function setWatchlistLabels( ?array $watchlistLabels ): self {
 		$this->watchlistLabels = $watchlistLabels;
 		return $this;
 	}
