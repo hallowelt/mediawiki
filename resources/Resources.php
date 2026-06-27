@@ -672,17 +672,10 @@ return [
 
 					// The file shipped by VueDevToolsApi does var VueDevToolsApi = ...;, but doesn't export it
 					// Add module.exports = VueDevToolsApi; programmatically
-					$contents = file_get_contents( MW_INSTALL_PATH .
-						'/resources/lib/vue-devtools-api/vue-devtools-api.global.js' ) .
+					return file_get_contents(
+							MW_INSTALL_PATH . '/resources/lib/vue-devtools-api/vue-devtools-api.global.js'
+						) .
 						'module.exports=VueDevToolsApi;';
-
-					// TODO: ResourceLoader doesn't support optional chaining in template strings *yet* (T386530)
-					$before = '`custom-ic-baseline-${options?.icon?.replace(/_/g, "-")}`';
-					$after = '"custom-ic-baseline-" + options?.icon?.replace(/_/g, "-")';
-					$offset = strpos( $contents, $before );
-
-					return $offset === false ? $contents :
-						substr_replace( $contents, $after, $offset, strlen( $before ) );
 				},
 				'versionCallback' => static function ( Context $context, Config $config ) {
 					return new FilePath( 'resources/lib/vue-devtools-api/vue-devtools-api.global.js' );
@@ -2806,6 +2799,14 @@ return [
 			'resources/src/mediawiki.authenticationPopup/success.js',
 			'resources/src/mediawiki.authenticationPopup/constants.js',
 		]
+	],
+	'mediawiki.editPage.reauthPopup' => [
+		'packageFiles' => [
+			'resources/src/mediawiki.editPage.reauthPopup/init.js',
+		],
+		'dependencies' => [
+			'mediawiki.authenticationPopup',
+		],
 	],
 	'mediawiki.special.userlogin.common.styles' => [
 		'styles' => [
