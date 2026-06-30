@@ -317,6 +317,7 @@ use MediaWiki\WikiMap\WikiMap;
 use Psr\Http\Client\ClientInterface;
 use Wikimedia\EventRelayer\EventRelayerGroup;
 use Wikimedia\FileBackend\FSFile\TempFSFileFactory;
+use Wikimedia\LockManager\DatabaseLockManager;
 use Wikimedia\Message\IMessageFormatterFactory;
 use Wikimedia\Mime\MimeAnalyzer;
 use Wikimedia\ObjectCache\BagOStuff;
@@ -1422,6 +1423,27 @@ return [
 		return $services->getObjectCacheFactory()->getInstance( CACHE_ACCEL );
 	},
 
+	'LockManager' => static function ( MediaWikiServices $services ): LockManager {
+		// TODO: This probably should move to a dedicated factory but the current state
+		// of lock manager factories needs refactoring first.
+		if ( defined( 'MW_PHPUNIT_TEST' ) ) {
+			return new NullLockManager( [] );
+		}
+		$lockManager = $services->getMainConfig()->get( MainConfigNames::DefaultLockManager );
+		if ( !$lockManager ) {
+			return new DatabaseLockManager(
+				[
+					'domain' => WikiMap::getCurrentWikiDbDomain()->getId(),
+					'dbProvider' => $services->getConnectionProvider(),
+					'logger' => LoggerFactory::getInstance( 'lockManager' )
+				]
+			);
+		}
+		return $services->getLockManagerGroupFactory()
+			->getLockManagerGroup( WikiMap::getCurrentWikiDbDomain()->getId() )
+			->get( $lockManager );
+	},
+
 	'LockManagerGroupFactory' => static function ( MediaWikiServices $services ): LockManagerGroupFactory {
 		return new LockManagerGroupFactory(
 			WikiMap::getCurrentWikiDbDomain()->getId(),
@@ -1484,6 +1506,23 @@ return [
 			$wanParams['stats'] = $services->getStatsFactory();
 			// Let pre-emptive refreshes happen post-send on HTTP requests
 			$wanParams['asyncHandler'] = DeferredUpdates::addCallableUpdate( ... );
+		}
+		// Detect how many dbs we have.
+		// This ideally should be done somewhere else but that triggers recursion
+		// TODO: Factor out db config into a lightweight dedicated service so it wouldn't rely on WAN
+		$lbConf = $mainConfig->get( MainConfigNames::LBFactoryConf );
+		$dbServers = $mainConfig->get( MainConfigNames::DBservers );
+		if ( isset( $lbConf['servers'] ) ) {
+			$dbsCount = count( $lbConf['servers'] );
+		} elseif ( $dbServers ) {
+			$dbsCount = count( $dbServers );
+		} else {
+			$dbsCount = 1;
+		}
+		if ( $dbsCount === 1 && !defined( 'MW_PHPUNIT_TEST' ) ) {
+			$wanParams['pendingCallback'] = static function () use ( $services ) {
+				return $services->getDBLoadBalancer()->hasOrMadeRecentPrimaryChanges();
+			};
 		}
 		return new WANObjectCache( $wanParams );
 	},

@@ -2268,4 +2268,253 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$this->assertArrayNotHasKey( 'description', $spec['requestBody'] );
 	}
 
+	public function testGetOpenApiSpecRequestBodySchemaLocalized(): void {
+		$handler = $this->newHandler( [
+			'getParamSettings',
+			'getHeaderParamSettings',
+			'getBodyParamSettings',
+			'getSupportedRequestTypes',
+			'getRequestBodySchema',
+			'getResponseBodySchema',
+			'getResponseHeaderSettings',
+		] );
+		$handler->method( 'getParamSettings' )->willReturn( [] );
+		$handler->method( 'getHeaderParamSettings' )->willReturn( [] );
+		$handler->method( 'getBodyParamSettings' )->willReturn( [] );
+		$handler->method( 'getSupportedRequestTypes' )->willReturn( [ 'application/json' ] );
+		$handler->method( 'getRequestBodySchema' )->willReturn( [
+			'type' => 'object',
+			'properties' => [
+				'plain' => [
+					'type' => 'string',
+				],
+				'localized' => [
+					'type' => 'string',
+					'x-i18n-description' => 'rest-property-desc-mock-desc',
+				],
+				'nested' => [
+					'type' => 'object',
+					'properties' => [
+						'inner' => [
+							'type' => 'string',
+							'x-i18n-description' => 'rest-property-desc-mock-desc',
+						],
+					],
+				],
+			],
+		] );
+		$handler->method( 'getResponseBodySchema' )->willReturn( null );
+		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
+
+		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
+		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
+
+		$formatter = $this->getDummyTextFormatter( true );
+		$responseFactory = new ResponseFactory( [ 'qqx' => $formatter ] );
+		$authority = $this->mockAnonUltimateAuthority();
+		$hookContainer = $this->createHookContainer();
+		$handler->initServices( $authority, $responseFactory, $hookContainer );
+
+		$spec = $handler->getOpenApiSpec( 'POST' );
+
+		$schema = $spec['requestBody']['content']['application/json']['schema'];
+		// Properties without an x-i18n-description are left untouched.
+		$this->assertArrayNotHasKey( 'description', $schema['properties']['plain'] );
+		// x-i18n-description is replaced with a localized description.
+		$this->assertArrayNotHasKey( 'x-i18n-description', $schema['properties']['localized'] );
+		$this->assertSame(
+			'<message key="rest-property-desc-mock-desc"></message>',
+			$schema['properties']['localized']['description']
+		);
+		// Nested schema properties are localized too.
+		$this->assertSame(
+			'<message key="rest-property-desc-mock-desc"></message>',
+			$schema['properties']['nested']['properties']['inner']['description']
+		);
+	}
+
+	public function testGetOpenApiSpecRequestBodyExamplePresent(): void {
+		$expectedExample = [ 'title' => 'Earth', 'source' => 'text/plain' ];
+
+		$handler = $this->newHandler( [
+			'getParamSettings',
+			'getHeaderParamSettings',
+			'getBodyParamSettings',
+			'getSupportedRequestTypes',
+			'getResponseBodySchema',
+			'getResponseHeaderSettings',
+			'getRequestBodyExample',
+		] );
+		$handler->method( 'getParamSettings' )->willReturn( [] );
+		$handler->method( 'getHeaderParamSettings' )->willReturn( [] );
+		$handler->method( 'getBodyParamSettings' )->willReturn( [
+			'content' => [
+				Handler::PARAM_SOURCE => 'body',
+			],
+		] );
+		$handler->method( 'getSupportedRequestTypes' )->willReturn( [
+			'application/json',
+			RequestInterface::FORM_URLENCODED_CONTENT_TYPE,
+		] );
+		$handler->method( 'getResponseBodySchema' )->willReturn( null );
+		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
+		$handler->method( 'getRequestBodyExample' )->willReturn( $expectedExample );
+
+		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
+		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
+
+		$formatter = $this->getDummyTextFormatter( true );
+		$responseFactory = new ResponseFactory( [ 'qqx' => $formatter ] );
+		$authority = $this->mockAnonUltimateAuthority();
+		$hookContainer = $this->createHookContainer();
+		$handler->initServices( $authority, $responseFactory, $hookContainer );
+
+		$spec = $handler->getOpenApiSpec( 'POST' );
+
+		$this->assertArrayHasKey( 'requestBody', $spec );
+		$this->assertSame(
+			$expectedExample,
+			$spec['requestBody']['content']['application/json']['example']
+		);
+		$this->assertSame(
+			$expectedExample,
+			$spec['requestBody']['content'][RequestInterface::FORM_URLENCODED_CONTENT_TYPE]['example']
+		);
+	}
+
+	public function testGetOpenApiSpecRequestBodyExampleBuiltByDefault(): void {
+		$handler = $this->newHandler( [
+			'getParamSettings',
+			'getHeaderParamSettings',
+			'getBodyParamSettings',
+			'getSupportedRequestTypes',
+			'getResponseBodySchema',
+			'getResponseHeaderSettings',
+		] );
+		$handler->method( 'getParamSettings' )->willReturn( [] );
+		$handler->method( 'getHeaderParamSettings' )->willReturn( [] );
+		$handler->method( 'getBodyParamSettings' )->willReturn( [
+			// String example used as-is
+			'title' => [
+				Handler::PARAM_SOURCE => 'body',
+				Handler::PARAM_EXAMPLE => 'Earth',
+			],
+			// PHP integer stays an integer
+			'count' => [
+				Handler::PARAM_SOURCE => 'body',
+				Handler::PARAM_EXAMPLE => 12345,
+			],
+			// PHP boolean false stays false (not dropped, not stringified)
+			'flag' => [
+				Handler::PARAM_SOURCE => 'body',
+				Handler::PARAM_EXAMPLE => false,
+			],
+			// Explicit null is a provided example, not a missing one
+			'nullable' => [
+				Handler::PARAM_SOURCE => 'body',
+				Handler::PARAM_EXAMPLE => null,
+			],
+			// MessageValue example is localized
+			'msg' => [
+				Handler::PARAM_SOURCE => 'body',
+				Handler::PARAM_EXAMPLE => new MessageValue( 'rest-param-desc-mock-desc' ),
+			],
+			// Post-source params appear only in form-style examples, not in JSON
+			'token' => [
+				Handler::PARAM_SOURCE => 'post',
+				Handler::PARAM_EXAMPLE => 'csrf',
+			],
+			// No example declared: the sentinel forces the issue
+			'missing' => [
+				Handler::PARAM_SOURCE => 'body',
+			],
+		] );
+		$handler->method( 'getSupportedRequestTypes' )->willReturn( [
+			'application/json',
+			RequestInterface::FORM_URLENCODED_CONTENT_TYPE,
+		] );
+		$handler->method( 'getResponseBodySchema' )->willReturn( null );
+		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
+
+		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
+		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
+
+		$formatter = $this->getDummyTextFormatter( true );
+		$responseFactory = new ResponseFactory( [ 'qqx' => $formatter ] );
+		$authority = $this->mockAnonUltimateAuthority();
+		$hookContainer = $this->createHookContainer();
+		$handler->initServices( $authority, $responseFactory, $hookContainer );
+
+		$spec = $handler->getOpenApiSpec( 'POST' );
+
+		$this->assertArrayHasKey( 'requestBody', $spec );
+		// A composite example is produced only for application/json, and it omits
+		// the 'post'-source 'token' param to match the JSON schema (body only).
+		$this->assertSame(
+			[
+				'title' => 'Earth',
+				'count' => 12345,
+				'flag' => false,
+				'nullable' => null,
+				'msg' => '<message key="rest-param-desc-mock-desc"></message>',
+				// Sentinel value emitted for a body param with no PARAM_EXAMPLE
+				// (Handler::MISSING_BODY_EXAMPLE is private, so assert the literal).
+				'missing' => 'missing_example',
+			],
+			$spec['requestBody']['content']['application/json']['example']
+		);
+		// Non-JSON media types get no media-type-level example: Swagger UI builds
+		// the form body from the schema properties instead.
+		$this->assertArrayHasKey(
+			'schema',
+			$spec['requestBody']['content'][RequestInterface::FORM_URLENCODED_CONTENT_TYPE]
+		);
+		$this->assertArrayNotHasKey(
+			'example',
+			$spec['requestBody']['content'][RequestInterface::FORM_URLENCODED_CONTENT_TYPE]
+		);
+	}
+
+	public function testGetOpenApiSpecRequestBodyExampleSuppressedByOverride(): void {
+		$handler = $this->newHandler( [
+			'getParamSettings',
+			'getHeaderParamSettings',
+			'getBodyParamSettings',
+			'getSupportedRequestTypes',
+			'getResponseBodySchema',
+			'getResponseHeaderSettings',
+			'getRequestBodyExample',
+		] );
+		$handler->method( 'getParamSettings' )->willReturn( [] );
+		$handler->method( 'getHeaderParamSettings' )->willReturn( [] );
+		$handler->method( 'getBodyParamSettings' )->willReturn( [
+			'content' => [
+				Handler::PARAM_SOURCE => 'body',
+			],
+		] );
+		$handler->method( 'getSupportedRequestTypes' )->willReturn( [ 'application/json' ] );
+		$handler->method( 'getResponseBodySchema' )->willReturn( null );
+		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
+		// A subclass may opt out of an example entirely by returning null.
+		$handler->method( 'getRequestBodyExample' )->willReturn( null );
+
+		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
+		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
+
+		$formatter = $this->getDummyTextFormatter( true );
+		$responseFactory = new ResponseFactory( [ 'qqx' => $formatter ] );
+		$authority = $this->mockAnonUltimateAuthority();
+		$hookContainer = $this->createHookContainer();
+		$handler->initServices( $authority, $responseFactory, $hookContainer );
+
+		$spec = $handler->getOpenApiSpec( 'PUT' );
+
+		$this->assertArrayHasKey( 'requestBody', $spec );
+		$this->assertArrayNotHasKey( 'example', $spec['requestBody']['content']['application/json'] );
+	}
+
 }
