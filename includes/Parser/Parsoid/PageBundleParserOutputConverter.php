@@ -265,14 +265,16 @@ final class PageBundleParserOutputConverter {
 		$title = $parserOutput->getTitle();
 		if ( $title !== null ) {
 			$title = Title::newFromLinkTarget( $title );
-			$revProps += [
-				'id' => $title->getId(),
-				'ns' => $title->getNamespace(),
-			];
+			if ( $title->canExist() ) {
+				$revProps += [
+					'id' => $title->getId(),
+					'ns' => $title->getNamespace(),
+				];
+			}
 		}
 		$revId = $parserOutput->getCacheRevisionId();
 		$revRecord = null;
-		if ( $revId ) {
+		if ( $revId && ( $title === null || $title->canExist() ) ) {
 			$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
 			$revRecord = $revLookup->getRevisionById( $revId, 0, $title );
 		}
