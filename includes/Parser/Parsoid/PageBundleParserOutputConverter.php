@@ -92,10 +92,16 @@ final class PageBundleParserOutputConverter {
 		}
 		if ( isset( $pageBundle->headers['content-language'] ) ) {
 			$lang = LanguageCode::normalizeNonstandardCodeAndWarn(
-			// @phan-suppress-next-line PhanTypeArraySuspiciousNullable
+				// @phan-suppress-next-line PhanTypeArraySuspiciousNullable
 				$pageBundle->headers['content-language']
 			);
 			$parserOutput->setLanguage( $lang );
+		}
+		if ( isset( $pageBundle->headers['x-mediawiki-render-id'] ) ) {
+			$parserOutput->setRenderId(
+				// @phan-suppress-next-line PhanTypeArraySuspiciousNullable
+				$pageBundle->headers['x-mediawiki-render-id']
+			);
 		}
 		return $parserOutput;
 	}
@@ -137,7 +143,7 @@ final class PageBundleParserOutputConverter {
 			$document = DOMCompat::newDocument();
 			self::addMetadataToDocument( $parserOutput, $siteConfig, $bpb, $document );
 			// Add selected header information from page bundle to the <head>
-			foreach ( [ 'content-language', 'vary' ] as $h ) {
+			foreach ( [ 'content-language', 'vary', 'x-mediawiki-render-id' ] as $h ) {
 				if ( isset( $bpb->headers[$h] ) ) {
 					self::appendToHead( $document, 'meta', [
 						'http-equiv' => $h,
@@ -181,11 +187,17 @@ final class PageBundleParserOutputConverter {
 				// ParsoidFormatHelper chokes on that: T325137.
 				version: '0.0.0',
 			);
-		$lang = $parserOutput->getLanguage();
 
+		$lang = $parserOutput->getLanguage();
 		if ( $lang ) {
 			$basePageBundle->headers ??= [];
 			$basePageBundle->headers['content-language'] = $lang->toBcp47Code();
+		}
+
+		$renderid = $parserOutput->getRenderId();
+		if ( $renderid !== null ) {
+			$basePageBundle->headers ??= [];
+			$basePageBundle->headers['x-mediawiki-render-id'] = $renderid;
 		}
 		return $basePageBundle;
 	}
@@ -263,20 +275,11 @@ final class PageBundleParserOutputConverter {
 		// add <head> content based on page meta data:
 		$revProps = [];
 		$title = $parserOutput->getTitle();
-		if ( $title !== null ) {
-			$title = Title::newFromLinkTarget( $title );
-			if ( $title->canExist() ) {
-				$revProps += [
-					'id' => $title->getId(),
-					'ns' => $title->getNamespace(),
-				];
-			}
-		}
 		$revId = $parserOutput->getCacheRevisionId();
 		$revRecord = null;
-		if ( $revId && ( $title === null || $title->canExist() ) ) {
+		if ( $revId ) {
 			$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
-			$revRecord = $revLookup->getRevisionById( $revId, 0, $title );
+			$revRecord = $revLookup->getRevisionById( $revId );
 		}
 		if ( $revRecord !== null ) {
 			$revProps += [
@@ -285,6 +288,18 @@ final class PageBundleParserOutputConverter {
 				'rev_sha1' => $revRecord->getSha1(),
 				'rev_timestamp' => $revRecord->getTimestamp(),
 			];
+			// If both Revision ID and Title as provided; revision overrides
+			// (never output contradictory title and revision information)
+			$title = $revRecord->getPageAsLinkTarget();
+		}
+		if ( $title !== null ) {
+			$title = Title::newFromLinkTarget( $title );
+			if ( $title !== null ) {
+				$revProps['ns'] = $title->getNamespace();
+			}
+			if ( $title?->canExist() ) {
+				$revProps['id'] = $title->getId();
+			}
 		}
 		$revProps['rev_revid'] ??= $parserOutput->getCacheRevisionId();
 		$revProps['rev_timestamp'] ??= $parserOutput->getRevisionTimestamp();
