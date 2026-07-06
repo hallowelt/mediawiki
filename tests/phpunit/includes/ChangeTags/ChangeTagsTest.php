@@ -1,5 +1,8 @@
 <?php
 
+namespace MediaWiki\Tests\ChangeTags;
+
+use InvalidArgumentException;
 use MediaWiki\ChangeTags\ChangeTags;
 use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\Context\RequestContext;
@@ -8,6 +11,9 @@ use MediaWiki\Language\MessageLocalizer;
 use MediaWiki\Language\RawMessage;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
+use MediaWikiIntegrationTestCase;
+use MockMessageLocalizer;
 use Wikimedia\Rdbms\Platform\ISQLPlatform;
 
 /**
@@ -16,6 +22,9 @@ use Wikimedia\Rdbms\Platform\ISQLPlatform;
  * @group Database
  */
 class ChangeTagsTest extends MediaWikiIntegrationTestCase {
+
+	use RestrictedTagTestTrait;
+	use MockAuthorityTrait;
 
 	private ChangeTagsStore $changeTags;
 
@@ -894,6 +903,135 @@ class ChangeTagsTest extends MediaWikiIntegrationTestCase {
 			'Tag with some but not all of the restricted tag prefix' => [
 				'tag' => 'mw-private',
 				'expectedFatalErrorMessage' => null,
+			],
+		];
+	}
+
+	/** @dataProvider provideCanViewTag */
+	public function testCanViewTag( array $authorityRights, string $tag, bool $expectedReturnValue ): void {
+		$this->setRestrictedTags( [
+			'mw-private-hook-defined-tag' => [ 'suppress' ],
+			'mw-private-config-defined-tag' => [ 'patrol' ],
+		] );
+		$this->overrideConfigValue( MainConfigNames::RestrictedTagViewRights, [
+			'mw-private-config-defined-tag' => 'delete',
+		] );
+		$changeTags = $this->getServiceContainer()->getChangeTagsStore();
+
+		$authority = $this->mockRegisteredAuthorityWithPermissions( $authorityRights );
+		$this->assertSame( $expectedReturnValue, $changeTags->canViewTag( $tag, $authority ) );
+	}
+
+	public static function provideCanViewTag(): array {
+		return [
+			'Tag is not restricted' => [ 'authorityRights' => [], 'tag' => 'test-tag', 'expectedReturnValue' => true ],
+			'User has necessary right to view hook defined restricted tag' => [
+				'authorityRights' => [ 'suppress' ],
+				'tag' => 'mw-private-hook-defined-tag',
+				'expectedReturnValue' => true,
+			],
+			'User has necessary right to view config defined restricted tag' => [
+				'authorityRights' => [ 'delete' ],
+				'tag' => 'mw-private-config-defined-tag',
+				'expectedReturnValue' => true,
+			],
+			'Config overrides hook restrictions on conflict' => [
+				'authorityRights' => [ 'patrol' ],
+				'tag' => 'mw-private-config-defined-tag',
+				'expectedReturnValue' => false,
+			],
+			'User lacks necessary right to view hook defined restricted tag' => [
+				'authorityRights' => [ 'patrol', 'delete' ],
+				'tag' => 'mw-private-hook-defined-tag',
+				'expectedReturnValue' => false,
+			],
+			'Restricted tag absent from the map is visible to no-one' => [
+				'authorityRights' => [ 'suppress', 'patrol', 'delete' ],
+				'tag' => 'mw-private-undefined-tag',
+				'expectedReturnValue' => false,
+			],
+		];
+	}
+
+	/** @dataProvider provideUpdateTagsWithChecksForFailure */
+	public function testUpdateTagsWithChecksForFailure(
+		array $tagsToAdd,
+		array $tagsToRemove,
+		array $authorityRights,
+		string $expectedStatusErrorMessage
+	): void {
+		$this->setTemporaryHook(
+			'ListDefinedTags',
+			static function ( array &$tags ) {
+				$tags[] = 'mw-private-test';
+			}
+		);
+		$this->setRestrictedTags( [ 'mw-private-test' => 'delete' ] );
+
+		$actualStatus = ChangeTags::updateTagsWithChecks(
+			$tagsToAdd,
+			$tagsToRemove,
+			null,
+			null,
+			null,
+			null,
+			'',
+			$this->mockRegisteredAuthorityWithPermissions( $authorityRights )
+		);
+
+		$this->assertStatusError( $expectedStatusErrorMessage, $actualStatus );
+		$this->assertNull( $actualStatus->getValue() );
+	}
+
+	public static function provideUpdateTagsWithChecksForFailure(): array {
+		return [
+			'One tag is not defined when adding it' => [
+				'tagsToAdd' => [ 'undefined-tag' ],
+				'tagsToRemove' => [],
+				'authorityRights' => [ 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-add-not-allowed-one',
+			],
+			'Multiple tags are not defined when adding them' => [
+				'tagsToAdd' => [ 'undefined-tag', 'undefined-tag-2', 'undefined-tag-3' ],
+				'tagsToRemove' => [],
+				'authorityRights' => [ 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-add-not-allowed-multi',
+			],
+			'One tag is software defined when removing it' => [
+				'tagsToAdd' => [],
+				'tagsToRemove' => [ 'mw-contentmodelchange' ],
+				'authorityRights' => [ 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-remove-not-allowed-one',
+			],
+			'Multiple tags are software defined when removing them' => [
+				'tagsToAdd' => [],
+				'tagsToRemove' => [ 'mw-contentmodelchange', 'mw-new-redirect' ],
+				'authorityRights' => [ 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-remove-not-allowed-multi',
+			],
+			'Removing restricted tag that the authority cannot see' => [
+				'tagsToAdd' => [],
+				'tagsToRemove' => [ 'mw-private-test' ],
+				'authorityRights' => [ 'purge', 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-remove-not-allowed-one',
+			],
+			'Removing undefined restricted tag that the authority cannot see' => [
+				'tagsToAdd' => [],
+				'tagsToRemove' => [ 'mw-private-undefined' ],
+				'authorityRights' => [ 'purge', 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-remove-not-allowed-one',
+			],
+			'Adding restricted tag that the authority cannot see' => [
+				'tagsToAdd' => [ 'mw-private-test' ],
+				'tagsToRemove' => [],
+				'authorityRights' => [ 'purge', 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-add-not-allowed-one',
+			],
+			'Adding undefined restricted tag that the authority cannot see' => [
+				'tagsToAdd' => [ 'mw-private-undefined' ],
+				'tagsToRemove' => [],
+				'authorityRights' => [ 'purge', 'changetags' ],
+				'expectedStatusErrorMessage' => 'tags-update-add-not-allowed-one',
 			],
 		];
 	}

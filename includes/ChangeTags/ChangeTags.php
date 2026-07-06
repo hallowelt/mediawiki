@@ -7,6 +7,7 @@
 namespace MediaWiki\ChangeTags;
 
 use MediaWiki\Context\IContextSource;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\HookContainer\HookRunner;
 use MediaWiki\Html\Html;
 use MediaWiki\Language\Language;
@@ -19,15 +20,14 @@ use MediaWiki\Message\Message;
 use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\Permissions\PermissionStatus;
+use MediaWiki\Permissions\UltimateAuthority;
 use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\RevisionDelete\RevDelLogList;
 use MediaWiki\Skin\Skin;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
-use MediaWiki\User\UserIdentity;
 use Wikimedia\ObjectCache\WANObjectCache;
-use Wikimedia\Rdbms\IReadableDatabase;
 
 /**
  * @defgroup ChangeTags Change tagging
@@ -355,81 +355,6 @@ class ChangeTags {
 	}
 
 	/**
-	 * Add and remove tags to/from a change given its rc_id, rev_id and/or log_id,
-	 * without verifying that the tags exist or are valid. If a tag is present in
-	 * both $tagsToAdd and $tagsToRemove, it will be removed.
-	 *
-	 * This function should only be used by extensions to manipulate tags they
-	 * have registered using the ListDefinedTags hook. When dealing with user
-	 * input, call updateTagsWithChecks() instead.
-	 *
-	 * @deprecated since 1.41 use ChangeTagsStore::updateTags(). Hard-deprecated since 1.44.
-	 * @param string|array|null $tagsToAdd Tags to add to the change
-	 * @param string|array|null $tagsToRemove Tags to remove from the change
-	 * @param int|null &$rc_id The rc_id of the change to add the tags to.
-	 * Pass a variable whose value is null if the rc_id is not relevant or unknown.
-	 * @param int|null &$rev_id The rev_id of the change to add the tags to.
-	 * Pass a variable whose value is null if the rev_id is not relevant or unknown.
-	 * @param int|null &$log_id The log_id of the change to add the tags to.
-	 * Pass a variable whose value is null if the log_id is not relevant or unknown.
-	 * @param string|null $params Params to put in the ct_params field of table
-	 * 'change_tag' when adding tags
-	 * @param RecentChange|null $rc Recent change being tagged, in case the tagging accompanies
-	 * the action
-	 * @param UserIdentity|null $user Tagging user, in case the tagging is subsequent to the tagged action
-	 *
-	 * @return array Index 0 is an array of tags actually added, index 1 is an
-	 * array of tags actually removed, index 2 is an array of tags present on the
-	 * revision or log entry before any changes were made
-	 *
-	 * @since 1.25
-	 */
-	public static function updateTags( $tagsToAdd, $tagsToRemove, &$rc_id = null,
-		&$rev_id = null, &$log_id = null, $params = null, ?RecentChange $rc = null,
-		?UserIdentity $user = null
-	) {
-		wfDeprecated( __METHOD__, '1.41' );
-		return MediaWikiServices::getInstance()->getChangeTagsStore()->updateTags(
-			$tagsToAdd, $tagsToRemove, $rc_id, $rev_id, $log_id, $params, $rc, $user
-		);
-	}
-
-	/**
-	 * Return all the tags associated with the given recent change ID,
-	 * revision ID, and/or log entry ID, along with any data stored with the tag.
-	 *
-	 * @deprecated since 1.41 use ChangeTagsStore::getTagsWithData(). Hard-deprecated since 1.44.
-	 * @param IReadableDatabase $db the database to query
-	 * @param int|null $rc_id
-	 * @param int|null $rev_id
-	 * @param int|null $log_id
-	 * @return string[] Tag name => data. Data format is tag-specific.
-	 * @since 1.36
-	 */
-	public static function getTagsWithData(
-		IReadableDatabase $db, $rc_id = null, $rev_id = null, $log_id = null
-	) {
-		wfDeprecated( __METHOD__, '1.41' );
-		return MediaWikiServices::getInstance()->getChangeTagsStore()->getTagsWithData( $db, $rc_id, $rev_id, $log_id );
-	}
-
-	/**
-	 * Return all the tags associated with the given recent change ID,
-	 * revision ID, and/or log entry ID.
-	 *
-	 * @deprecated since 1.41 use ChangeTagsStore::getTags(). Hard-deprecated since 1.44.
-	 * @param IReadableDatabase $db the database to query
-	 * @param int|null $rc_id
-	 * @param int|null $rev_id
-	 * @param int|null $log_id
-	 * @return string[]
-	 */
-	public static function getTags( IReadableDatabase $db, $rc_id = null, $rev_id = null, $log_id = null ) {
-		wfDeprecated( __METHOD__, '1.41' );
-		return MediaWikiServices::getInstance()->getChangeTagsStore()->getTags( $db, $rc_id, $rev_id, $log_id );
-	}
-
-	/**
 	 * Helper function to generate a fatal status with a 'not-allowed' type error.
 	 *
 	 * @param string $msgOne Message key to use in the case of one tag
@@ -504,6 +429,7 @@ class ChangeTags {
 	 * Extensions should not use this function, unless directly handling a user
 	 * request to add or remove tags from an existing revision or log entry.
 	 *
+	 * @deprecated Since 1.47
 	 * @param string[] $tagsToAdd Tags that you are interested in adding
 	 * @param string[] $tagsToRemove Tags that you are interested in removing
 	 * @param Authority|null $performer whose permission you wish to check, or null to
@@ -516,17 +442,41 @@ class ChangeTags {
 		array $tagsToRemove,
 		?Authority $performer = null
 	) {
-		if ( $performer !== null ) {
-			if ( !$performer->isDefinitelyAllowed( 'changetags' ) ) {
-				return Status::newFatal( 'tags-update-no-permission' );
-			}
+		wfDeprecated( __METHOD__, '1.47' );
+		return self::canUpdateTagsInternal(
+			$tagsToAdd,
+			$tagsToRemove,
+			$performer ?? new UltimateAuthority( RequestContext::getMain()->getUser() )
+		);
+	}
 
-			if ( $performer->getBlock() && $performer->getBlock()->isSitewide() ) {
-				return Status::newFatal(
-					'tags-update-blocked',
-					$performer->getUser()->getName()
-				);
-			}
+	/**
+	 * Decides whether the given {@link Authority} can add and remove the given tags
+	 * to/from a change.
+	 *
+	 * NOTE: The method is named with "internal" so that the existing public version
+	 * of this method can be still exist but be deprecated. Once {@link self::canUpdateTags()}
+	 * is dropped, this method should be renamed to remove "internal"
+	 *
+	 * @param string[] $tagsToAdd Tags that are being added
+	 * @param string[] $tagsToRemove Tags that are being removed
+	 * @param Authority $performer
+	 * @return Status
+	 */
+	private static function canUpdateTagsInternal(
+		array $tagsToAdd,
+		array $tagsToRemove,
+		Authority $performer
+	): Status {
+		if ( !$performer->isDefinitelyAllowed( 'changetags' ) ) {
+			return Status::newFatal( 'tags-update-no-permission' );
+		}
+
+		if ( $performer->getBlock() && $performer->getBlock()->isSitewide() ) {
+			return Status::newFatal(
+				'tags-update-blocked',
+				$performer->getUser()->getName()
+			);
 		}
 
 		$changeTagsStore = MediaWikiServices::getInstance()->getChangeTagsStore();
@@ -542,6 +492,18 @@ class ChangeTags {
 		}
 
 		if ( $tagsToRemove ) {
+			// Restricted tags can only be removed by users who can view the tag. We do this
+			// separately so that private tags that are undefined cannot be removed from changes.
+			$unviewableRestricted = array_filter(
+				$tagsToRemove,
+				static fn ( $tag ) => $changeTagsStore->isRestrictedTag( $tag )
+					&& !$changeTagsStore->canViewTag( $tag, $performer )
+			);
+			if ( $unviewableRestricted ) {
+				return self::restrictedTagError( 'tags-update-remove-not-allowed-one',
+					'tags-update-remove-not-allowed-multi', $unviewableRestricted );
+			}
+
 			// to be removed, a tag must not be defined by an extension, or equivalently it
 			// has to be either explicitly defined or not defined at all
 			// (assuming no edge case of a tag both explicitly-defined and extension-defined)
@@ -560,10 +522,9 @@ class ChangeTags {
 	 * Adds and/or removes tags to/from a given change, checking whether it is
 	 * allowed first, and adding a log entry afterwards.
 	 *
-	 * Includes a call to ChangeTags::canUpdateTags(), so your code doesn't need
-	 * to do that. However, it doesn't check whether the *_id parameters are a
-	 * valid combination. That is up to you to enforce. See ApiTag::execute() for
-	 * an example.
+	 * This validates that the provided {@link Authority} can make the changes, but
+	 * it does not check whether the *_id parameters are a valid combination.
+	 * That is up to you to enforce. See ApiTag::execute() for an example.
 	 *
 	 * Extensions should generally avoid this function. Call
 	 * ChangeTagsStore->updateTags() instead, unless directly handling a user request
@@ -602,7 +563,7 @@ class ChangeTags {
 		$tagsToRemove ??= [];
 
 		// are we allowed to do this?
-		$result = self::canUpdateTags( $tagsToAdd, $tagsToRemove, $performer );
+		$result = self::canUpdateTagsInternal( $tagsToAdd, $tagsToRemove, $performer );
 		if ( !$result->isOK() ) {
 			$result->value = null;
 			return $result;

@@ -39,6 +39,8 @@ For notes on 1.46.x and older releases, see HISTORY.
   for details on available modes.
 * $wgReauthenticateForActions - Allows overriding which sensitive actions
   require reauthentication.
+* $wgRestrictedTagViewRights maps a rights-restricted ("mw-private-" prefixed)
+  change tag to the right(s) that may view it. Default: [].
 * …
 
 ==== Changed configuration ====
@@ -94,6 +96,9 @@ For notes on 1.46.x and older releases, see HISTORY.
   configuration variable.
 * (T412542) The UrlUtils class now has an option to allow any URL protocol:
   `UrlUtils::VALID_PROTOCOLS => UrlUtils::ALL_PROTOCOLS`.
+* (T386456) A new hook ListRestrictedTags allows defining which right(s)
+  allow a user to view a rights-restricted change tag (tags starting with
+  'mw-private-').
 * …
 
 === External library changes in 1.47 ===
@@ -303,9 +308,14 @@ because of Phabricator reports.
   emitting warnings since 1.38 and has no replacement.
 * The protected static method UserMailer::sendWithPear() has been removed
   following the migration from PEAR Mail to symfony/mailer.
+* DBLoadBalancerFactoryConfigBuilder service has been removed without
+  deprecation. It is internal to the rdbms library and shouldn't be used
+  outside of it.
 * Passing null to any of the three constructor parameters of TextboxBuilder,
   deprecated in 1.46, will now throw a PHP error. Use the service to get an
   instance of the class.
+* ChangeTags::getTags, ::getTagsWithData, and ::updateTags which were
+  deprecated in 1.41 have now been removed
 * …
 
 === Deprecations in 1.47 ===
@@ -400,6 +410,8 @@ because of Phabricator reports.
   LocalFileLockError is deprecated along with these methods.
 * $wgUseCopyrightUpload has been deprecated and will be removed in a future
   version. See T430254 for details.
+* ChangeTags::canUpdateTags has been been hard deprecated. Callers should
+  use ChangeTags::updateTagsWithChecks instead.
 * …
 
 === Other changes in 1.47 ===
