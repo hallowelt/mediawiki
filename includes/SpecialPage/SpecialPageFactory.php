@@ -747,6 +747,7 @@ class SpecialPageFactory {
 				'ChangeTagsStore',
 				'TempUserConfig',
 				'RecentChangeFactory',
+				'ChangeTagsFormatter',
 			]
 		],
 		'Recentchanges' => [
@@ -778,6 +779,7 @@ class SpecialPageFactory {
 			'class' => SpecialTags::class,
 			'services' => [
 				'ChangeTagsStore',
+				'ChangeTagsFormatter',
 			]
 		],
 
@@ -1049,6 +1051,7 @@ class SpecialPageFactory {
 				'ArchivedRevisionLookup',
 				'CommentFormatter',
 				'WatchlistManager',
+				'ChangeTagsFormatter',
 			],
 		],
 		'Whatlinkshere' => [
@@ -1072,6 +1075,7 @@ class SpecialPageFactory {
 				'RevisionStore',
 				'CommentFormatter',
 				'ChangeTagsStore',
+				'ChangeTagsFormatter',
 			]
 		],
 		'ExpandTemplates' => [
