@@ -94,6 +94,9 @@ For notes on 1.46.x and older releases, see HISTORY.
   modules. See MediaWiki\Rest\Module\AudienceDesignation for details. Modules
   requiring a different behavior mode can use the new RestModuleOverrides
   configuration variable.
+* (T423058) The "site.v1" and "specs.v0" REST modules are now enabled by
+  default. They can be disabled by using the new RestModuleOverrides
+  configuration variable.
 * (T412542) The UrlUtils class now has an option to allow any URL protocol:
   `UrlUtils::VALID_PROTOCOLS => UrlUtils::ALL_PROTOCOLS`.
 * (T386456) A new hook ListRestrictedTags allows defining which right(s)
@@ -227,6 +230,14 @@ because of Phabricator reports.
   For non-blocking locks, use IDatabase::lock with timeout 0 instead.
 * BaseSearchResultSet::next() and ::rewind(), deprecated since 1.32 have now
   been removed. Use ::extractResults() or a foreach loop instead.
+* Some static methods in Xml, deprecated in 1.42, have been removed:
+  - Xml::attrib(),
+  - Xml::buildForm(),
+  - Xml::fieldset(),
+  - Xml::label(),
+  - Xml::listDropdown(),
+  - Xml::listDropdownOptions() & Xml::listDropdownOptionsOoui(), and
+  - Xml::option().
 * Content::getNativeData(), deprecated since 1.33, has been removed.
 * LinksUpdate::getImages(), deprecated since 1.44, has been removed. Use
   LinksUpdate::getParserOutput()->getLinkList(::MEDIA) instead.
@@ -315,8 +326,23 @@ because of Phabricator reports.
 * Passing null to any of the three constructor parameters of TextboxBuilder,
   deprecated in 1.46, will now throw a PHP error. Use the service to get an
   instance of the class.
-* ChangeTags::getTags, ::getTagsWithData, and ::updateTags which were
-  deprecated in 1.41 have now been removed
+* The following ChangeTags methods which were deprecated in 1.41 have been
+  removed:
+  - getTags
+  - getTagsWithData
+  - updateTags
+  - getSoftwareTags
+  - modifyDisplayQuery
+  - getDisplayTableName
+  - makeTagSummarySubquery
+  - defineTag
+  - deleteTagEverywhere
+  - listSoftwareActivatedTags
+  - listDefinedTags
+  - listExplicitlyDefinedTags
+  - listSoftwareDefinedTags
+  - purgeTagCacheAll
+  - tagUsageStatistics
 * …
 
 === Deprecations in 1.47 ===
@@ -377,6 +403,9 @@ because of Phabricator reports.
   context before instantiating EditPage.
 * Skin::mapInterwikiToLanguage has been deprecated. Use the
   InterlanguageLinkCodeMap config setting directly.
+* Backwards compatibility for extensions using the hook
+  SkinTemplateNavigation::Universal, deprecated in 1.46. to modify the
+  namespaces menu has been removed (T416651).
 * Parser::statelessFetchTemplate() and ::statelessFetchRevisionRecord() have
   been deprecated. Use ParserOptions::getTemplateCallback() to get the original
   handler.
@@ -411,16 +440,14 @@ because of Phabricator reports.
   LocalFileLockError is deprecated along with these methods.
 * $wgUseCopyrightUpload has been deprecated and will be removed in a future
   version. See T430254 for details.
-* The following ChangeTags methods have been deprecated:
-  - tagDescription (emits deprecation warnings): use
-    ChangeTagsFormatter::getTagDescription instead
-  - tagShortDescriptionMessage (emits deprecation warnings)
-  - tagLongDescriptionMessage (emits deprecation warnings)
-  - tagHelpLink (emits deprecation warnings)
-  - formatSummaryRow (emits deprecation warnings): use
-    ChangeTagsFormatter::formatTagsAsSummaryList instead
-  - canUpdateTags (emits deprecation warnings): use
-    ChangeTags::updateTagsWithChecks instead
+* The following ChangeTags methods have been deprecated and emit deprecation
+  warnings:
+  - tagDescription: use ChangeTagsFormatter::getTagDescription instead
+  - tagShortDescriptionMessage
+  - tagLongDescriptionMessage
+  - tagHelpLink
+  - formatSummaryRow: use ChangeTagsFormatter::formatTagsAsSummaryList instead
+  - canUpdateTags: use ChangeTags::updateTagsWithChecks instead
   - getChangeTagListSummary: use ChangeTagsFormatter::getChangeTagListSummary
     instead
   - getChangeTagList: use ChangeTagsFormatter::getChangeTagList instead

@@ -8,7 +8,6 @@ use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\MainConfigNames;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWikiIntegrationTestCase;
 use Wikimedia\Rdbms\Platform\ISQLPlatform;
@@ -46,9 +45,10 @@ class ChangeTagsTest extends MediaWikiIntegrationTestCase {
 	// TODO most methods are not tested
 
 	public function testBuildTagFilterSelector_allTags() {
+		$this->hideDeprecated( ChangeTags::class . '::getChangeTagListSummary' );
 		// Set `activeOnly` to false
 		// Expect that at least all the software defined tags are returned
-		$allTags = MediaWikiServices::getInstance()->getChangeTagsStore()->listDefinedTags();
+		$allTags = $this->getServiceContainer()->getChangeTagsStore()->listDefinedTags();
 		$allTagsList = ChangeTags::getChangeTagListSummary(
 			RequestContext::getMain(),
 			RequestContext::getMain()->getLanguage(),
@@ -61,9 +61,10 @@ class ChangeTagsTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testBuildTagFilterSelector_allSoftwareTags() {
+		$this->hideDeprecated( ChangeTags::class . '::getChangeTagListSummary' );
 		// Set both `activeOnly` and `useAllTags` to false
 		// Expect that only software defined tags are returned
-		$allSoftwareTags = MediaWikiServices::getInstance()->getChangeTagsStore()->getSoftwareTags( true );
+		$allSoftwareTags = $this->getServiceContainer()->getChangeTagsStore()->getSoftwareTags( true );
 		$allSoftwareTagsList = ChangeTags::getChangeTagListSummary(
 			RequestContext::getMain(),
 			RequestContext::getMain()->getLanguage(),
@@ -77,6 +78,8 @@ class ChangeTagsTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testBuildTagFilterSelector_activeOnlyNoHits() {
+		$this->hideDeprecated( ChangeTags::class . '::getChangeTagListSummary' );
+		$this->hideDeprecated( ChangeTags::class . '::buildTagFilterSelector' );
 		// Enable and test `activeOnly` and expect no tags returned,
 		// as there are currently no tagged edits in the test database
 		$emptyTagListSummary = ChangeTags::getChangeTagListSummary(
@@ -99,6 +102,8 @@ class ChangeTagsTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testBuildTagFilterSelector_activeOnly() {
+		$this->hideDeprecated( ChangeTags::class . '::getChangeTagListSummary' );
+		$this->hideDeprecated( ChangeTags::class . '::buildTagFilterSelector' );
 		// Disable patrolling so reverts will happen without approval
 		$this->overrideConfigValues( [ MainConfigNames::UseRCPatrol => false ] );
 
@@ -1000,4 +1005,34 @@ class ChangeTagsTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'mw-undo' ], $this->changeTags->getViewableTags( $this->getDb(), $unprivileged, 123 ) );
 	}
 
+	public function testCanCreateTagRejectsReservedPrefix(): void {
+		$this->assertStatusError( 'tags-create-reserved-prefix', ChangeTags::canCreateTag( 'mw-private-test' ) );
+	}
+
+	public function testCanDeleteTagRejectsWhenUserCannotSeeTag(): void {
+		$this->setRestrictedTags( [ 'mw-private-test' => 'patrol' ] );
+		$status = ChangeTags::canDeleteTag(
+			'mw-private-test',
+			$this->mockRegisteredAuthorityWithPermissions( [ 'deletechangetags' ] )
+		);
+		$this->assertStatusError( 'tags-delete-not-found', $status );
+	}
+
+	public function testCanActivateTagRejectsWhenUserCannotSeeTag(): void {
+		$this->setRestrictedTags( [ 'mw-private-test' => 'patrol' ] );
+		$status = ChangeTags::canActivateTag(
+			'mw-private-test',
+			$this->mockRegisteredAuthorityWithPermissions( [ 'managechangetags' ] )
+		);
+		$this->assertStatusError( 'tags-activate-not-found', $status );
+	}
+
+	public function testCanDeactivateTagRejectsWhenUserCannotSeeTag(): void {
+		$this->setRestrictedTags( [ 'mw-private-test' => 'patrol' ] );
+		$status = ChangeTags::canDeactivateTag(
+			'mw-private-test',
+			$this->mockRegisteredAuthorityWithPermissions( [ 'managechangetags' ] )
+		);
+		$this->assertStatusError( 'tags-deactivate-not-found', $status );
+	}
 }
