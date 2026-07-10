@@ -34,6 +34,9 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== New configuration ====
 
+* (T410654) Added $wgRestrictUserPageEditing, which prevents users from editing
+  other users' pages and is disabled by default. Users with the new
+  'editalluserpages' right are exempt. By default, no group has the right.
 * $wgRestModuleOverrides - (T422756) Defaults to `[]`, allows overriding the
   default behavior mode of REST modules. See MediaWiki\Rest\Module\ModuleMode
   for details on available modes.
@@ -370,6 +373,13 @@ because of Phabricator reports.
     - NotRecursiveIterator
   - Wikimedia\ObjectCache:
     - MemoizedCallable
+  - MediaWiki\Language\Dependency:
+    - CacheDependency
+    - ConstantDependency
+    - DependencyWrapper
+    - FileDependency
+    - GlobalDependency
+    - MainConfigDependency
   - …
 * The PatrolLog::record method is deprecated and will trigger
   deprecation warnings. Use PatrolManager::createPatrolLog instead.
@@ -480,7 +490,7 @@ The supported versions are:
 * MariaDB 10.11 or higher
 * MySQL 5.7.0 or higher
 * PostgreSQL 10 or later
-* SQLite 3.8.0 or later
+* SQLite 3.31.0 or later
 
 == Online documentation ==
 Documentation for both end-users and site administrators is available on
