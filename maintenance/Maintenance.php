@@ -11,6 +11,8 @@
  * @ingroup Maintenance
  */
 
+use MediaWiki\PHPVersionCheck;
+
 if ( !defined( 'RUN_MAINTENANCE_IF_MAIN' ) ) {
 	// Define this so scripts can easily find doMaintenance.php
 	define( 'RUN_MAINTENANCE_IF_MAIN', __DIR__ . '/doMaintenance.php' );
@@ -39,9 +41,11 @@ define( 'MW_ENTRY_POINT', 'cli' );
 
 // Bail on old versions of PHP, or if composer has not been run yet to install
 // dependencies.
-require_once __DIR__ . '/../includes/BootstrapHelperFunctions.php';
 require_once __DIR__ . '/../includes/PHPVersionCheck.php';
-wfEntryPointCheck( 'text' );
+( new PHPVersionCheck( 'text' ) )->run();
+
+// For compatibility require the bootstrap after version check
+require_once __DIR__ . '/../includes/BootstrapHelperFunctions.php';
 
 /**
  * @var string|false $maintClass
