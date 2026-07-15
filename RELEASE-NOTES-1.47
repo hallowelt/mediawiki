@@ -130,11 +130,13 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== Changed external libraries ====
 
+* Updated guzzlehttp/guzzle from 7.12.3 to 7.14.2.
 * Updated monolog/monolog from 2.11.0 to 3.10.0.
 * Updated psr/log from 1.1.4 to 3.0.2.
 * Updated symfony/polyfill-php84 from 1.36.0 to 1.38.1.
 * Updated symfony/polyfill-php85 from 1.36.0 to 1.38.1.
 * Updated symfony/yaml from 7.4.6 to 7.4.14.
+* Updated wikimedia/cldr-plural-rule-parser from 3.0.1 to 3.0.2.
 * Updated wikimedia/json-codec from 4.0.0 to 5.0.0.
 * Updated wikimedia/minify from 2.10.0 to 2.11.0.
 * Updated codex, codex-design-tokens and codex-icons
@@ -237,6 +239,7 @@ because of Phabricator reports.
   ::outXmlHeader() have been removed. Use/override ::outputHeader(),
   ::outputItem(), ::outputFooter(), ::sendHttpHeaders() and ::outputXmlHeader()
   instead.
+* Maintenance::runChild(), deprecated in 1.43, has been removed.
 * AutoloadGenerator::setPsr4Namespaces, deprecated in 1.40, has been removed.
 * ResourceLoader::makeConfigSetScript, deprecated in 1.44, has been removed.
   Use package files instead or return mw.config.set() combined with
@@ -245,6 +248,7 @@ because of Phabricator reports.
   For non-blocking locks, use IDatabase::lock with timeout 0 instead.
 * BaseSearchResultSet::next() and ::rewind(), deprecated since 1.32 have now
   been removed. Use ::extractResults() or a foreach loop instead.
+* The global function wfGetUrlUtils(), deprecated since 1.43, has been removed.
 * Some static methods in Xml, deprecated in 1.42, have been removed:
   - Xml::attrib(),
   - Xml::buildForm(),
@@ -469,6 +473,10 @@ because of Phabricator reports.
 * LocalFile::lock() and LocalFile::unlock(), deprecated since 1.38, now emit
   deprecation warnings. Use acquireFileLock() and releaseFileLock() instead.
   LocalFileLockError is deprecated along with these methods.
+* The global function wfArrayPlus2d(), deprecated since 1.46, now emits
+  deprecation warnings.
+* The global function wfArrayInsertAfter(), deprecated since 1.46, now emits
+  deprecation warnings.
 * $wgUseCopyrightUpload has been deprecated and will be removed in a future
   version. See T430254 for details.
 * The following ChangeTags methods have been deprecated and emit deprecation

@@ -213,15 +213,67 @@ class ApiQueryRevisionsTest extends ApiTestCase {
 		$this->assertContains( 'mw-private-secret', $this->getRevisionTags( $privileged ) );
 	}
 
+	/** @dataProvider provideTagFilter */
+	public function testTagFilter(
+		array $authorityRights,
+		string $tagFilter,
+		bool $shouldTagFilterFindRevision
+	): void {
+		$testPage = $this->getExistingTestPage();
+		$revId = $testPage->getLatest();
+		$this->getServiceContainer()->getChangeTagsStore()->addTags( [ 'mw-private-test' ], null, $revId );
+		$this->setRestrictedTags( [ 'mw-private-test' => 'patrol' ] );
+
+		$params = [
+			'action' => 'query',
+			'prop' => 'revisions',
+			'titles' => $testPage->getTitle()->getPrefixedText(),
+			'rvprop' => 'ids|tags',
+			'rvtag' => $tagFilter,
+		];
+
+		[ $result ] = $this->doApiRequest(
+			$params,
+			null,
+			false,
+			$this->mockRegisteredAuthorityWithPermissions( $authorityRights )
+		);
+		if ( $shouldTagFilterFindRevision ) {
+			$this->assertContains( 'mw-private-test', $this->getRevisionTags( $result ) );
+		} else {
+			$this->assertArrayNotHasKey( 'revisions', $result['query']['pages'][$testPage->getId()] );
+		}
+	}
+
+	public static function provideTagFilter(): array {
+		return [
+			'Filtering for non-existent tag' => [
+				'authorityRights' => [ 'patrol' ],
+				'tagFilter' => 'mw-test-non-existing-tag',
+				'shouldTagFilterFindRevision' => false,
+			],
+			'Filtering for private tag the user cannot see' => [
+				'authorityRights' => [],
+				'tagFilter' => 'mw-private-test',
+				'shouldTagFilterFindRevision' => false,
+			],
+			'Filtering for private tag the user can see' => [
+				'authorityRights' => [ 'patrol' ],
+				'tagFilter' => 'mw-private-test',
+				'shouldTagFilterFindRevision' => true,
+			],
+		];
+	}
+
 	/**
 	 * @dataProvider provideGetCacheMode
 	 */
-	public function testGetCacheModePrivateWhenTagsRequested( array $prop, string $expected ): void {
+	public function testGetCacheMode( array $prop, string $expected, ?string $tag = null ): void {
 		$this->overrideConfigValue( MainConfigNames::RestrictedTagViewRights, [] );
 
 		$revisions = $this->newRevisionsQueryModule( $this->mockRegisteredNullAuthority() );
 
-		$this->assertSame( $expected, $revisions->getCacheMode( [ 'prop' => $prop ] ) );
+		$this->assertSame( $expected, $revisions->getCacheMode( [ 'prop' => $prop, 'tag' => $tag ] ) );
 	}
 
 	public static function provideGetCacheMode(): array {
@@ -233,6 +285,11 @@ class ApiQueryRevisionsTest extends ApiTestCase {
 			'no tags prop stays public' => [
 				'prop' => [ 'ids' ],
 				'expected' => 'public',
+			],
+			'tag filter is per-viewer private' => [
+				'prop' => [ 'ids' ],
+				'expected' => 'anon-public-user-private',
+				'tag' => 'mw-private-test',
 			],
 		];
 	}
