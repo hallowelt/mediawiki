@@ -178,6 +178,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 * (T426802) prop=imageinfo now includes timestamp, user, size, and comment
   fields for file revisions where the file blob is missing from storage,
   alongside the existing "filemissing" flag.
+* (T247552) list=tags no longer includes "extension" alongside "software" for
+  the 'source' prop in results. The deprecated "extension" source was removed.
 * The `action=parse` API has a new `prop=parseroutput` parameter.
   This returns the JSON serialization of the ParserOutput.  This API
   is marked internal as there are no guarantees about the format of
@@ -403,11 +405,16 @@ because of Phabricator reports.
 * Title::canUseNoindex() is deprecated with warnings. Please use
   NamespaceInfo::canUseNoindex() instead.
 * Passing null as the $performer parameter to
-  ChangeTagsStore::makeTagSummarySubquery() is deprecated. Pass an Authority so
-  that rights-restricted change tags can be shown to users who are allowed to
-  view them.
-* ChangeTagsStore::modifyDisplayQueryBuilder() is deprecated. Use
-  addTagsToDisplayQuery() instead, passing an Authority.
+  ChangeTagsStore::makeTagSummarySubquery() is deprecated and emits deprecation
+  warnings. Pass an Authority so that rights-restricted change tags can be shown
+  to users who are allowed to view them.
+* ArchivedRevisionLookup::listRevisions() is deprecated and emits deprecation
+  warnings. Use listArchivedRevisions() instead, passing an Authority.
+* ChangeTagsStore::modifyDisplayQueryBuilder() is deprecated and emits
+  deprecation warnings. Use addTagsToDisplayQuery() instead, passing an
+  Authority.
+* ChangeTagsStore::modifyDisplayQuery() is now hard-deprecated; use
+  ChangeTagsStore::addTagsToDisplayQuery() instead.
 * The MarkPatrolledComplete hook has been deprecated and will trigger
   deprecation warnings. Use the MarkPatrolledAudit hook instead.
 * FileBackendStore::memCache is now deprecated. Instead, subclasses should
