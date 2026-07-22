@@ -71,6 +71,13 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 === New features for sysadmins in 1.47 ===
 
+* (T430604) On Special:CreateAccount, the messages "createacct-helpusername"
+  and "createacct-username-help" are no longer used. In the future, there will
+  be a small button on that form which opens a popover with three bullet
+  points. The text of those messages can be overridden in the usual way to give
+  wiki-specific guidance instead. This popup will also have a link to reading
+  the wiki's username policy if the message "createacct-helpusername-url" is
+  set to an existing wikipage on the local wiki, like "Project:Username_policy"
 * …
 
 === New developer features in 1.47 ===
@@ -131,7 +138,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== Changed external libraries ====
 
-* Updated guzzlehttp/guzzle from 7.12.3 to 7.14.2.
+* Updated guzzlehttp/guzzle from 7.12.3 to 7.15.1.
 * Updated monolog/monolog from 2.11.0 to 3.10.0.
 * Updated psr/log from 1.1.4 to 3.0.2.
 * Updated symfony/polyfill-php84 from 1.36.0 to 1.38.1.
@@ -141,7 +148,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated wikimedia/json-codec from 4.0.0 to 5.0.0.
 * Updated wikimedia/minify from 2.10.0 to 2.11.0.
 * Updated codex, codex-design-tokens and codex-icons
-  from v2.5.1 to v2.6.0.
+  from v2.5.1 to v2.6.2.
 * Updated OOUI from v0.53.2 to v0.54.0
 * Updated pinia from 2.0.16 to 3.0.4.
 * Updated @pinia/testing from 0.0.12 to 1.0.3.
