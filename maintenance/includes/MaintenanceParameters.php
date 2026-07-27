@@ -62,6 +62,9 @@ class MaintenanceParameters {
 	/** @var string[] */
 	private $errors = [];
 
+	/** @var string[] */
+	private $warnings = [];
+
 	/** @var string */
 	private $usagePrefix = 'php maintenance/run.php';
 
@@ -212,10 +215,10 @@ class MaintenanceParameters {
 
 		foreach ( $this->optionsSequence as $i => [ $opt, ] ) {
 			if ( $opt === $name ) {
-				unset( $this->optionsSequence[$i] );
-				break;
+				$this->optionsSequence[$i] = null;
 			}
 		}
+		$this->optionsSequence = array_values( array_filter( $this->optionsSequence ) );
 	}
 
 	/**
@@ -326,6 +329,7 @@ class MaintenanceParameters {
 		$this->mArgs = [];
 		$this->optionsSequence = [];
 		$this->errors = [];
+		$this->warnings = [];
 	}
 
 	/**
@@ -376,11 +380,14 @@ class MaintenanceParameters {
 					if ( $param === false ) {
 						$this->error( "Option --$option needs a value after it!" );
 					}
-
 					$this->setOptionValue( $options, $option, $param );
 				} else {
 					$bits = explode( '=', $option, 2 );
-					$this->setOptionValue( $options, $bits[0], $bits[1] ?? 1 );
+					$opt = $bits[0];
+					if ( isset( $this->mOptDefs[$opt] ) && !$this->mOptDefs[$opt]['withArg'] && isset( $bits[1] ) ) {
+						$this->warning( "Option --$opt should not be assigned a value." );
+					}
+					$this->setOptionValue( $options, $opt, $bits[1] ?? 1 );
 				}
 			} elseif ( $arg == '-' ) {
 				# Lonely "-", often used to indicate stdin or stdout.
@@ -395,10 +402,13 @@ class MaintenanceParameters {
 						$option = $this->mShortOptionMap[$givenShort];
 					}
 
-					if ( isset( $this->mOptDefs[$option]['withArg'] ) && $this->mOptDefs[$option]['withArg'] ) {
+					if ( isset( $this->mOptDefs[$option] ) && $this->mOptDefs[$option]['withArg'] ) {
 						$param = next( $argv );
 						if ( $param === false ) {
 							$this->error( "Option -$givenShort needs a value after it!" );
+						} elseif ( $p !== $argLength - 1 ) {
+							$this->warning( "Short option -$givenShort should be followed directly by a value " .
+								"rather than another short option." );
 						}
 						$this->setOptionValue( $options, $option, $param );
 					} else {
@@ -463,6 +473,26 @@ class MaintenanceParameters {
 	 */
 	public function hasErrors(): bool {
 		return (bool)$this->errors;
+	}
+
+	private function warning( string $msg ) {
+		$this->warnings[] = $msg;
+	}
+
+	/**
+	 * Get any warnings encountered while processing parameters.
+	 *
+	 * @return string[]
+	 */
+	public function getWarnings(): array {
+		return $this->warnings;
+	}
+
+	/**
+	 * Whether any warnings have been recorded so far.
+	 */
+	public function hasWarnings(): bool {
+		return (bool)$this->warnings;
 	}
 
 	/**

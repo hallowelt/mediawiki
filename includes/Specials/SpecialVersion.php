@@ -189,7 +189,6 @@ class SpecialVersion extends SpecialPage {
 					$this->getParserFunctionHooks(),
 					$this->getParsoidModules(),
 					$this->getHooks(),
-					$this->IPInfo(),
 				];
 
 				// Insert TOC first
@@ -279,7 +278,7 @@ class SpecialVersion extends SpecialPage {
 		// Put the software in an array of form 'name' => 'version'. All messages should
 		// be loaded here, so feel free to use wfMessage in the 'name'. Wikitext
 		// can be used both in the name and value.
-		$versionLink = self::getVersionLinkedGit( $this->getLanguage() ) ?: MW_VERSION;
+		$versionLink = $this->getVersionLinkedGit() ?: MW_VERSION;
 		$software = [
 			'[https://www.mediawiki.org/ MediaWiki]' => $versionLink,
 			'[https://php.net/ PHP]' => PHP_VERSION . " (" . PHP_SAPI . ")",
@@ -362,13 +361,9 @@ class SpecialVersion extends SpecialPage {
 		return $version;
 	}
 
-	/**
-	 * @return string
-	 */
-	private static function getMWVersionLinked() {
+	private function getMWVersionLinked(): string {
 		$versionUrl = "";
-		$hookRunner = new HookRunner( MediaWikiServices::getInstance()->getHookContainer() );
-		if ( $hookRunner->onSpecialVersionVersionUrl( MW_VERSION, $versionUrl ) ) {
+		if ( $this->getHookRunner()->onSpecialVersionVersionUrl( MW_VERSION, $versionUrl ) ) {
 			$versionParts = [];
 			preg_match( "/^(\d+\.\d+)/", MW_VERSION, $versionParts );
 			$versionUrl = "https://www.mediawiki.org/wiki/MediaWiki_{$versionParts[1]}";
@@ -382,8 +377,7 @@ class SpecialVersion extends SpecialPage {
 	 * @return bool|string MW version and Git HEAD (SHA1 stripped to the first 7 chars)
 	 *   with link and date, or false on failure
 	 */
-	private static function getVersionLinkedGit( Language $lang ) {
-		// TODO make function non-static and replace param with $this->getLanguage() after dropping getVersionLinked
+	private function getVersionLinkedGit(): bool|string {
 		$gitInfo = new GitInfo( MW_INSTALL_PATH );
 		$headSHA1 = $gitInfo->getHeadSHA1();
 		if ( !$headSHA1 ) {
@@ -400,10 +394,10 @@ class SpecialVersion extends SpecialPage {
 		$gitHeadCommitDate = $gitInfo->getHeadCommitDate();
 		if ( $gitHeadCommitDate ) {
 			$shortSHA1 .= Html::element( 'br' );
-			$shortSHA1 .= $lang->timeanddate( (string)$gitHeadCommitDate, true );
+			$shortSHA1 .= $this->getLanguage()->timeanddate( (string)$gitHeadCommitDate, true );
 		}
 
-		return self::getMWVersionLinked() . " $shortSHA1";
+		return $this->getMWVersionLinked() . " $shortSHA1";
 	}
 
 	/**
@@ -440,6 +434,7 @@ class SpecialVersion extends SpecialPage {
 	/**
 	 * Returns the internationalized name for an extension type.
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.17
 	 *
 	 * @param string $type
@@ -447,6 +442,7 @@ class SpecialVersion extends SpecialPage {
 	 * @return string
 	 */
 	public static function getExtensionTypeName( $type ) {
+		wfDeprecated( __METHOD__, '1.47' );
 		$types = self::getExtensionTypes();
 
 		return $types[$type] ?? $types['other'];
@@ -1261,17 +1257,6 @@ class SpecialVersion extends SpecialPage {
 	}
 
 	/**
-	 * Get information about client's IP address.
-	 *
-	 * @return string HTML fragment
-	 */
-	private function IPInfo() {
-		$ip = str_replace( '--', ' - ', htmlspecialchars( $this->getRequest()->getIP() ) );
-
-		return "<!-- visited from $ip -->\n<span style='display:none'>visited from $ip</span>";
-	}
-
-	/**
 	 * Return a formatted unsorted list of authors
 	 *
 	 * 'And Others'
@@ -1404,16 +1389,6 @@ class SpecialVersion extends SpecialPage {
 	}
 
 	/**
-	 * @deprecated since 1.41 Use GitInfo::repo() for MW_INSTALL_PATH, or new GitInfo otherwise.
-	 * @param string $dir Directory of the git checkout
-	 * @return string|false Sha1 of commit HEAD points to
-	 */
-	public static function getGitHeadSha1( $dir ) {
-		wfDeprecated( __METHOD__, '1.41' );
-		return ( new GitInfo( $dir ) )->getHeadSHA1();
-	}
-
-	/**
 	 * Get the list of entry points and their URLs
 	 * @return string HTML
 	 */
@@ -1491,8 +1466,10 @@ class SpecialVersion extends SpecialPage {
 	}
 }
 
+// @codeCoverageIgnoreStart
 /**
  * Retain the old class name for backwards compatibility.
  * @deprecated since 1.41
  */
 class_alias( SpecialVersion::class, 'SpecialVersion' );
+// @codeCoverageIgnoreEnd

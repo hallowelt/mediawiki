@@ -44,11 +44,16 @@ class SpecialApiSandbox extends SpecialPage {
 		);
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @codeCoverageIgnore Merely declarative
+	 * @inheritDoc
+	 */
 	protected function getGroupName() {
 		return 'wiki';
 	}
 }
 
+// @codeCoverageIgnoreStart
 /** @deprecated class alias since 1.41 */
 class_alias( SpecialApiSandbox::class, 'SpecialApiSandbox' );
+// @codeCoverageIgnoreEnd

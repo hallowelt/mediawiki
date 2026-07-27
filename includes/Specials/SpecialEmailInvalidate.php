@@ -33,7 +33,10 @@ class SpecialEmailInvalidate extends UnlistedSpecialPage {
 		return 'editmyprivateinfo';
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @codeCoverageIgnore Merely declarative
+	 * @inheritDoc
+	 */
 	public function doesWrites() {
 		return true;
 	}
@@ -82,5 +85,7 @@ class SpecialEmailInvalidate extends UnlistedSpecialPage {
 	}
 }
 
+// @codeCoverageIgnoreStart
 /** @deprecated class alias since 1.41 */
 class_alias( SpecialEmailInvalidate::class, 'SpecialEmailInvalidate' );
+// @codeCoverageIgnoreEnd

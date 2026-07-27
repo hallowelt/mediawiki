@@ -30,7 +30,10 @@ class SpecialUnlockdb extends FormSpecialPage {
 		return 'siteadmin';
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @codeCoverageIgnore Merely declarative
+	 * @inheritDoc
+	 */
 	public function doesWrites() {
 		return false;
 	}
@@ -77,7 +80,10 @@ class SpecialUnlockdb extends FormSpecialPage {
 		if ( $res ) {
 			return Status::newGood();
 		} else {
+			// Not easy to test via PHPUnit tests, ignore this line
+			// @codeCoverageIgnoreStart
 			return Status::newFatal( 'filedeleteerror', $readOnlyFile );
+			// @codeCoverageIgnoreEnd
 		}
 	}
 
@@ -92,14 +98,19 @@ class SpecialUnlockdb extends FormSpecialPage {
 		return 'ooui';
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @codeCoverageIgnore Merely declarative
+	 * @inheritDoc
+	 */
 	protected function getGroupName() {
 		return 'wiki';
 	}
 }
 
+// @codeCoverageIgnoreStart
 /**
  * Retain the old class name for backwards compatibility.
  * @deprecated since 1.41
  */
 class_alias( SpecialUnlockdb::class, 'SpecialUnlockdb' );
+// @codeCoverageIgnoreEnd

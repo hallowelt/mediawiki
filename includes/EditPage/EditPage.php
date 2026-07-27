@@ -24,7 +24,6 @@ use MediaWiki\EditPage\Constraint\AuthorizationConstraint;
 use MediaWiki\EditPage\Constraint\DefaultTextConstraint;
 use MediaWiki\EditPage\Constraint\EditConstraintFactory;
 use MediaWiki\EditPage\Constraint\EditConstraintRunner;
-use MediaWiki\EditPage\Constraint\EditFilterMergedContentHookConstraint;
 use MediaWiki\EditPage\Constraint\ExistingSectionEditConstraint;
 use MediaWiki\EditPage\Constraint\NewSectionMissingSubjectConstraint;
 use MediaWiki\EditPage\Constraint\RedirectConstraint;
@@ -218,8 +217,6 @@ class EditPage implements IEditObject {
 	private bool $ignoreProblematicRedirects = false;
 
 	private string $autoSumm = '';
-
-	private string $hookError = '';
 
 	private ?ParserOutput $mParserOutput = null;
 
@@ -1814,15 +1811,6 @@ class EditPage implements IEditObject {
 		$extraQueryRedirect = $request->getVal( 'wpExtraQueryRedirect' );
 
 		switch ( $statusValue ) {
-			// Status codes for which the error/warning message is generated somewhere else in this class.
-			// They should be refactored to provide their own messages and handled below (T384399).
-			case self::AS_HOOK_ERROR_EXPECTED:
-			case self::AS_CONFLICT_DETECTED:
-				return true;
-
-			case self::AS_HOOK_ERROR:
-				return false;
-
 			// Status codes that provide their own error/warning messages. Most error scenarios that don't
 			// need custom user interface (e.g. edit conflicts) should be handled here, one day (T384399).
 			case self::AS_ARTICLE_WAS_DELETED:
@@ -1832,6 +1820,7 @@ class EditPage implements IEditObject {
 			case self::AS_DOUBLE_REDIRECT:
 			case self::AS_DOUBLE_REDIRECT_LOOP:
 			case self::AS_END:
+			case self::AS_HOOK_ERROR_EXPECTED:
 			case self::AS_INVALID_REDIRECT_TARGET:
 			case self::AS_MAX_ARTICLE_SIZE_EXCEEDED:
 			case self::AS_PARSE_ERROR:
@@ -1843,8 +1832,17 @@ class EditPage implements IEditObject {
 			case self::AS_TEXTBOX_EMPTY:
 			case self::AS_UNABLE_TO_ACQUIRE_TEMP_ACCOUNT:
 			case self::AS_UNICODE_NOT_SUPPORTED:
+			default:
 				$out->addHTML( $this->formatConstraintStatus( $status ) );
 				return true;
+
+			// Status codes for which the error/warning message is generated somewhere else in this class.
+			// They should be refactored to provide their own messages and handled below (T384399).
+			case self::AS_CONFLICT_DETECTED:
+				return true;
+
+			case self::AS_HOOK_ERROR:
+				return false;
 
 			case self::AS_SUCCESS_NEW_ARTICLE:
 				$queryParts = [];
@@ -1892,16 +1890,6 @@ class EditPage implements IEditObject {
 			case self::AS_READ_ONLY_PAGE_LOGGED:
 				$status->throwError();
 				// No break statement here as throwError() will always throw an exception
-
-			default:
-				// We don't recognize $statusValue. The only way that can happen
-				// is if an extension hook aborted from inside ArticleSave.
-				// Render the status object into $this->hookError
-				// FIXME this sucks, we should just use the Status object throughout
-				$this->hookError = Html::errorBox(
-					"\n" . Status::cast( $status )->getWikiText( false, false, $this->context->getLanguage() )
-				);
-				return true;
 		}
 	}
 
@@ -2146,8 +2134,6 @@ class EditPage implements IEditObject {
 			}
 		} elseif ( $failed instanceof DefaultTextConstraint ) {
 			$this->blankArticle = true;
-		} elseif ( $failed instanceof EditFilterMergedContentHookConstraint ) {
-			$this->hookError = $failed->getHookError();
 		} elseif (
 			$failed instanceof ExistingSectionEditConstraint ||
 			$failed instanceof NewSectionMissingSubjectConstraint
@@ -2652,10 +2638,6 @@ class EditPage implements IEditObject {
 						$this->summary = "/* $sectionTitle */ ";
 					}
 				}
-			}
-
-			if ( $this->hookError !== '' ) {
-				$out->addWikiTextAsInterface( $this->hookError );
 			}
 
 			if ( $this->section != 'new' ) {

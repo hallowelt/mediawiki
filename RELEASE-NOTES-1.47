@@ -120,6 +120,9 @@ For notes on 1.46.x and older releases, see HISTORY.
   the optional filter arguments, so that rights-restricted change tags can be
   shown to and filtered on by users who are allowed to view them.
 * (T432457) The UnifiedDiffFormatter class is now stable to extend.
+* (T408666) A new hook LinkTargetIsAlwaysKnownBatch allows overriding whether
+  links are always known for a batch of link targets at once. It deprecates
+  the TitleIsAlwaysKnown hook, which should no longer be used.
 * …
 
 === External library changes in 1.47 ===
@@ -149,7 +152,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated wikimedia/minify from 2.10.0 to 2.11.0.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.5.1 to v2.6.2.
-* Updated OOUI from v0.53.2 to v0.54.0
+* Updated OOUI from v0.53.2 to v0.54.1
 * Updated pinia from 2.0.16 to 3.0.4.
 * Updated @pinia/testing from 0.0.12 to 1.0.3.
 * Updated wikimedia/shellbox from 4.4.0 to 4.5.2.
@@ -159,6 +162,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 * Updated composer/spdx-licenses from 1.5.9 to 1.6.0.
 * Updated mediawiki/mediawiki-codesniffer from 50.0.0 to 51.0.0.
+* Updated eslint-config-wikimedia from 0.32.3 to 0.32.5.
 * …
 
 ==== Removed external libraries ====
@@ -361,6 +365,8 @@ because of Phabricator reports.
 * Passing null to any of the three constructor parameters of TextboxBuilder,
   deprecated in 1.46, will now throw a PHP error. Use the service to get an
   instance of the class.
+* The SpecialVersion::getGitHeadSha1 method, deprecated in 1.41, has
+  been removed.
 * The following ChangeTags methods which were deprecated in 1.41 have been
   removed:
   - getTags
@@ -444,6 +450,10 @@ because of Phabricator reports.
 * ResourceLoader::inDebugMode is now deprecated and emits deprecation warnings.
 * QuickTemplate::msg() and QuickTemplate::haveMsg() got deprecated and shouldn't
   be used any more.
+* The shell global functions wfEscapeShellArg(), wfShellExec(),
+  wfShellExecWithStderr() deprecated since 1.30 and wfShellWikiCmd()
+  deprecated in 1.31 will now emit warnings. Use Shell::escpae(),
+  Shell::command() and Shell::makeScriptCommand() instead.
 * The EditPageBeforeConflictDiff hook has been deprecated and will trigger
   deprecation warnings.
 * Customizing API help output by overriding the ApiBase::modifyHelp() method
@@ -479,14 +489,21 @@ because of Phabricator reports.
 * Linker::makeBrokenImageLinkObj() used to wfWarn if the first argument
   was not a LinkTarget.  This has been changed to a deprecation warning.
   In a future release this will be a type hint on the argument.
+* Linker::linkKnown(), deprecated since 1.28, now emits deprecation
+  warnings. Use LinkRenderer::makeKnownLink() instead.
 * The ParserOptionsRegister hook has been deprecated and replaced by
   ParserOptionsDefaults.
 * The PagerTools class has been deprecated and emits deprecation warnings. Use
   the new ChangeToolsFactory service instead.
+* TextboxBuilder::mergeClassesIntoAttributes(), deprecated since 1.44, now
+  emits deprecation warnings.
 * MediaWikiIntegrationTestCase::assertSelect() has been deprecated,
   use MediaWikiIntegrationTestCase::newSelectQueryBuilder() instead.
 * MediaWikiIntegrationTestCase::assertArraySubmapSame() has been deprecated,
   use MediaWikiTestCaseTrait::assertArrayContains() instead.
+* File::getMetadata(), LocalFile::getMetadata() and ArchivedFile::getMetadata(),
+  deprecated since 1.37, now emits warnings. Use the getMetadataArray() or
+  getMetadataItems() functions instead.
 * MediaTransformOutput::streamFile(), deprecated since 1.26, now emits
   deprecation warnings. Use streamFileWithStatus() instead.
 * PageUpdater::isUnchanged(), deprecated since 1.38, now emits
@@ -496,12 +513,15 @@ because of Phabricator reports.
 * LocalFile::lock() and LocalFile::unlock(), deprecated since 1.38, now emit
   deprecation warnings. Use acquireFileLock() and releaseFileLock() instead.
   LocalFileLockError is deprecated along with these methods.
+* SpecialEmailUser::getTarget(), deprecated since 1.42, now emits deprecation
+  warnings.
 * The global function wfArrayPlus2d(), deprecated since 1.46, now emits
   deprecation warnings.
 * The global function wfArrayInsertAfter(), deprecated since 1.46, now emits
   deprecation warnings.
 * $wgUseCopyrightUpload has been deprecated and will be removed in a future
   version. See T430254 for details.
+* SpecialVersion::getExtensionTypeName() is unused and has been deprecated.
 * The following ChangeTags methods have been deprecated and emit deprecation
   warnings:
   - tagDescription: use ChangeTagsFormatter::getTagDescription instead
@@ -514,6 +534,8 @@ because of Phabricator reports.
     instead
   - getChangeTagList: use ChangeTagsFormatter::getChangeTagList instead
   - buildTagFilterSelector: use ChangeTagsFormatter::buildTagFilter instead
+* (T408666) The TitleIsAlwaysKnown hook has been deprecated. Use the
+  LinkTargetIsAlwaysKnownBatch hook instead.
 * …
 
 === Other changes in 1.47 ===

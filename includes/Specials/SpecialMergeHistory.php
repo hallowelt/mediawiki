@@ -87,7 +87,10 @@ class SpecialMergeHistory extends SpecialPage {
 		return 'mergehistory';
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @codeCoverageIgnore Merely declarative
+	 * @inheritDoc
+	 */
 	public function doesWrites() {
 		return true;
 	}
@@ -399,14 +402,19 @@ class SpecialMergeHistory extends SpecialPage {
 		return true;
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @codeCoverageIgnore Merely declarative
+	 * @inheritDoc
+	 */
 	protected function getGroupName() {
 		return 'pagetools';
 	}
 }
 
+// @codeCoverageIgnoreStart
 /**
  * Retain the old class name for backwards compatibility.
  * @deprecated since 1.41
  */
 class_alias( SpecialMergeHistory::class, 'SpecialMergeHistory' );
+// @codeCoverageIgnoreEnd

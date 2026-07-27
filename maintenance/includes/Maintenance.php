@@ -821,8 +821,7 @@ abstract class Maintenance {
 		$this->parameters->loadWithArgv( $argv );
 
 		if ( $this->parameters->hasErrors() ) {
-			$errors = "\nERROR: " . implode( "\nERROR: ", $this->parameters->getErrors() ) . "\n";
-			$this->error( $errors );
+			// Show errors and exit
 			$this->maybeHelp( true );
 		}
 
@@ -897,13 +896,20 @@ abstract class Maintenance {
 	 * @param bool $force Whether to force the help to show, default false
 	 */
 	protected function maybeHelp( $force = false ) {
+		if ( $this->parameters->hasWarnings() && !$this->hasOption( 'help' ) ) {
+			foreach ( $this->parameters->getWarnings() as $warning ) {
+				$this->error( "WARNING: " . $warning );
+			}
+		}
+
 		if ( !$force && !$this->hasOption( 'help' ) ) {
 			return;
 		}
 
 		if ( $this->parameters->hasErrors() && !$this->hasOption( 'help' ) ) {
-			$errors = "\nERROR: " . implode( "\nERROR: ", $this->parameters->getErrors() ) . "\n";
-			$this->error( $errors );
+			foreach ( $this->parameters->getErrors() as $error ) {
+				$this->error( "ERROR: " . $error );
+			}
 		}
 
 		$this->showHelp();

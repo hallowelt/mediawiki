@@ -13,6 +13,7 @@ class MaintenanceParametersTest extends TestCase {
 		$params = new MaintenanceParameters();
 
 		$params->addOption( 'test', 'Test Option' );
+		$params->addOption( 'multi', 'Test Option', multiOccurrence: true );
 
 		$this->assertTrue( $params->supportsOption( 'test' ) );
 		$this->assertFalse( $params->supportsOption( 'xyzzy' ) );
@@ -23,25 +24,29 @@ class MaintenanceParametersTest extends TestCase {
 
 		$this->assertSame( [], $params->getOptions() );
 		$this->assertSame( [], $params->getOptionsSequence() );
-		$this->assertSame( [ 'test' ], $params->getOptionNames() );
+		$this->assertSame( [ 'test', 'multi' ], $params->getOptionNames() );
 
 		// Provide option value
-		$params->setOptionsAndArgs( [ 'test' => 'foo' ], [] );
+		$params->setOptionsAndArgs( [ 'test' => 'foo', 'multi' => [ 'foo', 'bar' ] ], [] );
 
 		$this->assertTrue( $params->hasOption( 'test' ) );
 		$this->assertSame( 'foo', $params->getOption( 'test' ) );
 		$this->assertSame( 'foo', $params->getOption( 'test', 'default' ) );
 
-		$this->assertSame( [ 'test' => 'foo' ], $params->getOptions() );
-		$this->assertSame( [ [ 'test', 'foo' ] ], $params->getOptionsSequence() );
-		$this->assertSame( [ 'test' ], $params->getOptionNames() );
+		$this->assertSame( [ 'test' => 'foo', 'multi' => [ 'foo', 'bar' ] ], $params->getOptions() );
+		$this->assertSame( [ [ 'test', 'foo' ], [ 'multi', 'foo' ], [ 'multi', 'bar' ] ], $params->getOptionsSequence() );
+		$this->assertSame( [ 'test', 'multi' ], $params->getOptionNames() );
 
 		// Delete option
 		$params->deleteOption( 'test' );
-
 		$this->assertFalse( $params->hasOption( 'test' ) );
 		$this->assertFalse( $params->supportsOption( 'test' ) );
 		$this->assertNull( $params->getOption( 'test' ) );
+
+		$params->deleteOption( 'multi' );
+		$this->assertFalse( $params->hasOption( 'multi' ) );
+		$this->assertFalse( $params->supportsOption( 'multi' ) );
+		$this->assertNull( $params->getOption( 'multi' ) );
 
 		$this->assertSame( [], $params->getOptions() );
 		$this->assertSame( [], $params->getOptionsSequence() );
@@ -166,8 +171,31 @@ class MaintenanceParametersTest extends TestCase {
 			[ '--value=foo', 'test' ], [ 'value' => 'foo' ], [ 'test' ]
 		];
 
-		yield 'option value short' => [
+		yield 'simple option value assigned' => [
+			[ '--simple=foo', 'test' ], [ 'simple' => 'foo' ], [ 'test' ],
+			[ 'Option --simple should not be assigned a value.' ]
+		];
+
+		yield 'short option value assigned' => [
+			[ '-v', 'foo' ], [ 'value' => 'foo' ], []
+		];
+
+		yield 'short options, mixing simple and value options' => [
 			[ '-sv', 'foo' ], [ 'simple' => 1, 'value' => 'foo' ], []
+		];
+
+		yield 'short options, mixing simple and value options in wrong order' => [
+			[ '-vs', 'foo' ], [ 'value' => 'foo', 'simple' => 1 ], [],
+			[ 'Short option -v should be followed directly by a value rather than another short option.' ]
+		];
+
+		yield 'short options, mixing two value options' => [
+			[ '-vw', 'foo', 'bar' ], [ 'value' => 'foo', 'value2' => 'bar' ], [],
+			[ 'Short option -v should be followed directly by a value rather than another short option.' ]
+		];
+
+		yield 'short option and an argument' => [
+			[ '-s', 'foo' ], [ 'simple' => 1 ], [ 'foo' ]
 		];
 
 		yield 'short option and lonely dash' => [
@@ -181,11 +209,20 @@ class MaintenanceParametersTest extends TestCase {
 		];
 
 		yield 'multi value short' => [
-			[ '-mm', 'foo', 'bar', 'test' ],
+			[ '-m', 'foo', '-m', 'bar', 'test' ],
 			[ 'multi' => [ 'foo', 'bar' ] ],
 			[ 'test' ]
 		];
 
+		yield 'multi value short multiple' => [
+			[ '-mm', 'foo', 'bar', 'test' ],
+			[ 'multi' => [ 'foo', 'bar' ] ],
+			[ 'test' ],
+			[ 'Short option -m should be followed directly by a value rather than another short option.' ]
+		];
+	}
+
+	public static function provideArgvAllowUnregistered() {
 		yield 'extra option' => [
 			[ '--extra', 'test' ],
 			[ 'extra' => 1 ],
@@ -197,17 +234,25 @@ class MaintenanceParametersTest extends TestCase {
 			[ 'extra' => 'foo' ],
 			[ 'test' ]
 		];
+
+		yield 'short extra option' => [
+			[ '-e', 'test' ],
+			[ 'e' => 1 ],
+			[ 'test' ]
+		];
 	}
 
 	/**
 	 * @dataProvider provideArgv
 	 */
-	public function testLoad( $argv, $expectedOptions, $expectedArgs ) {
+	public function testLoad( $argv, $expectedOptions, $expectedArgs, $expectedWarnings = [] ) {
 		$params = new MaintenanceParameters();
-		$params->setAllowUnregisteredOptions( true );
+		$params->setAllowUnregisteredOptions( false );
 
 		$params->addOption( 'simple', 'simple option', false, false, 's' );
+		$params->addOption( 'simple2', 'simple option', false, false, 't' );
 		$params->addOption( 'value', 'value option', false, true, 'v' );
+		$params->addOption( 'value2', 'value option', false, true, 'w' );
 		$params->addOption( 'multi', 'multi option', false, true, 'm', true );
 		$params->addArg( 'foo', 'Foozels', false );
 
@@ -216,6 +261,29 @@ class MaintenanceParametersTest extends TestCase {
 		$params->validate();
 		$this->assertFalse( $params->hasErrors() );
 		$this->assertSame( [], $params->getErrors() );
+
+		$this->assertSame( (bool)$expectedWarnings, $params->hasWarnings() );
+		$this->assertSame( $expectedWarnings, $params->getWarnings() );
+
+		$this->assertSame( $expectedOptions, $params->getOptions() );
+		$this->assertSame( $expectedArgs, $params->getArgs() );
+	}
+
+	/**
+	 * @dataProvider provideArgvAllowUnregistered
+	 */
+	public function testLoadAllowUnregistered( $argv, $expectedOptions, $expectedArgs ) {
+		$params = new MaintenanceParameters();
+		$params->setAllowUnregisteredOptions( true );
+
+		$params->loadWithArgv( $argv );
+
+		$params->validate();
+		$this->assertFalse( $params->hasErrors() );
+		$this->assertSame( [], $params->getErrors() );
+
+		$this->assertFalse( $params->hasWarnings() );
+		$this->assertSame( [], $params->getWarnings() );
 
 		$this->assertSame( $expectedOptions, $params->getOptions() );
 		$this->assertSame( $expectedArgs, $params->getArgs() );
@@ -313,6 +381,21 @@ class MaintenanceParametersTest extends TestCase {
 		yield 'Unexpected option' => [
 			[ '--extra', 'arg', '-s' ],
 			[ 'Unexpected option --extra!' ]
+		];
+
+		yield 'Unexpected short option' => [
+			[ '-e', 'arg', '-s' ],
+			[ 'Unexpected option --e!' ]
+		];
+
+		yield 'Unexpected short option 2' => [
+			[ '-es', 'arg' ],
+			[ 'Unexpected option --e!' ]
+		];
+
+		yield 'Unexpected short option 3' => [
+			[ '-se', 'arg' ],
+			[ 'Unexpected option --e!' ]
 		];
 
 		yield 'Missing value' => [

@@ -87,7 +87,11 @@ class CategoryPager extends AlphabeticPager {
 		$link = $this->getLinkRenderer()->makeLink( $title, $text );
 
 		$count = $this->msg( 'nmembers' )->numParams( $result->cat_pages )->escaped();
-		return Html::rawElement( 'li', [], $this->getLanguage()->specialList( $link, $count ) ) . "\n";
+		return Html::rawElement(
+			'li',
+			[ 'class' => 'mw-special-categories-list-item' ],
+			$this->getLanguage()->specialList( $link, $count )
+		) . "\n";
 	}
 
 	/**
@@ -111,12 +115,14 @@ class CategoryPager extends AlphabeticPager {
 		$htmlForm = HTMLForm::factory( 'ooui', $formDescriptor, $this->getContext() )
 			->setSubmitTextMsg( 'categories-submit' )
 			->setWrapperLegendMsg( 'categories' )
+			->setId( 'mw-special-categories-list-form' )
 			->setMethod( 'get' );
 		return $htmlForm->prepareForm()->getHTML( false );
 	}
 
 }
 
+// @codeCoverageIgnoreStart
 /**
  * Retain the old class name for backwards compatibility.
  * @deprecated since 1.41
@@ -125,3 +131,4 @@ class_alias( CategoryPager::class, 'CategoryPager' );
 
 /** @deprecated class alias since 1.46 */
 class_alias( CategoryPager::class, 'MediaWiki\\Pager\\CategoryPager' );
+// @codeCoverageIgnoreEnd

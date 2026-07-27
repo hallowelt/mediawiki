@@ -202,6 +202,11 @@ $wgAutoloadClasses += [
 	'SpecialPageExecutor' => "$testDir/phpunit/includes/Specials/SpecialPageExecutor.php",
 	'MediaWiki\\Tests\\Specials\\SpecialPageExecutor' => "$testDir/phpunit/includes/Specials/SpecialPageExecutor.php",
 	'MediaWiki\\Tests\\Specials\\SpecialSearchTestMockResultSet' => "$testDir/phpunit/includes/Specials/SpecialSearchTestMockResultSet.php",
+	'MediaWiki\\Tests\\Integration\\Specials\\SpecialRedirectWithActionTestBase' => "$testDir/phpunit/integration/includes/Specials/SpecialRedirectWithActionTestBase.php",
+
+	# tests/phpunit/includes/Specials/Redirects
+	'MediaWiki\\Tests\\Integration\\Specials\\Redirects\\SpecialRedirectToSpecialTestBase' => "$testDir/phpunit/integration/includes/Specials/Redirects/SpecialRedirectToSpecialTestBase.php",
+	'MediaWiki\\Tests\\Integration\\Specials\\Redirects\\RedirectSpecialPageThatRequiresLoginTestBase' => "$testDir/phpunit/integration/includes/Specials/Redirects/RedirectSpecialPageThatRequiresLoginTestBase.php",
 
 	# tests/phpunit/includes/Storage
 	'MediaWiki\\Tests\\Storage\\PageEditStashContentsTest' => "$testDir/phpunit/includes/Storage/PageEditStashContentsTest.php",
@@ -408,6 +413,9 @@ $wgAutoloadClasses += [
 	# tests/phpunit/unit/includes/Session
 	'MediaWiki\\Tests\\Session\\SessionProviderTestTrait' => "$testDir/phpunit/unit/includes/Session/SessionProviderTestTrait.php",
 	'MediaWiki\\Tests\\Session\\SessionStoreTestTrait' => "$testDir/phpunit/unit/includes/Session/SessionStoreTestTrait.php",
+
+	# tests/phpunit
+	'MediaWiki\\Tests\\Unit\\HtmlAssertionHelperTrait' => "$testDir/phpunit/unit/HtmlAssertionHelperTrait.php",
 
 	# tests/suites
 	'ParserTestFileTrait' => "$testDir/phpunit/ParserTestFileTrait.php",

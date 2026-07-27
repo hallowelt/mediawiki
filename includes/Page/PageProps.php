@@ -18,10 +18,10 @@ use Wikimedia\Rdbms\IConnectionProvider;
  * @ingroup Page
  */
 class PageProps {
-	/* TTL in seconds */
-	private const CACHE_TTL = 10;
 	/* max cached pages */
 	private const CACHE_SIZE = 100;
+	/* key group where we store complete per-page data from PageProps::getAllProperties */
+	private const ALL_PROPS_KEY = 0;
 
 	private LinkBatchFactory $linkBatchFactory;
 	private IConnectionProvider $dbProvider;
@@ -34,16 +34,6 @@ class PageProps {
 		$this->linkBatchFactory = $linkBatchFactory;
 		$this->dbProvider = $dbProvider;
 		$this->cache = new MapCacheLRU( self::CACHE_SIZE );
-	}
-
-	/**
-	 * Ensure that cache has at least this size
-	 * @param int $size
-	 */
-	public function ensureCacheSize( $size ) {
-		if ( $this->cache->getMaxSize() < $size ) {
-			$this->cache->setMaxSize( $size );
-		}
 	}
 
 	/**
@@ -83,13 +73,17 @@ class PageProps {
 		foreach ( $goodIDs as $pageID ) {
 			foreach ( $propertyNames as $propertyName ) {
 				$propertyValue = $this->getCachedProperty( $pageID, $propertyName );
-				if ( $propertyValue === false ) {
+				if ( $propertyValue === null ) {
+					// Store absence, and overwrite below if present (T347123).
+					$this->cache->setField( $pageID, $propertyName, false );
 					$queryIDs[] = $pageID;
 					break;
-				} elseif ( $gotArray ) {
-					$values[$pageID][$propertyName] = $propertyValue;
-				} else {
-					$values[$pageID] = $propertyValue;
+				} elseif ( $propertyValue !== false ) {
+					if ( $gotArray ) {
+						$values[$pageID][$propertyName] = $propertyValue;
+					} else {
+						$values[$pageID] = $propertyValue;
+					}
 				}
 			}
 		}
@@ -148,7 +142,7 @@ class PageProps {
 			}
 		}
 
-		if ( $queryIDs != [] ) {
+		if ( $queryIDs ) {
 			$queryBuilder = $this->dbProvider->getReplicaDatabase()->newSelectQueryBuilder();
 			$queryBuilder->select( [ 'pp_page', 'pp_propname', 'pp_value' ] )
 				->from( 'page_props' )
@@ -171,7 +165,7 @@ class PageProps {
 				}
 				$pageProperties[$row->pp_propname] = $row->pp_value;
 			}
-			if ( $pageProperties != [] ) {
+			if ( $pageProperties ) {
 				// @phan-suppress-next-line PhanPossiblyUndeclaredVariable pageID set when used
 				$this->cacheProperties( $pageID, $pageProperties );
 				// @phan-suppress-next-line PhanPossiblyUndeclaredVariable pageID set when used
@@ -223,23 +217,23 @@ class PageProps {
 	}
 
 	/**
-	 * Get a property from the cache.
+	 * Get a single property from the cache.
 	 *
 	 * @param int $pageID page ID of page being queried
 	 * @param string $propertyName name of property being queried
-	 * @return string|bool property value array or false if not found
+	 * @return string|false|null property value, false if known absent, or null if uncached
 	 */
 	private function getCachedProperty( $pageID, $propertyName ) {
-		if ( $this->cache->hasField( $pageID, $propertyName, self::CACHE_TTL ) ) {
+		if ( $this->cache->hasField( $pageID, $propertyName ) ) {
 			return $this->cache->getField( $pageID, $propertyName );
 		}
-		if ( $this->cache->hasField( 0, $pageID, self::CACHE_TTL ) ) {
-			$pageProperties = $this->cache->getField( 0, $pageID );
+		if ( $this->cache->hasField( self::ALL_PROPS_KEY, $pageID ) ) {
+			$pageProperties = $this->cache->getField( self::ALL_PROPS_KEY, $pageID );
 			if ( isset( $pageProperties[$propertyName] ) ) {
 				return $pageProperties[$propertyName];
 			}
 		}
-		return false;
+		return null;
 	}
 
 	/**
@@ -249,8 +243,8 @@ class PageProps {
 	 * @return string|bool property value array or false if not found
 	 */
 	private function getCachedProperties( $pageID ) {
-		if ( $this->cache->hasField( 0, $pageID, self::CACHE_TTL ) ) {
-			return $this->cache->getField( 0, $pageID );
+		if ( $this->cache->hasField( self::ALL_PROPS_KEY, $pageID ) ) {
+			return $this->cache->getField( self::ALL_PROPS_KEY, $pageID );
 		}
 		return false;
 	}
@@ -259,10 +253,19 @@ class PageProps {
 	 * Save properties to the cache.
 	 *
 	 * @param int $pageID page ID of page being cached
-	 * @param string[] $pageProperties associative array of page properties to be cached
+	 * @param array<string,string> $pageProperties associative array of page properties to be cached
 	 */
-	private function cacheProperties( $pageID, $pageProperties ) {
+	private function cacheProperties( $pageID, array $pageProperties ) {
+		// Remove any partial data for this page
 		$this->cache->clear( $pageID );
-		$this->cache->setField( 0, $pageID, $pageProperties );
+		// Set complete data for this page
+		$this->cache->setField( self::ALL_PROPS_KEY, $pageID, $pageProperties );
+	}
+
+	/**
+	 * @since 1.47
+	 */
+	public function clear(): void {
+		$this->cache->clear();
 	}
 }

@@ -165,6 +165,7 @@ use MediaWiki\OutputTransform\OutputTransformPipeline;
 use MediaWiki\Page\ContentModelChangeFactory;
 use MediaWiki\Page\DeletePageFactory;
 use MediaWiki\Page\File\BadFileLookup;
+use MediaWiki\Page\LinkAlwaysKnownLookup;
 use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\Page\LinkCache;
 use MediaWiki\Page\MergeHistoryFactory;
@@ -245,6 +246,7 @@ use MediaWiki\Settings\Config\ConfigSchema;
 use MediaWiki\Settings\SettingsBuilder;
 use MediaWiki\ShadowPage\ShadowPageLoader;
 use MediaWiki\Shell\CommandFactory;
+use MediaWiki\Shell\Shell;
 use MediaWiki\Shell\ShellboxClientFactory;
 use MediaWiki\Site\CachingSiteStore;
 use MediaWiki\Site\DBSiteStore;
@@ -1084,7 +1086,7 @@ return [
 		return new GlobalIdGenerator(
 			$mainConfig->get( MainConfigNames::TmpDirectory ),
 			static function ( $command ) {
-				return wfShellExec( $command );
+				return Shell::command( $command )->execute()->getStdout();
 			}
 		);
 	},
@@ -1233,6 +1235,7 @@ return [
 			$services->getJobQueueGroup(),
 			$services->getReadOnlyMode(),
 			$services->getLinkCache(),
+			$services->getPageProps(),
 			$services->getStatsFactory(),
 			LoggerFactory::getInstance( 'runJobs' )
 		);
@@ -1311,6 +1314,18 @@ return [
 		);
 	},
 
+	'LinkAlwaysKnownLookup' => static function ( MediaWikiServices $services ): LinkAlwaysKnownLookup {
+		return new LinkAlwaysKnownLookup(
+			new HookRunner( $services->getHookContainer() ),
+			$services->getTitleFactory(),
+			$services->getTitleFormatter(),
+			$services->getShadowPageLoader(),
+			$services->getRepoGroup(),
+			$services->getSpecialPageFactory(),
+			LoggerFactory::getInstance( 'LinkBatch' )
+		);
+	},
+
 	'LinkBatchFactory' => static function ( MediaWikiServices $services ): LinkBatchFactory {
 		return new LinkBatchFactory(
 			$services->getLinkCache(),
@@ -1320,6 +1335,7 @@ return [
 			$services->getConnectionProvider(),
 			$services->getLinksMigration(),
 			$services->getTempUserDetailsLookup(),
+			$services->getLinkAlwaysKnownLookup(),
 			LoggerFactory::getInstance( 'LinkBatch' )
 		);
 	},
