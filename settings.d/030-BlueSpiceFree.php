@@ -36,7 +36,8 @@ wfLoadExtension( 'BlueSpiceRSSFeeder' );
 wfLoadExtension( 'BlueSpiceSaferEdit' );
 wfLoadExtension( 'BlueSpiceSmartList' );
 
-wfLoadExtension( 'BlueSpiceTagCloud' );
+// https://hallowelt.easyredmine.com/issues/48053?journals=all#note-902400
+/* wfLoadExtension( 'BlueSpiceTagCloud' );
 $GLOBALS['bsgTagCloudTypeCategoryExclude'] = [
 	'BPMN Association',
 	'BPMN DataInputAssociation',
@@ -53,7 +54,7 @@ $GLOBALS['bsgTagCloudTypeCategoryExclude'] = [
 	'Imported vocabulary',
 	'Pages using Tabber parser tag',
 	'Pages using TabberTransclude parser tag'
-];
+]; */
 
 wfLoadExtension( 'BlueSpiceUsageTracker' );
 wfLoadExtension( 'BlueSpiceUserManager' );
