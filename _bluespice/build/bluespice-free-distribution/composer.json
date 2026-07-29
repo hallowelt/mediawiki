@@ -15,7 +15,7 @@
 		"mediawiki/hit-counters": "dev-master",
 		"mediawiki/image-map-edit": "dev-master",
 		"mediawiki/invite-signup": "dev-master",
-		"mediawiki/lingo": "3.2.*",
+		"mediawiki/lingo": "dev-master",
 		"mediawiki/loops": "dev-master",
 		"mediawiki/menu-editor": "dev-master",
 		"mediawiki/notify-me": "dev-master",
