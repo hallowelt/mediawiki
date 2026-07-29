@@ -11,7 +11,7 @@
 		"mediawiki/enhanced-standard-uis": "dev-master",
 		"mediawiki/enhanced-upload": "dev-master",
 		"mediawiki/flexiskin": "dev-master",
-		"mediawiki/font-awesome": "2.0.*",
+		"mediawiki/font-awesome": "4.0.*",
 		"mediawiki/hit-counters": "dev-master",
 		"mediawiki/image-map-edit": "dev-master",
 		"mediawiki/invite-signup": "dev-master",
