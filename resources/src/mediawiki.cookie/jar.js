@@ -16,30 +16,31 @@
 	const pluses = /\+/g;
 	let config = null, cookie;
 
-	function raw( s ) {
-		return s;
-	}
+	function decode( s ) {
+		if ( config.raw ) {
+			return s;
+		}
 
-	function decoded( s ) {
 		try {
-			return unRfc2068( decodeURIComponent( s.replace( pluses, ' ' ) ) );
+			return decodeURIComponent( s.replace( pluses, ' ' ) );
 		} catch ( e ) {
-			// If the cookie cannot be decoded this should not throw an error.
-			// See T271838.
+			// T271838: If the cookie cannot be decoded this should not throw an error.
 			return '';
 		}
 	}
 
-	function unRfc2068( value ) {
-		if ( value.startsWith( '"' ) ) {
+	function decodeAndParse( s ) {
+		if ( s.startsWith( '"' ) ) {
 			// This is a quoted cookie as according to RFC2068, unescape
-			value = value.slice( 1, -1 ).replace( /\\"/g, '"' ).replace( /\\\\/g, '\\' );
+			s = s.slice( 1, -1 ).replace( /\\"/g, '"' ).replace( /\\\\/g, '\\' );
 		}
-		return value;
-	}
 
-	function fromJSON( value ) {
-		return config.json ? JSON.parse( value ) : value;
+		s = decode( s );
+
+		try {
+			return config.json ? JSON.parse( s ) : s;
+		} catch ( e ) {
+		}
 	}
 
 	/**
@@ -56,7 +57,7 @@
 	 */
 	config = cookie = function ( key, value, options ) {
 
-		// write
+		// Write
 		if ( value !== undefined ) {
 			options = Object.assign( {}, config.defaults, options );
 
@@ -87,8 +88,7 @@
 			}
 		}
 
-		// read
-		const decode = config.raw ? raw : decoded;
+		// Read
 		let cookies;
 		try {
 			cookies = document.cookie.split( '; ' );
@@ -100,15 +100,15 @@
 		for ( let i = 0, l = cookies.length; i < l; i++ ) {
 			const parts = cookies[ i ].split( '=' );
 			const name = decode( parts.shift() );
-			const s = decode( parts.join( '=' ) );
+			const s = parts.join( '=' );
 
 			if ( key && key === name ) {
-				result = fromJSON( s );
+				result = decodeAndParse( s );
 				break;
 			}
 
 			if ( !key ) {
-				result[ name ] = fromJSON( s );
+				result[ name ] = decodeAndParse( s );
 			}
 		}
 

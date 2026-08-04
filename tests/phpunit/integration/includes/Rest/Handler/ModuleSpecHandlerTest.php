@@ -183,6 +183,7 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 				'info' => [
 					'title' => 'mock/v1 <message key="rest-module"></message>',
 					'version' => '1.3-test',
+					'termsOfService' => 'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use#12._API_Terms',
 					'contact' => [
 						'email' => 'test@example.com'
 					],
@@ -250,6 +251,7 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 				'info' => [
 					'title' => '<message key="rest-module-extra-routes-title"></message>',
 					'version' => '0.1.0',
+					'termsOfService' => 'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use#12._API_Terms',
 					'license' => [
 						'name' => 'Test License',
 						'url' => 'https://example.com/license',
@@ -280,6 +282,7 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 			MainConfigNames::EmergencyContact => 'test@example.com',
 			MainConfigNames::CanonicalServer => 'https://example.com:1234',
 			MainConfigNames::RestPath => '/api',
+			MainConfigNames::RestTermsOfServiceUrl => 'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use#12._API_Terms',
 		] );
 
 		$request = new RequestData( $params );
@@ -310,6 +313,216 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 		$this->assertIsArray( $data, 'Body must be a JSON array' );
 		$this->assertWellFormedOAS( $data );
 		$this->assertContainsRecursive( $expected, $data );
+		$this->assertArrayHasKey( 'termsOfService', $data['info'] );
+		$this->assertSame(
+			'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use#12._API_Terms',
+			$data['info']['termsOfService']
+		);
+	}
+
+	public function testGetInfoSpecOmitsTermsOfService(): void {
+		$this->overrideConfigValues( [
+			MainConfigNames::RightsText => 'Test License',
+			MainConfigNames::RightsUrl => 'https://example.com/license',
+			MainConfigNames::EmergencyContact => 'test@example.com',
+			MainConfigNames::RestTermsOfServiceUrl => null,
+			MainConfigNames::CanonicalServer => 'https://example.com:1234',
+			MainConfigNames::RestPath => '/api',
+		] );
+
+		$request = new RequestData( [
+			'pathParams' => [ 'module' => 'mock', 'version' => 'v1' ]
+		] );
+
+		$moduleModes = [
+			'mock/v1' => ModuleMode::PUBLISHED,
+		];
+		$router = $this->createRouter( $request, __DIR__ . '/SpecTestModule.json', $moduleModes );
+
+		$handler = $this->newHandler();
+		$response = $this->executeHandler(
+			$handler,
+			$request,
+			[],
+			[],
+			[],
+			[],
+			null,
+			null,
+			$router
+		);
+		$this->assertSame( 200, $response->getStatusCode() );
+
+		$data = json_decode( (string)$response->getBody(), true );
+		$this->assertIsArray( $data, 'Body must be a JSON array' );
+		$this->assertWellFormedOAS( $data );
+		$this->assertArrayNotHasKey( 'termsOfService', $data['info'] );
+	}
+
+	public function testGetInfoSpecOmitsInvalidContactEmail(): void {
+		$this->overrideConfigValues( [
+			MainConfigNames::RightsText => 'Test License',
+			MainConfigNames::RightsUrl => 'https://example.com/license',
+			MainConfigNames::EmergencyContact => 'not-an-email',
+			MainConfigNames::RestTermsOfServiceUrl => 'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use#12._API_Terms',
+			MainConfigNames::CanonicalServer => 'https://example.com:1234',
+			MainConfigNames::RestPath => '/api',
+		] );
+
+		$request = new RequestData( [
+			'pathParams' => [ 'module' => 'mock', 'version' => 'v1' ]
+		] );
+
+		$moduleModes = [
+			'mock/v1' => ModuleMode::PUBLISHED,
+		];
+		$router = $this->createRouter( $request, __DIR__ . '/SpecTestModule.json', $moduleModes );
+
+		$handler = $this->newHandler();
+		$response = $this->executeHandler(
+			$handler,
+			$request,
+			[],
+			[],
+			[],
+			[],
+			null,
+			null,
+			$router
+		);
+		$this->assertSame( 200, $response->getStatusCode() );
+
+		$data = json_decode( (string)$response->getBody(), true );
+		$this->assertIsArray( $data, 'Body must be a JSON array' );
+		$this->assertWellFormedOAS( $data );
+
+		$this->assertArrayHasKey( 'contact', $data['info'] );
+		$this->assertArrayNotHasKey( 'email', $data['info']['contact'] );
+	}
+
+	/**
+	 * Test server list and recommendation header injection based on RestLocalModuleTestBaseUrl config.
+	 *
+	 * @dataProvider provideLocalModuleTestBaseUrlCases
+	 *
+	 * @param string|null $sandboxBaseUrl Value for RestLocalModuleTestBaseUrl
+	 * @param int $expectedServerCount Expected number of servers in output
+	 * @param array $expectedServers Map of index -> [url, description (or null if none expected)]
+	 * @param string|null $expectedRecommendation Expected recommendation message key or null if none expected
+	 * @param string $specFile Name of mock OpenAPI specification file to load
+	 */
+	public function testLocalModuleTestServerOption(
+		?string $sandboxBaseUrl,
+		int $expectedServerCount,
+		array $expectedServers,
+		?string $expectedRecommendation,
+		string $specFile = 'SpecTestModule.json'
+	) {
+		$this->overrideConfigValues( [
+			MainConfigNames::RightsText => 'Test License',
+			MainConfigNames::RightsUrl => 'https://example.com/license',
+			MainConfigNames::EmergencyContact => 'test@example.com',
+			MainConfigNames::Sitename => 'TestWiki',
+			MainConfigNames::RestExternalModules => [],
+			MainConfigNames::CanonicalServer => 'https://zh.wikipedia.org',
+			MainConfigNames::RestPath => '/api',
+			MainConfigNames::RestLocalModuleTestBaseUrl => $sandboxBaseUrl,
+		] );
+
+		$request = new RequestData( [
+			'pathParams' => [ 'module' => 'mock', 'version' => 'v1' ]
+		] );
+
+		$moduleModes = [
+			'mock/v1' => ModuleMode::PUBLISHED,
+			'' => ModuleMode::PUBLISHED,
+		];
+		$router = $this->createRouter( $request, __DIR__ . '/' . $specFile, $moduleModes );
+
+		$handler = $this->newHandler();
+		$response = $this->executeHandler(
+			$handler,
+			$request,
+			[],
+			[],
+			[],
+			[],
+			null,
+			null,
+			$router
+		);
+		$this->assertSame( 200, $response->getStatusCode() );
+		$data = json_decode( (string)$response->getBody(), true );
+
+		$this->assertIsArray( $data, 'Body must be a JSON array' );
+		$this->assertWellFormedOAS( $data );
+
+		$this->assertCount( $expectedServerCount, $data['servers'] );
+		foreach ( $expectedServers as $index => $expectedServer ) {
+			$this->assertSame( $expectedServer['url'], $data['servers'][$index]['url'] );
+			if ( array_key_exists( 'description', $expectedServer ) ) {
+				$this->assertSame( $expectedServer['description'], $data['servers'][$index]['description'] );
+			} else {
+				$this->assertArrayNotHasKey( 'description', $data['servers'][$index] );
+			}
+		}
+
+		if ( $expectedRecommendation !== null ) {
+			$this->assertSame( $expectedRecommendation, $data['info']['description'] );
+		} else {
+			$this->assertArrayNotHasKey( 'description', $data['info'] );
+		}
+	}
+
+	/**
+	 * Data provider for testLocalModuleTestServerOption.
+	 *
+	 * @return array[]
+	 */
+	public static function provideLocalModuleTestBaseUrlCases() {
+		return [
+			'test local module test base URL configured' => [
+				'https://test.wikimedia.org/w/rest.php',
+				2,
+				[
+					0 => [
+						'url' => 'https://zh.wikipedia.org/api/mock/v1',
+						'description' => '<message key="rest-sandbox-server-production"></message>',
+					],
+					1 => [
+						'url' => 'https://test.wikimedia.org/w/rest.php/mock/v1',
+						'description' => '<message key="rest-sandbox-server-sandbox"></message>',
+					],
+				],
+				'<message key="rest-sandbox-recommend-test-server"><text>test.wikimedia.org</text></message>',
+			],
+			'test local module test base URL configured with existing description' => [
+				'https://test.wikimedia.org/w/rest.php',
+				2,
+				[
+					0 => [
+						'url' => 'https://zh.wikipedia.org/api/mock/v1',
+						'description' => '<message key="rest-sandbox-server-production"></message>',
+					],
+					1 => [
+						'url' => 'https://test.wikimedia.org/w/rest.php/mock/v1',
+						'description' => '<message key="rest-sandbox-server-sandbox"></message>',
+					],
+				],
+				'Existing mock description.' . "\n\n" . '<message key="rest-sandbox-recommend-test-server"><text>test.wikimedia.org</text></message>',
+				'SpecTestModuleWithDescription.json'
+			],
+			'no test server' => [
+				null,
+				1,
+				[
+					0 => [
+						'url' => 'https://zh.wikipedia.org/api/mock/v1',
+					],
+				],
+				null,
+			],
+		];
 	}
 
 	public function testExternalModuleSpecs() {

@@ -2612,6 +2612,16 @@ class MainConfigSchema {
 	];
 
 	/**
+	 * URL to use for the OpenAPI termsOfService field in the REST API.
+	 *
+	 * Defaults to null, so the field is omitted unless a wiki explicitly configures it.
+	 */
+	public const RestTermsOfServiceUrl = [
+		'default' => null,
+		'type' => '?string',
+	];
+
+	/**
 	 * Sender email address for e-mail notifications.
 	 *
 	 * The address we use as sender when a user requests a password reminder,
@@ -12979,6 +12989,19 @@ class MainConfigSchema {
 				'msg' => [ 'type' => 'string', 'description' => 'a message key' ]
 			],
 		]
+	];
+
+	/**
+	 * The absolute base URL of the local REST API entry point on the test server.
+	 *
+	 * When set (e.g., 'https://test.wikimedia.org/w/rest.php'), the REST Sandbox
+	 * will display this sandbox server as an option for testing calls.
+	 *
+	 * @since 1.47
+	 */
+	public const RestLocalModuleTestBaseUrl = [
+		'default' => null,
+		'type' => '?string',
 	];
 
 	/**

@@ -909,6 +909,12 @@ $wgDjvuOutputExtension = null;
 $wgEmergencyContact = null;
 
 /**
+ * Config variable stub for the RestTermsOfServiceUrl setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::RestTermsOfServiceUrl
+ */
+$wgRestTermsOfServiceUrl = null;
+
+/**
  * Config variable stub for the PasswordSender setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::PasswordSender
  */
@@ -4334,6 +4340,12 @@ $wgRestAPIAdditionalRouteFiles = null;
  * @see MediaWiki\MainConfigSchema::RestSandboxSpecs
  */
 $wgRestSandboxSpecs = null;
+
+/**
+ * Config variable stub for the RestLocalModuleTestBaseUrl setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::RestLocalModuleTestBaseUrl
+ */
+$wgRestLocalModuleTestBaseUrl = null;
 
 /**
  * Config variable stub for the RestModuleOverrides setting, for use by phpdoc and IDEs.

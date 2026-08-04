@@ -341,6 +341,7 @@ return [
 			'DjvuPostProcessor' => 'pnmtojpeg',
 			'DjvuOutputExtension' => 'jpg',
 			'EmergencyContact' => false,
+			'RestTermsOfServiceUrl' => null,
 			'PasswordSender' => false,
 			'NoReplyAddress' => false,
 			'EnableEmail' => true,
@@ -2707,6 +2708,7 @@ return [
 			],
 			'RestSandboxSpecs' => [
 			],
+			'RestLocalModuleTestBaseUrl' => null,
 			'RestModuleOverrides' => [
 			],
 			'RestExternalModules' => [
@@ -2915,6 +2917,10 @@ return [
 				'null',
 			],
 			'DjvuPostProcessor' => [
+				'string',
+				'null',
+			],
+			'RestTermsOfServiceUrl' => [
 				'string',
 				'null',
 			],
@@ -3263,6 +3269,10 @@ return [
 			'AllowedCorsHeaders' => 'array',
 			'RestAPIAdditionalRouteFiles' => 'array',
 			'RestSandboxSpecs' => 'object',
+			'RestLocalModuleTestBaseUrl' => [
+				'string',
+				'null',
+			],
 			'RestModuleOverrides' => 'object',
 			'RestExternalModules' => 'object',
 			'ShellRestrictionMethod' => [

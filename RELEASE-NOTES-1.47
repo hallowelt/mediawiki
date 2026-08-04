@@ -141,7 +141,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== Changed external libraries ====
 
-* Updated guzzlehttp/guzzle from 7.12.3 to 7.15.1.
+* Updated guzzlehttp/guzzle from 7.12.3 to 7.15.2.
 * Updated monolog/monolog from 2.11.0 to 3.10.0.
 * Updated psr/log from 1.1.4 to 3.0.2.
 * Updated symfony/polyfill-php84 from 1.36.0 to 1.38.1.
@@ -253,6 +253,7 @@ because of Phabricator reports.
   by ::getExternalLinks() has been deprecated since 1.43.
 * CategoryViewer::getSubcategorySortChar(), deprecated in 1.45,
   has been removed.
+* SessionInfo::compare() has been removed without deprecation.
 * ChannelFeed::outHeader(), ::outItem(), ::outFooter(), ::httpHeaders() and
   ::outXmlHeader() have been removed. Use/override ::outputHeader(),
   ::outputItem(), ::outputFooter(), ::sendHttpHeaders() and ::outputXmlHeader()

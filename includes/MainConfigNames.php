@@ -924,6 +924,12 @@ class MainConfigNames {
 	public const EmergencyContact = 'EmergencyContact';
 
 	/**
+	 * Name constant for the RestTermsOfServiceUrl setting, for use with Config::get()
+	 * @see MainConfigSchema::RestTermsOfServiceUrl
+	 */
+	public const RestTermsOfServiceUrl = 'RestTermsOfServiceUrl';
+
+	/**
 	 * Name constant for the PasswordSender setting, for use with Config::get()
 	 * @see MainConfigSchema::PasswordSender
 	 */
@@ -4349,6 +4355,12 @@ class MainConfigNames {
 	 * @see MainConfigSchema::RestSandboxSpecs
 	 */
 	public const RestSandboxSpecs = 'RestSandboxSpecs';
+
+	/**
+	 * Name constant for the RestLocalModuleTestBaseUrl setting, for use with Config::get()
+	 * @see MainConfigSchema::RestLocalModuleTestBaseUrl
+	 */
+	public const RestLocalModuleTestBaseUrl = 'RestLocalModuleTestBaseUrl';
 
 	/**
 	 * Name constant for the RestModuleOverrides setting, for use with Config::get()

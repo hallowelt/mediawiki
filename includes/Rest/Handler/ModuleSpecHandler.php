@@ -33,7 +33,10 @@ class ModuleSpecHandler extends SimpleHandler {
 		MainConfigNames::RightsText,
 		MainConfigNames::EmergencyContact,
 		MainConfigNames::Sitename,
+		MainConfigNames::CanonicalServer,
 		MainConfigNames::RestExternalModules,
+		MainConfigNames::RestLocalModuleTestBaseUrl,
+		MainConfigNames::RestTermsOfServiceUrl,
 	];
 
 	private ServiceOptions $options;
@@ -136,17 +139,35 @@ class ModuleSpecHandler extends SimpleHandler {
 			$title = "$prefix " . $moduleStr;
 		}
 
-		return $module->getOpenApiInfo() + [
+		$info = $module->getOpenApiInfo() + [
 			'title' => $title,
 			'version' => '',
 			'license' => $this->getLicenseSpec(),
 			'contact' => $this->getContactSpec(),
 		];
+
+		$sandboxUrl = $this->getLocalModuleSandboxUrl( $module );
+		if ( $sandboxUrl !== null ) {
+			$host = parse_url( $sandboxUrl, PHP_URL_HOST );
+			$recommendation = $this->getJsonLocalizer()->getFormattedMessage(
+				new MessageValue( 'rest-sandbox-recommend-test-server', [ $host ] )
+			);
+			if ( isset( $info['description'] ) && $info['description'] !== '' ) {
+				$info['description'] = $info['description'] . "\n\n" . $recommendation;
+			} else {
+				$info['description'] = $recommendation;
+			}
+		}
+
+		$termsOfService = $this->options->get( MainConfigNames::RestTermsOfServiceUrl );
+		if ( is_string( $termsOfService ) && $termsOfService !== '' ) {
+			$info['termsOfService'] = $termsOfService;
+		}
+
+		return $info;
 	}
 
 	private function getLicenseSpec(): array {
-		// TODO: get terms-of-use URL, not content license.
-
 		return [
 			'name' => $this->options->get( MainConfigNames::RightsText ),
 			'url' => $this->options->get( MainConfigNames::RightsUrl ),
@@ -154,23 +175,77 @@ class ModuleSpecHandler extends SimpleHandler {
 	}
 
 	private function getContactSpec(): array {
-		return [
-			'email' => $this->options->get( MainConfigNames::EmergencyContact ),
+		$contact = [
+			'name' => $this->options->get( MainConfigNames::Sitename ),
+			'url' => $this->options->get( MainConfigNames::CanonicalServer ),
 		];
+
+		$email = $this->options->get( MainConfigNames::EmergencyContact );
+		// OpenAPI requires contact.email to be a valid email address. Keep the rest
+		// of the contact object intact and omit the field when the configured value
+		// does not satisfy that format.
+		if ( is_string( $email ) && filter_var( $email, FILTER_VALIDATE_EMAIL ) !== false ) {
+			$contact['email'] = $email;
+		}
+
+		return $contact;
 	}
 
 	private function getServerSpec( Module $module ): array {
-		$prefix = $module->getPathPrefix();
+		$prodUrl = $this->getModuleRouteUrl( $module );
+		$sandboxUrl = $this->getLocalModuleSandboxUrl( $module );
 
-		if ( $prefix !== '' ) {
-			$prefix = "/$prefix";
+		if ( $sandboxUrl !== null ) {
+			$localizer = $this->getJsonLocalizer();
+			return [
+				[
+					'url' => $prodUrl,
+					'description' => $localizer->getFormattedMessage( 'rest-sandbox-server-production' ),
+				],
+				[
+					'url' => $sandboxUrl,
+					'description' => $localizer->getFormattedMessage( 'rest-sandbox-server-sandbox' ),
+				]
+			];
 		}
 
 		return [
 			[
-				'url' => $this->getRouter()->getRouteUrl( $prefix ),
+				'url' => $prodUrl,
 			]
 		];
+	}
+
+	/**
+	 * Get the absolute entry point route URL for the given module's path prefix.
+	 *
+	 * @param Module $module The REST module to resolve the prefix for
+	 * @return string The absolute route URL (e.g., https://en.wikipedia.org/w/rest.php/specs/v0)
+	 */
+	private function getModuleRouteUrl( Module $module ): string {
+		$prefix = $module->getPathPrefix();
+		if ( $prefix !== '' ) {
+			$prefix = "/$prefix";
+		}
+		return $this->getRouter()->getRouteUrl( $prefix );
+	}
+
+	/**
+	 * Get the absolute sandbox route URL for the given module, if configured via $wgRestLocalModuleTestBaseUrl.
+	 *
+	 * @param Module $module The REST module to resolve the sandbox URL for
+	 * @return string|null The absolute sandbox route URL, or null if not configured
+	 */
+	private function getLocalModuleSandboxUrl( Module $module ): ?string {
+		$sandboxBaseUrl = $this->options->get( MainConfigNames::RestLocalModuleTestBaseUrl );
+		if ( $sandboxBaseUrl === null || $sandboxBaseUrl === '' ) {
+			return null;
+		}
+		$prefix = $module->getPathPrefix();
+		if ( $prefix !== '' ) {
+			return rtrim( $sandboxBaseUrl, '/' ) . '/' . $prefix;
+		}
+		return $sandboxBaseUrl;
 	}
 
 	private function getPathsSpec( Module $module ): array {
