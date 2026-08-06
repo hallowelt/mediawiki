@@ -31,7 +31,6 @@
 		"mediawiki/user-functions": "dev-master",
 		"mediawiki/user-merge": "dev-master",
 		"mediawiki/user-profile": "dev-master",
-		"mediawiki/variables": "2.5.3",
 		"mediawiki/visual-editor-plus": "dev-master",
 		"mediawiki/vuejs-plus": "dev-master",
 		"starcitizenwiki/embedvideo": "4.0.*",

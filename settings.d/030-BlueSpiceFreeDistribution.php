@@ -145,8 +145,6 @@ $GLOBALS['wgUserMergeUnmergeable'] = [];
 
 wfLoadExtension( 'UserProfile' );
 
-wfLoadExtension( 'Variables' );
-
 wfLoadExtension( 'VisualEditor' );
 $GLOBALS['wgDefaultUserOptions']['visualeditor-enable'] = 1;
 $GLOBALS['wgDefaultUserOptions']['visualeditor-enable-experimental'] = 1;
