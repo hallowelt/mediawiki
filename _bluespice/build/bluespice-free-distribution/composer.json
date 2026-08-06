@@ -31,7 +31,6 @@
 		"mediawiki/user-functions": "dev-REL1_43",
 		"mediawiki/user-merge": "dev-REL1_43",
 		"mediawiki/user-profile": "dev-REL1_43",
-		"mediawiki/variables": "2.5.3",
 		"mediawiki/visual-editor-plus": "dev-REL1_43",
 		"mediawiki/vuejs-plus": "dev-REL1_43",
 		"starcitizenwiki/embedvideo": "3.4.*",
