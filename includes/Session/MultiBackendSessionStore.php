@@ -306,16 +306,4 @@ class MultiBackendSessionStore implements SessionStore {
 			->setLabel( 'type', $isAuthenticated ? self::STATS_LABEL_AUTH : self::STATS_LABEL_ANON )
 			->increment();
 	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function shutdown(): void {
-		if ( random_int( 1, 100 ) === 1 ) {
-			$this->logger->debug( 'Cleaning session store expired entries' );
-			$timeNow = wfTimestampNow();
-			$this->authenticatedSessionStore->deleteObjectsExpiringBefore( $timeNow );
-			$this->anonSessionStore->deleteObjectsExpiringBefore( $timeNow );
-		}
-	}
 }
