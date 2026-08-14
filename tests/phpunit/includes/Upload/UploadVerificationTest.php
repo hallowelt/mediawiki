@@ -3,8 +3,8 @@
 use MediaWiki\Config\ConfigException;
 use MediaWiki\Config\HashConfig;
 use MediaWiki\Config\ServiceOptions;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
-use MediaWiki\Upload\SVGCSSChecker;
 use MediaWiki\Upload\UploadVerification;
 use Wikimedia\Mime\XmlTypeCheck;
 use Wikimedia\TestingAccessWrapper;
@@ -38,7 +38,7 @@ class UploadVerificationTest extends MediaWikiIntegrationTestCase {
 					] )
 				),
 				$sc->getMimeAnalyzer(),
-				new SVGCSSChecker
+				LoggerFactory::getInstance( 'UploadVerification' )
 			)
 		);
 
@@ -67,7 +67,7 @@ class UploadVerificationTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * @covers \MediaWiki\Upload\UploadVerification::checkSvgScriptCallback
-	 * @covers \MediaWiki\Upload\SVGCSSChecker
+	 * @covers \MediaWiki\Upload\SvgCssChecker
 	 * @covers \MediaWiki\Upload\UploadVerification::checkSvgExternalDTD
 	 * @covers \MediaWiki\Upload\UploadVerification::checkSvgPICallback
 	 * @dataProvider provideCheckSvgScriptCallback
@@ -745,7 +745,7 @@ text {
 				] )
 			),
 			$sc->getMimeAnalyzer(),
-			new SVGCSSChecker
+			LoggerFactory::getInstance( 'UploadVerification' )
 		);
 		$this->expectException( ConfigException::class );
 		$uv->detectVirus( 'file.png' );
@@ -770,7 +770,7 @@ text {
 				] )
 			),
 			$sc->getMimeAnalyzer(),
-			new SVGCSSChecker
+			LoggerFactory::getInstance( 'UploadVerification' )
 		);
 		$this->assertSame( $expected, $uv->detectVirus( '$file.png' ) );
 	}
