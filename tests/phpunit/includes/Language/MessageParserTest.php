@@ -1,11 +1,13 @@
 <?php
 
 use MediaWiki\Language\RawMessage;
+use MediaWiki\MainConfigNames;
 use MediaWiki\Page\PageIdentityValue;
 use MediaWiki\Parser\Parser;
 
 /**
  * @covers \MediaWiki\Language\MessageParser
+ * @group Database
  */
 class MessageParserTest extends MediaWikiIntegrationTestCase {
 
@@ -44,6 +46,100 @@ class MessageParserTest extends MediaWikiIntegrationTestCase {
 			->parse( 'test', null, true, true, 'en' )
 			->getContentHolderText();
 		$this->assertSame( 'test', Parser::stripOuterParagraph( $result ) );
+	}
+
+	public static function provideGetLinkColours() {
+		yield 'links' => [
+			'config' => [
+				MainConfigNames::UsePigLatinVariant => false,
+			],
+			'expectCalls' => 1,
+			'expectPagemap' => [ [ 'Foo', 'Bar' ] ],
+			'expectColours' => [ [ 'Foo', 'Bar' ] ],
+			'expectHtml' => '/class="test-class-Foo".*class="test-class-Bar"/',
+		];
+		yield 'links with language variant' => [
+			'config' => [
+				MainConfigNames::UsePigLatinVariant => true,
+				MainConfigNames::DefaultLanguageVariant => 'en-x-piglatin',
+				MainConfigNames::DisableLangConversion => false,
+				MainConfigNames::DisabledVariants => [],
+			],
+			'expectCalls' => 2,
+			'expectPagemap' => [ [ 'Foo', 'Bar' ], [ 'Uxquay' ] ],
+			'expectColours' => [ [ 'Foo', 'Bar' ], [ 'Foo', 'Bar', 'Uxquay' ] ],
+			'expectHtml' => '/class="test-class-Foo".*class="test-class-Uxquay"/',
+		];
+	}
+
+	/**
+	 * @dataProvider provideGetLinkColours
+	 */
+	public function testGetLinkColoursAddsClassToLinks(
+		array $config,
+		int $expectCalls,
+		array $expectPagemap,
+		array $expectColours,
+		string $expectHtml
+	) {
+		$this->overrideConfigValues( $config );
+		$this->getExistingTestPage( 'Foo' );
+		$this->getExistingTestPage( 'Bar' );
+		$this->getExistingTestPage( 'Uxquay' );
+		$text = '[[Foo|label]] [[Bar]] [[Quux]]';
+
+		$hookCalls = 0;
+		$pagemapArg = [];
+		$coloursArg = [];
+		$this->setTemporaryHook(
+			'GetLinkColours',
+			static function ( $pagemap, &$colours ) use ( &$hookCalls, &$pagemapArg, &$coloursArg ) {
+				$hookCalls++;
+				$pagemapArg[] = array_values( $pagemap );
+				$coloursArg[] = array_keys( $colours );
+				foreach ( $pagemap as $id => $pdbk ) {
+					$colours[$pdbk] = 'test-class-' . $pdbk;
+				}
+			}
+		);
+
+		$messageParser = $this->getServiceContainer()->getMessageParser();
+		$result = $messageParser
+			->parse( $text, $this->makePage( 'Main_Page' ), true, false, 'en' )
+			->getContentHolderText();
+
+		$this->assertSame( $expectPagemap, $pagemapArg, 'Pagemap arg' );
+		$this->assertSame( $expectColours, $coloursArg, 'Colours arg' );
+		$this->assertSame( $expectCalls, $hookCalls );
+		$this->assertMatchesRegularExpression( $expectHtml, $result );
+	}
+
+	/**
+	 * @dataProvider provideGetLinkColours
+	 */
+	public function testGetLinkColoursForInterfaceMessages( array $config ) {
+		$this->overrideConfigValues( $config );
+		$this->getExistingTestPage( 'Foo' );
+		$this->getExistingTestPage( 'Bar' );
+		$this->getExistingTestPage( 'Uxquay' );
+		$text = '[[Foo|label]] [[Bar]] [[Quux]]';
+
+		$hookCalls = 0;
+		// T432883: Interface message parses should skip GetLinkColours, including
+		// the second call made from LinkHolderArray::doVariants().
+		$this->setTemporaryHook(
+			'GetLinkColours',
+			static function () use ( &$hookCalls ) {
+				$hookCalls++;
+			}
+		);
+
+		$messageParser = $this->getServiceContainer()->getMessageParser();
+		$messageParser
+			->parse( $text, $this->makePage( 'Main_Page' ), true, true, 'en' )
+			->getContentHolderText();
+
+		$this->assertSame( 0, $hookCalls );
 	}
 
 	public static function provideTransform() {
