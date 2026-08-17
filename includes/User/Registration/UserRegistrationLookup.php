@@ -8,6 +8,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MainConfigSchema;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\WikiMap\WikiMap;
+use Wikimedia\ObjectCache\MapCacheLRU;
 use Wikimedia\ObjectFactory\ObjectFactory;
 
 /**
@@ -29,8 +30,7 @@ class UserRegistrationLookup {
 	/** @var IUserRegistrationProvider[] Constructed registration providers indexed by name */
 	private array $providers = [];
 
-	/** @var array<string,string|null|false> An in-memory cache for the user registration dates */
-	private array $registrationCache = [];
+	private MapCacheLRU $registrationCache;
 	private const CACHE_MAX_SIZE = 100;
 
 	public function __construct(
@@ -39,6 +39,7 @@ class UserRegistrationLookup {
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->providersSpecs = $options->get( MainConfigNames::UserRegistrationProviders );
+		$this->registrationCache = new MapCacheLRU( self::CACHE_MAX_SIZE );
 	}
 
 	/**
@@ -80,10 +81,10 @@ class UserRegistrationLookup {
 	public function getRegistration(
 		UserIdentity $user,
 		string $type = LocalUserRegistrationProvider::TYPE
-	) {
+	): string|null|false {
 		$cacheKey = $this->getCacheKey( $user, $type );
-		if ( array_key_exists( $cacheKey, $this->registrationCache ) ) {
-			return $this->registrationCache[$cacheKey];
+		if ( $this->registrationCache->has( $cacheKey ) ) {
+			return $this->registrationCache->get( $cacheKey );
 		}
 
 		$registration = $this->getProvider( $type )->fetchRegistration( $user );
@@ -96,7 +97,9 @@ class UserRegistrationLookup {
 	/**
 	 * Sets the cached registration timestamp for a given user. Can only be used to set
 	 * the date for registered users.
-	 * If the size of the cache exceeds CACHE_MAX_SIZE, the oldest entry is evicted.
+	 * If the size of the cache exceeds CACHE_MAX_SIZE, the least recently used entry is evicted.
+	 * @see MapCacheLRU
+	 * @internal Only public for usage within the User class and tests
 	 */
 	public function setCachedRegistration(
 		UserIdentity $user,
@@ -107,19 +110,16 @@ class UserRegistrationLookup {
 			throw new InvalidArgumentException( __METHOD__ . ' expects the user to be registered' );
 		}
 
-		while ( count( $this->registrationCache ) >= self::CACHE_MAX_SIZE ) {
-			$evictKey = array_key_first( $this->registrationCache );
-			unset( $this->registrationCache[$evictKey] );
-		}
-
-		$cacheKey = $this->getCacheKey( $user, $type );
-		$this->registrationCache[$cacheKey] = $timestamp;
+		$this->registrationCache->set(
+			$this->getCacheKey( $user, $type ),
+			$timestamp
+		);
 	}
 
 	/**
 	 * Find the first registration timestamp for a given user
 	 *
-	 * Note this invokes _all_ registered providers.
+	 * Note this invokes _all_ registered providers (via cache). Overall result is not cached.
 	 *
 	 * @param UserIdentity $user
 	 * @return string|null Earliest registration timestamp (TS::MW), null if not available.
@@ -148,7 +148,8 @@ class UserRegistrationLookup {
 	 * This invokes all registered providers and doesn't use caching.
 	 *
 	 * @param iterable<UserIdentity> $users
-	 * @return string[]|null[] Map of registration timestamps in MediaWiki format keyed by user ID.
+	 * @return array<int, string|null> Map of registration timestamps in MediaWiki format keyed by
+	 * user ID.
 	 * The timestamp may be `null` for users without a stored registration timestamp and for anonymous users.
 	 */
 	public function getFirstRegistrationBatch( iterable $users ): array {
