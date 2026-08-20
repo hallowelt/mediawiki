@@ -5837,7 +5837,7 @@ config-schema:
             uploadeditmovefile: file-interaction
             sendemail: email
             viewmywatchlist: watchlist-interaction
-            editviewmywatchlist: watchlist-interaction
+            editmywatchlist: watchlist-interaction
             editmycssjs: customization
             editmyoptions: customization
             editinterface: administration
@@ -5876,7 +5876,7 @@ config-schema:
             uploadeditmovefile: low
             sendemail: security
             viewmywatchlist: low
-            editviewmywatchlist: low
+            editmywatchlist: low
             editmycssjs: security
             editmyoptions: security
             editinterface: vandalism
@@ -5893,6 +5893,7 @@ config-schema:
             import: security
             highvolume: low
             privateinfo: low
+            managesessions: low
         type: object
         description: |-
             Group grants by risk level. Keys are grant names (i.e. keys from GrantPermissions),
