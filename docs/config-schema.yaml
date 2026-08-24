@@ -496,8 +496,11 @@ config-schema:
               - thumbScriptUrl   The URL for thumb.php (optional, not recommended)
               - transformVia404  Whether to skip media file transformation on parse and rely on a 404
                                  handler instead.
-              - thumbProxyUrl    Optional. URL of where to proxy thumb.php requests to. This is
-                                 also used internally for remote thumbnailing of upload stash files.
+              - thumbProxyUrl    Optional. The URL of a server which we will proxy thumbnailing requests
+                                 to. It should end with a slash. This endpoint can be served by a file
+                                 server with MediaWiki's thumb_handler.php as its 404 handler, but that
+                                 MediaWiki would need thumbProxyUrl to be null to avoid a loop. WMF uses
+                                 Thumbor with a custom plugin.
                                  Example: http://127.0.0.1:8888/wiki/dev/thumb/
               - thumbProxySecret Optional value of the X-Swift-Secret header to use in requests to
                                  thumbProxyUrl
@@ -1025,7 +1028,7 @@ config-schema:
             Core media handlers are listed in MediaHandlerFactory,
             and extensions should use extension.json.
     NativeImageLazyLoading:
-        default: false
+        default: true
         type: boolean
         description: |-
             Toggles native image lazy loading, via the "loading" attribute.
@@ -2058,13 +2061,28 @@ config-schema:
         description: |-
             Mapping of virtual domain to external cluster db.
             If no entry is set, the code assumes local database.
-            For example, for routing queries of virtual domain 'vdomain'
+            For example, for routing queries of virtual domain 'virtual-example'
             to 'wikishared' database in 'extension1' cluster. The config should be like this:
-             [ 'vdomain' => [ 'cluster' => 'extension1', 'db' => 'wikishared' ] ]
+             [ 'virtual-example' => [ 'cluster' => 'extension1', 'db' => 'wikishared' ] ]
             If the database needs to be the local domain, just set the 'db' to false.
             If you want to get another db in the main cluster, just omit 'cluster'. For example:
-             [ 'centralauth' => [ 'db' => 'centralauth' ] ]
+             [ 'virtual-centralauth' => [ 'db' => 'centralauth' ] ]
             @since 1.41
+    RemoteVirtualDomainsMapping:
+        default: {  }
+        type: object
+        description: |-
+            Mapping of other wikis' virtual domains to external cluster databases.
+            The structure is similar to VirtualDomainsMapping, but organized by wiki ID.
+            For example, to route queries for the 'virtual-example' virtual domain on 'dewiki'
+            to the 'wikishared' database in the 'extension1' cluster:
+            [
+              'dewiki' => [
+                'virtual-example' => [ 'cluster' => 'extension1', 'db' => 'wikishared' ]
+              ]
+            ]
+            @see self::VirtualDomainsMapping
+            @since 1.47
     FileSchemaMigrationStage:
         default: 3
         type: integer
@@ -8515,4 +8533,20 @@ config-schema:
         description: |-
             Which experimental PFragment types to return during preprocessing
             @unstable Temporary feature flag, T391624
+            @since 1.47
+    UseParsoidLinksUpdate:
+        default: null
+        type:
+            - boolean
+            - 'null'
+        description: |-
+            Force Parsoid/legacy parser use in RefreshLinksJob
+            When null, this follows the default canonical ParserOptions.
+            If set to true, will force Parsoid use for RefreshLinksJob, and
+            if set to false will force legacy parser use for RefreshLinksJob,
+            independent of the default canonical ParserOptions used elsewhere
+            in MediaWiki.
+            A separate config will allow overriding the default parser for messages
+            and articles.
+            @unstable Temporary flag, likely to be replaced by a single config in ParserOptions
             @since 1.47

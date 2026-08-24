@@ -1245,6 +1245,12 @@ $wgMaxExecutionTimeForExpensiveQueries = null;
 $wgVirtualDomainsMapping = null;
 
 /**
+ * Config variable stub for the RemoteVirtualDomainsMapping setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::RemoteVirtualDomainsMapping
+ */
+$wgRemoteVirtualDomainsMapping = null;
+
+/**
  * Config variable stub for the FileSchemaMigrationStage setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::FileSchemaMigrationStage
  */
@@ -4644,3 +4650,9 @@ $wgParserOptionsLogUnsafeSampleRate = null;
  * @see MediaWiki\MainConfigSchema::ReturnExperimentalPFragmentTypes
  */
 $wgReturnExperimentalPFragmentTypes = null;
+
+/**
+ * Config variable stub for the UseParsoidLinksUpdate setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::UseParsoidLinksUpdate
+ */
+$wgUseParsoidLinksUpdate = null;

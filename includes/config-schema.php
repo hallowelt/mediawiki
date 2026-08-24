@@ -201,7 +201,7 @@ return [
 			],
 			'MediaHandlers' => [
 			],
-			'NativeImageLazyLoading' => false,
+			'NativeImageLazyLoading' => true,
 			'ParserTestMediaHandlers' => [
 				'image/jpeg' => 'MockBitmapHandler',
 				'image/png' => 'MockBitmapHandler',
@@ -405,6 +405,8 @@ return [
 			'DatabaseReplicaLagCritical' => 30,
 			'MaxExecutionTimeForExpensiveQueries' => 0,
 			'VirtualDomainsMapping' => [
+			],
+			'RemoteVirtualDomainsMapping' => [
 			],
 			'FileSchemaMigrationStage' => 3,
 			'ExternalLinksDomainGaps' => [
@@ -2787,6 +2789,7 @@ return [
 			'ParserOptionsLogUnsafeSampleRate' => 0,
 			'ReturnExperimentalPFragmentTypes' => [
 			],
+			'UseParsoidLinksUpdate' => null,
 		],
 		'type' => [
 			'ConfigRegistry' => 'object',
@@ -2942,6 +2945,7 @@ return [
 			'LBFactoryConf' => 'object',
 			'LocalDatabases' => 'array',
 			'VirtualDomainsMapping' => 'object',
+			'RemoteVirtualDomainsMapping' => 'object',
 			'FileSchemaMigrationStage' => 'integer',
 			'ExternalLinksDomainGaps' => 'object',
 			'ContentHandlers' => 'object',
@@ -3320,6 +3324,10 @@ return [
 			'UsePostprocCacheParsoid' => 'boolean',
 			'ParserOptionsLogUnsafeSampleRate' => 'integer',
 			'ReturnExperimentalPFragmentTypes' => 'array',
+			'UseParsoidLinksUpdate' => [
+				'boolean',
+				'null',
+			],
 		],
 		'mergeStrategy' => [
 			'TiffThumbnailType' => 'replace',

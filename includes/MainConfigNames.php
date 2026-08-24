@@ -1260,6 +1260,12 @@ class MainConfigNames {
 	public const VirtualDomainsMapping = 'VirtualDomainsMapping';
 
 	/**
+	 * Name constant for the RemoteVirtualDomainsMapping setting, for use with Config::get()
+	 * @see MainConfigSchema::RemoteVirtualDomainsMapping
+	 */
+	public const RemoteVirtualDomainsMapping = 'RemoteVirtualDomainsMapping';
+
+	/**
 	 * Name constant for the FileSchemaMigrationStage setting, for use with Config::get()
 	 * @see MainConfigSchema::FileSchemaMigrationStage
 	 */
@@ -4659,5 +4665,11 @@ class MainConfigNames {
 	 * @see MainConfigSchema::ReturnExperimentalPFragmentTypes
 	 */
 	public const ReturnExperimentalPFragmentTypes = 'ReturnExperimentalPFragmentTypes';
+
+	/**
+	 * Name constant for the UseParsoidLinksUpdate setting, for use with Config::get()
+	 * @see MainConfigSchema::UseParsoidLinksUpdate
+	 */
+	public const UseParsoidLinksUpdate = 'UseParsoidLinksUpdate';
 
 }
