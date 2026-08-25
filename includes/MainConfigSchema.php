@@ -13008,14 +13008,15 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * A list of REST modules, by module id, and the desired behavior mode for each.
+	 * A list of REST modules, by module id, and the desired availability for each.
 	 *
-	 * By default, behavior modes are determined by a module's audience designation (ex. "beta").
-	 * This variable allows assigning a different behavior mode.
+	 * By default, availability is determined by a module's audience designation (ex. "beta").
+	 * This variable allows assigning a different availability.
 	 *
-	 * Each override is an array with a "mode" key indicating the desired behavior, as well as
-	 * any additional information used in applying that mode. For example, the "published" mode
-	 * allows an optional "groups" key (an array of strings), indicating the groups the module should belong to.
+	 * Each override is an array with an "availability" key indicating the desired availability,
+	 * as well as any additional information used in applying it. For example, the "published"
+	 * availability allows an optional "groups" key (an array of strings), indicating the groups
+	 * the module should belong to.
 	 *
 	 * @unstable Introduced in 1.47. We may adjust this as we refine the available overrides.
 	 */
@@ -13026,9 +13027,9 @@ class MainConfigSchema {
 		'additionalProperties' => [
 			'type' => 'object',
 			'properties' => [
-				'mode' => [ 'type' => 'string' ],
+				'availability' => [ 'type' => 'string' ],
 			],
-			'required' => [ 'mode' ],
+			'required' => [ 'availability' ],
 		]
 	];
 
@@ -13747,6 +13748,25 @@ class MainConfigSchema {
 	 * @since 1.47
 	 */
 	public const UseParsoidLinksUpdate = [
+		'default' => null,
+		'type' => '?boolean'
+	];
+
+	/**
+	 * Force Parsoid/legacy parser use for message wikitext
+	 *
+	 * When null, this follows the default canonical ParserOptions.
+	 * If set to true, will force Parsoid use for message wikitext, and
+	 * if set to false will force legacy parser use for message wikitext,
+	 * independent of the default canonical ParserOptions used elsewhere
+	 * in MediaWiki.
+	 *
+	 * A separate config will control Parsoid use for articles and link updates
+	 *
+	 * @unstable Temporary flag, likely to be replaced by a single config in ParserOptions
+	 * @since 1.47
+	 */
+	public const UseParsoidMessages = [
 		'default' => null,
 		'type' => '?boolean'
 	];

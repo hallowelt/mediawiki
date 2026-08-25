@@ -27,9 +27,9 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 		$this->overrideConfigValue( MainConfigNames::RestAPIAdditionalRouteFiles, $rf );
 
 		$overrides = [
-			'mockTwo/v1' => [ 'mode' => 'hidden' ],
-			'mockThree/v1' => [ 'mode' => 'disabled' ],
-			'mockNonexistent/v1' => [ 'mode' => 'gibberish' ],
+			'mockTwo/v1' => [ 'availability' => 'hidden' ],
+			'mockThree/v1' => [ 'availability' => 'disabled' ],
+			'mockNonexistent/v1' => [ 'availability' => 'gibberish' ],
 		];
 		$this->overrideConfigValue( MainConfigNames::RestModuleOverrides, $overrides );
 
@@ -148,7 +148,7 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 			'mw-extra',
 			[
 				'group' => '',
-				'url' => '/rest.php/specs/v0/module/-',
+				'url' => '/rest/specs/v0/module/-',
 				'name' => 'MediaWiki REST API (routes not in modules)',
 			]
 		];
@@ -167,7 +167,7 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 			'mock.v1-invalid.json',
 			[
 				'group' => '',
-				'url' => '/rest.php/specs/v0/module/mock/v1-invalid',
+				'url' => '/rest/specs/v0/module/mock/v1-invalid',
 				'name' => 'Mock Module (Invalid)',
 			]
 		];
@@ -265,9 +265,9 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 			[ 'example/v1-published', [] ],
 			[ 'example/v1-internal', [ 'internal' ] ],
 			[ 'example/v1-beta', [ 'beta' ] ],
-			[ 'mockWithOverride/v1', [ 'preferred' ], [ 'mockWithOverride/v1' => [ 'mode' => 'published', 'groups' => [ 'preferred' ] ] ] ],
-			[ 'mockWithMultipleOverrides/v1', [ 'preferred', 'beta' ], [ 'mockWithMultipleOverrides/v1' => [ 'mode' => 'published', 'groups' => [ 'preferred', 'beta' ] ] ] ],
-			[ 'mockWithInternalOverride/v1', [ 'internal' ], [ 'mockWithInternalOverride/v1' => [ 'mode' => 'published', 'groups' => [ 'internal' ] ] ] ],
+			[ 'mockWithOverride/v1', [ 'preferred' ], [ 'mockWithOverride/v1' => [ 'availability' => 'published', 'groups' => [ 'preferred' ] ] ] ],
+			[ 'mockWithMultipleOverrides/v1', [ 'preferred', 'beta' ], [ 'mockWithMultipleOverrides/v1' => [ 'availability' => 'published', 'groups' => [ 'preferred', 'beta' ] ] ] ],
+			[ 'mockWithInternalOverride/v1', [ 'internal' ], [ 'mockWithInternalOverride/v1' => [ 'availability' => 'published', 'groups' => [ 'internal' ] ] ] ],
 		];
 	}
 

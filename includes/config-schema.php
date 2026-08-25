@@ -2790,6 +2790,7 @@ return [
 			'ReturnExperimentalPFragmentTypes' => [
 			],
 			'UseParsoidLinksUpdate' => null,
+			'UseParsoidMessages' => null,
 		],
 		'type' => [
 			'ConfigRegistry' => 'object',
@@ -3328,6 +3329,10 @@ return [
 				'boolean',
 				'null',
 			],
+			'UseParsoidMessages' => [
+				'boolean',
+				'null',
+			],
 		],
 		'mergeStrategy' => [
 			'TiffThumbnailType' => 'replace',
@@ -3760,12 +3765,12 @@ return [
 			'additionalProperties' => [
 				'type' => 'object',
 				'properties' => [
-					'mode' => [
+					'availability' => [
 						'type' => 'string',
 					],
 				],
 				'required' => [
-					'mode',
+					'availability',
 				],
 			],
 		],
