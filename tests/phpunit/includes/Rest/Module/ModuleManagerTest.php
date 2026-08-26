@@ -4,6 +4,7 @@ namespace MediaWiki\Tests\Rest;
 
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Rest\ErrorFormatterV1;
 use MediaWiki\Rest\Module\ModuleManager;
 use MediaWiki\Rest\Module\ModuleMode;
 use MediaWiki\Rest\ResponseFactory;
@@ -63,7 +64,7 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 			new ServiceOptions( ModuleManager::CONSTRUCTOR_OPTIONS, $conf ),
 			$extensionModuleFiles,
 			$services->getLocalServerObjectCache(),
-			new ResponseFactory( [] ),
+			new ResponseFactory( [], new ErrorFormatterV1( [], false ) ),
 		);
 	}
 
@@ -147,7 +148,7 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 		yield 'mw-extra' => [
 			'mw-extra',
 			[
-				'group' => '',
+				'groups' => [],
 				'url' => '/rest/specs/v0/module/-',
 				'name' => 'MediaWiki REST API (routes not in modules)',
 			]
@@ -156,7 +157,7 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 		yield 'mockExternal/v1' => [
 			'mockExternal/v1',
 			[
-				'group' => '',
+				'groups' => [],
 				'url' => 'https://example.com/mockExternal/v1/spec.json',
 				'name' => 'Mock External Module',
 			]
@@ -166,7 +167,7 @@ class ModuleManagerTest extends MediaWikiIntegrationTestCase {
 		yield 'mock.v1-invalid.json' => [
 			'mock.v1-invalid.json',
 			[
-				'group' => '',
+				'groups' => [],
 				'url' => '/rest/specs/v0/module/mock/v1-invalid',
 				'name' => 'Mock Module (Invalid)',
 			]
