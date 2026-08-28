@@ -1214,6 +1214,30 @@ config-schema:
             frame instead of an animated thumbnail.  As of MW 1.17 this limit
             is checked against the total size of all frames in the animation.
             It probably makes sense to keep this equal to $wgMaxImageArea.
+    MaxAnimatedWebPArea:
+        default: 12500000
+        description: |-
+            Force thumbnailing of animated WebPs above this size to a single
+            frame instead of an animated thumbnail.
+            It probably makes sense to keep this equal to $wgMaxImageArea.
+    WebPThumbnailType:
+        default:
+            - webp
+            - image/webp
+        type: array
+        mergeStrategy: replace
+        description: |-
+            Extension and MIME type to use for WebP thumbnails.
+            Animated WebP files rendered as WebP thumbnails will remain animated;
+            rendered as PNG thumbnails, only the first frame will be used.
+            **Example:**
+            ```
+            // Keep thumbnails as WebP, preserving animation
+            $wgWebPThumbnailType = [ 'webp', 'image/webp' ];
+            // Convert thumbnails to PNG instead
+            $wgWebPThumbnailType = [ 'png', 'image/png' ];
+            ```
+            @since 1.46
     TiffThumbnailType:
         default: []
         type: array
@@ -2658,6 +2682,13 @@ config-schema:
             be sampled".
             @warning This is EXPERIMENTAL and will disappear once analysis is
             complete.
+    SplitParsoidParserCache:
+        type: boolean
+        default: true
+        description: |-
+            Split the parser cache between Parsoid and the legacy parser.
+            @warning This is TEMPORARY to mitigate cache risk during
+            migration to Parsoid.
     ParserCacheFilterConfig:
         type: object
         default:
@@ -6595,6 +6626,7 @@ config-schema:
             sitemapsPerIndex: { type: int }
             pagesPerSitemap: { type: int }
             expiry: { type: int }
+            skipRedirects: { type: bool }
         description: |-
             Configuration for the sitemaps REST API endpoint /rest.php/site/v1/sitemap/0
             To use this API, set `$wgSitemapApiConfig['enabled'] = true` and then add
@@ -6618,6 +6650,8 @@ config-schema:
                Default: 10,000.
              - expiry: The cache expiry time in seconds.
                Default: 3600 (1 hour).
+             - skipRedirects: If true, do not include redirects in the sitemap.
+               Default: false.
             @see https://www.sitemaps.org/protocol.html
             @see \MediaWiki\Rest\Handler\SitemapHandlerBase
             @since 1.45
@@ -8053,25 +8087,6 @@ config-schema:
         description: |-
             Additional REST API Route files.
             A common usage is to enable development/experimental endpoints only on test wikis.
-    RestSandboxSpecs:
-        default: {  }
-        type: object
-        additionalProperties:
-            type: object
-            properties: { url: { type: string, format: url }, name: { type: string }, file: { type: string }, msg: { type: string, description: 'a message key' } }
-        description: |-
-            A list of OpenAPI specs to be made available for exploration on the REST sandbox.
-            This is an associative array, arbitrary spec IDs to spec descriptions.
-            Each spec description is an array with the following keys:
-            - url: the URL that will return the OpenAPI spec.
-            - name: the name of the API, to be shown on the REST sandbox.
-              Ignored if msg is given.
-            - msg: a message key for the name of the API, to be shown on the REST sandbox.
-            - file: optional module definition file name. If supplied, information therein is used for
-              name and/or url. Info supplied directly in config (via url/name/msg) takes precedence.
-            @unstable Introduced in 1.43. We may want to rename or change this to
-            accommodate the need to list external APIs in a central discovery
-            document.
     RestLocalModuleTestBaseUrl:
         default: null
         type:

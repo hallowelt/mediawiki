@@ -675,6 +675,18 @@ $wgMaxImageArea = null;
 $wgMaxAnimatedGifArea = null;
 
 /**
+ * Config variable stub for the MaxAnimatedWebPArea setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::MaxAnimatedWebPArea
+ */
+$wgMaxAnimatedWebPArea = null;
+
+/**
+ * Config variable stub for the WebPThumbnailType setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::WebPThumbnailType
+ */
+$wgWebPThumbnailType = null;
+
+/**
  * Config variable stub for the TiffThumbnailType setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::TiffThumbnailType
  */
@@ -1525,6 +1537,12 @@ $wgParsoidCacheConfig = null;
  * @see MediaWiki\MainConfigSchema::ParsoidSelectiveUpdateSampleRate
  */
 $wgParsoidSelectiveUpdateSampleRate = null;
+
+/**
+ * Config variable stub for the SplitParsoidParserCache setting, for use by phpdoc and IDEs.
+ * @see MediaWiki\MainConfigSchema::SplitParsoidParserCache
+ */
+$wgSplitParsoidParserCache = null;
 
 /**
  * Config variable stub for the ParserCacheFilterConfig setting, for use by phpdoc and IDEs.
@@ -4332,12 +4350,6 @@ $wgAllowedCorsHeaders = null;
  * @see MediaWiki\MainConfigSchema::RestAPIAdditionalRouteFiles
  */
 $wgRestAPIAdditionalRouteFiles = null;
-
-/**
- * Config variable stub for the RestSandboxSpecs setting, for use by phpdoc and IDEs.
- * @see MediaWiki\MainConfigSchema::RestSandboxSpecs
- */
-$wgRestSandboxSpecs = null;
 
 /**
  * Config variable stub for the RestLocalModuleTestBaseUrl setting, for use by phpdoc and IDEs.

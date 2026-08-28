@@ -246,6 +246,11 @@ return [
 			'MediaInTargetLanguage' => true,
 			'MaxImageArea' => 12500000,
 			'MaxAnimatedGifArea' => 12500000,
+			'MaxAnimatedWebPArea' => 12500000,
+			'WebPThumbnailType' => [
+				'webp',
+				'image/webp',
+			],
 			'TiffThumbnailType' => [
 			],
 			'ThumbnailEpoch' => '20030516000000',
@@ -550,6 +555,7 @@ return [
 				'WarmParsoidParserCache' => false,
 			],
 			'ParsoidSelectiveUpdateSampleRate' => 0,
+			'SplitParsoidParserCache' => true,
 			'ParserCacheFilterConfig' => [
 				'pcache' => [
 					'default' => [
@@ -2706,8 +2712,6 @@ return [
 			],
 			'RestAPIAdditionalRouteFiles' => [
 			],
-			'RestSandboxSpecs' => [
-			],
 			'RestLocalModuleTestBaseUrl' => null,
 			'RestModuleOverrides' => [
 			],
@@ -2877,6 +2881,7 @@ return [
 				'integer',
 				'boolean',
 			],
+			'WebPThumbnailType' => 'array',
 			'TiffThumbnailType' => 'array',
 			'GenerateThumbnailOnParse' => 'boolean',
 			'EnableAutoRotation' => [
@@ -2996,6 +3001,7 @@ return [
 			],
 			'ParsoidCacheConfig' => 'object',
 			'ParsoidSelectiveUpdateSampleRate' => 'integer',
+			'SplitParsoidParserCache' => 'boolean',
 			'ParserCacheFilterConfig' => 'object',
 			'ChronologyProtectorSecret' => 'string',
 			'SuspiciousIpExpiry' => [
@@ -3269,7 +3275,6 @@ return [
 			'CrossSiteAJAXdomainExceptions' => 'object',
 			'AllowedCorsHeaders' => 'array',
 			'RestAPIAdditionalRouteFiles' => 'array',
-			'RestSandboxSpecs' => 'object',
 			'RestLocalModuleTestBaseUrl' => [
 				'string',
 				'null',
@@ -3335,6 +3340,7 @@ return [
 			],
 		],
 		'mergeStrategy' => [
+			'WebPThumbnailType' => 'replace',
 			'TiffThumbnailType' => 'replace',
 			'LBFactoryConf' => 'replace',
 			'InterwikiCache' => 'replace',
@@ -3701,6 +3707,9 @@ return [
 				'expiry' => [
 					'type' => 'int',
 				],
+				'skipRedirects' => [
+					'type' => 'bool',
+				],
 			],
 		],
 		'SoftwareTags' => [
@@ -3738,27 +3747,6 @@ return [
 		'RangeContributionsCIDRLimit' => [
 			'additionalProperties' => [
 				'type' => 'integer',
-			],
-		],
-		'RestSandboxSpecs' => [
-			'additionalProperties' => [
-				'type' => 'object',
-				'properties' => [
-					'url' => [
-						'type' => 'string',
-						'format' => 'url',
-					],
-					'name' => [
-						'type' => 'string',
-					],
-					'file' => [
-						'type' => 'string',
-					],
-					'msg' => [
-						'type' => 'string',
-						'description' => 'a message key',
-					],
-				],
 			],
 		],
 		'RestModuleOverrides' => [

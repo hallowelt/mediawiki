@@ -2037,6 +2037,39 @@ class MainConfigSchema {
 	];
 
 	/**
+	 * Force thumbnailing of animated WebPs above this size to a single
+	 * frame instead of an animated thumbnail.
+	 *
+	 * It probably makes sense to keep this equal to $wgMaxImageArea.
+	 */
+	public const MaxAnimatedWebPArea = [
+		'default' => 12_500_000,
+	];
+
+	/**
+	 * Extension and MIME type to use for WebP thumbnails.
+	 *
+	 * Animated WebP files rendered as WebP thumbnails will remain animated;
+	 * rendered as PNG thumbnails, only the first frame will be used.
+	 *
+	 * **Example:**
+	 *
+	 * ```
+	 * // Keep thumbnails as WebP, preserving animation
+	 * $wgWebPThumbnailType = [ 'webp', 'image/webp' ];
+	 * // Convert thumbnails to PNG instead
+	 * $wgWebPThumbnailType = [ 'png', 'image/png' ];
+	 * ```
+	 *
+	 * @since 1.46
+	 */
+	public const WebPThumbnailType = [
+		'default' => [ 'webp', 'image/webp' ],
+		'type' => 'list',
+		'mergeStrategy' => 'replace',
+	];
+
+	/**
 	 * Browsers don't support TIFF inline generally...
 	 * For inline display, we need to convert to PNG or JPEG.
 	 *
@@ -4259,6 +4292,17 @@ class MainConfigSchema {
 	public const ParsoidSelectiveUpdateSampleRate = [
 		'type' => 'integer',
 		'default' => 0,
+	];
+
+	/**
+	 * Split the parser cache between Parsoid and the legacy parser.
+	 *
+	 * @warning This is TEMPORARY to mitigate cache risk during
+	 * migration to Parsoid.
+	 */
+	public const SplitParsoidParserCache = [
+		'type' => 'boolean',
+		'default' => true,
 	];
 
 	/**
@@ -10585,6 +10629,8 @@ class MainConfigSchema {
 	 *    Default: 10,000.
 	 *  - expiry: The cache expiry time in seconds.
 	 *    Default: 3600 (1 hour).
+	 *  - skipRedirects: If true, do not include redirects in the sitemap.
+	 *    Default: false.
 	 *
 	 * @see https://www.sitemaps.org/protocol.html
 	 * @see \MediaWiki\Rest\Handler\SitemapHandlerBase
@@ -10598,6 +10644,7 @@ class MainConfigSchema {
 			'sitemapsPerIndex' => [ 'type' => 'int' ],
 			'pagesPerSitemap' => [ 'type' => 'int' ],
 			'expiry' => [ 'type' => 'int' ],
+			'skipRedirects' => [ 'type' => 'bool' ],
 		]
 	];
 
@@ -12962,36 +13009,6 @@ class MainConfigSchema {
 	public const RestAPIAdditionalRouteFiles = [
 		'default' => [],
 		'type' => 'list',
-	];
-
-	/**
-	 * A list of OpenAPI specs to be made available for exploration on the REST sandbox.
-	 *
-	 * This is an associative array, arbitrary spec IDs to spec descriptions.
-	 * Each spec description is an array with the following keys:
-	 * - url: the URL that will return the OpenAPI spec.
-	 * - name: the name of the API, to be shown on the REST sandbox.
-	 *   Ignored if msg is given.
-	 * - msg: a message key for the name of the API, to be shown on the REST sandbox.
-	 * - file: optional module definition file name. If supplied, information therein is used for
-	 *   name and/or url. Info supplied directly in config (via url/name/msg) takes precedence.
-	 *
-	 * @unstable Introduced in 1.43. We may want to rename or change this to
-	 * accommodate the need to list external APIs in a central discovery
-	 * document.
-	 */
-	public const RestSandboxSpecs = [
-		'default' => [],
-		'type' => 'map',
-		'additionalProperties' => [
-			'type' => 'object',
-			'properties' => [
-				'url' => [ 'type' => 'string', 'format' => 'url' ],
-				'name' => [ 'type' => 'string' ],
-				'file' => [ 'type' => 'string' ],
-				'msg' => [ 'type' => 'string', 'description' => 'a message key' ]
-			],
-		]
 	];
 
 	/**

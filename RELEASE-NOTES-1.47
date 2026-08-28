@@ -202,8 +202,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 ==== New external libraries ====
 
 * Added symfony/polyfill-php86 at 1.41.0.
-* Added symfony/mailer at 7.4.14.
-* Added symfony/mime at 7.4.13.
+* Added symfony/mailer at 7.4.17.
+* Added symfony/mime at 7.4.17.
 * …
 
 ===== New development-only external libraries =====
@@ -213,15 +213,17 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== Changed external libraries ====
 
-* Updated guzzlehttp/guzzle from 7.12.3 to 7.15.2.
+* Updated guzzlehttp/guzzle from 7.12.3 to 7.15.5.
+* Updated mck89/peast from 1.17.5 to 1.18.0.
 * Updated monolog/monolog from 2.11.0 to 3.10.0.
 * Updated psr/log from 1.1.4 to 3.0.2.
 * Updated symfony/polyfill-php84 from 1.36.0 to 1.38.1.
 * Updated symfony/polyfill-php85 from 1.36.0 to 1.41.0.
-* Updated symfony/yaml from 7.4.6 to 7.4.14.
+* Updated symfony/yaml from 7.4.6 to 7.4.17.
 * Updated wikimedia/cldr-plural-rule-parser from 3.0.1 to 3.0.2.
 * Updated wikimedia/cssjanus from 2.3.0 to 2.3.1.
 * Updated wikimedia/json-codec from 4.0.0 to 5.0.0.
+* Updated wikimedia/language-data from 1.1.13 to 1.1.14.
 * Updated wikimedia/minify from 2.10.0 to 2.11.0.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.5.1 to v2.6.2.
@@ -235,6 +237,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 ===== Changed development-only external libraries =====
 
 * Updated composer/spdx-licenses from 1.5.9 to 1.6.0.
+* Updated doctrine/dbal from 3.10.5 to 3.10.6.
 * Updated mediawiki/mediawiki-codesniffer from 50.0.0 to 52.0.0.
 * Updated @wdio/* from 9.23.2 to 9.30.1.
 * Updated eslint-config-wikimedia from 0.32.3 to 0.32.5.
