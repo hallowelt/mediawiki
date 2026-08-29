@@ -3,6 +3,7 @@
 PHP 8.3 workboard: https://phabricator.wikimedia.org/tag/php_8.3_support/
 PHP 8.4 workboard: https://phabricator.wikimedia.org/tag/php_8.4_support/
 PHP 8.5 workboard: https://phabricator.wikimedia.org/tag/php_8.5_support/
+PHP 8.6 workboard: https://phabricator.wikimedia.org/tag/php_8.6_support/
 
 == MediaWiki 1.47.0-PRERELEASE ==
 
@@ -618,6 +619,8 @@ because of Phabricator reports.
   deprecation warnings.
 * $wgUseCopyrightUpload has been deprecated and will be removed in a future
   version. See T430254 for details.
+* WikiPage::isBatchedDelete(), deprecated since 1.37, now emits deprecation
+  warnings.
 * SpecialVersion::getExtensionTypeName() is unused and has been deprecated.
 * The following ChangeTags methods have been deprecated and emit deprecation
   warnings:
