@@ -1667,7 +1667,7 @@ class WikiPage implements Stringable, Page, PageRecord {
 		// NOTE: while doUserEditContent() executes, callbacks to getDerivedDataUpdater and
 		// prepareContentForEdit will generally use the DerivedPageDataUpdater that is also
 		// used by this PageUpdater. However, there is no guarantee for this.
-		$updater = $this->newPageUpdater( $performer, $slotsUpdate )
+		$updater = $this->newPageUpdater( $performer->getUser(), $slotsUpdate )
 			->setContent( SlotRecord::MAIN, $content )
 			->setOriginalRevisionId( $originalRevId );
 		if ( $undidRevId ) {
@@ -1722,15 +1722,15 @@ class WikiPage implements Stringable, Page, PageRecord {
 	 * this method should be deprecated and callers should be migrated to using
 	 * PageUpdaterFactory::newPageUpdater() instead.
 	 *
-	 * @param Authority|UserIdentity $performer
+	 * @param Authority|UserIdentity $performer Passing an Authority is deprecated since 1.47.
 	 * @param RevisionSlotsUpdate|null $forUpdate If given, allows any cached ParserOutput
 	 *        that may already have been returned via getDerivedDataUpdater to be re-used.
 	 *
 	 * @return PageUpdater
 	 */
 	public function newPageUpdater( $performer, ?RevisionSlotsUpdate $forUpdate = null ) {
-		if ( $performer instanceof Authority ) {
-			// TODO: Deprecate this. But better get rid of this method entirely.
+		if ( !$performer instanceof UserIdentity && $performer instanceof Authority ) {
+			wfDeprecated( __METHOD__, '1.47' );
 			$performer = $performer->getUser();
 		}
 
