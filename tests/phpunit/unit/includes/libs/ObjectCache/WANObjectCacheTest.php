@@ -532,84 +532,213 @@ class WANObjectCacheTest extends MediaWikiUnitTestCase {
 	 * @dataProvider getWithSetCallbackProvider
 	 * @param array $extOpts
 	 */
-	public function testGetWithSetCallback_touched( array $extOpts ) {
+	public function testGetWithSetCallback_touchedCallback( array $extOpts ) {
 		[ $cache ] = $this->newWanCache();
-
 		$mockWallClock = 1549343530.0;
 		$cache->setMockTime( $mockWallClock );
-
-		$checkFunc = static function ( $oldVal, &$ttl, array $setOpts, $oldAsOf )
-		use ( &$wasSet ) {
-			++$wasSet;
-
+		$key = 'some-example-key';
+		$wasSet = 0;
+		$func = static function () use ( &$wasSet ) {
+			$wasSet++;
 			return 'xxx' . $wasSet;
 		};
+		$touchedCallback = static fn () => null;
 
-		$key = wfRandomString();
-		$wasSet = 0;
-		$touched = null;
-		$touchedCallback = static function () use ( &$touched ) {
-			return $touched;
-		};
-		$v = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_INDEFINITE,
-			$checkFunc,
+		// t=0
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_INDEFINITE, $func,
 			[ 'touchedCallback' => $touchedCallback ] + $extOpts
 		);
+		$this->assertSame( 'xxx1', $v, 'Initial compute' );
+		$this->assertSame( 1, $wasSet, 'Initial compute' );
+
+		// t=60
 		$mockWallClock += 60;
-		$v = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_INDEFINITE,
-			$checkFunc,
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_INDEFINITE, $func,
 			[ 'touchedCallback' => $touchedCallback ] + $extOpts
 		);
-		$this->assertSame( 'xxx1', $v, "Initial compute" );
-		$this->assertSame( 1, $wasSet, "Initial compute" );
+		$this->assertSame( 'xxx1', $v, 'Cache hit' );
+		$this->assertSame( 1, $wasSet, 'Cache hit' );
 
-		$touched = $mockWallClock - 10;
-		$v = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_INDEFINITE,
-			$checkFunc,
+		// t=61
+		// A touch from t=50 should invalidate the cached value from t=0.
+		$mockWallClock += 1;
+		$touchedCallback = static fn () => ( $mockWallClock - 10 );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_INDEFINITE, $func,
 			[ 'touchedCallback' => $touchedCallback ] + $extOpts
 		);
-		$v = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_INDEFINITE,
-			$checkFunc,
-			[ 'touchedCallback' => $touchedCallback ] + $extOpts
-		);
-		$this->assertSame( 'xxx2', $v, "Recompute after recent change" );
-		$this->assertSame( 2, $wasSet, "Recompute after recent change" );
+		$this->assertSame( 'xxx2', $v, 'Recompute after recent change' );
+		$this->assertSame( 2, $wasSet, 'Recompute after recent change' );
 
-		$touched = INF;
-		$v = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_INDEFINITE,
-			$checkFunc,
+		// t=62
+		$mockWallClock += 1;
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_INDEFINITE, $func,
 			[ 'touchedCallback' => $touchedCallback ] + $extOpts
 		);
-		$this->assertSame( 'xxx3', $v, "Recompute on INF" );
-		$this->assertSame( 3, $wasSet, "Recompute on INF" );
-		$v = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_INDEFINITE,
-			$checkFunc,
-			[ 'touchedCallback' => $touchedCallback ] + $extOpts
-		);
-		$this->assertSame( 'xxx4', $v, "Recompute on INF again" );
-		$this->assertSame( 4, $wasSet, "Recompute on INF again" );
+		$this->assertSame( 'xxx2', $v, 'Cache hit' );
+		$this->assertSame( 2, $wasSet, 'Cache hit' );
 
-		$touched = null;
-		$v = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_INDEFINITE,
-			$checkFunc,
+		// t=63
+		$mockWallClock += 1;
+		$touchedCallback = static fn () => INF;
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_INDEFINITE, $func,
 			[ 'touchedCallback' => $touchedCallback ] + $extOpts
 		);
-		$this->assertSame( 'xxx4', $v, "Value was reused" );
-		$this->assertSame( 4, $wasSet, "Value was reused" );
+		$this->assertSame( 'xxx3', $v, 'Recompute on INF' );
+		$this->assertSame( 3, $wasSet, 'Recompute on INF' );
+
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_INDEFINITE, $func,
+			[ 'touchedCallback' => $touchedCallback ] + $extOpts
+		);
+		$this->assertSame( 'xxx4', $v, 'Always recompute on INF' );
+		$this->assertSame( 4, $wasSet, 'Always recompute on INF' );
+
+		// t=64
+		$touchedCallback = static fn () => null;
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_INDEFINITE, $func,
+			[ 'touchedCallback' => $touchedCallback ] + $extOpts
+		);
+		$this->assertSame( 'xxx4', $v, 'Allow cache hit on data computed by INF touch' );
+		$this->assertSame( 4, $wasSet, 'Allow cache hit on data computed by INF touch' );
+	}
+
+	public function testGetWithSetCallback_touchedCallback_versioned() {
+		// Use a fresh WANObjectCache instance for each step here to
+		// simulate separate requests in a more realistic way by
+		// remving influence from process cache and other in-class state.
+		$wanOpts = [
+			'cache' => new HashBagOStuff(),
+			// 'logger' => new \Monolog\Logger( 'objectcache', [ new \Monolog\Handler\ErrorLogHandler() ] ),
+		];
+		$mockWallClock = 1549343530.0;
+		$key = 'some-example-key';
+		$wasSet = 0;
+		$func = static function () use ( &$wasSet ) {
+			$wasSet++;
+			return 'xxx' . $wasSet;
+		};
+		$touchCallbackCalled = 0;
+		$touchcallbackValue = null;
+		$touchedCallback = static function ( $oldValue ) use (
+			&$touchCallbackCalled, &$touchcallbackValue
+		) {
+			$touchCallbackCalled++;
+			$touchcallbackValue = $oldValue;
+			return null;
+		};
+
+		// t=0
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 10, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx1', $v, 'Initial compute' );
+		$this->assertSame( 1, $wasSet, 'Initial compute' );
+		$this->assertSame( 0, $touchCallbackCalled, 'No value to check' );
+
+		// t=1h
+		$mockWallClock += 3600;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 10, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx1', $v, 'Cache hit' );
+		$this->assertSame( 1, $wasSet, 'Cache hit' );
+		$this->assertSame( 1, $touchCallbackCalled, 'Checked value' );
+		$this->assertSame( 'xxx1', $touchcallbackValue, 'Checked value' );
+
+		// t=2h
+		// Bump cache version
+		$mockWallClock += 3600;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 11, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx2', $v, 'Recompute on version mismatch' );
+		$this->assertSame( 2, $wasSet, 'Recompute on version mismatch' );
+		$this->assertSame( 1, $touchCallbackCalled, 'No value to check' );
+
+		// t=3h
+		$mockWallClock += 3600;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 11, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx2', $v, 'Cache hit' );
+		$this->assertSame( 2, $wasSet, 'Cache hit' );
+		$this->assertSame( 2, $touchCallbackCalled, 'Checked value' );
+		$this->assertSame( 'xxx2', $touchcallbackValue, 'Checked value' );
+
+		// t=25h
+		// The original v10 expired at t=24.
+		// The temporary store for v11 is still valid for another 2h,
+		// but we won't see it because it's only used as fallback from
+		// the main key so we get a one-time cache miss here to regenerate
+		// the value under the main key.
+		$mockWallClock += 3600 * 22;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 11, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx3', $v, 'Recompute under main key' );
+		$this->assertSame( 3, $wasSet, 'Recompute under main key' );
+		$this->assertSame( 2, $touchCallbackCalled, 'No value to check' );
+
+		// t=26h
+		$mockWallClock += 3600;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 11, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx3', $v, 'Cache hit' );
+		$this->assertSame( 3, $wasSet, 'Cache hit' );
+		$this->assertSame( 3, $touchCallbackCalled, 'Checked value' );
+		$this->assertSame( 'xxx3', $touchcallbackValue, 'Checked value' );
+
+		// t=27h
+		// Purged with default 11s hold-off, during which regenerated values
+		// are stored under an interim key.
+		$mockWallClock += 3600;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$cache->delete( $key );
+
+		$mockWallClock += 0.01;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 11, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx4', $v, 'Recomputed under interim key' );
+		$this->assertSame( 4, $wasSet, 'Recomputed under interim key' );
+		$this->assertSame( 3, $touchCallbackCalled, 'No value to check' );
+
+		$mockWallClock += 0.01;
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 11, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx4', $v, 'Cache hit on interim key' );
+		$this->assertSame( 4, $wasSet, 'Cache hit on interim key' );
+		$this->assertSame( 4, $touchCallbackCalled, 'Checked interim value' );
+		$this->assertSame( 'xxx4', $touchcallbackValue, 'Checked interim value' );
+
+		$cache = new WANObjectCache( $wanOpts );
+		$cache->setMockTime( $mockWallClock );
+		$v = $cache->getWithSetCallback( $key, $cache::TTL_DAY, $func,
+			[ 'version' => 12, 'touchedCallback' => $touchedCallback ]
+		);
+		$this->assertSame( 'xxx5', $v, 'Cache hit on interim key' );
+		$this->assertSame( 5, $wasSet, 'Cache hit on interim key' );
+		$this->assertSame( 5, $touchCallbackCalled, 'Checked interim value' );
+		// FIXME: Data from prior version needlessly passed to touchedCallback
+		$this->assertSame( 'xxx4', $touchcallbackValue, 'Checked interim value' );
 	}
 
 	public static function getWithSetCallbackProvider() {
