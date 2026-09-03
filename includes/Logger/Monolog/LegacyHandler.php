@@ -9,10 +9,11 @@ namespace MediaWiki\Logger\Monolog;
 use LogicException;
 use MediaWiki\Logger\LegacyLogger;
 use Monolog\Handler\AbstractProcessingHandler;
-use Monolog\Logger;
+use Monolog\Level;
 use Monolog\LogRecord;
 use Socket;
 use UnexpectedValueException;
+use Wikimedia\ScopedCallback;
 
 /**
  * Monolog imitation of MediaWiki\Logger\LegacyLogger
@@ -89,13 +90,13 @@ class LegacyHandler extends AbstractProcessingHandler {
 	/**
 	 * @param string $stream Stream URI
 	 * @param bool $useLegacyFilter Filter log events using legacy rules
-	 * @param int $level Minimum logging level that will trigger handler
+	 * @param int|string|Level $level Minimum logging level that will trigger handler
 	 * @param bool $bubble Can handled messages bubble up the handler stack?
 	 */
 	public function __construct(
 		$stream,
 		$useLegacyFilter = false,
-		$level = Logger::DEBUG,
+		$level = Level::Debug,
 		$bubble = true
 	) {
 		parent::__construct( $level, $bubble );
@@ -118,6 +119,7 @@ class LegacyHandler extends AbstractProcessingHandler {
 		}
 		$this->error = null;
 		set_error_handler( $this->errorTrap( ... ) );
+		$scopedErrorHandlerRestore = new ScopedCallback( restore_error_handler( ... ) );
 
 		if ( str_starts_with( $this->uri, 'udp:' ) ) {
 			$parsed = parse_url( $this->uri );
@@ -152,7 +154,7 @@ class LegacyHandler extends AbstractProcessingHandler {
 		} else {
 			$this->sink = fopen( $this->uri, 'a' );
 		}
-		restore_error_handler();
+		ScopedCallback::consume( $scopedErrorHandlerRestore );
 
 		if ( !$this->sink ) {
 			$this->sink = null;
