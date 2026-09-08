@@ -72,6 +72,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 * $wgCachePrefix has been removed without deprecation (T272194). It no longer
   has any effect and site administrators that set this configuration setting
   can safely remove it. Cache keys are now always prefixed by wiki ID.
+* $wgVirtualRestConfig has been removed (T436054). It has been unused since
+  the removal of VirtualRESTService in 1.42.
 * $wgPHPSessionHandling, deprecated since 1.45, has been removed (T431315).
   This means `$_SESSION` is no longer supported in MediaWiki core and will no
   longer read or write to the MediaWiki session store. If you access $_SESSION
@@ -203,6 +205,8 @@ For notes on 1.46.x and older releases, see HISTORY.
   combined string.
 * (T427815) Add MediaWiki\Logging\LogRecord, a new immutable value object
   representing an entry in the logging table.
+* (T290916) The vue-router module has been added to provide convenient routing
+  to Vue applications.
 * …
 
 === External library changes in 1.47 ===
@@ -629,6 +633,8 @@ because of Phabricator reports.
 * Calling WikiPage::newPageUpdater() with an Authority as $performer has been
   deprecated. Pass a UserIdentity instead.
 * WikiPage::isBatchedDelete(), deprecated since 1.37, now emits deprecation
+  warnings.
+* WikiPage::insertRedirectEntry(), deprecated since 1.43, now emits deprecation
   warnings.
 * WANObjectCache::adaptiveTTL, is now deprecated and emits deprecation
   warnings.
