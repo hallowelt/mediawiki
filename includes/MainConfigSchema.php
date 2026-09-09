@@ -2664,16 +2664,6 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * URL to use for the OpenAPI termsOfService field in the REST API.
-	 *
-	 * Defaults to null, so the field is omitted unless a wiki explicitly configures it.
-	 */
-	public const RestTermsOfServiceUrl = [
-		'default' => null,
-		'type' => '?string',
-	];
-
-	/**
 	 * Sender email address for e-mail notifications.
 	 *
 	 * The address we use as sender when a user requests a password reminder,
@@ -13082,6 +13072,19 @@ class MainConfigSchema {
 		]
 	];
 
+	/**
+	 * URL to use for the OpenAPI termsOfService field in the REST API.
+	 *
+	 * Defaults to null, which means the termsOfService field is omitted.
+	 *
+	 * @see \MediaWiki\Rest\Handler\DiscoveryHandler
+	 * @since 1.47
+	 */
+	public const RestTermsOfServiceUrl = [
+		'default' => null,
+		'type' => '?string',
+	];
+
 	// endregion -- End AJAX and API
 
 	/***************************************************************************/
@@ -13731,7 +13734,7 @@ class MainConfigSchema {
 	 * @since 1.47
 	 */
 	public const UseParsoidMessages = [
-		'default' => null,
+		'default' => true,
 		'type' => '?boolean'
 	];
 

@@ -13,7 +13,6 @@ use MediaWiki\Cache\HTMLFileCache;
 use MediaWiki\CommentFormatter\CommentFormatter;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Context\RequestContext;
-use MediaWiki\Debug\DeprecationHelper;
 use MediaWiki\Diff\DifferenceEngine;
 use MediaWiki\EditPage\EditPage;
 use MediaWiki\Exception\PermissionsError;
@@ -67,12 +66,10 @@ use Wikimedia\Rdbms\IConnectionProvider;
 class Article implements Page {
 	use ProtectedHookAccessorTrait;
 	use NonSerializableTrait;
-	use DeprecationHelper;
 
 	/**
 	 * @var IContextSource|null The context this Article is executed in.
 	 * If null, RequestContext::getMain() is used.
-	 * @deprecated since 1.35, must be private, use {@link getContext}
 	 */
 	private $mContext;
 
@@ -142,8 +139,6 @@ class Article implements Page {
 	 * @param int|null $oldId Revision ID, null to fetch from request, zero for current
 	 */
 	public function __construct( Title $title, $oldId = null ) {
-		$this->deprecatePublicProperty( 'mContext', '1.35', __CLASS__ );
-
 		$this->mOldId = $oldId;
 
 		$services = MediaWikiServices::getInstance();
@@ -961,7 +956,7 @@ class Article implements Page {
 
 			// It would be nice to automatically set this during the first call
 			// to OutputPage::addParserOutputMetadata, but we can't because doing
-			// so would break non-pageview actions where OutputPage::getContLangForJS
+			// so would break non-pageview actions where OutputPage::getContentLangForJS
 			// has different requirements.
 			$pageLang = $pOutput->getLanguage();
 			if ( $pageLang ) {

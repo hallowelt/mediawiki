@@ -713,7 +713,8 @@ return [
 			$services->getContentLanguage(),
 			$services->getTitleParser(),
 			$services->getNamespaceInfo(),
-			$services->getHookContainer()
+			$services->getHookContainer(),
+			$services->getLinkAlwaysKnownLookup(),
 		);
 	},
 
@@ -1819,7 +1820,7 @@ return [
 			$services->getRevisionStore(),
 			$services->getRevisionRenderer(),
 			$services->getSlotRoleRegistry(),
-			$services->getParserCache(),
+			$services->getParserOutputAccess(),
 			$services->getJobQueueGroup(),
 			$services->getContentLanguage(),
 			$services->getDBLoadBalancerFactory(),
