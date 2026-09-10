@@ -41,6 +41,12 @@ For notes on 1.46.x and older releases, see HISTORY.
 * (T410654) Added $wgRestrictUserPageEditing, which prevents users from editing
   other users' pages and is disabled by default. Users with the new
   'editalluserpages' right are exempt. By default, no group has the right.
+* (T422686) Added $wgHTTPUserAgentContact, which is enabled by default and adds
+  $wgCanonicalServer as contact URL in the default user agent string. You may
+  want to change this on intranet wikis or large wiki farms to a fixed public
+  homepage or email address.
+  If you currently set the 'userAgent' option in ForeignAPIRepo for
+  $wgForeignFileRepos, you may want to set $wgHTTPUserAgentContact instead.
 * $wgRestModuleOverrides - (T422756) Defaults to `[]`, allows overriding the
   default behavior mode of REST modules. See MediaWiki\Rest\Module\ModuleMode
   for details on available modes.
@@ -53,6 +59,9 @@ For notes on 1.46.x and older releases, see HISTORY.
   than the PHP request size limit up to $wgMaxUploadSize. Disabled by default.
 * (T422940) Added $wgRemoteVirtualDomainsMapping, which allows configuring
   virtual domains for remote wikis.
+* (T384501) Added $wgSharedUploadDBschema, a shortcut for the ForeignDBRepo
+  'dbSchema' setting in $wgForeignFileRepos. Needed for shared upload
+  repositories on database types that use schemas, such as PostgreSQL.
 * …
 
 ==== Changed configuration ====
@@ -203,6 +212,9 @@ For notes on 1.46.x and older releases, see HISTORY.
   carry that split through to the skin, so that the localized namespace and
   the main part of the display title no longer have to be recovered from the
   combined string.
+* (T424361) New interface IWANCacheBuilder now exists exposing
+  ::buildGetWithSetCallback() method which can replace direct use of
+  WANObjectCache.
 * (T427815) Add MediaWiki\Logging\LogRecord, a new immutable value object
   representing an entry in the logging table.
 * (T290916) The vue-router module has been added to provide convenient routing
@@ -244,6 +256,8 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated @pinia/testing from 0.0.12 to 1.0.3.
 * Updated wikimedia/shellbox from 4.4.0 to 4.5.2.
 * Updated wikimedia/codex (Codex PHP) from 0.7.1 to 0.8.0.
+* Updated codex, codex-design-tokens and codex-icons
+  from v2.6.2 to v2.7.0.
 * …
 
 ===== Changed development-only external libraries =====
@@ -537,6 +551,8 @@ because of Phabricator reports.
   Authority.
 * ChangeTagsStore::modifyDisplayQuery() is now hard-deprecated; use
   ChangeTagsStore::addTagsToDisplayQuery() instead.
+* $wgGalleryOptions['captionLength'], deprecated since 1.28, now emits
+  deprecation warnings when set to a non-default value (T310076).
 * The MarkPatrolledComplete hook has been deprecated and will trigger
   deprecation warnings. Use the MarkPatrolledAudit hook instead.
 * The MaintenanceRefreshLinksInit hook has been deprecated.

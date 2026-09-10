@@ -354,6 +354,12 @@ class MainConfigNames {
 	public const SharedUploadDBprefix = 'SharedUploadDBprefix';
 
 	/**
+	 * Name constant for the SharedUploadDBschema setting, for use with Config::get()
+	 * @see MainConfigSchema::SharedUploadDBschema
+	 */
+	public const SharedUploadDBschema = 'SharedUploadDBschema';
+
+	/**
 	 * Name constant for the CacheSharedUploads setting, for use with Config::get()
 	 * @see MainConfigSchema::CacheSharedUploads
 	 */
@@ -4467,6 +4473,12 @@ class MainConfigNames {
 	 * @see MainConfigSchema::HTTPImportTimeout
 	 */
 	public const HTTPImportTimeout = 'HTTPImportTimeout';
+
+	/**
+	 * Name constant for the HTTPUserAgentContact setting, for use with Config::get()
+	 * @see MainConfigSchema::HTTPUserAgentContact
+	 */
+	public const HTTPUserAgentContact = 'HTTPUserAgentContact';
 
 	/**
 	 * Name constant for the AsyncHTTPTimeout setting, for use with Config::get()

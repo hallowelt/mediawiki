@@ -1064,7 +1064,7 @@ class MainConfigSchema {
 	 *                       Short thumbnail names only have the width, parameters, and the extension.
 	 *
 	 * ForeignDBRepo:
-	 *   - dbType, dbServer, dbUser, dbPassword, dbName, dbFlags
+	 *   - dbType, dbServer, dbUser, dbPassword, dbName, dbFlags, dbSchema
 	 *                       equivalent to the corresponding member of $wgDBservers
 	 *   - tablePrefix       Table prefix, the foreign wiki's $wgDBprefix
 	 *   - hasSharedCache    Set to true if the foreign wiki's $wgMainCacheType is identical to,
@@ -1248,6 +1248,18 @@ class MainConfigSchema {
 	public const SharedUploadDBprefix = [
 		'default' => '',
 		'type' => 'string',
+	];
+
+	/**
+	 * Shortcut for the ForeignDBRepo 'dbSchema' setting in $wgForeignFileRepos.
+	 *
+	 * Only used if $wgUseSharedUploads is enabled. Only relevant for PostgreSQL.
+	 *
+	 * @since 1.47
+	 */
+	public const SharedUploadDBschema = [
+		'default' => null,
+		'type' => '?string',
 	];
 
 	/**
@@ -2503,7 +2515,7 @@ class MainConfigSchema {
 	 * - captionLength:  Length to truncate filename to in caption when using "showfilename".
 	 *                   A value of 'true' will truncate the filename to one line using CSS
 	 *                   and will be the behaviour after deprecation.
-	 *                   @deprecated since 1.28
+	 *                   @deprecated since 1.28, hard-deprecated since 1.47
 	 * - showBytes:      Show the filesize in bytes in categories
 	 * - showDimensions: Show the dimensions (width x height) in categories
 	 * - mode:           Gallery mode
@@ -2658,6 +2670,8 @@ class MainConfigSchema {
 	 * Site admin email address.
 	 *
 	 * Defaults to "wikiadmin@$wgServerName" (in Setup.php).
+	 *
+	 * @see $wgHTTPUserAgentContact
 	 */
 	public const EmergencyContact = [
 		'default' => false,
@@ -13277,6 +13291,26 @@ class MainConfigSchema {
 	 */
 	public const HTTPImportTimeout = [
 		'default' => 25,
+	];
+
+	/**
+	 * Contact URL and/or email address in the User-Agent header of outgoing HTTP requests
+	 *
+	 * This defaults to $wgCanonicalServer and is placed in parentheses after
+	 * `MediaWiki/{MW_VERSION}` in the default user agent string for all outgoing HTTP
+	 * requests, including via HttpRequestFactory, ForeignAPIRepo, and MultiHttpClient.
+	 *
+	 * If you operate an intranet wiki, or a wiki farm with many different domain, it is
+	 * recommended to override this and set a fixed public homepage or email address instead.
+	 *
+	 * @since 1.47
+	 * @see $wgEmergencyContact
+	 * @see MediaWiki\Http\HttpRequestFactory::getUserAgent
+	 * @see https://www.mediawiki.org/wiki/InstantCommons#User-Agent_Policy
+	 */
+	public const HTTPUserAgentContact = [
+		'default' => false,
+		'type' => 'string|false',
 	];
 
 	/**

@@ -79,6 +79,7 @@ return [
 			'FetchCommonsDescriptions' => false,
 			'SharedUploadDBname' => false,
 			'SharedUploadDBprefix' => '',
+			'SharedUploadDBschema' => null,
 			'CacheSharedUploads' => true,
 			'ForeignUploadTargets' => [
 				'local',
@@ -2733,6 +2734,7 @@ return [
 			'HTTPMaxTimeout' => 0,
 			'HTTPMaxConnectTimeout' => 0,
 			'HTTPImportTimeout' => 25,
+			'HTTPUserAgentContact' => false,
 			'AsyncHTTPTimeout' => 25,
 			'HTTPProxy' => '',
 			'LocalVirtualHosts' => [
@@ -2831,6 +2833,10 @@ return [
 				'string',
 			],
 			'SharedUploadDBprefix' => 'string',
+			'SharedUploadDBschema' => [
+				'string',
+				'null',
+			],
 			'CacheSharedUploads' => 'boolean',
 			'ForeignUploadTargets' => 'array',
 			'UploadDialog' => 'object',
@@ -3286,6 +3292,10 @@ return [
 			'HTTPConnectTimeout' => 'number',
 			'HTTPMaxTimeout' => 'number',
 			'HTTPMaxConnectTimeout' => 'number',
+			'HTTPUserAgentContact' => [
+				'string',
+				'boolean',
+			],
 			'LocalVirtualHosts' => 'object',
 			'LocalHTTPProxy' => [
 				'string',
