@@ -34,7 +34,6 @@ use MediaWiki\Status\Status;
 use MediaWiki\Title\NamespaceInfo;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleArrayFromResult;
-use MediaWiki\Title\TitleFactory;
 use MediaWiki\Title\TitleFormatter;
 use MediaWiki\User\Options\UserOptionsLookup;
 use MediaWiki\User\User;
@@ -90,6 +89,7 @@ class SpecialMovePage extends UnlistedSpecialPage {
 	protected $moveOverShared;
 
 	private bool $moveOverProtection;
+	private ?int $requestedPageId = null;
 
 	/** @var bool */
 	private $watch = false;
@@ -108,7 +108,6 @@ class SpecialMovePage extends UnlistedSpecialPage {
 		private readonly WatchlistManager $watchlistManager,
 		private readonly WatchedItemStore $watchedItemStore,
 		private readonly RestrictionStore $restrictionStore,
-		private readonly TitleFactory $titleFactory,
 		private readonly DeletePageFactory $deletePageFactory,
 		private readonly RedirectLookup $redirectLookup,
 		private readonly TitleFormatter $titleFormatter
@@ -179,6 +178,7 @@ class SpecialMovePage extends UnlistedSpecialPage {
 		$this->deleteAndMove = $request->getBool( 'wpDeleteAndMove' );
 		$this->moveOverShared = $request->getBool( 'wpMoveOverSharedFile' );
 		$this->moveOverProtection = $request->getBool( 'wpMoveOverProtection' );
+		$this->requestedPageId = $request->getIntOrNull( 'wpMovePageId' );
 		$this->watch = $request->getCheck( 'wpWatch' ) && $user->isRegistered();
 
 		// Similar to other SpecialPage/Action classes, when tokens fail (likely due to reset or expiry),
@@ -763,7 +763,7 @@ class SpecialMovePage extends UnlistedSpecialPage {
 			}
 		}
 
-		$hiddenFields = '';
+		$hiddenFields = Html::hidden( 'wpMovePageId', $this->oldTitle->getArticleID() );
 		if ( $moveOverShared ) {
 			$hiddenFields .= Html::hidden( 'wpMoveOverSharedFile', '1' );
 		}
@@ -958,6 +958,13 @@ class SpecialMovePage extends UnlistedSpecialPage {
 
 		if ( $ot->isTalkPage() || $nt->isTalkPage() ) {
 			$this->moveTalk = false;
+		}
+
+		// Page has been moved after the form was loaded. Stop the request from moving the redirect
+		// page created from the first move.
+		if ( $this->requestedPageId && $ot->getArticleID() !== $this->requestedPageId ) {
+			$this->showForm( StatusValue::newFatal( 'movepage-already-moved' ) );
+			return;
 		}
 
 		# Show a warning if the target file exists on a shared repo

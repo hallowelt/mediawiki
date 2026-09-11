@@ -22,6 +22,13 @@ use MediaWiki\User\User;
  * @group Database
  */
 class SpecialMovePageTest extends SpecialPageTestBase {
+	protected function setUp(): void {
+		parent::setUp();
+
+		// many of the tests rely on Englis namespace names, ensure those
+		// pass on dev envs with non-default langauges
+		$this->overrideConfigValue( MainConfigNames::LanguageCode, 'en' );
+	}
 
 	protected function newSpecialPage() {
 		return $this->getServiceContainer()->getSpecialPageFactory()->getPage( 'Movepage' );
@@ -603,5 +610,19 @@ class SpecialMovePageTest extends SpecialPageTestBase {
 		] );
 		$this->assertStringContainsString( '(movepage-moved-redirect)', $html );
 		$this->assertPageContent( 'File:B.png', 'a' );
+	}
+
+	public function testMoveConflict() {
+		$this->assertStatusGood( $this->editPage( 'A', 'a' ) );
+		$pageId = $this->getServiceContainer()
+			->getTitleFactory()
+			->makeTitle( NS_MAIN, 'A' )
+			->getArticleID();
+		[ $html ] = $this->postSpecialMovePage( $this->getTestSysop()->getUser(), 'A', 'B', [
+			'wpMovePageId' => $pageId + 1,
+		] );
+		$this->assertStringContainsString( '(movepage-already-moved)', $html );
+		$this->assertPageContent( 'A', 'a' );
+		$this->assertPageContent( 'B', null );
 	}
 }
