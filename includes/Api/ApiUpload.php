@@ -783,7 +783,7 @@ class ApiUpload extends ApiBase {
 			if ( $progress['result'] === 'Success' ) {
 				if ( isset( $progress['filekey'] ) ) {
 					// assembled file, load stashed file from upload stash for imageinfo
-					$file = $this->localRepo->getUploadStash()->getFile( $progress['filekey'] );
+					$file = $this->localRepo->getUploadStash( $this->getUser() )->getFile( $progress['filekey'] );
 					if ( $file ) {
 						$imageinfo = $this->getUploadImageInfoInternal( $file, true );
 					}
@@ -796,11 +796,7 @@ class ApiUpload extends ApiBase {
 					if ( $file ) {
 						$imageinfo = $this->getUploadImageInfoInternal( $file, false );
 					}
-				} elseif ( isset( $progress['imageinfo'] ) ) {
-					// status cache includes imageinfo from older entries (b/c for rollback of deployment)
-					$imageinfo = $progress['imageinfo'];
 				}
-				unset( $progress['imageinfo'] );
 			}
 
 			$this->getResult()->addValue( null, $this->getModuleName(), $progress );
