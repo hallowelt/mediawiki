@@ -118,6 +118,12 @@ For notes on 1.46.x and older releases, see HISTORY.
   as "Scribunto" module pages, and TemplateStyles "sanitized-css" pages.
 * (T253844) Special:Contributions now shows a note if the target IP address or
   range is affected by a $wgSoftBlockRanges block.
+* The new {{CATEGORYSORT:}} magic word sets the default ordering of a category
+  listing. {{CATEGORYSORT:TIMESTAMP}} lists members by the time they were added
+  to the category, oldest first, and {{CATEGORYSORT:RTIMESTAMP}} lists the most
+  recently added members first. Readers can still override this with the
+  'cldsort' URL parameter, and the new 'cldorder=desc' URL parameter reverses a
+  'cldsort=timestamp' listing.
 * (T32211) The page move form now detects if someone else moved the page
   between the form being opened and submitted.
 * …
@@ -256,7 +262,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated wikimedia/minify from 2.10.0 to 2.11.0.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.5.1 to v2.6.2.
-* Updated OOUI from v0.53.2 to v0.54.1
+* Updated OOUI from v0.53.2 to v0.54.2
 * Updated pinia from 2.0.16 to 3.0.4.
 * Updated @pinia/testing from 0.0.12 to 1.0.3.
 * Updated wikimedia/shellbox from 4.4.0 to 4.5.2.
@@ -371,6 +377,7 @@ because of Phabricator reports.
   ::outputItem(), ::outputFooter(), ::sendHttpHeaders() and ::outputXmlHeader()
   instead.
 * Maintenance::runChild(), deprecated in 1.43, has been removed.
+* Profiler::getAllowOutput(), deprecated since 1.41, has been removed.
 * Html::buttonAttributes() and Html::getTextInputAttributes(),
   deprecated in 1.43, have been removed.
 * AutoloadGenerator::setPsr4Namespaces, deprecated in 1.40, has been removed.
@@ -504,6 +511,10 @@ because of Phabricator reports.
   - purgeTagCacheAll
   - tagUsageStatistics
   - addTags
+* The Router::getModule() method in the REST framework now returns a partially
+  initialized Module instance, useful for introspection (OpenAPI) but not
+  suitable for execution. Use getModuleForRequest() to get a Module for
+  execution.
 * Less mixin 'mediawiki.mixins.rotation.less', deprecated in 1.46, was removed.
   Use standard CSS transform and @keyframes instead.
 * …
@@ -678,6 +689,8 @@ because of Phabricator reports.
   - buildTagFilterSelector: use ChangeTagsFormatter::buildTagFilter instead
 * Database::getCacheSetOptions() has been hard-deprecated and now emits
   deprecation warnings.
+* Router::getModuleForPath() was hard-deprecated.
+  Use Router::getModuleForRequest() instead.
 * (T408666) The TitleIsAlwaysKnown hook has been deprecated. Use the
   LinkTargetIsAlwaysKnownBatch hook instead.
 * Overriding MediaHandler::getMetadata() and ::getImageSize(), deprecated since

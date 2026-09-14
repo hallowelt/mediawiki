@@ -16,7 +16,6 @@ use MediaWiki\Rest\Router;
 use MediaWiki\Rest\Validator\Validator;
 use MediaWiki\Session\Session;
 use MediaWiki\Tests\Rest\RestTestTrait;
-use MediaWiki\Tests\Unit\DummyServicesTrait;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,7 +30,6 @@ use Wikimedia\ObjectFactory\ObjectFactory;
  */
 trait HandlerTestTrait {
 	use RestTestTrait;
-	use DummyServicesTrait;
 	use MockAuthorityTrait;
 	use SessionHelperTestTrait;
 
@@ -59,8 +57,6 @@ trait HandlerTestTrait {
 		$routerOrModule = null
 	) {
 		$formatter = $this->getDummyTextFormatter( true );
-		$textFormatters = [ 'qqx' => $formatter ];
-		$responseFactory = new ResponseFactory( $textFormatters, new ErrorFormatterV1( $textFormatters, false ) );
 
 		$module = null;
 		$router = null;
@@ -79,7 +75,9 @@ trait HandlerTestTrait {
 				$router = $this->newRouter();
 			}
 
-			$module = $this->newModule( [ 'router' => $router ] );
+			$module = $this->newModule(
+				[ 'router' => $router, 'formatter' => $formatter, ]
+			);
 		}
 
 		$authority ??= $this->mockAnonUltimateAuthority();
@@ -94,7 +92,7 @@ trait HandlerTestTrait {
 		//  Consider either adding a formatter parameter, or using these values from any supplied
 		//  Router. (Router does not currently provide accessors, making this inconvenient.)
 		$handler->initContext( $module, $config['path'] ?? 'test', $config );
-		$handler->initServices( $authority, $responseFactory, $hookContainer );
+		$handler->initServices( $authority, $hookContainer );
 		$handler->initSession( $session );
 
 		if ( $request ) {
@@ -105,7 +103,10 @@ trait HandlerTestTrait {
 				$request->setParsedBody( [] );
 			}
 
-			$handler->initForExecute( $request );
+			$textFormatters = [ 'qqx' => $formatter ];
+			$responseFactory = new ResponseFactory( $textFormatters, new ErrorFormatterV1( $textFormatters, false ) );
+
+			$handler->initForExecute( $request, $responseFactory );
 		}
 	}
 

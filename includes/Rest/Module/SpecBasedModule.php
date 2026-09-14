@@ -8,7 +8,6 @@ use MediaWiki\Rest\Handler\RedirectHandler;
 use MediaWiki\Rest\JsonLocalizer;
 use MediaWiki\Rest\PathTemplateMatcher\ModuleConfigurationException;
 use MediaWiki\Rest\Reporter\ErrorReporter;
-use MediaWiki\Rest\ResponseFactory;
 use MediaWiki\Rest\RouteDefinitionException;
 use MediaWiki\Rest\Router;
 use MediaWiki\Rest\Validator\Validator;
@@ -53,7 +52,7 @@ class SpecBasedModule extends MatcherBasedModule {
 		private readonly string $definitionFile,
 		Router $router,
 		string $pathPrefix,
-		ResponseFactory $responseFactory,
+		JsonLocalizer $jsonLocalizer,
 		BasicAuthorizerInterface $basicAuth,
 		ObjectFactory $objectFactory,
 		Validator $restValidator,
@@ -63,7 +62,7 @@ class SpecBasedModule extends MatcherBasedModule {
 		parent::__construct(
 			$router,
 			$pathPrefix,
-			$responseFactory,
+			$jsonLocalizer,
 			$basicAuth,
 			$objectFactory,
 			$restValidator,
@@ -95,7 +94,10 @@ class SpecBasedModule extends MatcherBasedModule {
 		}
 
 		$this->routeFileTimestamp = filemtime( $this->definitionFile );
-		$this->moduleDef = static::loadModuleDefinition( $this->definitionFile, $this->responseFactory );
+		$this->moduleDef = static::loadModuleDefinition(
+			$this->definitionFile,
+			$this->getJsonLocalizer()
+		);
 
 		return $this->moduleDef;
 	}
@@ -104,11 +106,11 @@ class SpecBasedModule extends MatcherBasedModule {
 	 * Load the module definition file.
 	 *
 	 * @param string $file The module definition file to load
-	 * @param ResponseFactory $responseFactory
+	 * @param JsonLocalizer $localizer
 	 *
 	 * @return array
 	 */
-	public static function loadModuleDefinition( string $file, ResponseFactory $responseFactory ): array {
+	public static function loadModuleDefinition( string $file, JsonLocalizer $localizer ): array {
 		$moduleDef = static::loadJsonFile( $file );
 
 		// This does not guarantee the file is a valid flat route file, just that it appears
@@ -143,7 +145,6 @@ class SpecBasedModule extends MatcherBasedModule {
 			);
 		}
 
-		$localizer = new JsonLocalizer( $responseFactory );
 		return $localizer->localizeJson( $moduleDef );
 	}
 

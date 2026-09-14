@@ -70,7 +70,6 @@ abstract class Handler {
 	/** @var mixed|null */
 	private $validatedBody;
 	private ?ConditionalHeaderUtil $conditionalHeaderUtil = null;
-	private ?JsonLocalizer $jsonLocalizer = null;
 	private HookContainer $hookContainer;
 	private ?Session $session = null;
 	private HookRunner $hookRunner;
@@ -113,13 +112,12 @@ abstract class Handler {
 	 * initContext() and before initSession().
 	 *
 	 * @param Authority $authority
-	 * @param ResponseFactory $responseFactory
 	 * @param HookContainer $hookContainer
 	 *
 	 * @internal
 	 */
 	final public function initServices(
-		Authority $authority, ResponseFactory $responseFactory, HookContainer $hookContainer
+		Authority $authority, HookContainer $hookContainer
 	) {
 		// Warn if a subclass overrides getBodyValidator()
 		MWDebug::detectDeprecatedOverride(
@@ -139,7 +137,6 @@ abstract class Handler {
 		);
 
 		$this->authority = $authority;
-		$this->responseFactory = $responseFactory;
 		$this->hookContainer = $hookContainer;
 		$this->hookRunner = new HookRunner( $hookContainer );
 	}
@@ -180,12 +177,13 @@ abstract class Handler {
 	 *
 	 * @internal
 	 *
-	 * @param RequestInterface $request
-	 *
 	 * @throws HttpException if the handler does not accept the request for
 	 *         some reason.
 	 */
-	final public function initForExecute( RequestInterface $request ) {
+	final public function initForExecute(
+		RequestInterface $request,
+		ResponseFactory $responseFactory
+	) {
 		Assert::precondition(
 			$this->session !== null,
 			'initForExecute() must not be called before initSession()'
@@ -196,6 +194,7 @@ abstract class Handler {
 		}
 
 		$this->request = $request;
+		$this->responseFactory = $responseFactory;
 
 		$this->postInitSetup();
 	}
@@ -301,6 +300,11 @@ abstract class Handler {
 	 * @todo Replace this with methods exposing narrower interfaces (T411521)
 	 */
 	protected function getModule(): Module {
+		Assert::precondition(
+			$this->module !== null,
+			'initContext() must be called before getModule()'
+		);
+
 		return $this->module;
 	}
 
@@ -416,6 +420,10 @@ abstract class Handler {
 	 * called.
 	 */
 	public function getResponseFactory(): ResponseFactory {
+		Assert::precondition(
+			$this->responseFactory !== null,
+			'getResponseFactory() must not be called before initForExecute()'
+		);
 		return $this->responseFactory;
 	}
 
@@ -569,15 +577,11 @@ abstract class Handler {
 	 */
 	protected function getJsonLocalizer(): JsonLocalizer {
 		Assert::precondition(
-			$this->responseFactory !== null,
-			'getJsonLocalizer() must not be called before initServices()'
+			$this->module !== null,
+			'getJsonLocalizer() must not be called before initContext()'
 		);
 
-		if ( $this->jsonLocalizer === null ) {
-			$this->jsonLocalizer = new JsonLocalizer( $this->responseFactory );
-		}
-
-		return $this->jsonLocalizer;
+		return $this->module->getJsonLocalizer();
 	}
 
 	/**
@@ -1221,12 +1225,8 @@ abstract class Handler {
 			$ok['content']['application/json']['example'] = $bodyExample;
 		}
 
-		// TODO: For Sitemap index and base tests the responsefactory is null.
-		// Follow up task to investigate this
-		if ( $this->responseFactory !== null ) {
-			$headersSpec = $this->getResponseHeaderSchemas();
-			$ok['headers'] = $headersSpec;
-		}
+		$headersSpec = $this->getResponseHeaderSchemas();
+		$ok['headers'] = $headersSpec;
 
 		// XXX: we should add info about redirects
 		return [

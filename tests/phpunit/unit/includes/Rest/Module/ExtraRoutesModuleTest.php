@@ -8,6 +8,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\Rest\BasicAccess\StaticBasicAuthorizer;
 use MediaWiki\Rest\ErrorFormatterV1;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\JsonLocalizer;
 use MediaWiki\Rest\Module\ExtraRoutesModule;
 use MediaWiki\Rest\Module\Module;
 use MediaWiki\Rest\Reporter\ErrorReporter;
@@ -91,8 +92,6 @@ class ExtraRoutesModuleTest extends \MediaWikiUnitTestCase {
 			'validator' => $validator
 		] );
 
-		$responseFactory = new ResponseFactory( [], new ErrorFormatterV1( [], true ) );
-
 		$options = new \MediaWiki\Config\ServiceOptions( [
 			MainConfigNames::Sitename,
 			MainConfigNames::CanonicalServer,
@@ -100,11 +99,13 @@ class ExtraRoutesModuleTest extends \MediaWikiUnitTestCase {
 			MainConfigNames::RestTermsOfServiceUrl,
 		], $configObject );
 
+		$formatter = $this->getDummyTextFormatter( true );
+
 		$module = new ExtraRoutesModule(
 			$routeFiles,
 			$constructorOverrides['extraRoutes'] ?? [],
 			$router,
-			$responseFactory,
+			new JsonLocalizer( $formatter ),
 			$auth,
 			$objectFactory,
 			$validator,
@@ -113,6 +114,12 @@ class ExtraRoutesModuleTest extends \MediaWikiUnitTestCase {
 			$options
 		);
 
+		// TODO: fix ResponseFactory constructor signature
+		$responseFactory = new ResponseFactory(
+			[ 'qqx' => $formatter ],
+			new ErrorFormatterV1( [ 'qqx' => $formatter ], true )
+		);
+		$module->initForExecute( $responseFactory );
 		return $module;
 	}
 
@@ -426,7 +433,7 @@ class ExtraRoutesModuleTest extends \MediaWikiUnitTestCase {
 		$module = $this->createRouteFileModule( $request );
 
 		$info = $module->getOpenApiInfo();
-		$this->assertSame( 'rest-module-extra-routes-title', $info['title'] );
+		$this->assertSame( '<message key="rest-module-extra-routes-title"></message>', $info['title'] );
 		$this->assertSame( '0.1.0', $info['version'] );
 		$this->assertSame(
 			'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use#12._API_Terms',

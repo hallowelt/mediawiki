@@ -8,6 +8,7 @@ use MediaWiki\Rest\ConditionalHeaderUtil;
 use MediaWiki\Rest\ErrorFormatterV1;
 use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\JsonLocalizer;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Module\Module;
 use MediaWiki\Rest\RequestData;
@@ -16,7 +17,6 @@ use MediaWiki\Rest\Response;
 use MediaWiki\Rest\ResponseFactory;
 use MediaWiki\Rest\ResponseHeaders;
 use MediaWiki\Rest\ResponseInterface;
-use MediaWiki\Rest\Router;
 use MediaWiki\Rest\Validator\BodyValidator;
 use MediaWiki\Session\Session;
 use MediaWikiUnitTestCase;
@@ -35,6 +35,13 @@ class HandlerTest extends MediaWikiUnitTestCase {
 
 	use HandlerTestTrait;
 
+	private JsonLocalizer $jsonLocalizer;
+
+	protected function setUp(): void {
+		parent::setUp();
+		$this->jsonLocalizer = new JsonLocalizer( $this->getDummyTextFormatter( true ) );
+	}
+
 	/**
 	 * @param string[] $methods
 	 *
@@ -52,10 +59,6 @@ class HandlerTest extends MediaWikiUnitTestCase {
 	}
 
 	private function initHandlerPartially( Handler $handler ) {
-		$formatter = $this->getDummyTextFormatter( true );
-		$textFormatters = [ 'qqx' => $formatter ];
-		$responseFactory = new ResponseFactory( $textFormatters, new ErrorFormatterV1( $textFormatters, false ) );
-
 		$router = $this->newRouter();
 		$module = $this->newModule( [ 'router' => $router ] );
 
@@ -64,7 +67,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 
 		$session = $this->getSession( true );
 		$handler->initContext( $module, 'test', [] );
-		$handler->initServices( $authority, $responseFactory, $hookContainer );
+		$handler->initServices( $authority, $hookContainer );
 		$handler->initSession( $session );
 
 		return $handler;
@@ -78,21 +81,19 @@ class HandlerTest extends MediaWikiUnitTestCase {
 	 * not what users see at runtime.
 	 */
 	private function initHandlerServices( Handler $handler ): void {
-		$textFormatters = [ 'qqx' => $this->getDummyTextFormatter( true ) ];
-		$responseFactory = new ResponseFactory( $textFormatters, new ErrorFormatterV1( $textFormatters, false ) );
 		$handler->initServices(
 			$this->mockAnonUltimateAuthority(),
-			$responseFactory,
 			$this->createHookContainer()
 		);
 	}
 
 	public function testGetRouter() {
 		$handler = $this->newHandler();
-		$this->initHandler( $handler, new RequestData() );
+		$router = $this->newRouter();
+		$this->initHandler( $handler, new RequestData(), [], [], null, null, $router );
 
 		$handler = TestingAccessWrapper::newFromObject( $handler );
-		$this->assertInstanceOf( Router::class, $handler->getRouter() );
+		$this->assertSame( $router, $handler->getRouter() );
 	}
 
 	public static function provideGetRouteUrl() {
@@ -1209,10 +1210,9 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'headers' => [ "content-type" => 'application/json' ]
 		] );
 		$handler = new EchoHandler();
-		$this->initHandlerPartially( $handler );
 
 		$this->expectExceptionCode( 400 );
-		$handler->initForExecute( $request );
+		$this->initHandler( $handler, $request );
 	}
 
 	public function testGetRequestIgnoresEmptyBody() {
@@ -1226,8 +1226,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			]
 		] );
 		$handler = new EchoHandler();
-		$this->initHandlerPartially( $handler );
-		$handler->initForExecute( $request );
+		$this->initHandler( $handler, $request );
 		$this->addToAssertionCount( 1 );
 	}
 
@@ -1240,7 +1239,14 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$this->initHandlerPartially( $handler );
 
 		$this->expectExceptionCode( 400 );
-		$handler->initForExecute( $request );
+
+		$textFormatters = [ 'qqx' => $this->getDummyTextFormatter() ];
+		$responseFactory = new ResponseFactory(
+			$textFormatters,
+			new ErrorFormatterV1( $textFormatters, false )
+		);
+
+		$handler->initForExecute( $request, $responseFactory );
 	}
 
 	public function testEmptyBodyWithoutContentTypePasses() {
@@ -1253,8 +1259,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		] );
 
 		$handler = new EchoHandler();
-		$this->initHandlerPartially( $handler );
-		$handler->initForExecute( $request );
+		$this->initHandler( $handler, $request );
 		$this->addToAssertionCount( 1 );
 	}
 
@@ -1265,10 +1270,9 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'bodyContents' => '{"foo":"bar"}', // Request body without content-type
 		] );
 		$handler = new EchoHandler();
-		$this->initHandlerPartially( $handler );
 
 		$this->expectExceptionCode( 415 );
-		$handler->initForExecute( $request );
+		$this->initHandler( $handler, $request );
 	}
 
 	public function testDeleteRequestWithoutBody() {
@@ -1278,8 +1282,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'method' => 'DELETE',
 		] );
 		$handler = new EchoHandler();
-		$this->initHandlerPartially( $handler );
-		$handler->initForExecute( $request );
+		$this->initHandler( $handler, $request );
 		$this->addToAssertionCount( 1 );
 	}
 
@@ -1292,8 +1295,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'headers' => [ "content-type" => 'application/json' ]
 		] );
 		$handler = new EchoHandler();
-		$this->initHandlerPartially( $handler );
-		$handler->initForExecute( $request );
+		$this->initHandler( $handler, $request );
 		$this->addToAssertionCount( 1 );
 	}
 
@@ -1305,10 +1307,9 @@ class HandlerTest extends MediaWikiUnitTestCase {
 			'headers' => [ "content-type" => 'text/plain' ] // Unsupported content type
 		] );
 		$handler = new EchoHandler();
-		$this->initHandlerPartially( $handler );
 
 		$this->expectExceptionCode( 415 );
-		$handler->initForExecute( $request );
+		$this->initHandler( $handler, $request );
 	}
 
 	public function testHandlerCanAccessParsedBodyForJsonRequest() {
@@ -2137,8 +2138,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$handler->method( 'getResponseHeaderSettings' )->willReturn( $responseHeaderSettings );
 
 		// The "body" parameter should be processed as "body", not as "parameter".
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext(
 			$module,
 			$routeConfig['path'],
@@ -2173,8 +2173,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$handler->method( 'getResponseBodyExample' )->willReturn( $expectedExample );
 		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
 
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
 
 		$this->initHandlerServices( $handler );
@@ -2209,8 +2208,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
 		$handler->method( 'getRequestBodyDescription' )->willReturn( 'The page content to create or update.' );
 
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
 
 		$this->initHandlerServices( $handler );
@@ -2244,8 +2242,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$handler->method( 'getResponseBodySchema' )->willReturn( null );
 		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
 
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
 
 		$this->initHandlerServices( $handler );
@@ -2294,8 +2291,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$handler->method( 'getResponseBodySchema' )->willReturn( null );
 		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
 
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
 
 		$this->initHandlerServices( $handler );
@@ -2345,8 +2341,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
 		$handler->method( 'getRequestBodyExample' )->willReturn( $expectedExample );
 
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
 
 		$this->initHandlerServices( $handler );
@@ -2418,8 +2413,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		$handler->method( 'getResponseBodySchema' )->willReturn( null );
 		$handler->method( 'getResponseHeaderSettings' )->willReturn( [] );
 
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
 
 		$this->initHandlerServices( $handler );
@@ -2477,8 +2471,7 @@ class HandlerTest extends MediaWikiUnitTestCase {
 		// A subclass may opt out of an example entirely by returning null.
 		$handler->method( 'getRequestBodyExample' )->willReturn( null );
 
-		$module = $this->createNoOpMock( Module::class, [ 'getModuleDescription' ] );
-		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module = $this->newModuleForSpec();
 		$handler->initContext( $module, '/test', [ 'path' => '/test' ], [] );
 
 		$this->initHandlerServices( $handler );
@@ -2487,6 +2480,20 @@ class HandlerTest extends MediaWikiUnitTestCase {
 
 		$this->assertArrayHasKey( 'requestBody', $spec );
 		$this->assertArrayNotHasKey( 'example', $spec['requestBody']['content']['application/json'] );
+	}
+
+	/**
+	 * @return (object&MockObject)|(object&MockObject&Module)|(object&MockObject&Module&object&MockObject)
+	 */
+	private function newModuleForSpec(): MockObject&Module {
+		$module = $this->createNoOpMock(
+			Module::class,
+			[ 'getModuleDescription', 'getJsonLocalizer' ]
+		);
+		$module->method( 'getModuleDescription' )->willReturn( [] );
+		$module->method( 'getJsonLocalizer' )->willReturn( $this->jsonLocalizer );
+
+		return $module;
 	}
 
 }
