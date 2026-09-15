@@ -66,10 +66,6 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 ==== Changed configuration ====
 
-* (T419684) $wgCSPHeader (and $wgCSPReportOnlyHeader) now support an
-  'unsafeEval' key. Setting it to false removes 'unsafe-eval' from the
-  script-src directive. Defaults to true, so behavior is unchanged unless
-  a wiki explicitly opts out.
 * …
 
 ==== Removed configuration ====
@@ -380,6 +376,8 @@ because of Phabricator reports.
 * Profiler::getAllowOutput(), deprecated since 1.41, has been removed.
 * Html::buttonAttributes() and Html::getTextInputAttributes(),
   deprecated in 1.43, have been removed.
+* WebRequest::isSafeRequest() and WebRequest::markAsSafeRequest(),
+  deprecated since 1.41, have been removed. Use ::hasSafeMethod() instead.
 * AutoloadGenerator::setPsr4Namespaces, deprecated in 1.40, has been removed.
 * ResourceLoader::makeConfigSetScript, deprecated in 1.44, has been removed.
   Use package files instead or return mw.config.set() combined with
@@ -517,6 +515,8 @@ because of Phabricator reports.
   execution.
 * Less mixin 'mediawiki.mixins.rotation.less', deprecated in 1.46, was removed.
   Use standard CSS transform and @keyframes instead.
+* The SpecialPage constructor parameters $restriction, $listed, $function,
+  $file and $includable and the property $mRestricted have been removed.
 * …
 
 === Deprecations in 1.47 ===
@@ -699,6 +699,7 @@ because of Phabricator reports.
   be removed in a future version. There will be no replacement.
 * The hook CategoryViewer__generateLinkHook has been deprecated. Use the hook
   CategoryViewerGenerateLinkHook instead.
+* The SiteStore service has been deprecated in favor of SiteLookup.
 * …
 
 === Other changes in 1.47 ===
