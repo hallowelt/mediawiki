@@ -41,7 +41,6 @@ use MediaWiki\JobQueue\Jobs\CdnPurgeJob;
 use MediaWiki\JobQueue\Jobs\DoubleRedirectJob;
 use MediaWiki\JobQueue\Jobs\HTMLCacheUpdateJob;
 use MediaWiki\JobQueue\Jobs\NullJob;
-use MediaWiki\JobQueue\Jobs\ParsoidCachePrewarmJob;
 use MediaWiki\JobQueue\Jobs\PublishStashedFileJob;
 use MediaWiki\JobQueue\Jobs\RefreshLinksJob;
 use MediaWiki\JobQueue\Jobs\RevertedTagUpdateJob;
@@ -4276,9 +4275,6 @@ class MainConfigSchema {
 	 *       since losing an entry from the stash may mean that the user can't save their edit.
 	 *       This is set to one day by default.
 	 *
-	 * - WarmParsoidParserCache: Setting this to true will pre-populate the parsoid parser cache
-	 *       with parsoid outputs on page edits. This speeds up loading HTML into Visual Editor.
-	 *
 	 * @since 1.39
 	 * @unstable Per MediaWiki 1.39, the structure of this configuration is still subject to
 	 *           change.
@@ -4288,7 +4284,6 @@ class MainConfigSchema {
 		'properties' => [
 			'StashType' => [ 'type' => 'int|string|null', 'default' => null ],
 			'StashDuration' => [ 'type' => 'int', 'default' => 24 * 60 * 60 ],
-			'WarmParsoidParserCache' => [ 'type' => 'bool', 'default' => false ],
 		]
 	];
 
@@ -12001,7 +11996,11 @@ class MainConfigSchema {
 				],
 			],
 			'clearUserWatchlist' => ClearUserWatchlistJob::class,
-			'watchlistExpiry' => WatchlistExpiryJob::class,
+			'watchlistExpiry' => [
+				'class' => WatchlistExpiryJob::class,
+				// tell the JobFactory not to include the $page parameter in the constructor call
+				'needsPage' => false
+			],
 			'cdnPurge' => CdnPurgeJob::class,
 			'userGroupExpiry' => UserGroupExpiryJob::class,
 			'clearWatchlistNotifications' => ClearWatchlistNotificationsJob::class,
@@ -12009,17 +12008,6 @@ class MainConfigSchema {
 			'revertedTagUpdate' => RevertedTagUpdateJob::class,
 			'null' => NullJob::class,
 			'userEditCountInit' => UserEditCountInitJob::class,
-			'parsoidCachePrewarm' => [
-				'class' => ParsoidCachePrewarmJob::class,
-				'services' => [
-					'ParserOutputAccess',
-					'PageStore',
-					'RevisionLookup',
-					'ParsoidSiteConfig',
-				],
-				// tell the JobFactory not to include the $page parameter in the constructor call
-				'needsPage' => false
-			],
 			'renameUserTable' => [
 				'class' => RenameUserTableJob::class,
 				'services' => [
@@ -13048,6 +13036,7 @@ class MainConfigSchema {
 			'type' => 'object',
 			'properties' => [
 				'availability' => [ 'type' => 'string' ],
+				'groups' => [ 'type' => 'list' ],
 			],
 			'required' => [ 'availability' ],
 		]

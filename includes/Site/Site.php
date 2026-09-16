@@ -179,6 +179,7 @@ class Site {
 	/**
 	 * Returns the source of the site data (ie 'local', 'wikidata', 'my-magical-repo').
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.21
 	 *
 	 * @return string
@@ -190,6 +191,7 @@ class Site {
 	/**
 	 * Sets the source of the site data (ie 'local', 'wikidata', 'my-magical-repo').
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.21
 	 * @param string $source
 	 */
@@ -201,6 +203,7 @@ class Site {
 	 * Gets if site.tld/path/key:pageTitle should forward users to  the page on
 	 * the actual site, where "key" is the local identifier.
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.21
 	 *
 	 * @return bool
@@ -213,6 +216,7 @@ class Site {
 	 * Sets if site.tld/path/key:pageTitle should forward users to  the page on
 	 * the actual site, where "key" is the local identifier.
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.21
 	 * @param bool $shouldForward
 	 */
@@ -388,6 +392,7 @@ class Site {
 	/**
 	 * Returns the type specific config.
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.21
 	 *
 	 * @return array
@@ -399,6 +404,7 @@ class Site {
 	/**
 	 * Sets the type specific config.
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.21
 	 *
 	 * @param array $extraConfig
@@ -437,6 +443,7 @@ class Site {
 	/**
 	 * Returns the set internal identifier for the site.
 	 *
+	 * @deprecated since 1.47, use getGlobalId if a unique identifier is needed.
 	 * @since 1.21
 	 *
 	 * @return int|null
@@ -449,6 +456,7 @@ class Site {
 	 * Sets the internal identifier for the site.
 	 * This typically is a primary key in a db table.
 	 *
+	 * @deprecated since 1.47
 	 * @since 1.21
 	 *
 	 * @param int|null $internalId

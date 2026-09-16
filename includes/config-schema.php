@@ -552,7 +552,6 @@ return [
 			'ParsoidCacheConfig' => [
 				'StashType' => null,
 				'StashDuration' => 86400,
-				'WarmParsoidParserCache' => false,
 			],
 			'ParsoidSelectiveUpdateSampleRate' => 0,
 			'SplitParsoidParserCache' => true,
@@ -2273,7 +2272,10 @@ return [
 					],
 				],
 				'clearUserWatchlist' => 'MediaWiki\\Watchlist\\ClearUserWatchlistJob',
-				'watchlistExpiry' => 'MediaWiki\\Watchlist\\WatchlistExpiryJob',
+				'watchlistExpiry' => [
+					'class' => 'MediaWiki\\Watchlist\\WatchlistExpiryJob',
+					'needsPage' => false,
+				],
 				'cdnPurge' => 'MediaWiki\\JobQueue\\Jobs\\CdnPurgeJob',
 				'userGroupExpiry' => 'MediaWiki\\User\\UserGroupExpiryJob',
 				'clearWatchlistNotifications' => 'MediaWiki\\Watchlist\\ClearWatchlistNotificationsJob',
@@ -2281,16 +2283,6 @@ return [
 				'revertedTagUpdate' => 'MediaWiki\\JobQueue\\Jobs\\RevertedTagUpdateJob',
 				'null' => 'MediaWiki\\JobQueue\\Jobs\\NullJob',
 				'userEditCountInit' => 'MediaWiki\\User\\UserEditCountInitJob',
-				'parsoidCachePrewarm' => [
-					'class' => 'MediaWiki\\JobQueue\\Jobs\\ParsoidCachePrewarmJob',
-					'services' => [
-						'ParserOutputAccess',
-						'PageStore',
-						'RevisionLookup',
-						'ParsoidSiteConfig',
-					],
-					'needsPage' => false,
-				],
 				'renameUserTable' => [
 					'class' => 'MediaWiki\\RenameUser\\Job\\RenameUserTableJob',
 					'services' => [
@@ -3751,6 +3743,9 @@ return [
 				'properties' => [
 					'availability' => [
 						'type' => 'string',
+					],
+					'groups' => [
+						'type' => 'array',
 					],
 				],
 				'required' => [
