@@ -374,6 +374,7 @@ because of Phabricator reports.
   instead.
 * Maintenance::runChild(), deprecated in 1.43, has been removed.
 * Profiler::getAllowOutput(), deprecated since 1.41, has been removed.
+* Profiler::setProfileID(), deprecated since 1.41, has been removed.
 * Html::buttonAttributes() and Html::getTextInputAttributes(),
   deprecated in 1.43, have been removed.
 * WebRequest::isSafeRequest() and WebRequest::markAsSafeRequest(),
@@ -603,6 +604,8 @@ because of Phabricator reports.
   deprecation warnings.
 * Customizing API help output by overriding the ApiBase::modifyHelp() method
   or by the APIHelpModifyOutput hook has been deprecated.
+* ApiUpload::getDummyInstance(), deprecated since 1.46, now emits
+  deprecation warnings.
 * The global variable $wgLang has been deprecated. Use an available
   ContextSource instead, falling back to RequestContext::getMain(). As MediaWiki
   Core no longer reads from $wgLang, writing to $wgLang in extensions will no
@@ -651,6 +654,8 @@ because of Phabricator reports.
   getMetadataItems() functions instead.
 * MediaTransformOutput::streamFile(), deprecated since 1.26, now emits
   deprecation warnings. Use streamFileWithStatus() instead.
+* UploadBase::getImageInfo(), deprecated since 1.42, now emits
+  deprecation warnings.
 * PageUpdater::isUnchanged(), deprecated since 1.38, now emits
   deprecation warnings.
 * LanguageQqx::getMessage(), deprecated since 1.41, now emits deprecation
