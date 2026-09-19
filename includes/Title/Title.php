@@ -1302,7 +1302,7 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 	 * @since 1.19
 	 */
 	public function inNamespaces( ...$namespaces ) {
-		if ( count( $namespaces ) > 0 && is_array( $namespaces[0] ) ) {
+		if ( count( $namespaces ) === 1 && is_array( $namespaces[0] ) ) {
 			$namespaces = $namespaces[0];
 		}
 
@@ -3134,18 +3134,17 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 	 * "bluelinks"), even if there's no record by this title in the page
 	 * table?
 	 *
-	 * This function is semi-deprecated for public use, as well as somewhat
-	 * misleadingly named.  You probably just want to call isKnown(), which
-	 * calls this function internally.
-	 *
 	 * (ISSUE: Most of these checks are cheap, but the file existence check
 	 * can potentially be quite expensive.  Including it here fixes a lot of
 	 * existing code, but we might want to add an optional parameter to skip
 	 * it and any other expensive checks.)
 	 *
+	 * @deprecated since 1.47, use LinkAlwaysKnownLookup
 	 * @return bool
 	 */
 	public function isAlwaysKnown() {
+		wfDeprecated( __METHOD__, '1.47' );
+
 		$services = MediaWikiServices::getInstance();
 		return $services->getLinkAlwaysKnownLookup()->isAlwaysKnown( $this );
 	}
@@ -3156,13 +3155,14 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 	 * links to the title should be rendered as "bluelinks" (as opposed to
 	 * "redlinks" to non-existent pages).
 	 * Adding something else to this function will cause inconsistency
-	 * since LinkHolderArray calls isAlwaysKnown() and does its own
-	 * page existence check.
+	 * since LinkHolderArray calls LinkAlwaysKnownLookup::isAlwaysKnown() and
+	 * does its own page existence check.
 	 *
 	 * @return bool
 	 */
 	public function isKnown() {
-		return $this->isAlwaysKnown() || $this->exists();
+		$services = MediaWikiServices::getInstance();
+		return $services->getLinkAlwaysKnownLookup()->isAlwaysKnown( $this ) || $this->exists();
 	}
 
 	/**
