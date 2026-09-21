@@ -451,7 +451,7 @@ class SkinTemplate extends Skin {
 			$personal_urls['mytalk'] = [
 				'text' => $this->msg( 'mytalk' )->text(),
 				'href' => &$usertalkUrlDetails['href'],
-				'class' => $usertalkUrlDetails['exists'] ? null : 'new',
+				'link-class' => $usertalkUrlDetails['exists'] ? [] : [ 'new' ],
 				'exists' => $usertalkUrlDetails['exists'],
 				'active' => ( $usertalkUrlDetails['href'] == $pageurl ),
 				'icon' => 'userTalk'
@@ -562,27 +562,25 @@ class SkinTemplate extends Skin {
 	}
 
 	/**
-	 * Returns if a combined login/signup link will be used
-	 * @unstable
+	 * Whether a combined login/signup link should be used
 	 *
+	 * @unstable
 	 * @return bool
 	 */
 	protected function useCombinedLoginLink() {
 		$useCombinedLoginLink = $this->getConfig()->get( MainConfigNames::UseCombinedLoginLink );
 
-		if ( !$useCombinedLoginLink ) {
-			// Optimization: Return early and skip AuthManager checks if the combined link is disabled anyway
-			return false;
+		// Optimization: Skip AuthManager checks if the combined link is disabled (T302623)
+		if ( $useCombinedLoginLink ) {
+			$authManager = MediaWikiServices::getInstance()->getAuthManager();
+			if ( $authManager->canCreateAccounts() && $authManager->canAuthenticateNow() ) {
+				// Only replace login/signup with a single combined link, if both are actually
+				// available. Otherwise addAccountLinks() wouldn't output both anyway.
+				return true;
+			}
 		}
 
-		$services = MediaWikiServices::getInstance();
-		$authManager = $services->getAuthManager();
-		if ( !$authManager->canCreateAccounts() || !$authManager->canAuthenticateNow() ) {
-			// don't show combined login/signup link if one of those is actually not available
-			$useCombinedLoginLink = false;
-		}
-
-		return $useCombinedLoginLink;
+		return false;
 	}
 
 	/**
@@ -1538,7 +1536,7 @@ class SkinTemplate extends Skin {
 			return [];
 		}
 
-		foreach ( $associatedNavigationLinks as $i => $relatedTitleText ) {
+		foreach ( $associatedNavigationLinks as $relatedTitleText ) {
 			$relatedTitle = Title::newFromText( $relatedTitleText );
 			$special = $specialFactory->getPage( $relatedTitle->getText() );
 			if ( $special === null ) {
@@ -1546,12 +1544,17 @@ class SkinTemplate extends Skin {
 			} else {
 				$text = $special->getShortDescription( $relatedTitle->getSubpageText() );
 			}
-			$specialAssociatedNavigationLinks['special-specialAssociatedNavigationLinks-link-' . $i ] = [
+
+			$id = 'special-specialAssociatedNavigationLinks-link-' .
+				str_replace( '/', '-', $relatedTitle->getText() );
+
+			$specialAssociatedNavigationLinks[$id] = [
 				'text' => $text,
 				'href' => $relatedTitle->fixSpecialName()->getLocalURL(),
 				'class' => $relatedTitle->fixSpecialName()->equals( $title->fixSpecialName() ) ? 'selected' : null,
 			];
 		}
+
 		return $specialAssociatedNavigationLinks;
 	}
 
