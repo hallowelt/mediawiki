@@ -247,7 +247,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 * Updated guzzlehttp/guzzle from 7.12.3 to 7.15.5.
 * Updated mck89/peast from 1.17.5 to 1.18.0.
-* Updated monolog/monolog from 2.11.0 to 3.10.0.
+* Updated monolog/monolog from 2.11.0 to 3.12.0.
 * Updated psr/log from 1.1.4 to 3.0.2.
 * Updated symfony/polyfill-php84 from 1.36.0 to 1.38.1.
 * Updated symfony/polyfill-php85 from 1.36.0 to 1.41.0.
@@ -469,6 +469,7 @@ because of Phabricator reports.
   Passing null was deprecated in 1.46.
 * Passing a performer to UploadBase::checkWarnings is mandatory now. Passing
   null was deprecated in 1.46.
+* UploadBase::isThrottled(), deprecated since 1.41, has been removed. 
 * Maintenance::error() no longer accepts a $die argument. This behaviour
   was deprecated in 1.31. Use Maintenance::fatalError() instead.
 * OutputPage::showNewSectionLink(), ::forceHideNewSectionLink(), and
@@ -622,6 +623,9 @@ because of Phabricator reports.
 * Backwards compatibility for extensions using the hook
   SkinTemplateNavigation::Universal, deprecated in 1.46. to modify the
   namespaces menu has been removed (T416651).
+* ParserOptions::getThumbSize() and ::setThumbSize() have been deprecated.
+  Use UserOptionsLookup::getDefaultOption( 'thumbsize' ) instead; scaling
+  is done client-side now (T417514)
 * Parser::statelessFetchTemplate() and ::statelessFetchRevisionRecord() have
   been deprecated. Use ParserOptions::getTemplateCallback() to get the original
   handler.
@@ -711,6 +715,8 @@ because of Phabricator reports.
 * The hook CategoryViewer__generateLinkHook has been deprecated. Use the hook
   CategoryViewerGenerateLinkHook instead.
 * The SiteStore service has been deprecated in favor of SiteLookup.
+* The IDatabase::getScopedLockAndFlush() has been deprecated and will trigger
+  deprecation warnings. Use the lock manager service instead.
 * …
 
 === Other changes in 1.47 ===

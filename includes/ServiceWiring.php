@@ -2543,10 +2543,13 @@ return [
 	},
 
 	'SiteLookup' => static function ( MediaWikiServices $services ): SiteLookup {
-		// Use SiteStore as the SiteLookup as well. This was originally separated
-		// to allow for a cacheable read-only interface, but this was never used.
-		// SiteStore has caching (see below).
-		return $services->getSiteStore();
+		$siteLookupConfig = $services->getMainConfig()->get( MainConfigNames::SiteLookup );
+
+		if ( $siteLookupConfig === [] ) {
+			return $services->getSiteStore();
+		}
+
+		return $services->getObjectFactory()->createObject( $siteLookupConfig );
 	},
 
 	'SiteStore' => static function ( MediaWikiServices $services ): SiteStore {
@@ -2958,6 +2961,7 @@ return [
 			$services->getUserFactory(),
 			$services->getUserRequirementsConditionCheckerFactory(),
 			$services->getRestrictedUserGroupConfigReader(),
+			$services->getLockManager(),
 			[ static function ( UserIdentity $user ) use ( $services ) {
 				if ( $user->getWikiId() === UserIdentity::LOCAL ) {
 					$services->getPermissionManager()->invalidateUsersRightsCache( $user );
