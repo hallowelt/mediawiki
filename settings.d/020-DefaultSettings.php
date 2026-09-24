@@ -89,7 +89,6 @@ $GLOBALS['bsgDefaultPermissionsPolicyHeader'] = [
 	'microphone' => '',
 	'payment' => '',
 	'picture-in-picture' => '',
-	'publickey-credentials-get' => '',
 	'screen-wake-lock' => '',
 	'usb' => '',
 	'web-share' => '',
