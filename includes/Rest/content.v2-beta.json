@@ -5,8 +5,8 @@
 	"info": {
 		"version": "1.0.0",
 		"title": "Content API",
-		"x-i18n-title": "rest-module-content.v1-title",
-		"x-i18n-description": "rest-module-content.v1-desc"
+		"x-i18n-title": "rest-module-content.v2-title",
+		"x-i18n-description": "rest-module-content.v2-desc"
 	},
 	"externalDocs": {
 		"description": "API documentation",
@@ -40,11 +40,10 @@
 			"get": {
 				"x-i18n-description": "rest-endpoint-desc-get-revision-id",
 				"handler": {
-					"class": "MediaWiki\\Rest\\Handler\\RevisionSourceHandler",
+					"class": "MediaWiki\\Rest\\Handler\\RevisionHandler",
 					"services": [
 						"PageRestHelperFactory"
-					],
-					"format": "source"
+					]
 				}
 			}
 		},
@@ -55,34 +54,32 @@
 					"class": "MediaWiki\\Rest\\Handler\\RevisionHTMLHandler",
 					"services": [
 						"PageRestHelperFactory"
-					],
-					"format": "html"
+					]
 				}
 			}
 		},
-		"/revision/{id}/with_html": {
-			"get": {
-				"x-i18n-description": "rest-endpoint-desc-get-revision-id-with-html",
+		"/page:move/{from}": {
+			"post": {
+				"x-i18n-description": "rest-endpoint-desc-post-move-title",
 				"handler": {
-					"class": "MediaWiki\\Rest\\Handler\\RevisionHTMLHandler",
-					"services": [
-						"PageRestHelperFactory"
-					],
-					"format": "with_html"
+					"adapter": {
+						"type": "action",
+						"action": "move"
+					}
 				}
 			}
 		},
-		"/revision/{id}/bare": {
-			"get": {
-				"x-i18n-description": "rest-endpoint-desc-get-revision-id-bare",
+		"/page:move": {
+			"post": {
+				"x-i18n-description": "rest-endpoint-desc-post-move",
 				"handler": {
-					"class": "MediaWiki\\Rest\\Handler\\RevisionSourceHandler",
-					"services": [
-						"PageRestHelperFactory"
-					],
-					"format": "bare"
+					"adapter": {
+						"type": "action",
+						"action": "move"
+					}
 				}
 			}
 		}
+
 	}
 }
