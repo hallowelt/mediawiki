@@ -3379,6 +3379,8 @@ class MainConfigSchema {
 	 * If you want to get another db in the main cluster, just omit 'cluster'. For example:
 	 *  [ 'virtual-centralauth' => [ 'db' => 'centralauth' ] ]
 	 *
+	 * The db key is mandatory, the cluster key is optional. See ILBFactory documentation.
+	 *
 	 * @since 1.41
 	 */
 	public const VirtualDomainsMapping = [
@@ -13039,10 +13041,9 @@ class MainConfigSchema {
 	 * By default, availability is determined by a module's audience designation (ex. "beta").
 	 * This variable allows assigning a different availability.
 	 *
-	 * Each override is an array with an "availability" key indicating the desired availability,
-	 * as well as any additional information used in applying it. For example, the "published"
-	 * availability allows an optional "groups" key (an array of strings), indicating the groups
-	 * the module should belong to.
+	 * Each override is an array with an optional "availability" key indicating the desired
+	 * availability, and an optional "groups" key (an array of strings) replacing the module's
+	 * default groups. Hidden and disabled modules have no groups.
 	 *
 	 * @unstable Introduced in 1.47. We may adjust this as we refine the available overrides.
 	 */
@@ -13056,7 +13057,6 @@ class MainConfigSchema {
 				'availability' => [ 'type' => 'string' ],
 				'groups' => [ 'type' => 'list' ],
 			],
-			'required' => [ 'availability' ],
 		]
 	];
 
@@ -13065,6 +13065,7 @@ class MainConfigSchema {
 	 *
 	 * "External" modules are implemented outside MediaWiki and its extensions.
 	 * Listing them here allows them to appear in /discovery and the REST Sandbox.
+	 * As for local modules, the audience designation is taken from the module id.
 	 *
 	 * @unstable Introduced in 1.47. We may adjust this as we refine this functionality.
 	 */

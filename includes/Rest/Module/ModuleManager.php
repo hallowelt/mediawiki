@@ -131,27 +131,72 @@ class ModuleManager {
 			$mm ??= ModuleMode::DISABLED;
 		}
 
-		if ( $moduleId === '' ) {
-			return $mm ?? ModuleMode::PUBLISHED;
-		}
-
-		return $mm ?? ModuleMode::getModuleMode( AudienceDesignation::fromModuleId( $moduleId ) );
+		return $mm ?? ModuleMode::getModuleMode( $this->getModuleAudience( $moduleId ) );
 	}
 
 	/**
-	 * Gets the configured override parameters (if any) for a particular module
+	 * Gets a module's audience designation from its module id, or null if it is malformed or
+	 * unrecognized. Local and external modules follow the same rules. The prefix-less flat route
+	 * module has none (AudienceDesignation::NONE). Unlike the module's mode, its audience
+	 * designation cannot be overridden by RestModuleOverrides.
 	 *
 	 * @param string $moduleId The module id
 	 *
-	 * @return array<string,string>
+	 * @return ?AudienceDesignation
+	 * @since 1.47
 	 */
-	private function getModeParams( string $moduleId ): array {
-		$adParams = ModuleMode::getModeParams( AudienceDesignation::fromModuleId( $moduleId ) );
-		$overrideParams = $this->restModuleOverrides[$moduleId] ?? [];
-		unset( $overrideParams['availability'] );
+	public function getModuleAudience( string $moduleId ): ?AudienceDesignation {
+		return AudienceDesignation::fromModuleId( $moduleId );
+	}
 
-		// Config overrides audience designation
-		return $overrideParams + $adParams;
+	/**
+	 * Gets the REST discovery groups for a module by id, or an empty array if the module is
+	 * unknown. This is a convenience wrapper around getModuleInfo(), so it always agrees with
+	 * the groups exposed via ModuleInfo::getGroups().
+	 *
+	 * @param string $moduleId The module id
+	 *
+	 * @return string[]
+	 * @since 1.47
+	 */
+	public function getModuleGroups( string $moduleId ): array {
+		return $this->getModuleInfo( $moduleId )?->getGroups() ?? [];
+	}
+
+	/**
+	 * Resolves the REST discovery groups for a module. Modules that are not listed in discovery
+	 * (hidden or disabled) have no groups. Otherwise, the groups come from (in order of
+	 * precedence) RestModuleOverrides, the module definition file, or the audience designation's
+	 * defaults. Deprecated modules additionally get the 'deprecated' group.
+	 *
+	 * @param string $moduleId The module id
+	 * @param ModuleMode $availability The module's resolved mode
+	 * @param array $moduleDefInfo The module definition info, for local modules
+	 *
+	 * @return string[]
+	 */
+	private function resolveGroups(
+		string $moduleId,
+		ModuleMode $availability,
+		array $moduleDefInfo = []
+	): array {
+		if ( $availability === ModuleMode::DISABLED || $availability === ModuleMode::HIDDEN ) {
+			return [];
+		}
+
+		if ( isset( $this->restModuleOverrides[$moduleId]['groups'] ) ) {
+			$groups = (array)$this->restModuleOverrides[$moduleId]['groups'];
+		} elseif ( isset( $moduleDefInfo['groups'] ) ) {
+			$groups = $moduleDefInfo['groups'];
+		} else {
+			$groups = $this->getModuleAudience( $moduleId )?->getDefaultGroups() ?? [];
+		}
+
+		if ( isset( $moduleDefInfo['deprecationSettings'] ) && !in_array( 'deprecated', $groups, true ) ) {
+			$groups[] = 'deprecated';
+		}
+
+		return $groups;
 	}
 
 	/**
@@ -209,7 +254,7 @@ class ModuleManager {
 		foreach ( $routeFiles as $key => $file ) {
 			$moduleDefInfo = $this->getModuleDefinitionInfo( $file );
 			if (
-				isset( $moduleDefInfo['moduleId'] ) &&
+				$moduleDefInfo &&
 				$this->getModuleMode( $moduleDefInfo['moduleId'] ) === ModuleMode::DISABLED
 			) {
 				$disabledRouteFiles[$key] = $file;
@@ -250,8 +295,7 @@ class ModuleManager {
 			$moduleId = $moduleDefInfo['moduleId'];
 			$this->localModuleFileBasenames[$moduleId] = basename( $file, '.json' );
 			$availability = $this->getModuleMode( $moduleId );
-			$params = $this->getModeParams( $moduleId );
-			$groups = (array)( $params['groups'] ?? $moduleDefInfo['groups'] ?? [] );
+			$groups = $this->resolveGroups( $moduleId, $availability, $moduleDefInfo );
 
 			$modules[$moduleId] = new ModuleInfo(
 				$moduleId,
@@ -260,29 +304,29 @@ class ModuleManager {
 				$moduleDefInfo['title'] ?? $moduleId,
 				$moduleDefInfo['description'] ?? null,
 				$moduleDefInfo['version'] ?? null,
+				$moduleDefInfo['oadSpecPath'] ?? null,
 				$groups
 			);
 		}
 
 		// Add the prefix-less module.
-		$emptyModuleAvailability = $this->getModuleMode( '' );
-		$emptyParams = $this->getModeParams( '' );
+		$prefixlessModuleAvailability = $this->getModuleMode( '' );
 		$modules[''] = new ModuleInfo(
 			'',
-			$emptyModuleAvailability,
+			$prefixlessModuleAvailability,
 			false, // isExternal
 			self::CORE_SPECS['mw-extra']['name'],
 			$this->jsonLocalizer->getFormattedMessage( 'rest-module-extra-routes-desc' ),
 			'0.1.0',
-			(array)( $emptyParams['groups'] ?? [] )
+			null,
+			$this->resolveGroups( '', $prefixlessModuleAvailability )
 		);
 
 		// Gather external modules.
 		foreach ( $this->restExternalModules as $externalModuleId => $externalModuleConfig ) {
 			$availability = $this->getModuleMode( $externalModuleId );
 			$externalModuleConfig = $this->jsonLocalizer->localizeJson( $externalModuleConfig );
-			$params = $this->getModeParams( $externalModuleId );
-			$groups = (array)( $params['groups'] ?? [] );
+			$groups = $this->resolveGroups( $externalModuleId, $availability );
 
 			$modules[$externalModuleId] = new ModuleInfo(
 				$externalModuleId,
@@ -291,6 +335,7 @@ class ModuleManager {
 				$externalModuleConfig['info']['title'] ?? $externalModuleId,
 				$externalModuleConfig['info']['description'] ?? null,
 				$externalModuleConfig['info']['version'] ?? null,
+				null,
 				$groups,
 				$externalModuleConfig['base'] ?? null,
 				$externalModuleConfig['spec'] ?? null
@@ -355,20 +400,19 @@ class ModuleManager {
 				continue;
 			}
 
-			if ( $info->getId() === '' ) {
-				$key = 'mw-extra';
-			} elseif ( $info->isExternal() ) {
+			if ( $info->isExternal() ) {
 				$key = $info->getId();
+				$url = $info->getExternalSpecUrl();
+			} elseif ( $info->getId() === '' ) {
+				$key = 'mw-extra';
+				$url = $this->rootPath . self::ROUTE_MODULE_SPEC_PREFIX . '-';
 			} else {
 				$key = $this->localModuleFileBasenames[$info->getId()]
 					?? str_replace( '/', '.', $info->getId() );
-			}
-
-			if ( $info->isExternal() ) {
-				$url = $info->getExternalSpecUrl();
-			} else {
-				$moduleParam = $info->getId() === '' ? '-' : $info->getId();
-				$url = $this->rootPath . self::ROUTE_MODULE_SPEC_PREFIX . $moduleParam;
+				$specPath = $info->getLocalDescriptionSpecPath();
+				$url = ( $specPath !== null )
+					? $this->rootPath . '/' . $info->getId() . $specPath
+					: $this->rootPath . self::ROUTE_MODULE_SPEC_PREFIX . $info->getId();
 			}
 
 			$specs[$key] = [
@@ -396,15 +440,16 @@ class ModuleManager {
 	 * Gets necessary info from the module definition info, from cache if possible,
 	 * from the definition file otherwise.
 	 *
-	 * @param string $file The module definition file to load
+	 * This returns null for legacy flat-route definition files.
 	 *
-	 * @return array<string,mixed> The module definition info, or an empty array for flat routes
+	 * @param string $file The module definition file to load
+	 * @return ?array{moduleId: string, title: string, oadSpecPath: ?string}
 	 */
-	private function getModuleDefinitionInfo( string $file ): array {
+	private function getModuleDefinitionInfo( string $file ): ?array {
 		$key = $this->srvCache->makeKey(
 			__CLASS__,
 			'definition',
-			'v2',
+			'v3',
 			sha1( $file ),
 			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			(int)@filemtime( $file ),
@@ -424,10 +469,11 @@ class ModuleManager {
 						'version' => $md['info']['version'] ?? null,
 						'description' => $md['info']['description'] ?? null,
 						'deprecationSettings' => $md['info']['deprecationSettings'] ?? null,
-						'groups' => (array)( $md['info']['groups'] ?? [] ),
+						'groups' => isset( $md['info']['groups'] ) ? (array)$md['info']['groups'] : null,
+						'oadSpecPath' => $md['info']['oadSpecPath'] ?? null
 					];
 				} catch ( ModuleFormatException ) {
-					return [];
+					return null;
 				}
 			}
 		);
