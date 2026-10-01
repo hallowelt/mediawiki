@@ -55,7 +55,6 @@ use MediaWiki\Cache\BacklinkCache;
 use MediaWiki\Cache\BacklinkCacheFactory;
 use MediaWiki\Cache\GenderCache;
 use MediaWiki\Cache\HTMLCacheUpdater;
-use MediaWiki\Cache\UserCache;
 use MediaWiki\Category\TrackingCategories;
 use MediaWiki\ChangeTags\ChangeTagsFormatter;
 use MediaWiki\ChangeTags\ChangeTagsStore;
@@ -2243,7 +2242,6 @@ return [
 		return new RenameUserFactory(
 			new ServiceOptions( RenameUserFactory::CONSTRUCTOR_OPTIONS, $services->getMainConfig() ),
 			$services->getCentralIdLookupFactory(),
-			$services->getConnectionProvider(),
 			$services->getJobQueueGroupFactory(),
 			$services->getMovePageFactory(),
 			$services->getUserFactory(),
@@ -2907,14 +2905,6 @@ return [
 			UrlUtils::HTTPS_PORT => $config->get( MainConfigNames::HttpsPort ),
 			UrlUtils::VALID_PROTOCOLS => $config->get( MainConfigNames::UrlProtocols ),
 		] );
-	},
-
-	'UserCache' => static function ( MediaWikiServices $services ): UserCache {
-		return new UserCache(
-			LoggerFactory::getInstance( 'UserCache' ),
-			$services->getConnectionProvider(),
-			$services->getLinkBatchFactory()
-		);
 	},
 
 	'UserEditTracker' => static function ( MediaWikiServices $services ): UserEditTracker {

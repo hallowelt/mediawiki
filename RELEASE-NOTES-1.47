@@ -257,7 +257,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated wikimedia/cssjanus from 2.3.0 to 2.3.1.
 * Updated wikimedia/json-codec from 4.0.0 to 5.0.0.
 * Updated wikimedia/language-data from 1.1.13 to 1.1.14.
-* Updated wikimedia/minify from 2.10.0 to 2.11.0.
+* Updated wikimedia/minify from 2.10.0 to 2.12.0.
 * Updated codex, codex-design-tokens and codex-icons
   from v2.5.1 to v2.6.2.
 * Updated OOUI from v0.53.2 to v0.54.2
@@ -371,6 +371,8 @@ because of Phabricator reports.
   by ::getExternalLinks() has been deprecated since 1.43.
 * CategoryViewer::getSubcategorySortChar(), deprecated in 1.45,
   has been removed.
+* OutputPage::getTarget() has been removed without deprecation. Its setter was
+  removed in 1.43, but this was missed.
 * SessionInfo::compare() has been removed without deprecation.
 * ChannelFeed::outHeader(), ::outItem(), ::outFooter(), ::httpHeaders() and
   ::outXmlHeader() have been removed. Use/override ::outputHeader(),
@@ -383,6 +385,7 @@ because of Phabricator reports.
   deprecated in 1.43, have been removed.
 * WebRequest::isSafeRequest() and WebRequest::markAsSafeRequest(),
   deprecated since 1.41, have been removed. Use ::hasSafeMethod() instead.
+* WebRequest::getCrossSiteCookie(), deprecated since 1.42, has been removed.
 * AutoloadGenerator::setPsr4Namespaces, deprecated in 1.40, has been removed.
 * ResourceLoader::makeConfigSetScript, deprecated in 1.44, has been removed.
   Use package files instead or return mw.config.set() combined with
@@ -404,8 +407,13 @@ because of Phabricator reports.
   - Xml::option().
 * XmlSelect::setTagName(), deprecated since 1.45, has been removed.
 * Content::getNativeData(), deprecated since 1.33, has been removed.
+* WikitextContent::getRedirectTargetAndText(), deprecated since 1.43,
+  has been removed.
 * LinksUpdate::getImages(), deprecated since 1.44, has been removed. Use
   LinksUpdate::getParserOutput()->getLinkList(::MEDIA) instead.
+* LinksUpdate::getAddedLinks(), ::getRemovedLinks(), deprecated since 1.38,
+  have been removed.
+* TitleLinksTable::getTitleArray(), deprecated since 1.38, has been removed.
 * The ParsoidService class, deprecated since 1.39, has been removed. Use the
   relevant MediaWikiServices access points instead.
 * The method Action::getArticle is now final. Overriding of this method fails
@@ -473,6 +481,8 @@ because of Phabricator reports.
 * Passing a performer to UploadBase::checkWarnings is mandatory now. Passing
   null was deprecated in 1.46.
 * UploadBase::isThrottled(), deprecated since 1.41, has been removed.
+* UploadBase::verifyExtension(), UploadBase::detectScript() and
+  UploadBase::detectVirus(), deprecated since 1.45, have been removed.
 * Maintenance::error() no longer accepts a $die argument. This behaviour
   was deprecated in 1.31. Use Maintenance::fatalError() instead.
 * OutputPage::showNewSectionLink(), ::forceHideNewSectionLink(), and
@@ -488,6 +498,8 @@ because of Phabricator reports.
   now throws a TypeError.
 * The protected static method UserMailer::sendWithPear() has been removed
   following the migration from PEAR Mail to symfony/mailer.
+* UserCache class and MediaWikiServices::getUserCache(), deprecated since 1.43,
+  have been removed.
 * DBLoadBalancerFactoryConfigBuilder service has been removed without
   deprecation. It is internal to the rdbms library and shouldn't be used
   outside of it.
@@ -500,6 +512,7 @@ because of Phabricator reports.
   been removed.
 * The previously protected property Article::$mContext was made private.
   Access to it has been deprecated since 1.35.
+* BlockManager::getUserBlock(), deprecated since 1.42, has been removed.
 * The following ChangeTags methods which were deprecated in 1.41 have been
   removed:
   - getTags
@@ -529,6 +542,7 @@ because of Phabricator reports.
 * Task::getVirtualDomains() and the "VirtualDomains" installer provision have
   been removed. Installer tasks that need the list of virtual domains should
   read the VirtualDomainsMapping configuration variable instead.
+* ApiBase::makeMessage(), deprecated since 1.43, has been removed.
 * …
 
 === Deprecations in 1.47 ===
