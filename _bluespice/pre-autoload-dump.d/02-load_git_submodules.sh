@@ -6,6 +6,16 @@
 # Copyright: 2017
 # License: GPLv3
 
+sedi() {
+	if sed --version >/dev/null 2>&1; then
+		# GNU sed detected
+		sed -i "$@"
+	else
+		# BSD sed detected
+		sed -i '' "$@"
+	fi
+}
+
 mv vendor vendor_by_composer
 
 # We want to clone submodules from github, not from Wikimedia gerrit
@@ -14,9 +24,9 @@ mv vendor vendor_by_composer
 # 	https://gerrit.wikimedia.org/r/mediawiki/skins/Vector -> git@github.com:wikimedia/mediawiki-skins-Vector
 # 	https://gerrit.wikimedia.org/r/mediawiki/vendor -> git@github.com:wikimedia/mediawiki-vendor
 
-sed -i 's|https://gerrit.wikimedia.org/r/mediawiki/|git@github.com:wikimedia/mediawiki-|g' .gitmodules
-sed -i 's|mediawiki-extensions/|mediawiki-extensions-|g' .gitmodules
-sed -i 's|mediawiki-skins/|mediawiki-skins-|g' .gitmodules
+sedi 's|https://gerrit.wikimedia.org/r/mediawiki/|https://github.com/wikimedia/mediawiki-|g' .gitmodules
+sedi 's|mediawiki-extensions/|mediawiki-extensions-|g' .gitmodules
+sedi 's|mediawiki-skins/|mediawiki-skins-|g' .gitmodules
 
 git submodule init
 # Only clone with depth 1
@@ -26,7 +36,7 @@ for submodule in $submodules; do
 done
 
 # Special handling for submodule in Extension:VisualEditor
-sed -i 's|https://gerrit.wikimedia.org/r/VisualEditor/VisualEditor|git@github.com:wikimedia/VisualEditor|g' extensions/VisualEditor/.gitmodules
+sedi 's|https://gerrit.wikimedia.org/r/VisualEditor/VisualEditor|https://github.com/wikimedia/VisualEditor|g' extensions/VisualEditor/.gitmodules
 cd extensions/VisualEditor
 git submodule update --init --depth 1 lib/ve
 cd -
