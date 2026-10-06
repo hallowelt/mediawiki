@@ -4311,7 +4311,7 @@ class MainConfigSchema {
 	 */
 	public const SplitParsoidParserCache = [
 		'type' => 'boolean',
-		'default' => true,
+		'default' => false,
 	];
 
 	/**
@@ -13778,6 +13778,18 @@ class MainConfigSchema {
 	public const UseParsoidMessages = [
 		'default' => true,
 		'type' => '?boolean'
+	];
+
+	/**
+	 * Set Parsoid as the default wikitext parser
+	 *
+	 * A separate config controls Parsoid use for messages and link updates
+	 *
+	 * @since 1.47
+	 */
+	public const UseParsoidParser = [
+		'default' => false,
+		'type' => 'boolean'
 	];
 
 	/**

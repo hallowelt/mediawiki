@@ -45,7 +45,7 @@ class SiteImporterTest extends MediaWikiIntegrationTestCase {
 		$errorHandler->expects( $this->exactly( $errorCount ) )
 			->method( 'error' );
 
-		$importer = new SiteImporter( $store );
+		$importer = new SiteImporter( $store, $this->getServiceContainer()->getSiteSanitizer() );
 		$importer->setExceptionCallback( [ $errorHandler, 'error' ] );
 
 		return $importer;
@@ -60,25 +60,23 @@ class SiteImporterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public static function provideImportFromXML() {
-		$foo = Site::newForType( Site::TYPE_UNKNOWN );
+		$foo = new Site();
 		$foo->setGlobalId( 'Foo' );
 
-		$acme = Site::newForType( Site::TYPE_UNKNOWN );
+		$acme = new Site();
 		$acme->setGlobalId( 'acme.com' );
 		$acme->setGroup( 'Test' );
 		$acme->addLocalId( Site::ID_INTERWIKI, 'acme' );
 		$acme->setPath( Site::PATH_LINK, 'http://acme.com/' );
 
-		$dewiki = Site::newForType( Site::TYPE_MEDIAWIKI );
+		$dewiki = new MediaWikiSite();
 		$dewiki->setGlobalId( 'dewiki' );
 		$dewiki->setGroup( 'wikipedia' );
-		$dewiki->setForward( true );
 		$dewiki->setLanguageCode( 'de' );
 		$dewiki->addLocalId( Site::ID_INTERWIKI, 'wikipedia' );
 		$dewiki->addLocalId( Site::ID_EQUIVALENT, 'de' );
 		$dewiki->setPath( Site::PATH_LINK, 'http://de.wikipedia.org/w/' );
 		$dewiki->setPath( MediaWikiSite::PATH_PAGE, 'http://de.wikipedia.org/wiki/' );
-		$dewiki->setSource( 'meta.wikimedia.org' );
 
 		return [
 			'empty' => [
@@ -148,30 +146,28 @@ class SiteImporterTest extends MediaWikiIntegrationTestCase {
 		$this->expectException( Exception::class );
 
 		$store = $this->createMock( SiteStore::class );
-		$importer = new SiteImporter( $store );
+		$importer = new SiteImporter( $store, $this->getServiceContainer()->getSiteSanitizer() );
 		$importer->importFromXML( 'THIS IS NOT XML' );
 	}
 
 	public function testImportFromFile() {
-		$foo = Site::newForType( Site::TYPE_UNKNOWN );
+		$foo = new Site();
 		$foo->setGlobalId( 'Foo' );
 
-		$acme = Site::newForType( Site::TYPE_UNKNOWN );
+		$acme = new Site();
 		$acme->setGlobalId( 'acme.com' );
 		$acme->setGroup( 'Test' );
 		$acme->addLocalId( Site::ID_INTERWIKI, 'acme' );
 		$acme->setPath( Site::PATH_LINK, 'http://acme.com/' );
 
-		$dewiki = Site::newForType( Site::TYPE_MEDIAWIKI );
+		$dewiki = new MediaWikiSite();
 		$dewiki->setGlobalId( 'dewiki' );
 		$dewiki->setGroup( 'wikipedia' );
-		$dewiki->setForward( true );
 		$dewiki->setLanguageCode( 'de' );
 		$dewiki->addLocalId( Site::ID_INTERWIKI, 'wikipedia' );
 		$dewiki->addLocalId( Site::ID_EQUIVALENT, 'de' );
 		$dewiki->setPath( Site::PATH_LINK, 'http://de.wikipedia.org/w/' );
 		$dewiki->setPath( MediaWikiSite::PATH_PAGE, 'http://de.wikipedia.org/wiki/' );
-		$dewiki->setSource( 'meta.wikimedia.org' );
 
 		$importer = $this->newSiteImporter( [ $foo, $acme, $dewiki ], 0 );
 

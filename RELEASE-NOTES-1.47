@@ -20,6 +20,12 @@ oldest supported upgrading version, MediaWiki 1.39.
 
 Some specific notes for MediaWiki 1.47 upgrades are below:
 
+* Direct upgrade from 1.43 to 1.47 is supported per our compatibility policy
+  but in a one-time departure from policy, *rollback* from 1.47 to 1.43
+  is not supported without clearing the ParserCache of entries generated
+  by 1.47.  Rollback from 1.47 to 1.45 is fully supported.  We recommend
+  a two-step upgrade from 1.43 to 1.45.6 and then to 1.47, which will
+  preserve rollback-compatibility of ParserCache entries.
 * …
 
 For notes on 1.46.x and older releases, see HISTORY.
@@ -456,9 +462,6 @@ because of Phabricator reports.
   - addParserOutputContent: requires non-null ParserOptions (1.44)
   - addParserOutputText: requires string first argument (1.42)
   - addParserOutput: requires non-null ParserOptions (1.44)
-  - transformCssMedia: requires non-null WebRequest as 2nd argument (1.46)
-* ResourceLoader::makeCombinedStyles() now requires a non-null WebRequest
-  as its 2nd argument (deprecated in 1.46)
 * The unused method SpecialVersion::getVersionLinked, deprecated in 1.46, has
   been removed.
 * The ConditionalDefaultOptionsAddCondition hook, deprecated in 1.46, has been
@@ -628,6 +631,9 @@ because of Phabricator reports.
 * The "MainWANObjectCache" service and MediaWikiServices::getMainWANObjectCache
   method have been deprecated. Inject the "WANObjectCache" service name
   or call MediaWikiServices::getWANObjectCache instead.
+* OutputPage::setPrintable, OutputPage::isPrintable, and
+  OutputPage::transformCssMedia are no longer needed per T259141 and have been
+  deprecated without replacement.
 * QuickTemplate::msg() and QuickTemplate::haveMsg() got deprecated and shouldn't
   be used any more.
 * The shell global functions wfEscapeShellArg(), wfShellExec(),
@@ -716,6 +722,8 @@ because of Phabricator reports.
   warnings.
 * WANObjectCache::adaptiveTTL, is now deprecated and emits deprecation
   warnings.
+* WikiPage::getRedirectTarget(), deprecated since 1.38, now emits deprecation
+  warnings.
 * SpecialVersion::getExtensionTypeName() is unused and has been deprecated.
 * The following ChangeTags methods have been deprecated and emit deprecation
   warnings:
@@ -754,6 +762,7 @@ because of Phabricator reports.
   deprecation warnings. Use the lock manager service instead.
 * PrefixSearch (and the corresponding StringPrefixSearch/TitlePrefixSearch) have
   been deprecated. Use SearchEngine::completionSearch() instead.
+* Title::estimateRevisionCount() is unused and has been deprecated.
 * …
 
 === Other changes in 1.47 ===

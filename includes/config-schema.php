@@ -554,7 +554,7 @@ return [
 				'StashDuration' => 86400,
 			],
 			'ParsoidSelectiveUpdateSampleRate' => 0,
-			'SplitParsoidParserCache' => true,
+			'SplitParsoidParserCache' => false,
 			'ParserCacheFilterConfig' => [
 				'pcache' => [
 					'default' => [
@@ -2779,6 +2779,7 @@ return [
 			],
 			'UseParsoidLinksUpdate' => true,
 			'UseParsoidMessages' => true,
+			'UseParsoidParser' => false,
 			'SiteLookup' => [
 			],
 		],
@@ -3332,6 +3333,7 @@ return [
 				'boolean',
 				'null',
 			],
+			'UseParsoidParser' => 'boolean',
 			'SiteLookup' => 'object',
 		],
 		'mergeStrategy' => [
