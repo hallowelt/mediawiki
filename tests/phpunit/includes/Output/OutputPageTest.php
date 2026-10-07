@@ -939,6 +939,30 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	/**
+	 * The display title of the page is separate from the title text in
+	 * the metadata: a ParserOutput does not change it.
+	 *
+	 * @covers \MediaWiki\Output\OutputPage::getDisplayTitle
+	 * @covers \MediaWiki\Output\OutputPage::getDisplayTitleParts
+	 */
+	public function testDisplayTitleIsNotMetadata() {
+		$op = $this->newInstance();
+		$op->setTitle( Title::makeTitle( NS_TALK, 'Foo' ) );
+		$op->setDisplayTitleParts( 'Talk', ':', 'Bar' );
+
+		$po = new ParserOutput();
+		$po->setDisplayTitleParts( 'Help', ':', 'Message' );
+		$op->addParserOutputMetadata( $po );
+		$op->getMetadata()->setDisplayTitleParts( 'User', ':', 'Other' );
+
+		$this->assertSame( 'Talk:Bar', $op->getDisplayTitle() );
+		$this->assertSame(
+			[ 'Talk', ':', 'Bar' ],
+			array_map( HtmlArmor::getHtml( ... ), $op->getDisplayTitleParts() )
+		);
+	}
+
 	public static function provideUnprefixedDisplayTitle() {
 		return [
 			'No display title' => [ NS_TALK, null, 'Foo' ],
@@ -2976,6 +3000,49 @@ class OutputPageTest extends MediaWikiIntegrationTestCase {
 		$op->addParserOutputMetadata( $pOut1 );
 		$this->assertTrue( $op->isTOCEnabled() );
 		$this->assertTrue( $op->getOutputFlag( ParserOutputFlags::SHOW_TOC ) );
+	}
+
+	/**
+	 * @covers \MediaWiki\Output\OutputPage::addParserOutputMetadata
+	 */
+	public function testFlagsAreCopiedAfterOutputPageParserOutputHook() {
+		$op = $this->newInstance();
+		$po = new ParserOutput();
+		$po->setOutputFlag( ParserOutputFlags::NO_GALLERY );
+		$seen = null;
+		$this->setTemporaryHook( 'OutputPageParserOutput',
+			static function ( OutputPage $out ) use ( &$seen ) {
+				$seen = $out->getOutputFlag( ParserOutputFlags::NO_GALLERY );
+			}
+		);
+		$op->addParserOutputMetadata( $po );
+		// The flags are copied after the hook runs.
+		$this->assertFalse( $seen );
+		$this->assertTrue( $op->getOutputFlag( ParserOutputFlags::NO_GALLERY ) );
+	}
+
+	/**
+	 * @covers \MediaWiki\Output\OutputPage::addParserOutputMetadata
+	 */
+	public function testFlagChangeInOutputPageParserOutputHookIsDeprecated() {
+		$op = $this->newInstance();
+		$po = new ParserOutput();
+		$po->setOutputFlag( ParserOutputFlags::NO_GALLERY );
+		$this->setTemporaryHook( 'OutputPageParserOutput',
+			static function ( OutputPage $out, ParserOutput $po ) {
+				$po->setOutputFlag( ParserOutputFlags::NO_GALLERY, false );
+				$po->setOutputFlag( ParserOutputFlags::SHOW_TOC );
+			}
+		);
+		$this->expectDeprecationAndContinue(
+			'/Changing ParserOutput flags in the OutputPageParserOutput hook/'
+		);
+		$op->addParserOutputMetadata( $po );
+		// A flag that the hook clears is not copied.
+		$this->assertFalse( $op->getOutputFlag( ParserOutputFlags::NO_GALLERY ) );
+		// A flag that the hook sets is copied.
+		$this->assertTrue( $op->getOutputFlag( ParserOutputFlags::SHOW_TOC ) );
+		$this->assertTrue( $op->isTOCEnabled() );
 	}
 
 	public function testNoTOC() {
