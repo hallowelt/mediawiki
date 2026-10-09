@@ -5,15 +5,18 @@ namespace MediaWiki\Parser\Parsoid;
 
 use MediaWiki\Language\Language;
 use MediaWiki\Language\LanguageCode;
+use MediaWiki\Languages\LanguageFactory;
+use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\ContentHolder;
 use MediaWiki\Parser\ParserOutput;
+use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
 use MediaWiki\Utils\MWTimestamp;
 use Wikimedia\Assert\Assert;
-use Wikimedia\Bcp47Code\Bcp47CodeValue;
 use Wikimedia\Parsoid\Config\SiteConfig;
 use Wikimedia\Parsoid\Core\BasePageBundle;
 use Wikimedia\Parsoid\Core\DOMCompat;
@@ -24,6 +27,7 @@ use Wikimedia\Parsoid\DOM\Document;
 use Wikimedia\Parsoid\DOM\Element;
 use Wikimedia\Parsoid\Ext\DOMUtils;
 use Wikimedia\Parsoid\Parsoid;
+use Wikimedia\Parsoid\Utils\PHPUtils;
 use Wikimedia\Timestamp\TimestampFormat;
 
 /**
@@ -38,17 +42,12 @@ use Wikimedia\Timestamp\TimestampFormat;
  * @internal
  */
 final class PageBundleParserOutputConverter {
-	/**
-	 * @var string Key used to store parsoid page bundle data in ParserOutput
-	 * @deprecated since 1.45; use ParserOutput::PARSOID_PAGE_BUNDLE_KEY
-	 */
-	public const PARSOID_PAGE_BUNDLE_KEY = ParserOutput::PARSOID_PAGE_BUNDLE_KEY;
 
-	/**
-	 * We do not want instances of this class to be created
-	 * @return void
-	 */
-	private function __construct() {
+	public function __construct(
+		private readonly SiteConfig $siteConfig,
+		private readonly ?RevisionLookup $revisionLookup,
+		private readonly ?LanguageFactory $languageFactory,
+	) {
 	}
 
 	/**
@@ -67,25 +66,22 @@ final class PageBundleParserOutputConverter {
 	 *  from $originalParserOutput will be copied into the new ParserOutput object.
 	 * @param ParsoidLinkTarget|PageReference|null $title The given title will
 	 *  be copied into the new ParserOutput object.
-	 * @param ?SiteConfig $siteConfig
 	 *
 	 * @return ParserOutput
 	 */
-	public static function parserOutputFromPageBundle(
+	public function parserOutputFromPageBundle(
 		HtmlPageBundle $pageBundle,
 		bool $isParsoidContent,
 		?ParserOutput $originalParserOutput = null,
 		// phpcs:ignore MediaWiki.Usage.NullableType.ExplicitNullableTypes
 		ParsoidLinkTarget|PageReference|null $title = null,
-		?SiteConfig $siteConfig = null,
 	): ParserOutput {
-		$siteConfig ??= MediaWikiServices::getInstance()->getParsoidSiteConfig();
 		$parserOutput = new ParserOutput();
 		$parserOutput->setContentHolder(
 			ContentHolder::createFromPageBundle(
 				$pageBundle,
 				isParsoidContent: $isParsoidContent,
-				siteConfig: $siteConfig,
+				siteConfig: $this->siteConfig,
 			)
 		);
 		if ( $originalParserOutput ) {
@@ -117,39 +113,21 @@ final class PageBundleParserOutputConverter {
 	/**
 	 * Returns a Parsoid HtmlPageBundle equivalent to the given ParserOutput.
 	 * @param ParserOutput $parserOutput
-	 *
-	 * @return HtmlPageBundle
-	 * @deprecated Use ::htmlPageBundleFromParserOutput
-	 */
-	public static function pageBundleFromParserOutput( ParserOutput $parserOutput ): HtmlPageBundle {
-		wfDeprecated( __METHOD__, '1.46' );
-		return self::htmlPageBundleFromParserOutput(
-			$parserOutput,
-			MediaWikiServices::getInstance()->getParsoidSiteConfig(),
-			true,
-		);
-	}
-
-	/**
-	 * Returns a Parsoid HtmlPageBundle equivalent to the given ParserOutput.
-	 * @param ParserOutput $parserOutput
-	 * @param SiteConfig $siteConfig ParsoidSiteConfig service
 	 * @param bool $bodyOnly If false, returns a full document with
 	 *  metadata in the <head>.  If true, the `html` section of
 	 *  the PageBundle returns the inner HTML of the <body> element
 	 *  only.
 	 * @return HtmlPageBundle
 	 */
-	public static function htmlPageBundleFromParserOutput(
+	public function htmlPageBundleFromParserOutput(
 		ParserOutput $parserOutput,
-		SiteConfig $siteConfig,
 		bool $bodyOnly = false,
 	): HtmlPageBundle {
-		$bpb = self::basePageBundleFromParserOutput( $parserOutput );
+		$bpb = $this->basePageBundleFromParserOutput( $parserOutput );
 		$html = $parserOutput->getContentHolderText();
 		if ( !$bodyOnly ) {
 			$document = DOMCompat::newDocument();
-			self::addMetadataToDocument( $parserOutput, $siteConfig, $bpb, $document );
+			$this->addMetadataToDocument( $parserOutput, $bpb, $document );
 			// Add selected header information from page bundle to the <head>
 			foreach ( [ 'content-language', 'vary', 'x-mediawiki-render-id' ] as $h ) {
 				if ( isset( $bpb->headers[$h] ) ) {
@@ -184,7 +162,7 @@ final class PageBundleParserOutputConverter {
 		return $pb;
 	}
 
-	private static function basePageBundleFromParserOutput( ParserOutput $parserOutput ): BasePageBundle {
+	private function basePageBundleFromParserOutput( ParserOutput $parserOutput ): BasePageBundle {
 		$contentHolder = $parserOutput->getContentHolder();
 		$basePageBundle = $contentHolder->isParsoidContent() ?
 			$contentHolder->getBasePageBundle() :
@@ -211,10 +189,6 @@ final class PageBundleParserOutputConverter {
 			$basePageBundle->headers['x-mediawiki-render-id'] = $renderid;
 		}
 		return $basePageBundle;
-	}
-
-	public static function hasPageBundle( ParserOutput $parserOutput ): bool {
-		return $parserOutput->getContentHolder()->isParsoidContent();
 	}
 
 	private static function getMetadataMap( string $key ): ?array {
@@ -256,8 +230,8 @@ final class PageBundleParserOutputConverter {
 	 * Add information to the document <head> corresponding to metadata
 	 * stored in the ParserOutput.
 	 */
-	private static function addMetadataToDocument(
-		ParserOutput $parserOutput, SiteConfig $siteConfig,
+	private function addMetadataToDocument(
+		ParserOutput $parserOutput,
 		BasePageBundle $pb, Document $document
 	): void {
 		// This method is a direct port/translation of the AddMetaData
@@ -289,8 +263,7 @@ final class PageBundleParserOutputConverter {
 		$revId = $parserOutput->getCacheRevisionId();
 		$revRecord = null;
 		if ( $revId ) {
-			$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
-			$revRecord = $revLookup->getRevisionById( $revId );
+			$revRecord = $this->revisionLookup?->getRevisionById( $revId );
 		}
 		if ( $revRecord !== null ) {
 			$revProps += [
@@ -373,7 +346,7 @@ final class PageBundleParserOutputConverter {
 
 			// Add base href pointing to the wiki root
 			$baseUri = $parserOutput->getExtensionData( 'core:base-uri' )
-					 ?? $siteConfig->baseURI();
+					 ?? $this->siteConfig->baseURI();
 			self::appendToHead( $document, 'base', [
 				'href' => $baseUri
 			] );
@@ -389,6 +362,98 @@ final class PageBundleParserOutputConverter {
 			DOMCompat::setTitle( $document, $title->getPrefixedText() );
 		}
 
+		// Export the remaining content metadata via meta tags (and via a
+		// stylesheet for now to aid some clients).
+		//
+		// Note that we deliberately don't export the DISPLAYTITLE here: the
+		// value stored in the ParserOutput corresponds neither to the
+		// ultimate value which would be used in the <h1> tag nor to the
+		// plaintext value which would be used for the page <title>, since
+		// OutputPage does additional validation/stripping on it before use
+		// (T324431).
+		$lang = $parserOutput->getLanguage();
+		if ( $lang !== null ) {
+			$lang = $this->languageFactory?->getLanguage( $lang );
+		}
+
+		// JsConfigVars
+		try {
+			$jsConfigVars = $parserOutput->getJsConfigVars();
+			if ( $jsConfigVars ) {
+				$content = PHPUtils::jsonEncode( $jsConfigVars );
+				self::appendToHead( $document, 'meta', [
+					'property' => 'mw:jsConfigVars',
+					'content' => $content,
+				] );
+			}
+		} catch ( \Exception ) {
+			// See T289358
+			LoggerFactory::getInstance( 'Parsoid' )->warning(
+				'JSON serialization of config data failed. ' .
+				'This usually means the config data is not valid UTF-8.'
+			);
+		}
+
+		// Modules returned from preprocessor / parse requests
+		$modules = $parserOutput->getModules();
+		if ( $modules ) {
+			// mw:generalModules can be processed via JS (and async) and are usually (but
+			// not always) JS scripts.
+			self::appendToHead( $document, 'meta', [
+				'property' => 'mw:generalModules',
+				'content' => implode( '|', array_unique( $modules ) )
+			] );
+		}
+
+		// Styles from modules returned from preprocessor / parse requests
+		$moduleStyles = $parserOutput->getModuleStyles();
+		if ( $moduleStyles ) {
+			// mw:moduleStyles are CSS modules that are render-blocking.
+			self::appendToHead( $document, 'meta', [
+				'property' => 'mw:moduleStyles',
+				'content' => implode( '|', array_unique( $moduleStyles ) )
+			] );
+		}
+		/*
+		 * While unnecessary for Wikimedia clients, a stylesheet url in
+		 * the <head> is useful for clients like Kiwix and others who
+		 * might not want to process the meta tags to construct the
+		 * resourceloader url.
+		 *
+		 * Given that these clients will be consuming Parsoid HTML outside
+		 * a MediaWiki skin, the clients are effectively responsible for
+		 * their own "skin". But, once again, as a courtesy, we are
+		 * hardcoding the vector skin modules for them. But, note that
+		 * this may cause page elements to render differently than how
+		 * they render on Wikimedia sites with the vector skin since this
+		 * is probably missing a number of other modules.
+		 *
+		 * All that said, note that JS-generated parts of the page will
+		 * still require them to have more intimate knowledge of how to
+		 * process the JS modules. Except for <graph>s, page content
+		 * doesn't require JS modules at this point. So, where these
+		 * clients want to invest in the necessary logic to construct a
+		 * better resourceloader url, they could simply delete / ignore
+		 * this stylesheet.
+		 */
+		$moreStyles = array_merge( $moduleStyles, [
+			'mediawiki.skinning.content.parsoid',
+			// Use the base styles that API output and fallback skin use.
+			'mediawiki.skinning.interface',
+			// Make sure to include contents of user generated styles
+			// e.g. MediaWiki:Common.css / MediaWiki:Mobile.css
+			'site.styles'
+		] );
+		// need to use MW-internal language code for constructing resource
+		// loader path.
+		$langMw = $lang === null ? 'en' : $lang->getCode();
+		$modulesLoadURI = MediaWikiServices::getInstance()->getMainConfig()
+			->get( MainConfigNames::LoadScript );
+		$styleURI = $modulesLoadURI . '?lang=' . $langMw . '&modules=' .
+			PHPUtils::encodeURIComponent( implode( '|', array_unique( $moreStyles ) ) ) .
+			'&only=styles&skin=vector';
+		self::appendToHead( $document, 'link', [ 'rel' => 'stylesheet', 'href' => $styleURI ] );
+
 		// Ensure there's a <body>
 		if ( DOMCompat::getBody( $document ) === null ) {
 			DOMCompat::append(
@@ -398,19 +463,8 @@ final class PageBundleParserOutputConverter {
 		}
 
 		// Set properties of <body>
-		$lang = $parserOutput->getLanguage();
-		if ( $lang !== null ) {
-			$lang = MediaWikiServices::getInstance()->getLanguageFactory()
-				->getLanguage( $lang );
-		}
 		self::updateBodyClasslist(
 			DOMCompat::getBody( $document ), $lang, $parserOutput
-		);
-
-		$siteConfig->exportMetadataToHeadBcp47(
-			$document, $parserOutput,
-			( $title ?? Title::newMainPage() )->getPrefixedText(),
-			$lang ?? new Bcp47CodeValue( 'en' )
 		);
 	}
 
@@ -490,7 +544,3 @@ final class PageBundleParserOutputConverter {
 		return $elt;
 	}
 }
-
-/* Temporary class alias to break cyclic dependencies with extensions */
-// phpcs:ignore Generic.Files.LineLength.TooLong
-class_alias( PageBundleParserOutputConverter::class, 'MediaWiki\\Parser\\Parsoid\\PageBundleParserOutputConverterStatic' );
