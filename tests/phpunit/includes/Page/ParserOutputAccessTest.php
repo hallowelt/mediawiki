@@ -466,7 +466,9 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 		$parserOptions = $this->getParserOptions();
 		// With ParserOutputAccess::OPT_LINKS_UPDATE WikiPage::triggerOpportunisticLinksUpdate can be called
 		$this->installOpportunisticUpdateHook( true );
-		$status = $access->getParserOutput( $page, $parserOptions, null, ParserOutputAccess::OPT_LINKS_UPDATE );
+		$status = $access->getParserOutput( $page, $parserOptions, null, [
+			ParserOutputAccess::OPT_LINKS_UPDATE => true,
+		] );
 		$this->assertContainsHtml( 'Hello <i[^>]*>World</i>!', $status );
 	}
 
@@ -489,8 +491,10 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 			$page,
 			$parserOptions,
 			null,
-			// keep bitmap form of options, so we keep testing that
-			ParserOutputAccess::OPT_LINKS_UPDATE | ParserOutputAccess::OPT_FOR_ARTICLE_VIEW
+			[
+				ParserOutputAccess::OPT_LINKS_UPDATE => true,
+				ParserOutputAccess::OPT_FOR_ARTICLE_VIEW => true,
+			]
 		);
 		$this->assertContainsHtml( 'Hello <i[^>]*>World</i>!', $status );
 	}
@@ -604,10 +608,9 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 	public function testGetCachedParserOutputForObsoleteParsoidVersion() {
 		$page = $this->getExistingTestPage( __METHOD__ );
 
-		$fakeBundle = new HtmlPageBundle(
-			html: 'test',
-			version: '0.0', // an obsolete version
-		);
+		$fakeBundle = HtmlPageBundle::newEmpty( 'test' );
+		// Set an obsolete version
+		$fakeBundle->setContentVersion( '0.0' );
 		$output = $this->getServiceContainer()->getPageBundleParserOutputConverter()->parserOutputFromPageBundle(
 			$fakeBundle, isParsoidContent: true, title: $page,
 		);
@@ -1085,6 +1088,76 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 
 		$this->assertStatsKeyContains( '#pool:articleview', 'Count poolcoutner work' );
 		$this->assertStatsKeyContains( 'status:miss,reason:expired', 'Count expired' );
+	}
+
+	/**
+	 * Tests that the stale fallback uses the output from the parser cache
+	 * when the postprocessing cache has no entry. The default
+	 * $wgParserCacheFilterConfig does not save entries in the postprocessing
+	 * cache (T432762).
+	 */
+	public function testPoolWorkDirtyPostproc() {
+		$this->overrideConfigValues( [
+			MainConfigNames::ParserCacheExpireTime => 60,
+		] );
+
+		$primaryCache = $this->getParserCache( 'test', new HashBagOStuff() );
+		// This cache does not keep entries, as the filter config does.
+		$postprocCache = $this->getParserCache( 'test', new EmptyBagOStuff() );
+		$parserCacheFactory = $this->createMock( ParserCacheFactory::class );
+		$parserCacheFactory->method( 'getParserCache' )
+			->willReturnCallback(
+				static fn ( $cacheName ) => str_starts_with(
+					$cacheName, ParserOutputAccess::POSTPROC_CACHE_PREFIX
+				) ? $postprocCache : $primaryCache
+			);
+		$parserCacheFactory->method( 'getRevisionOutputCache' )
+			->willReturn( $this->getRevisionOutputCache( new EmptyBagOStuff() ) );
+
+		MWTimestamp::setFakeTime( '2020-04-04T01:02:03' );
+
+		$access = $this->getParserOutputAccess( [
+			'poolCounterFactory' => $this->makePoolCounterFactory( [
+				'mockAcquire' => Status::newGood( PoolCounter::LOCKED ),
+			], 1 ),
+			'parserCacheFactory' => $parserCacheFactory,
+		] );
+
+		// Generate a result in the parser cache.
+		$page = $this->getNonexistingTestPage( __METHOD__ );
+		$this->editPage( $page, "== Hello ==\nHello ''World''!" );
+
+		$parserOptions = $this->getParserOptions();
+		$parserOptions->enablePostproc();
+		$options = [
+			ParserOutputAccess::OPT_POOL_COUNTER
+				=> ParserOutputAccess::POOL_COUNTER_ARTICLE_VIEW,
+			ParserOutputAccess::OPT_POOL_COUNTER_FALLBACK => true
+		];
+
+		$result = $access->getParserOutput( $page, $parserOptions, null, $options );
+		$this->assertContainsHtml( 'World', $result, 'fresh result', false );
+
+		$access = $this->getParserOutputAccess( [
+			'poolCounterFactory' => $this->makePoolCounterFactory( [
+				'mockAcquire' => Status::newGood( PoolCounter::QUEUE_FULL ),
+			], 1 ),
+			'parserCacheFactory' => $parserCacheFactory,
+		] );
+
+		// Expire the parser cache.
+		MWTimestamp::setFakeTime( '2020-05-05T01:02:03' );
+
+		$parserOptions = $this->getParserOptions();
+		$parserOptions->enablePostproc();
+		$cachedResult = $access->getParserOutput( $page, $parserOptions, null, $options );
+		$this->assertStatusWarning( 'view-pool-overload', $cachedResult );
+		$this->assertStatusWarning( 'view-pool-dirty-output', $cachedResult );
+		$this->assertContainsHtml( 'World', $cachedResult, 'cached result', false );
+		// The fallback output must have the postprocessing applied.
+		$this->assertContainsHtml(
+			'<span class="mw-editsection">', $cachedResult, 'postprocessed', false
+		);
 	}
 
 	/**
@@ -1612,10 +1685,11 @@ class ParserOutputAccessTest extends ParserCacheTestBase {
 			$page,
 			$this->getParserOptions(),
 			null,
-			// keep bitmap form of options, so we keep testing that.
 			// Note that OPT_FOR_ARTICLE_VIEW implies OPT_POOL_COUNTER_FALLBACK.
-			ParserOutputAccess::OPT_NO_CHECK_CACHE
-			| ParserOutputAccess::OPT_FOR_ARTICLE_VIEW
+			[
+				ParserOutputAccess::OPT_NO_CHECK_CACHE => true,
+				ParserOutputAccess::OPT_FOR_ARTICLE_VIEW => true,
+			]
 		);
 
 		$this->assertStatusOk( $status );

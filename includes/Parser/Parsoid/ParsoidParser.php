@@ -24,6 +24,7 @@ use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\Assert\Assert;
 use Wikimedia\Parsoid\Config\PageConfig;
 use Wikimedia\Parsoid\Config\SiteConfig;
+use Wikimedia\Parsoid\Fragments\PFragment;
 use Wikimedia\Parsoid\Parsoid;
 
 /**
@@ -123,8 +124,7 @@ class ParsoidParser /* eventually this will extend \Parser */ {
 			$oldPageConfig = $this->pageConfigFactory->createFromParserOptions(
 				$options,
 				Title::newFromLinkTarget( $pageConfig->getLinkTarget() ),
-				$previousOutput->getCacheRevisionId(),
-				$previousOutput->getLanguage()
+				$previousOutput->getCacheRevisionId()
 			);
 			$oldPageBundle =
 				$this->pageBundleParserOutputConverter->htmlPageBundleFromParserOutput(
@@ -288,15 +288,10 @@ class ParsoidParser /* eventually this will extend \Parser */ {
 		Assert::invariant( $linestart, '$linestart=false is not yet supported' );
 		Assert::invariant( $clearState, '$clearState=false is not yet supported' );
 		$title = Title::newFromPageReference( $page );
-		$lang = $options->getTargetLanguage();
-		if ( $lang === null && $options->getInterfaceMessage() ) {
-			$lang = $options->getUserLangObj();
-		}
 		$pageConfig = $revId === null || $revId === 0 ? null : $this->pageConfigFactory->createFromParserOptions(
 			$options, // T392113: transfers current revision record callback
 			$title,
-			$revId,
-			$lang // defaults to title page language if null
+			$revId
 		);
 		$content = null;
 		if ( $text instanceof TextContent ) {
@@ -321,11 +316,32 @@ class ParsoidParser /* eventually this will extend \Parser */ {
 			$pageConfig = $this->pageConfigFactory->createFromParserOptions(
 				$options,
 				$title,
-				$revisionRecord,
-				$lang // defaults to title page language if null
+				$revisionRecord
 			);
 		}
 
 		return $this->genParserOutput( $pageConfig, $options, $previousOutput );
+	}
+
+	/**
+	 * Wrapper for preprocess()
+	 *
+	 * @param string $text The text to preprocess
+	 * @param ParserOptions $options
+	 * @param ?PageReference $page The context page
+	 * @return string
+	 */
+	public function transformMsg(
+		$text, ParserOptions $options, ?PageReference $page = null
+	): string {
+		$title = ( $page !== null ) ?
+			Title::newFromPageReference( $page ) :
+			Title::makeTitle( NS_SPECIAL, 'Badtitle/Missing' );
+		$pageConfig = $this->pageConfigFactory->createFromParserOptions( $options, $title );
+		$result = $this->dataAccess->preprocessWikitext( $pageConfig, new ParserOutput(), $text );
+		if ( $result instanceof PFragment ) {
+			$result = $result->killMarkers();
+		}
+		return $result;
 	}
 }

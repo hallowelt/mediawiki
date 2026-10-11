@@ -222,8 +222,7 @@ class ParserOutputAccess implements LoggerAwareInterface {
 	private static function normalizeOptions( $options ): array {
 		$bits = 0;
 
-		// TODO: Starting in 1.46, emit deprecation warnings when getting an int.
-
+		// Starting in 1.47, we emit deprecation warnings when getting an int.
 		if ( is_array( $options ) ) {
 			if ( $options['_normalized_'] ?? false ) {
 				// already normalized.
@@ -314,6 +313,9 @@ class ParserOutputAccess implements LoggerAwareInterface {
 		?RevisionRecord $revision = null,
 		$options = []
 	): ?ParserOutput {
+		if ( !is_array( $options ) ) {
+			wfDeprecated( __METHOD__ . ' with int options', '1.47' );
+		}
 		$options = self::normalizeOptions( $options );
 
 		$span = $this->startOperationSpan( __FUNCTION__, $page, $revision );
@@ -385,6 +387,18 @@ class ParserOutputAccess implements LoggerAwareInterface {
 		$parserOutput = $this->getPrimaryCache( $parserOptions )
 			->getDirty( $page, $parserOptions );
 
+		if ( !$parserOutput && $parserOptions->getPostproc() ) {
+			// The postprocessing cache can be empty, or it can be disabled
+			// with $wgParserCacheFilterConfig. Then use the stale output
+			// from the parser cache, and postprocess it.
+			$preParserOptions = $parserOptions->clearPostproc();
+			$parserOutput = $this->getPrimaryCache( $preParserOptions )
+				->getDirty( $page, $preParserOptions );
+			if ( $parserOutput ) {
+				$parserOutput = $this->postprocess( $parserOutput, $parserOptions, $page );
+			}
+		}
+
 		if ( !$parserOutput ) {
 			$this->logger->info( 'dirty missing' );
 			return false;
@@ -451,6 +465,9 @@ class ParserOutputAccess implements LoggerAwareInterface {
 		?RevisionRecord $revision = null,
 		$options = []
 	): Status {
+		if ( !is_array( $options ) ) {
+			wfDeprecated( __METHOD__ . ' with int options', '1.47' );
+		}
 		$options = self::normalizeOptions( $options );
 
 		$span = $this->startOperationSpan( __FUNCTION__, $page, $revision );

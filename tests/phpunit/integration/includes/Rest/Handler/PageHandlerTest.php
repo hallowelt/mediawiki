@@ -14,7 +14,6 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use Wikimedia\Message\MessageValue;
-use Wikimedia\ObjectCache\HashBagOStuff;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\Timestamp\TimestampFormat as TS;
 
@@ -31,8 +30,6 @@ class PageHandlerTest extends MediaWikiIntegrationTestCase {
 
 	private const HTML = '>World</';
 
-	private HashBagOStuff $parserCacheBagOStuff;
-
 	protected function setUp(): void {
 		parent::setUp();
 
@@ -41,9 +38,8 @@ class PageHandlerTest extends MediaWikiIntegrationTestCase {
 			MainConfigNames::RightsText => 'some rights',
 		] );
 
-		$this->parserCacheBagOStuff = new HashBagOStuff();
 		// Protect the ObjectCacheFactory from the service container reset,
-		// so the emulated parser cache persists between calls to executeHandler().
+		// so the parser cache persists between calls to executeHandler().
 		$objectCacheFactory = $this->getServiceContainer()->getObjectCacheFactory();
 		$this->setService( 'ObjectCacheFactory', $objectCacheFactory );
 	}
@@ -252,8 +248,14 @@ class PageHandlerTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( $title->getPrefixedDBkey(), $data['key'] );
 		// The shadow page's message content is rendered into the HTML.
+		// Compare only the text. The HTML of the legacy parser and of Parsoid
+		// is different.
 		$msg = wfMessage( 'logouttext' )->inLanguage( 'en' )->useDatabase( false );
-		$this->assertStringContainsString( $msg->parse(), $data['html'] );
+		$normalize = static fn ( string $html ): string =>
+			trim( preg_replace( '/\s+/', ' ', strip_tags( $html ) ) );
+		$this->assertStringContainsString(
+			$normalize( $msg->parse() ), $normalize( $data['html'] )
+		);
 	}
 
 	/**

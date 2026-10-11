@@ -158,6 +158,13 @@ class OutputPage extends ContextSource {
 	/**
 	 * @var ?TOCData Table of Contents information from ParserOutput, or
 	 *   null if no TOCData was ever set.
+	 *
+	 * This is not the same as $this->metadata->getTOCData().
+	 * ParserOutput::collectMetadata() *appends* the sections of each
+	 * ParserOutput to the TOC of the metadata, while in OutputPage
+	 * ::addParserOutputMetadata() *replaces* the TOC with the
+	 * non-empty TOC of each ParserOutput that has one
+	 * (T307256#8817705; see also T327429).
 	 */
 	private $tocData;
 
@@ -206,7 +213,17 @@ class OutputPage extends ContextSource {
 	 */
 	private bool $mCategoriesSorted = true;
 
-	/** @var array<string,string> */
+	/**
+	 * @var array<string,string> The indicators of this page, as a map
+	 *  from the identifier to the HTML contents.
+	 *
+	 * This is not the same as $this->metadata->getIndicators().
+	 * OutputPage::addParserOutputMetadata() wraps the indicators of each
+	 * ParserOutput with the wrapper div class of that ParserOutput
+	 * (usually .mw-parser-output). Other callers of
+	 * ::setIndicators() can also add indicators that are *not* wrapped.
+	 * (T188443)
+	 */
 	private array $mIndicators = [];
 
 	/**
@@ -373,9 +390,6 @@ class OutputPage extends ContextSource {
 	 * @var Language|null
 	 */
 	private $contentLang;
-
-	/** @var array Profiling data */
-	private $limitReportJSData = [];
 
 	/** @var array Map Title to Content */
 	private $contentOverrides = [];
@@ -2295,14 +2309,14 @@ class OutputPage extends ContextSource {
 	 * @param ParserOutput $parserOutput
 	 */
 	public function addParserOutputMetadata( ParserOutput $parserOutput ) {
-		// T301020 This should eventually use the standard "merge ParserOutput"
-		// function between $parserOutput and $this->metadata.
-		foreach (
-			$parserOutput->getLinkList( ParserOutputLinkTypes::LANGUAGE )
-			as $linkItem
-		) {
-			$this->metadata->appendLinkList( ParserOutputLinkTypes::LANGUAGE, $linkItem );
-		}
+		// Merge the metadata of $parserOutput into $this->metadata (T301020).
+		// This merges the flags, language links, template and media links,
+		// page properties, extension data, revision timestamp, and limit
+		// report, among other things.
+		$parserOutput->collectMetadata( $this->metadata );
+
+		// The code below copies the metadata which OutputPage keeps in
+		// other properties, or which have side effects on OutputPage.
 
 		$cats = [];
 		foreach (
@@ -2338,9 +2352,6 @@ class OutputPage extends ContextSource {
 		$this->addModules( $parserOutput->getModules() );
 		$this->addModuleStyles( $parserOutput->getModuleStyles() );
 		$this->addJsConfigVars( $parserOutput->getJsConfigVars() );
-		if ( $parserOutput->getPreventClickjacking() ) {
-			$this->metadata->setPreventClickjacking( true );
-		}
 		$scriptSrcs = $parserOutput->getExtraCSPScriptSrcs();
 		foreach ( $scriptSrcs as $src ) {
 			$this->getCSP()->addScriptSrc( $src );
@@ -2378,27 +2389,9 @@ class OutputPage extends ContextSource {
 			}
 		}
 
-		// Template versioning and File Search Options
-		foreach ( [
-			ParserOutputLinkTypes::TEMPLATE,
-			ParserOutputLinkTypes::MEDIA,
-		] as $linkType ) {
-			foreach ( $parserOutput->getLinkList( $linkType ) as $linkItem ) {
-				$this->metadata->appendLinkList( $linkType, $linkItem );
-			}
-		}
-
 		// Enable OOUI if requested via ParserOutput
 		if ( $parserOutput->getEnableOOUI() ) {
 			$this->enableOOUI();
-		}
-
-		// Include parser limit report
-		// FIXME: This should append, rather than overwrite, or else this
-		// data should be injected into the OutputPage like is done for the
-		// other page-level things (like OutputPage::setTOCData()).
-		if ( !$this->limitReportJSData ) {
-			$this->limitReportJSData = $parserOutput->getLimitReportJSData();
 		}
 
 		// Link flags are ignored for now, but may in the future be
@@ -2413,6 +2406,8 @@ class OutputPage extends ContextSource {
 			$this->metadata->addLanguageLink( $l );
 		}
 
+		// ::collectMetadata() copied the flags already. Extract the flags
+		// again to find changes that the hook makes.
 		$flagsBefore = $this->extractParserOutputFlags( $parserOutput );
 
 		$this->getHookRunner()->onOutputPageParserOutput( $this, $parserOutput );
@@ -3951,8 +3946,9 @@ class OutputPage extends ContextSource {
 		$vars['wgBackendResponseTime'] = round( $elapsed * 1000 );
 
 		$vars += $this->getJSVars( self::JS_VAR_LATE );
-		if ( $this->limitReportJSData ) {
-			$vars['wgPageParseReport'] = $this->limitReportJSData;
+		$limitReportJSData = $this->metadata->getLimitReportJSData();
+		if ( $limitReportJSData ) {
+			$vars['wgPageParseReport'] = $limitReportJSData;
 		}
 
 		$rlContext = $this->getRlClientContext();

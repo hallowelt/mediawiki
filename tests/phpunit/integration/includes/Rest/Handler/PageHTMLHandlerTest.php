@@ -16,7 +16,6 @@ use MediaWiki\Utils\MWTimestamp;
 use MediaWikiIntegrationTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Wikimedia\Message\MessageValue;
-use Wikimedia\ObjectCache\HashBagOStuff;
 use Wikimedia\Parsoid\Core\ClientError;
 use Wikimedia\Parsoid\Core\DOMCompat;
 use Wikimedia\Parsoid\Core\ResourceLimitExceededException;
@@ -39,14 +38,11 @@ class PageHTMLHandlerTest extends MediaWikiIntegrationTestCase {
 
 	private const HTML = '>World</';
 
-	private HashBagOStuff $parserCacheBagOStuff;
-
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->parserCacheBagOStuff = new HashBagOStuff();
 		// Protect the ObjectCacheFactory from the service container reset,
-		// so the emulated parser cache persists between calls to executeHandler().
+		// so the parser cache persists between calls to executeHandler().
 		$objectCacheFactory = $this->getServiceContainer()->getObjectCacheFactory();
 		$this->setService( 'ObjectCacheFactory', $objectCacheFactory );
 	}
@@ -312,6 +308,10 @@ class PageHTMLHandlerTest extends MediaWikiIntegrationTestCase {
 		Exception $expectedException
 	) {
 		$page = $this->getExistingTestPage( 'HtmlEndpointTestPage/with/slashes' );
+		// The page save can put Parsoid output in the parser cache. Then the
+		// handler gets the output from the cache, and does not call the mock.
+		// Disable the parser cache.
+		$this->overrideConfigValue( MainConfigNames::ParserCacheType, CACHE_NONE );
 		$request = new RequestData(
 			[ 'pathParams' => [ 'title' => $page->getTitle()->getPrefixedText() ] ]
 		);

@@ -270,6 +270,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated symfony/yaml from 7.4.6 to 7.4.17.
 * Updated wikimedia/cldr-plural-rule-parser from 3.0.1 to 3.0.2.
 * Updated wikimedia/cssjanus from 2.3.0 to 2.3.1.
+* Updated wikimedia/object-factory from 6.0.0 to 7.0.0.
 * Updated wikimedia/json-codec from 4.0.0 to 5.0.0.
 * Updated wikimedia/language-data from 1.1.13 to 1.1.14.
 * Updated wikimedia/minify from 2.10.0 to 2.12.0.
@@ -296,6 +297,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated stylelint-config-wikimedia from 0.19.2 to 0.19.4.
 * Updated svgo from 3.3.3 to 3.3.5.
 * Updated QUnit from 2.24.1 to 3.0.0.
+* Updated jsdoc-wmf-theme from 1.3.0 to 1.3.1.
 * …
 
 ==== Removed external libraries ====
@@ -774,8 +776,19 @@ because of Phabricator reports.
 * The ResourceLoader module mediawiki.skinning.content.parsoid has been
   deprecated. Please remove usages.
 * Title::estimateRevisionCount() is unused and has been deprecated.
+* Title::getOtherPage(), deprecated since 1.34, now emits deprecation warnings.
 * WikiPage::shouldCheckParserCache() has been deprecated. Use
   ParserOutputAccess::shouldUseCache() instead.
+* (T436997) Passing an int bitmask as the $options parameter to
+  ParserOutputAccess::getParserOutput() and ::getCachedParserOutput() is
+  deprecated and emits deprecation warnings. Pass an options array instead.
+* Calling PageConfigFactory::createFromParserOptions() with ParserOptions
+  that do not have the 'useParsoid' option set is deprecated and emits
+  warnings.
+* Calling PageConfigFactory::createFromParserOptions() with the
+  $pageLanguageOverride parameter is deprecated and emits warnings;
+  instead use ::setTargetLanguage() on the ParserOptions passed to the
+  method.
 * …
 
 === Other changes in 1.47 ===
