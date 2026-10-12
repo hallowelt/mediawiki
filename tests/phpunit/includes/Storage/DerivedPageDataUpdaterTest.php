@@ -6,6 +6,7 @@ use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Content\Content;
 use MediaWiki\Content\ContentHandler;
+use MediaWiki\Content\CssContent;
 use MediaWiki\Content\JavaScriptContent;
 use MediaWiki\Content\JsonContent;
 use MediaWiki\Content\TextContent;
@@ -31,6 +32,7 @@ use MediaWiki\RecentChanges\RecentChange;
 use MediaWiki\Revision\MutableRevisionRecord;
 use MediaWiki\Revision\MutableRevisionSlots;
 use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\Revision\RevisionStore;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Storage\DerivedPageDataUpdater;
 use MediaWiki\Storage\EditResult;
@@ -220,15 +222,16 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 	 * @covers \MediaWiki\Storage\DerivedPageDataUpdater::getCanonicalParserOutput()
 	 */
 	public function testPrepareContent() {
-		// This tests links from a wikitext aux slot, but
-		// RevisionRenderer::combineSlotOutput() can only combine one
-		// Parsoid wikitext slot per revision. Use the legacy parser.
+		// With Parsoid, the combined output keeps the aux slot HTML as a
+		// fragment until HydrateHeaderPlaceholders runs, so the
+		// assertions on the combined HTML below need the legacy parser.
+		// testPrepareContentParsoidMultiSlot() covers Parsoid.
 		$this->overrideConfigValue( MainConfigNames::UseParsoidParser, false );
 		$slotRoleRegistry = $this->getServiceContainer()->getSlotRoleRegistry();
 		if ( !$slotRoleRegistry->isDefinedRole( 'aux' ) ) {
 			$slotRoleRegistry->defineRoleWithModel(
 				'aux',
-				CONTENT_MODEL_WIKITEXT
+				CONTENT_MODEL_CSS
 			);
 		}
 
@@ -240,7 +243,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		// TODO: test stash
 		// TODO: MCR: Test multiple slots. Test slot removal.
 		$mainContent = new WikitextContent( 'first [[main]] ~~~' );
-		$auxContent = new WikitextContent( 'inherited ~~~ content' );
+		$auxContent = new CssContent( 'inherited ~~~ content' );
 		$auxSlot = SlotRecord::newSaved(
 			10, 7, 'tt:7',
 			SlotRecord::newUnsaved( 'aux', $auxContent )
@@ -1216,21 +1219,17 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		bool $simulateNullEdit,
 		bool $simulatePageCreation
 	) {
-		// This tests links from a wikitext aux slot, but
-		// RevisionRenderer::combineSlotOutput() can only combine one
-		// Parsoid wikitext slot per revision. Use the legacy parser.
-		$this->overrideConfigValue( MainConfigNames::UseParsoidParser, false );
 		$page = $this->getPage( __METHOD__ );
 
 		$content = [ SlotRecord::MAIN => new WikitextContent( 'current [[main]]' ) ];
 
-		$content['aux'] = new WikitextContent( 'Aux [[Nix]]' );
+		$content['aux'] = new CssContent( '/* Aux [[Nix]] */' );
 
 		$slotRoleRegistry = $this->getServiceContainer()->getSlotRoleRegistry();
 		if ( !$slotRoleRegistry->isDefinedRole( 'aux' ) ) {
 			$slotRoleRegistry->defineRoleWithModel(
 				'aux',
-				CONTENT_MODEL_WIKITEXT
+				CONTENT_MODEL_CSS
 			);
 		}
 
@@ -1314,7 +1313,15 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$this->assertIsObject( $cached );
 		$expected = $updater->getCanonicalParserOutput();
 		$expected->clearParseStartTime();
-		$this->assertEquals( $expected, $cached );
+		// Compare the serialized forms, which is what the parser cache
+		// stores. With Parsoid, the ContentHolder of $expected can keep
+		// an empty document from an earlier DOM conversion. This document
+		// is not serialized, so it is not in $cached.
+		$jsonCodec = $this->getServiceContainer()->getJsonCodec();
+		$this->assertEquals(
+			$jsonCodec->toJsonArray( $expected ),
+			$jsonCodec->toJsonArray( $cached )
+		);
 
 		// site stats
 		$stats = $this->getDb()->newSelectQueryBuilder()
@@ -1698,7 +1705,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		if ( !$slotRoleRegistry->isDefinedRole( 'aux' ) ) {
 			$slotRoleRegistry->defineRoleWithModel(
 				'aux',
-				CONTENT_MODEL_WIKITEXT
+				CONTENT_MODEL_CSS
 			);
 		}
 
@@ -1721,7 +1728,7 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		ConvertibleTimestamp::setFakeTime( '2022-01-01T00:02:00Z' );
 		$updater = $page->newPageUpdater( $user );
 		$updater->setContent( SlotRecord::MAIN, new WikitextContent( 'first [[Main]]' ) );
-		$updater->setContent( 'aux', new WikitextContent( 'Aux [[Nix]]' ) );
+		$updater->setContent( 'aux', new CssContent( '/* Aux [[Nix]] */' ) );
 		$rev = $updater->saveRevision( CommentStoreComment::newUnsavedComment( 'testing' ) );
 
 		// run all the jobs
@@ -1802,6 +1809,14 @@ class DerivedPageDataUpdaterTest extends MediaWikiIntegrationTestCase {
 
 		$rev->setId( 1107 );
 		$updater->prepareUpdate( $rev );
+
+		$store = $this->createMock( RevisionStore::class );
+		$store
+			->method( 'getRevisionById' )
+			->willReturnCallback( static function ( int $id ) use ( $rev ) {
+				return ( $id === 1107 ) ? $rev : null;
+			} );
+		$this->setService( 'RevisionStore', $store );
 
 		// Force the page timestamp, so we notice whether ParserOutput::getTimestamp
 		// or ParserOutput::getCacheTime are used.

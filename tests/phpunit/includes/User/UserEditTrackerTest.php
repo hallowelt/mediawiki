@@ -276,7 +276,7 @@ class UserEditTrackerTest extends MediaWikiIntegrationTestCase {
 		$mockTime = time();
 		$wrappedTracker = TestingAccessWrapper::newFromObject( $tracker );
 		// Mock time is passed as reference, so it's only seemingly unused later in this test
-		$wrappedTracker->wanObjectCache->setMockTime( $mockTime );
+		$wrappedTracker->wanCache->setMockTime( $mockTime );
 
 		$this->assertFalse( $tracker->getFirstEditTimestamp( $user ) );
 
@@ -291,26 +291,17 @@ class UserEditTrackerTest extends MediaWikiIntegrationTestCase {
 		$mockTime += 1000;
 		$this->assertSame( $ts, $tracker->getFirstEditTimestamp( $user ) );
 
-		// Delete directly from database to ensure that the result is cached
+		// Simulate DeletePage::archiveRevisions in two steps to test READ_LATEST in-between
+		// 1. Delete the revision
 		$this->getDb()->newDeleteQueryBuilder()
 			->delete( 'revision' )
 			->where( '1=1' )
 			->caller( __METHOD__ )
 			->execute();
-
 		$this->assertFalse( $tracker->getFirstEditTimestamp( $user, IDBAccessObject::READ_LATEST ) );
 		$this->assertSame( $ts, $tracker->getFirstEditTimestamp( $user ) );
-
-		// Ensure that cache is invalidated only if we pass matching timestamp
-		$tracker->invalidateCachedFirstEditTimestamps( [
-			[ $user, '20260101000000' ],
-		] );
-		$mockTime += 1000;
-		$this->assertSame( $ts, $tracker->getFirstEditTimestamp( $user ) );
-
-		$tracker->invalidateCachedFirstEditTimestamps( [
-			[ $user, $ts ],
-		] );
+		// 2. Purge the cache
+		$tracker->invalidateCachedFirstEditTimestamps( [ $user ] );
 		$mockTime += 1000;
 		$this->assertFalse( $tracker->getFirstEditTimestamp( $user ) );
 	}
