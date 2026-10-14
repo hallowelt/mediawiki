@@ -218,6 +218,7 @@ CREATE TABLE /*_*/file (
   file_deleted SMALLINT UNSIGNED NOT NULL,
   UNIQUE INDEX file_name (file_name),
   INDEX file_latest (file_latest),
+  INDEX file_type_name (file_type, file_name),
   PRIMARY KEY(file_id)
 ) /*$wgDBTableOptions*/;
 
@@ -870,6 +871,14 @@ CREATE TABLE /*_*/user_autocreate_serial (
   uas_year SMALLINT UNSIGNED NOT NULL,
   uas_value INT UNSIGNED NOT NULL,
   PRIMARY KEY(uas_shard, uas_year)
+) /*$wgDBTableOptions*/;
+
+
+CREATE TABLE /*_*/user_editcount (
+  uec_user INT UNSIGNED NOT NULL,
+  uec_shard TINYINT(4) UNSIGNED DEFAULT 0 NOT NULL,
+  uec_count INT UNSIGNED DEFAULT 0 NOT NULL,
+  PRIMARY KEY(uec_user, uec_shard)
 ) /*$wgDBTableOptions*/;
 
 

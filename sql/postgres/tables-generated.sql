@@ -242,6 +242,8 @@ CREATE UNIQUE INDEX file_name ON file (file_name);
 
 CREATE INDEX file_latest ON file (file_latest);
 
+CREATE INDEX file_type_name ON file (file_type, file_name);
+
 
 CREATE TABLE filearchive (
   fa_id SERIAL NOT NULL,
@@ -934,6 +936,14 @@ CREATE TABLE user_autocreate_serial (
   uas_year SMALLINT NOT NULL,
   uas_value INT NOT NULL,
   PRIMARY KEY(uas_shard, uas_year)
+);
+
+
+CREATE TABLE user_editcount (
+  uec_user INT NOT NULL,
+  uec_shard SMALLINT DEFAULT 0 NOT NULL,
+  uec_count INT DEFAULT 0 NOT NULL,
+  PRIMARY KEY(uec_user, uec_shard)
 );
 
 

@@ -216,6 +216,8 @@ CREATE UNIQUE INDEX file_name ON /*_*/file (file_name);
 
 CREATE INDEX file_latest ON /*_*/file (file_latest);
 
+CREATE INDEX file_type_name ON /*_*/file (file_type, file_name);
+
 
 CREATE TABLE /*_*/filearchive (
   fa_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -857,6 +859,14 @@ CREATE TABLE /*_*/user_autocreate_serial (
   uas_year SMALLINT UNSIGNED NOT NULL,
   uas_value INTEGER UNSIGNED NOT NULL,
   PRIMARY KEY(uas_shard, uas_year)
+);
+
+
+CREATE TABLE /*_*/user_editcount (
+  uec_user INTEGER UNSIGNED NOT NULL,
+  uec_shard SMALLINT UNSIGNED DEFAULT 0 NOT NULL,
+  uec_count INTEGER UNSIGNED DEFAULT 0 NOT NULL,
+  PRIMARY KEY(uec_user, uec_shard)
 );
 
 
