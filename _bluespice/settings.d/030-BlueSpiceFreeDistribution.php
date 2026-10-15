@@ -1,6 +1,5 @@
 <?php
 
-$GLOBALS['bsgEnabledExtensions']['Arrays'] = true;
 $GLOBALS['bsgEnabledExtensions']['BlueSpiceDistributionConnector'] = true;
 $GLOBALS['bsgEnabledExtensions']['CategoryTree'] = true;
 $GLOBALS['bsgEnabledExtensions']['CodeEditor'] = true;
