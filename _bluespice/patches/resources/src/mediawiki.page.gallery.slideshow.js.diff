@@ -1,0 +1,28 @@
+diff --git a/resources/src/mediawiki.page.gallery.slideshow.js b/resources/src/mediawiki.page.gallery.slideshow.js
+index f41292e107f..7c5a01a0a7b 100644
+--- a/resources/src/mediawiki.page.gallery.slideshow.js
++++ b/resources/src/mediawiki.page.gallery.slideshow.js
+@@ -367,8 +367,21 @@
+ 
+ 		if ( this.imageInfoCache[ imageSrc ] === undefined ) {
+ 			const api = new mw.Api();
+-			// TODO: This supports only gallery of images
+-			const title = mw.Title.newFromImg( $img );
++			let title = null;
++			const $link = $img.closest( 'a' );
++			if ( $link.length ) {
++				const href = $link.attr( 'href' );
++				const articlePath = mw.config.get( 'wgArticlePath' ).replace( '$1', '' );
++				if ( href && href.indexOf( articlePath ) === 0 ) {
++					const titleText = decodeURIComponent( href.slice( articlePath.length ) );
++					title = mw.Title.newFromText( titleText );
++				}
++			}
++			// Fallback to the original behavior in case of failing link-based extraction
++			if ( !title ) {
++				title = mw.Title.newFromImg( $img );
++			}
++
+ 			const params = {
+ 				action: 'query',
+ 				formatversion: 2,

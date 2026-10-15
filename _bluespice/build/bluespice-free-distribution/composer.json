@@ -1,0 +1,41 @@
+{
+	"repositories": [{
+		"type": "composer",
+		"url": "https://packages.bluespice.com/"
+	}],
+	"require": {
+		"bluespice/visualeditorconnector": "dev-master",
+		"hallowelt/filter-special-pages": "dev-master",
+		"mediawiki/arrays": "dev-master",
+		"mediawiki/content-droplets": "dev-master",
+		"mediawiki/enhanced-standard-uis": "dev-master",
+		"mediawiki/enhanced-upload": "dev-master",
+		"mediawiki/flexiskin": "dev-master",
+		"mediawiki/font-awesome": "4.0.*",
+		"mediawiki/hit-counters": "dev-master",
+		"mediawiki/image-map-edit": "dev-master",
+		"mediawiki/invite-signup": "dev-master",
+		"mediawiki/lingo": "dev-master",
+		"mediawiki/loops": "dev-master",
+		"mediawiki/menu-editor": "dev-master",
+		"mediawiki/notify-me": "dev-master",
+		"mediawiki/oojsplus": "dev-master",
+		"mediawiki/page-excerpts": "dev-main",
+		"mediawiki/page-header": "dev-master",
+		"mediawiki/page-layouts": "dev-main",
+		"mediawiki/pdf-creator": "dev-master",
+		"mediawiki/renameuser": "dev-master",
+		"mediawiki/rss": "dev-master",
+		"mediawiki/standard-dialogs": "dev-master",
+		"mediawiki/template-styles": "dev-master",
+		"mediawiki/two-col-conflict": "dev-master",
+		"mediawiki/url-get-parameters": "dev-master",
+		"mediawiki/user-functions": "dev-master",
+		"mediawiki/user-merge": "dev-master",
+		"mediawiki/user-profile": "dev-master",
+		"mediawiki/visual-editor-plus": "dev-master",
+		"mediawiki/vuejs-plus": "dev-master",
+		"starcitizenwiki/embedvideo": "4.0.*",
+		"universal-omega/dynamic-page-list4": "dev-main"
+	}
+}

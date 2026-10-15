@@ -1,0 +1,12 @@
+diff --git a/includes/ApiQueryExtracts.php b/includes/ApiQueryExtracts.php
+index e701313..eb37bb5 100644
+--- a/includes/ApiQueryExtracts.php
++++ b/includes/ApiQueryExtracts.php
+@@ -96,6 +96,7 @@ class ApiQueryExtracts extends ApiQueryBase {
+			|| $this->getMain()->getPrinter()->getFormat() == 'XML';
+		$result = $this->getResult();
+		$params = $this->params = $this->extractRequestParams();
++		$params['intro'] = $this->params['intro'] = false;
+		$this->requireMaxOneParameter( $params, 'chars', 'sentences' );
+		$continue = 0;
+		$limit = intval( $params['limit'] );

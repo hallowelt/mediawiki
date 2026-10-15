@@ -1,0 +1,24 @@
+diff --git a/src/LingoParser.php b/src/LingoParser.php
+index ca8858b..947b32e 100644
+--- a/src/LingoParser.php
++++ b/src/LingoParser.php
+@@ -37,6 +37,7 @@ use MediaWiki\Parser\Parser;
+ use MediaWiki\Parser\ParserOptions;
+ use MediaWiki\Parser\ParserOutput;
+ use MediaWiki\Parser\ParserOutputFlags;
++use Throwable;
+ use Wikimedia\ObjectCache\BagOStuff;
+ 
+ /**
+@@ -436,7 +437,11 @@ class LingoParser {
+	private function shouldParse( Parser $parser ): bool {
+		global $wgexLingoUseNamespaces;
+ 
+-		if ( !$parser->getOutput() || !$parser->getOutput()->hasText() ) {
++		try {
++			if ( !$parser->getOutputType() || !$parser->getOutput()->hasText() ) {
++				return false;
++			}
++		} catch ( Throwable ) {
+			return false;
+		}
