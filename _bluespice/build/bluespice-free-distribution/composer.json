@@ -1,8 +1,8 @@
 {
-	"repositories": [{
+	"repositories": [ {
 		"type": "composer",
 		"url": "https://packages.bluespice.com/"
-	}],
+	} ],
 	"require": {
 		"bluespice/visualeditorconnector": "dev-master",
 		"hallowelt/filter-special-pages": "dev-master",
@@ -25,7 +25,6 @@
 		"mediawiki/renameuser": "dev-master",
 		"mediawiki/rss": "dev-master",
 		"mediawiki/standard-dialogs": "dev-master",
-		"mediawiki/template-styles": "dev-master",
 		"mediawiki/two-col-conflict": "dev-master",
 		"mediawiki/url-get-parameters": "dev-master",
 		"mediawiki/user-functions": "dev-master",
