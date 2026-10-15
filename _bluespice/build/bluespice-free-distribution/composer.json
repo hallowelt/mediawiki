@@ -6,7 +6,6 @@
 	"require": {
 		"bluespice/visualeditorconnector": "dev-master",
 		"hallowelt/filter-special-pages": "dev-master",
-		"mediawiki/arrays": "dev-master",
 		"mediawiki/content-droplets": "dev-master",
 		"mediawiki/enhanced-standard-uis": "dev-master",
 		"mediawiki/enhanced-upload": "dev-master",
