@@ -109,7 +109,6 @@ $GLOBALS['bsgPermissionConfig']['invitesignup'] = [
 ];
 
 $GLOBALS['bsgEnabledExtensions']['Lingo'] = true;
-$GLOBALS['bsgEnabledExtensions']['Loops'] = true;
 $GLOBALS['bsgEnabledExtensions']['Math'] = true;
 
 $GLOBALS['bsgEnabledExtensions']['MenuEditor'] = true;
