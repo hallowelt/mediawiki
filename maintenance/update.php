@@ -180,13 +180,13 @@ class UpdateMediaWiki extends Maintenance {
 		$updater = DatabaseUpdater::newForDB( $db, $shared, $this );
 		$updater->logApplied = $this->hasOption( 'log-applied' );
 
-		// Avoid upgrading from versions older than 1.39
-		// Using an implicit marker (user_autocreate_serial was introduced in 1.39)
+		// Avoid upgrading from versions older than 1.41
+		// Using an implicit marker (user_is_temp was introduced in 1.41)
 		// TODO: Use an explicit marker
 		// See T259771
-		if ( !$updater->tableExists( 'user_autocreate_serial' ) ) {
+		if ( !$updater->fieldExists( 'user', 'user_is_temp' ) ) {
 			$this->fatalError(
-				"Can not upgrade from versions older than 1.39, please upgrade to that version or later first."
+				"Can not upgrade from versions older than 1.41, please upgrade to that version or later first."
 			);
 		}
 

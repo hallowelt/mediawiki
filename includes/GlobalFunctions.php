@@ -20,6 +20,7 @@ use MediaWiki\Title\Title;
 use Wikimedia\ArrayUtils\ArrayUtils;
 use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FSFile\TempFSFile;
+use Wikimedia\Http\HttpHeader;
 use Wikimedia\Http\HttpStatus;
 use Wikimedia\Message\MessageParam;
 use Wikimedia\Message\MessageSpecifier;
@@ -192,40 +193,17 @@ function wfRandomString( $length = 32 ) {
  *
  * ;:@$!*(),/~
  *
- * However, IIS7 redirects fail when the url contains a colon (see T24709),
- * so no fancy : for IIS7.
- *
  * %2F in the page titles seems to fatally break for some reason.
  *
  * @param string $s
  * @return string
  */
 function wfUrlencode( $s ) {
-	static $needle;
-
-	if ( $s === null ) {
-		// Reset $needle for testing.
-		$needle = null;
-		return '';
-	}
-
-	if ( $needle === null ) {
-		$needle = [ '%3B', '%40', '%24', '%21', '%2A', '%28', '%29', '%2C', '%2F', '%7E' ];
-		if ( !isset( $_SERVER['SERVER_SOFTWARE'] ) ||
-			!str_contains( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS/7' )
-		) {
-			$needle[] = '%3A';
-		}
-	}
-
-	$s = urlencode( $s );
-	$s = str_ireplace(
-		$needle,
+	return str_ireplace(
+		[ '%3B', '%40', '%24', '%21', '%2A', '%28', '%29', '%2C', '%2F', '%7E', '%3A' ],
 		[ ';', '@', '$', '!', '*', '(', ')', ',', '/', '~', ':' ],
-		$s
+		urlencode( $s )
 	);
-
-	return $s;
 }
 
 /**
@@ -940,7 +918,7 @@ function wfSetBit( &$dest, $bit, $state = true ) {
 function wfVarDump( $var ) {
 	global $wgOut;
 	$s = str_replace( "\n", "<br />\n", var_export( $var, true ) . "\n" );
-	if ( headers_sent() || $wgOut === null || !is_object( $wgOut ) ) {
+	if ( HttpHeader::headersSent() || $wgOut === null || !is_object( $wgOut ) ) {
 		print $s;
 	} else {
 		$wgOut->addHTML( $s );
@@ -963,7 +941,7 @@ function wfHttpError( $code, $label, $desc ) {
 	}
 
 	\MediaWiki\Request\HeaderCallback::warnIfHeadersSent();
-	header( 'Content-type: text/html; charset=utf-8' );
+	HttpHeader::send( 'Content-type: text/html; charset=utf-8' );
 	ContentSecurityPolicy::sendRestrictiveHeader();
 	ob_start();
 	print '<!DOCTYPE html>' .
@@ -974,7 +952,7 @@ function wfHttpError( $code, $label, $desc ) {
 		'</h1><p>' .
 		nl2br( htmlspecialchars( $desc ) ) .
 		"</p></body></html>\n";
-	header( 'Content-Length: ' . ob_get_length() );
+	HttpHeader::send( 'Content-Length: ' . ob_get_length() );
 	ob_end_flush();
 }
 

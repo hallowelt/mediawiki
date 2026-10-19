@@ -1148,29 +1148,6 @@ class LocalFile extends File {
 	}
 
 	/**
-	 * Get short description URL for a file based on the page ID.
-	 * @stable to override
-	 *
-	 * @return string|null
-	 * @since 1.27
-	 */
-	public function getDescriptionShortUrl() {
-		if ( !$this->title ) {
-			return null; // Avoid hard failure when the file does not exist. T221812
-		}
-
-		$pageId = $this->title->getArticleID();
-
-		if ( $pageId ) {
-			$url = $this->repo->makeUrl( [ 'curid' => $pageId ] );
-			if ( $url !== false ) {
-				return $url;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get handler-specific metadata as a serialized string
 	 *
 	 * @deprecated since 1.37 use getMetadataArray() or getMetadataItems()
@@ -1212,17 +1189,11 @@ class LocalFile extends File {
 		$this->load( self::LOAD_ALL );
 		$result = [];
 		$addresses = [];
-		$logger = LoggerFactory::getInstance( 'LocalFile' );
 		foreach ( $itemNames as $itemName ) {
 			if ( array_key_exists( $itemName, $this->metadataArray ) ) {
 				$result[$itemName] = $this->metadataArray[$itemName];
 			} elseif ( isset( $this->unloadedMetadataBlobs[$itemName] ) ) {
 				$addresses[$itemName] = $this->unloadedMetadataBlobs[$itemName];
-			} else {
-				$logger->debug(
-					"Metadata item {item} not present in {file}",
-					[ 'item' => $itemName, 'file' => $this->getName() ]
-				);
 			}
 		}
 
@@ -1234,11 +1205,6 @@ class LocalFile extends File {
 				if ( $value !== null ) {
 					$result[$itemName] = $value;
 					$this->metadataArray[$itemName] = $value;
-				} else {
-					$logger->warning(
-						"Could not retrieve metadata item {item} stored at {address} for {file}",
-						[ 'item' => $itemName, 'address' => $address, 'file' => $this->getName() ]
-					);
 				}
 			}
 		}
@@ -2640,6 +2606,29 @@ class LocalFile extends File {
 	public function getDescriptionUrl() {
 		// Avoid hard failure when the file does not exist. T221812
 		return $this->title ? $this->title->getLocalURL() : false;
+	}
+
+	/**
+	 * Get short description URL for a file based on the page ID.
+	 * @stable to override
+	 *
+	 * @return string|null
+	 * @since 1.27
+	 */
+	public function getDescriptionShortUrl() {
+		if ( !$this->title ) {
+			return null; // Avoid hard failure when the file does not exist. T221812
+		}
+
+		$pageId = $this->title->getArticleID();
+
+		if ( $pageId ) {
+			$url = $this->repo->makeUrl( [ 'curid' => $pageId ] );
+			if ( $url !== false ) {
+				return $url;
+			}
+		}
+		return null;
 	}
 
 	/**
