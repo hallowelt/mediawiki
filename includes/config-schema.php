@@ -248,10 +248,6 @@ return [
 			'MaxImageArea' => 12500000,
 			'MaxAnimatedGifArea' => 12500000,
 			'MaxAnimatedWebPArea' => 12500000,
-			'WebPThumbnailType' => [
-				'webp',
-				'image/webp',
-			],
 			'TiffThumbnailType' => [
 			],
 			'ThumbnailEpoch' => '20030516000000',
@@ -2026,8 +2022,6 @@ return [
 			'DeprecationReleaseLimit' => false,
 			'Profiler' => [
 			],
-			'StatsdServer' => false,
-			'StatsdMetricPrefix' => 'MediaWiki',
 			'StatsTarget' => null,
 			'StatsFormat' => null,
 			'StatsPrefix' => 'mediawiki',
@@ -2871,7 +2865,6 @@ return [
 				'integer',
 				'boolean',
 			],
-			'WebPThumbnailType' => 'array',
 			'TiffThumbnailType' => 'array',
 			'GenerateThumbnailOnParse' => 'boolean',
 			'EnableAutoRotation' => [
@@ -3335,7 +3328,6 @@ return [
 			'SiteLookup' => 'object',
 		],
 		'mergeStrategy' => [
-			'WebPThumbnailType' => 'replace',
 			'TiffThumbnailType' => 'replace',
 			'LBFactoryConf' => 'replace',
 			'InterwikiCache' => 'replace',

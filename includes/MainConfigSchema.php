@@ -2058,29 +2058,6 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * Extension and MIME type to use for WebP thumbnails.
-	 *
-	 * Animated WebP files rendered as WebP thumbnails will remain animated;
-	 * rendered as PNG thumbnails, only the first frame will be used.
-	 *
-	 * **Example:**
-	 *
-	 * ```
-	 * // Keep thumbnails as WebP, preserving animation
-	 * $wgWebPThumbnailType = [ 'webp', 'image/webp' ];
-	 * // Convert thumbnails to PNG instead
-	 * $wgWebPThumbnailType = [ 'png', 'image/png' ];
-	 * ```
-	 *
-	 * @since 1.46
-	 */
-	public const WebPThumbnailType = [
-		'default' => [ 'webp', 'image/webp' ],
-		'type' => 'list',
-		'mergeStrategy' => 'replace',
-	];
-
-	/**
 	 * Browsers don't support TIFF inline generally...
 	 * For inline display, we need to convert to PNG or JPEG.
 	 *
@@ -10333,31 +10310,6 @@ class MainConfigSchema {
 		'default' => [],
 		'type' => 'map',
 		'mergeStrategy' => 'replace',
-	];
-
-	/**
-	 * Destination of statsd metrics.
-	 *
-	 * A host or host:port of a statsd server. Port defaults to 8125.
-	 *
-	 * If not set, statsd metrics will not be collected.
-	 *
-	 * @see MediaWiki::emitBufferedStats()
-	 * @since 1.25
-	 */
-	public const StatsdServer = [
-		'default' => false,
-	];
-
-	/**
-	 * Prefix for metric names sent to $wgStatsdServer.
-	 *
-	 * @see \MediaWiki\MediaWikiServices::getInstance()->getStatsdDataFactory
-	 * @see \Wikimedia\Stats\BufferingStatsdDataFactory
-	 * @since 1.25
-	 */
-	public const StatsdMetricPrefix = [
-		'default' => 'MediaWiki',
 	];
 
 	/**

@@ -702,12 +702,6 @@ class MainConfigNames {
 	public const MaxAnimatedWebPArea = 'MaxAnimatedWebPArea';
 
 	/**
-	 * Name constant for the WebPThumbnailType setting, for use with Config::get()
-	 * @see MainConfigSchema::WebPThumbnailType
-	 */
-	public const WebPThumbnailType = 'WebPThumbnailType';
-
-	/**
 	 * Name constant for the TiffThumbnailType setting, for use with Config::get()
 	 * @see MainConfigSchema::TiffThumbnailType
 	 */
@@ -3425,18 +3419,6 @@ class MainConfigNames {
 	 * @see MainConfigSchema::Profiler
 	 */
 	public const Profiler = 'Profiler';
-
-	/**
-	 * Name constant for the StatsdServer setting, for use with Config::get()
-	 * @see MainConfigSchema::StatsdServer
-	 */
-	public const StatsdServer = 'StatsdServer';
-
-	/**
-	 * Name constant for the StatsdMetricPrefix setting, for use with Config::get()
-	 * @see MainConfigSchema::StatsdMetricPrefix
-	 */
-	public const StatsdMetricPrefix = 'StatsdMetricPrefix';
 
 	/**
 	 * Name constant for the StatsTarget setting, for use with Config::get()

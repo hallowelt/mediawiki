@@ -37,7 +37,11 @@ For notes on 1.47.x and older releases, see HISTORY.
 * …
 
 ==== Removed configuration ====
-
+* $wgWebPThumbnailType has been removed. WebP images are served as WebP
+  thumbnails unconditionally.
+* $wgStatsdServer and $wgStatsdMetricPrefix, deprecated since 1.25
+  and unused since 1.45, have been removed. For StatsD support, see:
+  https://www.mediawiki.org/wiki/Manual:Stats.
 * …
 
 === New user-facing features in 1.48 ===
@@ -92,10 +96,46 @@ For notes on 1.47.x and older releases, see HISTORY.
 
 === Breaking changes in 1.48 ===
 
+* ResourceLoader::inDebugMode(), deprecated since 1.47, has been
+  removed.
+* MediaWikiServices::getPerDbNameStatsdDataFactory(), deprecated since 1.44,
+  has been removed. Use StatsFactory with wiki ID from
+  WikiMap::getCurrentWikiId() as label instead.
+* TextSlotDiffRenderer::setStatsdDataFactory(), deprecated since 1.43,
+  has been removed.
+* StatsFactory::withStatsdDataFactory(), deprecated since 1.35,
+  has been removed.
+* LanguageQqx::getMessage(), deprecated since 1.41, has been removed
+  along with the LanguageQqx class. Use
+  LanguageFactory::getLanguage( 'qqx' ) instead.
+* SpecialEmailUser::getTarget(), deprecated since 1.42, has been
+  removed.
+* The $request parameter of EditPage::importFormData(),
+  hard-deprecated since 1.47, has been removed.
+* MediaWikiIntegrationTestCase::assertSelect(), deprecated since 1.47,
+  has been removed.
+* The EditPageBeforeConflictDiff hook, deprecated since 1.47, has
+  been removed.
+* SpecialVersion::getExtensionTypeName(), deprecated since 1.47, has
+  been removed.
+* TextboxBuilder::mergeClassesIntoAttributes(), deprecated since 1.44,
+  has been removed.
+* PrefixSearch, StringPrefixSearch and TitlePrefixSearch, deprecated
+  since 1.27, have been removed. Use SearchEngine::completionSearch()
+  instead.
+* The PagerTools class, deprecated since 1.47, has been removed. Use
+  the ChangeToolsFactory service instead.
+* SamplingStatsdClient, deprecated since 1.43, has been removed.
+* StatsdAwareInterface, deprecated since 1.45, has been removed.
+* The following methods of Title have been removed:
+  - getOtherPage (deprecated since 1.34)
+  - estimateRevisionCount (deprecated since 1.47)
+  - isAlwaysKnown (deprecated since 1.47)
 * …
 
 === Deprecations in 1.48 ===
 
+* Xml::escapeTagsOnly() is unused and has been deprecated.
 * …
 
 === Other changes in 1.48 ===

@@ -687,12 +687,6 @@ $wgMaxAnimatedGifArea = null;
 $wgMaxAnimatedWebPArea = null;
 
 /**
- * Config variable stub for the WebPThumbnailType setting, for use by phpdoc and IDEs.
- * @see MediaWiki\MainConfigSchema::WebPThumbnailType
- */
-$wgWebPThumbnailType = null;
-
-/**
  * Config variable stub for the TiffThumbnailType setting, for use by phpdoc and IDEs.
  * @see MediaWiki\MainConfigSchema::TiffThumbnailType
  */
@@ -3410,18 +3404,6 @@ $wgDeprecationReleaseLimit = null;
  * @see MediaWiki\MainConfigSchema::Profiler
  */
 $wgProfiler = null;
-
-/**
- * Config variable stub for the StatsdServer setting, for use by phpdoc and IDEs.
- * @see MediaWiki\MainConfigSchema::StatsdServer
- */
-$wgStatsdServer = null;
-
-/**
- * Config variable stub for the StatsdMetricPrefix setting, for use by phpdoc and IDEs.
- * @see MediaWiki\MainConfigSchema::StatsdMetricPrefix
- */
-$wgStatsdMetricPrefix = null;
 
 /**
  * Config variable stub for the StatsTarget setting, for use by phpdoc and IDEs.
