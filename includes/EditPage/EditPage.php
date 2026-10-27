@@ -19,14 +19,11 @@ use MediaWiki\Content\UnknownContentModelException;
 use MediaWiki\Content\UnsupportedContentFormatException;
 use MediaWiki\Context\DerivativeContext;
 use MediaWiki\Context\IContextSource;
-use MediaWiki\EditPage\Constraint\AccidentalRecreationConstraint;
 use MediaWiki\EditPage\Constraint\AuthorizationConstraint;
-use MediaWiki\EditPage\Constraint\DefaultTextConstraint;
 use MediaWiki\EditPage\Constraint\EditConstraintFactory;
 use MediaWiki\EditPage\Constraint\EditConstraintRunner;
 use MediaWiki\EditPage\Constraint\ExistingSectionEditConstraint;
 use MediaWiki\EditPage\Constraint\NewSectionMissingSubjectConstraint;
-use MediaWiki\EditPage\Constraint\RedirectConstraint;
 use MediaWiki\EditPage\Constraint\RevisionDeletedConstraint;
 use MediaWiki\EditPage\Constraint\SpamRegexConstraint;
 use MediaWiki\Exception\ErrorPageError;
@@ -51,6 +48,7 @@ use MediaWiki\Page\LinkBatchFactory;
 use MediaWiki\Page\PageIdentity;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Page\WikiPage;
+use MediaWiki\PageEdit\PageEditAttemptState;
 use MediaWiki\PageEdit\PageEditFactory;
 use MediaWiki\PageEdit\PageEditInputs;
 use MediaWiki\PageEdit\PageEditStatus;
@@ -73,6 +71,7 @@ use MediaWiki\ShadowPage\ShadowPageLoader;
 use MediaWiki\Skin\Skin;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleFormatter;
 use MediaWiki\Title\TitleValue;
 use MediaWiki\User\ExternalUserNames;
 use MediaWiki\User\Options\UserOptionsLookup;
@@ -99,7 +98,6 @@ use RuntimeException;
 use StatusValue;
 use Wikimedia\Assert\Assert;
 use Wikimedia\HtmlArmor\HtmlArmor;
-use Wikimedia\Message\MessageSpecifier;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\TypeDef\ExpiryDef;
 use Wikimedia\Parsoid\Parsoid;
@@ -208,17 +206,10 @@ class EditPage implements IEditObject {
 
 	private bool $missingSummary = false;
 
-	private bool $allowBlankSummary = false;
-
-	private bool $blankArticle = false;
-
-	private bool $allowBlankArticle = false;
+	private readonly PageEditAttemptState $editAttemptState;
 
 	/** @var ?Title */
 	private $problematicRedirectTarget = null;
-
-	/** @var ?Title */
-	private $allowedProblematicRedirectTarget = null;
 
 	private bool $ignoreProblematicRedirects = false;
 
@@ -251,10 +242,6 @@ class EditPage implements IEditObject {
 
 	/** @var ?int[] Watchlist label IDs submitted in the form, or null if not submitted */
 	private ?array $watchlistLabels = null;
-
-	private bool $recreate = false;
-
-	private bool $ignoreRevisionDeletedWarning = false;
 
 	/**
 	 * Page content input field.
@@ -368,6 +355,8 @@ class EditPage implements IEditObject {
 	private $editConflictHelperFactory = null;
 	private ?TextConflictHelper $editConflictHelper = null;
 
+	private EditStatusFormatter $editStatusFormatter;
+
 	private AuthManager $authManager;
 	private EditConstraintFactory $constraintFactory;
 	private IContentHandlerFactory $contentHandlerFactory;
@@ -383,6 +372,7 @@ class EditPage implements IEditObject {
 	private ShadowPageLoader $shadowPageLoader;
 	private TempUserCreator $tempUserCreator;
 	private TextboxBuilder $textboxBuilder;
+	private TitleFormatter $titleFormatter;
 	private UserEditTracker $userEditTracker;
 	private UserFactory $userFactory;
 	private UserIdentityUtils $userIdentityUtils;
@@ -448,6 +438,7 @@ class EditPage implements IEditObject {
 		$this->shadowPageLoader = $services->getShadowPageLoader();
 		$this->tempUserCreator = $services->getTempUserCreator();
 		$this->textboxBuilder = $services->getTextboxBuilder();
+		$this->titleFormatter = $services->getTitleFormatter();
 		$this->userEditTracker = $services->getUserEditTracker();
 		$this->userFactory = $services->getUserFactory();
 		$this->userIdentityUtils = $services->getUserIdentityUtils();
@@ -466,6 +457,9 @@ class EditPage implements IEditObject {
 		$this->contentFormat = $this->contentHandlerFactory
 			->getContentHandler( $this->contentModel )
 			->getDefaultFormat();
+
+		$this->editAttemptState = new PageEditAttemptState();
+		$this->editStatusFormatter = new EditStatusFormatter( $this->context );
 	}
 
 	/**
@@ -1130,7 +1124,6 @@ class EditPage implements IEditObject {
 			if ( $this->watchlistExpiryEnabled ) {
 				$this->watchlistExpiry = null;
 			}
-			$this->recreate = false;
 
 			// When creating a new section, we can preload a section title by passing it as the
 			// preloadtitle parameter in the URL (T15100)
@@ -1307,10 +1300,6 @@ class EditPage implements IEditObject {
 			$this->starttime = null;
 		}
 
-		$this->recreate = $request->getCheck( 'wpRecreate' );
-
-		$this->ignoreRevisionDeletedWarning = $request->getCheck( 'wpIgnoreRevisionDeleted' );
-
 		$this->minoredit = $request->getCheck( 'wpMinoredit' );
 		$this->watchthis = $request->getCheck( 'wpWatchthis' );
 		$submittedExpiry = $request->getText( 'wpWatchlistExpiry' );
@@ -1333,11 +1322,17 @@ class EditPage implements IEditObject {
 
 		$this->autoSumm = $request->getText( 'wpAutoSummary' );
 
-		$this->allowBlankSummary = $request->getBool( 'wpIgnoreBlankSummary' );
-		$this->allowBlankArticle = $request->getBool( 'wpIgnoreBlankArticle' );
+		$this->editAttemptState->setAllowBlankArticle( $request->getBool( 'wpIgnoreBlankArticle' ) );
+		$this->editAttemptState->setAllowBlankSummary( $request->getBool( 'wpIgnoreBlankSummary' ) );
+		$this->editAttemptState->setAllowRecreation( $request->getCheck( 'wpRecreate' ) );
 		$allowedProblematicRedirectTargetText = $request->getText( 'wpAllowedProblematicRedirectTarget' );
-		$this->allowedProblematicRedirectTarget = $allowedProblematicRedirectTargetText === ''
-			? null : Title::newFromText( $allowedProblematicRedirectTargetText );
+		$this->editAttemptState->setAllowedProblematicRedirectTarget(
+			$allowedProblematicRedirectTargetText === ''
+				? null
+				: Title::newFromText( $allowedProblematicRedirectTargetText )
+		);
+		$this->editAttemptState->setIgnoreRevisionDeletedWarning( $request->getCheck( 'wpIgnoreRevisionDeleted' ) );
+
 		$this->ignoreProblematicRedirects = $request->getBool( 'wpIgnoreProblematicRedirects' );
 
 		$changeTags = $request->getVal( 'wpChangeTags' );
@@ -1820,7 +1815,10 @@ class EditPage implements IEditObject {
 			// For status codes that provide their own error/warning messages, we display the errors and warnings in
 			// message boxes.
 			default:
-				$out->addHTML( $this->formatConstraintStatus( $status ) );
+				$out->addHTML( $this->editStatusFormatter->formatStatus(
+					$status,
+					MessageValue::new( $this->pageEditingHelper->getSubmitButtonLabel( $this->page ) )
+				) );
 				return true;
 
 			// There is a UI for edit conflicts, so we don't need to show a message box.
@@ -1866,37 +1864,6 @@ class EditPage implements IEditObject {
 				$this->spamPageWithContent( $resultDetails['spam'] ?? false );
 				return false;
 		}
-	}
-
-	/**
-	 * Wrap warning/error messages in styled message boxes.
-	 * @return string Html
-	 */
-	private function formatConstraintStatus( StatusValue $status ): string {
-		return $this->createMessageBox( $status->getMessages( 'error' ), 'error' ) .
-			$this->createMessageBox( $status->getMessages( 'warning' ), 'warning' );
-	}
-
-	/**
-	 * Create a message box containing multiple messages.
-	 * @param MessageSpecifier[] $messages
-	 * @param string $type `warning` or `error`
-	 */
-	private function createMessageBox( array $messages, string $type ): string {
-		if ( !$messages ) {
-			// Don't create a box if there are no messages
-			return '';
-		}
-
-		$html = implode(
-			Html::openElement( 'br' ),
-			array_map( fn ( $msg ) => $this->context->msg( $msg )->parse(), $messages )
-		);
-
-		if ( $type === 'warning' ) {
-			return Html::warningBox( $html );
-		}
-		return Html::errorBox( $html );
 	}
 
 	/**
@@ -2021,7 +1988,10 @@ class EditPage implements IEditObject {
 				->setValue( self::AS_SPAM_ERROR );
 		}
 
-		$allowBlankSummary = $this->allowBlankSummary || ( $this->nosummary && $this->section === 'new' );
+		if ( $this->nosummary && $this->section === 'new' ) {
+			// TODO This should be handled differently, e.g. by passing a flag to PageEditInputs
+			$this->editAttemptState->setAllowBlankSummary( true );
+		}
 
 		$inputs = ( new PageEditInputs(
 			authority: $this->getAuthority(),
@@ -2030,9 +2000,8 @@ class EditPage implements IEditObject {
 			page: $this->page,
 			summary: $this->summary,
 			textbox1: $this->textbox1,
-		) )->setAllowBlankArticle( $this->allowBlankArticle )
-			->setAllowBlankSummary( $allowBlankSummary )
-			->setAllowedProblematicRedirectTarget( $this->allowedProblematicRedirectTarget )
+		) )
+			->setAttemptState( $this->editAttemptState )
 			->setAutoSumm( $this->autoSumm )
 			->setChangeTags( $this->changeTags )
 			->setContentFormat( $this->contentFormat )
@@ -2041,12 +2010,10 @@ class EditPage implements IEditObject {
 			->setEditRevId( $this->editRevId )
 			->setEnableApiEditOverride( $this->enableApiEditOverride )
 			->setIgnoreProblematicRedirects( $this->ignoreProblematicRedirects )
-			->setIgnoreRevisionDeletedWarning( $this->ignoreRevisionDeletedWarning )
 			->setMarkAsBot( $this->markAsBot )
 			->setMarkAsMinor( $this->minoredit )
 			->setOldid( $this->oldid )
 			->setParentRevId( $this->parentRevId )
-			->setRecreate( $this->recreate )
 			->setSection( $this->section )
 			->setSectiontitle( $this->sectiontitle )
 			->setStarttime( $this->starttime )
@@ -2107,20 +2074,11 @@ class EditPage implements IEditObject {
 			) {
 				$this->context->getUser()->spreadAnyEditBlock();
 			}
-		} elseif ( $failed instanceof DefaultTextConstraint ) {
-			$this->blankArticle = true;
 		} elseif (
 			$failed instanceof ExistingSectionEditConstraint ||
 			$failed instanceof NewSectionMissingSubjectConstraint
 		) {
 			$this->missingSummary = true;
-			$this->allowBlankSummary = true;
-		} elseif ( $failed instanceof RedirectConstraint ) {
-			$this->problematicRedirectTarget = $failed->problematicTarget;
-		} elseif ( $failed instanceof AccidentalRecreationConstraint ) {
-			$this->recreate = true;
-		} elseif ( $failed instanceof RevisionDeletedConstraint ) {
-			$this->ignoreRevisionDeletedWarning = true;
 		}
 	}
 
@@ -2415,34 +2373,11 @@ class EditPage implements IEditObject {
 			$out->addHTML( Html::hidden( 'nosummary', true ) );
 		}
 
-		# If a blank edit summary was previously provided and an edit constraint fails
-		# because of it, pass a hidden tag as wpIgnoreBlankSummary. This will stop the
-		# user being bounced back more than once in the event that a summary
-		# is not required.
-		if ( $this->allowBlankSummary ) {
-			$out->addHTML( Html::hidden( 'wpIgnoreBlankSummary', true ) );
-		}
-
 		if ( $this->undidRev ) {
 			$out->addHTML( Html::hidden( 'wpUndidRevision', $this->undidRev ) );
 		}
 		if ( $this->undoAfter ) {
 			$out->addHTML( Html::hidden( 'wpUndoAfter', $this->undoAfter ) );
-		}
-		if ( $this->recreate ) {
-			$out->addHTML( Html::hidden( 'wpRecreate', $this->recreate ) );
-		}
-		if ( $this->ignoreRevisionDeletedWarning ) {
-			$out->addHTML( Html::hidden( 'wpIgnoreRevisionDeleted', $this->ignoreRevisionDeletedWarning ) );
-		}
-
-		if ( $this->problematicRedirectTarget !== null ) {
-			// T395767, T395768: Save the target to a variable so the constraint can fail again if the redirect is
-			// still problematic but has changed between two save attempts
-			$out->addHTML( Html::hidden(
-				'wpAllowedProblematicRedirectTarget',
-				$this->problematicRedirectTarget->getFullText()
-			) );
 		}
 
 		$autosumm = $this->autoSumm !== '' ? $this->autoSumm : md5( $this->summary );
@@ -2483,8 +2418,10 @@ class EditPage implements IEditObject {
 			$out->addHTML( self::getEditToolbar() ?? '' );
 		}
 
-		if ( $this->blankArticle ) {
-			$out->addHTML( Html::hidden( 'wpIgnoreBlankArticle', true ) );
+		// If certain edit constraints fail, they can be bypassed by resubmitting the edit.
+		// Therefore, add the values of the current edit attempt state as hidden fields to the HTML.
+		foreach ( $this->getEditAttemptStateValues() as $key => $value ) {
+			$out->addHTML( Html::hidden( $key, $value ) );
 		}
 
 		if ( $this->isConflict ) {
@@ -2568,6 +2505,24 @@ class EditPage implements IEditObject {
 	}
 
 	/**
+	 * @return array<string, mixed> The values that should be added to the HTML for the next attempt
+	 */
+	private function getEditAttemptStateValues(): array {
+		$allowedRedirectTarget = $this->editAttemptState->getAllowedProblematicRedirectTarget();
+		return array_filter( [
+			'wpIgnoreBlankArticle' => $this->editAttemptState->shouldAllowBlankArticle(),
+			'wpIgnoreBlankSummary' => $this->editAttemptState->shouldAllowBlankSummary(),
+			'wpRecreate' => $this->editAttemptState->shouldAllowRecreation(),
+			// T395767, T395768: Store the full text of the target so the constraint can fail again if the
+			// redirect is still problematic but has changed between two save attempts
+			'wpAllowedProblematicRedirectTarget' => $allowedRedirectTarget
+				? $this->titleFormatter->getFullText( $allowedRedirectTarget )
+				: null,
+			'wpIgnoreRevisionDeleted' => $this->editAttemptState->shouldIgnoreRevisionDeletedWarning(),
+		], static fn ( $val ) => $val !== false && $val !== null );
+	}
+
+	/**
 	 * Wrapper around TemplatesOnThisPageFormatter to make
 	 * a "templates on this page" list.
 	 *
@@ -2643,12 +2598,12 @@ class EditPage implements IEditObject {
 			$constraintRunner = new EditConstraintRunner(
 				$constraintFactory->newAccidentalRecreationConstraint(
 					$this->getTitle(),
-					// Ignore wpRedirect so the warning is still shown after a save attempt
-					false,
+					// Ignore the current state so the warning is still shown after a save attempt
+					new PageEditAttemptState(),
 					$this->starttime,
 				),
 				new RevisionDeletedConstraint(
-					false,
+					new PageEditAttemptState(),
 					$this->oldid,
 					$this->mArticle->fetchRevisionRecord(),
 					$this->section,
@@ -2658,7 +2613,7 @@ class EditPage implements IEditObject {
 			);
 
 			// No call to $this->handleFailedConstraint() here to avoid setting wpRedirect
-			$out->addHTML( $this->formatConstraintStatus( $constraintRunner->checkAllConstraints() ) );
+			$out->addHTML( $this->editStatusFormatter->formatStatus( $constraintRunner->checkAllConstraints() ) );
 		}
 
 		$this->addLongPageWarningHeader();
@@ -3359,7 +3314,7 @@ class EditPage implements IEditObject {
 			$constraintRunner = new EditConstraintRunner();
 
 			$constraintRunner->addConstraint( $constraintFactory->newRedirectConstraint(
-				null,
+				new PageEditAttemptState(),
 				$content,
 				null,
 				$this->getTitle(),
@@ -3396,7 +3351,9 @@ class EditPage implements IEditObject {
 			Html::element(
 				'h2', [ 'id' => 'mw-previewheader' ],
 				$this->context->msg( 'preview' )->text()
-			) . $this->formatConstraintStatus( $previewStatus ) . $previewNoteHtml . $conflict
+			) . $this->editStatusFormatter->formatStatus(
+				PageEditStatus::cast( $previewStatus )
+			) . $previewNoteHtml . $conflict
 		);
 
 		return $previewhead . $previewHTML . $this->previewTextAfterContent;

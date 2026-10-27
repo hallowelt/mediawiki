@@ -7,6 +7,7 @@
 namespace MediaWiki\EditPage\Constraint;
 
 use MediaWiki\Content\Content;
+use MediaWiki\PageEdit\PageEditAttemptState;
 use MediaWiki\PageEdit\PageEditStatus;
 use Wikimedia\Message\MessageSpecifier;
 
@@ -38,10 +39,11 @@ class ExistingSectionEditConstraint extends EditConstraint {
 		private readonly string $section,
 		private readonly string $userSummary,
 		private readonly string $autoSummary,
-		private readonly bool $allowBlankSummary,
+		private readonly bool $forceEditSummary,
 		private readonly Content $newContent,
 		private readonly ?Content $originalContent,
 		private readonly MessageSpecifier $submitButtonLabel,
+		private readonly PageEditAttemptState $editAttemptState,
 	) {
 	}
 
@@ -52,13 +54,16 @@ class ExistingSectionEditConstraint extends EditConstraint {
 		}
 
 		if (
-			!$this->allowBlankSummary &&
+			$this->forceEditSummary &&
+			!$this->editAttemptState->shouldAllowBlankSummary() &&
 			!$this->newContent->equals( $this->originalContent ) &&
 			!$this->newContent->isRedirect() &&
 			md5( $this->userSummary ) === $this->autoSummary
 		) {
+			$this->editAttemptState->setAllowBlankSummary( true );
 			return PageEditStatus::newGood()
 				->setResult( false, self::AS_SUMMARY_NEEDED )
+				->setCanResubmit( true )
 				->warning(
 					'missingsummary',
 					$this->submitButtonLabel,

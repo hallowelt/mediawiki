@@ -31,7 +31,6 @@ class PageEditIntegrationTest extends MediaWikiIntegrationTestCase {
 	private function newPageEdit(
 		ProperPageIdentity $page,
 		TestUser $user,
-		bool $allowBlankSummary = false,
 		?IContextSource $context = null,
 		?string $edittime = null,
 		?int $editRevId = null,
@@ -51,7 +50,7 @@ class PageEditIntegrationTest extends MediaWikiIntegrationTestCase {
 			page: $wikiPage,
 			summary: $summary,
 			textbox1: $textbox1,
-		) )->setAllowBlankSummary( $allowBlankSummary )
+		) )
 			->setEdittime( $edittime )
 			->setEditRevId( $editRevId )
 			->setSection( $section )
@@ -206,10 +205,9 @@ class PageEditIntegrationTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @dataProvider provideTestShouldAllowBlankSummary
+	 * @dataProvider provideTestShouldForceEditSummary
 	 */
-	public function testShouldAllowBlankSummary(
-		bool $shouldAllow,
+	public function testShouldForceEditSummary(
 		int $namespace,
 		bool $userPrefEnabled,
 		bool $expected,
@@ -226,43 +224,32 @@ class PageEditIntegrationTest extends MediaWikiIntegrationTestCase {
 		$pageEdit = $this->newPageEdit(
 			page: PageIdentityValue::localIdentity( 1, $namespace, $user->getUserIdentity()->getName() ),
 			user: $user,
-			allowBlankSummary: $shouldAllow,
 			context: $context,
 		);
-		$this->assertEquals( $expected, $pageEdit->shouldAllowBlankSummary() );
+		$this->assertEquals( $expected, $pageEdit->shouldForceEditSummary() );
 	}
 
-	public static function provideTestShouldAllowBlankSummary(): array {
+	public static function provideTestShouldForceEditSummary(): array {
 		return [
 			'Standard behaviour with preference enabled' => [
-				'shouldAllow' => false,
-				'namespace' => NS_MAIN,
-				'userPrefEnabled' => true,
-				'expected' => false,
-			],
-			'Allowed through inputs' => [
-				'shouldAllow' => true,
 				'namespace' => NS_MAIN,
 				'userPrefEnabled' => true,
 				'expected' => true,
 			],
 			'Editing own user page' => [
-				'shouldAllow' => false,
 				'namespace' => NS_USER,
 				'userPrefEnabled' => true,
-				'expected' => true,
+				'expected' => false,
 			],
 			'Editing own talk page' => [
-				'shouldAllow' => false,
 				'namespace' => NS_USER_TALK,
 				'userPrefEnabled' => true,
-				'expected' => true,
+				'expected' => false,
 			],
 			'User preference disabled' => [
-				'shouldAllow' => false,
 				'namespace' => NS_MAIN,
 				'userPrefEnabled' => false,
-				'expected' => true,
+				'expected' => false,
 			],
 		];
 	}

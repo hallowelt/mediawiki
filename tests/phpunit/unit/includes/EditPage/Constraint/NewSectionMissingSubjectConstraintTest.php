@@ -8,7 +8,7 @@ namespace MediaWiki\Tests\Unit\EditPage\Constraint;
 
 use MediaWiki\EditPage\Constraint\EditConstraint;
 use MediaWiki\EditPage\Constraint\NewSectionMissingSubjectConstraint;
-use MediaWiki\Language\RawMessage;
+use MediaWiki\PageEdit\PageEditAttemptState;
 use MediaWikiUnitTestCase;
 
 /**
@@ -22,17 +22,35 @@ class NewSectionMissingSubjectConstraintTest extends MediaWikiUnitTestCase {
 	use EditConstraintTestTrait;
 
 	public function testPass() {
-		$constraint = new NewSectionMissingSubjectConstraint( 'new', 'Subject', false, new RawMessage( '' ), );
+		$constraint = new NewSectionMissingSubjectConstraint(
+			'new',
+			'Subject',
+			true,
+			new PageEditAttemptState(),
+		);
 		$this->assertConstraintPassed( $constraint );
 	}
 
 	public function testFailure() {
-		$constraint = new NewSectionMissingSubjectConstraint( 'new', '', false, new RawMessage( '' ), );
-		$this->assertConstraintFailed( $constraint, EditConstraint::AS_SUMMARY_NEEDED );
+		$editAttemptState = new PageEditAttemptState();
+		$constraint = new NewSectionMissingSubjectConstraint(
+			'new',
+			'',
+			true,
+			$editAttemptState,
+		);
+		$status = $this->assertConstraintFailed( $constraint, EditConstraint::AS_SUMMARY_NEEDED );
+		$this->assertTrue( $editAttemptState->shouldAllowBlankSummary() );
+		$this->assertTrue( $status->canResubmit() );
 	}
 
 	public function testNonNew() {
-		$constraint = new NewSectionMissingSubjectConstraint( 'notnew', '', false, new RawMessage( '' ), );
+		$constraint = new NewSectionMissingSubjectConstraint(
+			'notnew',
+			'',
+			true,
+			new PageEditAttemptState(),
+		);
 		$this->assertConstraintPassed( $constraint );
 	}
 

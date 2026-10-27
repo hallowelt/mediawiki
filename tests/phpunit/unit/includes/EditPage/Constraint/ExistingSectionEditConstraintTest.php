@@ -10,6 +10,7 @@ use MediaWiki\Content\Content;
 use MediaWiki\EditPage\Constraint\EditConstraint;
 use MediaWiki\EditPage\Constraint\ExistingSectionEditConstraint;
 use MediaWiki\Language\RawMessage;
+use MediaWiki\PageEdit\PageEditAttemptState;
 use MediaWikiUnitTestCase;
 
 /**
@@ -36,10 +37,11 @@ class ExistingSectionEditConstraintTest extends MediaWikiUnitTestCase {
 			'notnew',
 			'UserSummary',
 			'AutoSummary',
-			false,
+			true,
 			$newContent,
 			$originalContent,
 			new RawMessage( '' ),
+			new PageEditAttemptState(),
 		);
 		$this->assertConstraintPassed( $constraint );
 	}
@@ -49,10 +51,11 @@ class ExistingSectionEditConstraintTest extends MediaWikiUnitTestCase {
 			'new',
 			'UserSummary',
 			md5( 'UserSummary' ),
-			false,
+			true,
 			$this->createNoOpMock( Content::class ),
 			null,
 			new RawMessage( '' ),
+			new PageEditAttemptState(),
 		);
 		$this->assertConstraintPassed( $constraint );
 	}
@@ -67,16 +70,20 @@ class ExistingSectionEditConstraintTest extends MediaWikiUnitTestCase {
 		$newContent->expects( $this->once() )
 			->method( 'isRedirect' )
 			->willReturn( false );
+		$editAttemptState = new PageEditAttemptState();
 		$constraint = new ExistingSectionEditConstraint(
 			'notnew',
 			'UserSummary',
 			md5( 'UserSummary' ),
-			false,
+			true,
 			$newContent,
 			$originalContent,
 			new RawMessage( '' ),
+			$editAttemptState,
 		);
-		$this->assertConstraintFailed( $constraint, EditConstraint::AS_SUMMARY_NEEDED );
+		$status = $this->assertConstraintFailed( $constraint, EditConstraint::AS_SUMMARY_NEEDED );
+		$this->assertTrue( $editAttemptState->shouldAllowBlankSummary() );
+		$this->assertTrue( $status->canResubmit() );
 	}
 
 }

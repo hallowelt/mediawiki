@@ -495,7 +495,7 @@ class PageEdit implements IEditObject {
 			// If the article has been deleted while editing, don't save it without confirmation
 			$this->constraintFactory->newAccidentalRecreationConstraint(
 				$title,
-				$this->inputs->shouldRecreate(),
+				$this->inputs->getAttemptState(),
 				$this->inputs->getStarttime(),
 				$this->getSubmitButtonLabel(),
 			)
@@ -514,9 +514,9 @@ class PageEdit implements IEditObject {
 			new DefaultTextConstraint(
 				$this->shadowPageLoader,
 				$this->inputs->getPage(),
-				$this->inputs->shouldAllowBlankArticle(),
 				$this->textbox1,
-				$this->getSubmitButtonLabel()
+				$this->getSubmitButtonLabel(),
+				$this->inputs->getAttemptState(),
 			),
 
 			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
@@ -544,7 +544,7 @@ class PageEdit implements IEditObject {
 		$revision = $this->inputs->getOldid()
 			? $this->revisionStore->getRevisionById( $this->inputs->getOldid() )
 			: $page->getRevisionRecord();
-		$allowBlankSummary = $this->shouldAllowBlankSummary();
+		$forceEditSummary = $this->shouldForceEditSummary();
 
 		return new EditConstraintRunner(
 			$this->constraintFactory->newEditFilterMergedContentHookConstraint(
@@ -557,15 +557,15 @@ class PageEdit implements IEditObject {
 			new NewSectionMissingSubjectConstraint(
 				$this->section,
 				$this->inputs->getSectiontitle() ?? '',
-				$allowBlankSummary,
-				$this->getSubmitButtonLabel()
+				$forceEditSummary,
+				$this->inputs->getAttemptState(),
 			),
 			new MissingCommentConstraint( $this->section, $this->textbox1 ),
 			new ExistingSectionEditConstraint(
 				$this->section,
 				$this->inputs->getSummary(),
 				$this->inputs->getAutoSumm(),
-				$allowBlankSummary,
+				$forceEditSummary,
 				$content,
 				$this->pageEditingHelper->getOriginalContent(
 					$this->inputs->getAuthority(),
@@ -574,10 +574,11 @@ class PageEdit implements IEditObject {
 					$this->inputs->getContentModel(),
 					$this->section,
 				),
-				$this->getSubmitButtonLabel()
+				$this->getSubmitButtonLabel(),
+				$this->inputs->getAttemptState(),
 			),
 			new RevisionDeletedConstraint(
-				$this->inputs->shouldIgnoreRevisionDeletedWarning(),
+				$this->inputs->getAttemptState(),
 				$this->inputs->getOldid(),
 				$revision,
 				$this->section,
@@ -609,7 +610,7 @@ class PageEdit implements IEditObject {
 		if ( !$this->inputs->shouldIgnoreProblematicRedirects() ) {
 			$constraintRunner->addConstraint(
 				$this->constraintFactory->newRedirectConstraint(
-					$this->inputs->getAllowedProblematicRedirectTarget(),
+					$this->inputs->getAttemptState(),
 					$postPstContent,
 					$this->pageEditingHelper->getCurrentContent(
 						$this->inputs->getContentModel(), $page,
@@ -829,19 +830,16 @@ class PageEdit implements IEditObject {
 	}
 
 	/**
-	 * @return bool Whether a blank edit summary should be allowed. This is the case when either
-	 * * the caller wants us to allow blank summaries
-	 * * the user is editing their own user or talk page
-	 * * the user does not have the preference for the warning enabled
+	 * @return bool Whether the user should be forced to specify an edit summary. This is the case when the user has
+	 * the 'forceeditsummary' preference enabled and they are not editing their own user or talk page.
 	 */
-	private function shouldAllowBlankSummary(): bool {
+	private function shouldForceEditSummary(): bool {
 		$user = $this->inputs->getContext()->getUser();
 		$page = $this->inputs->getPage();
 
-		return $this->inputs->shouldAllowBlankSummary()
-			|| ( in_array( $page->getNamespace(), [ NS_USER, NS_USER_TALK ] )
+		return !( in_array( $page->getNamespace(), [ NS_USER, NS_USER_TALK ] )
 				&& $this->titleFormatter->getText( $page ) === $user->getName() )
-			|| !$this->userOptionsLookup->getOption( $user, 'forceeditsummary' );
+			&& $this->userOptionsLookup->getOption( $user, 'forceeditsummary' );
 	}
 
 }
