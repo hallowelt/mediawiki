@@ -54,6 +54,9 @@ For notes on 1.47.x and older releases, see HISTORY.
 
 === New developer features in 1.48 ===
 
+* The SpecialWhatLinksHereBacklinkQuery hook was added. It allows
+  extensions to filter the backlink query of Special:WhatLinksHere before
+  the limit is applied.
 * …
 
 === External library changes in 1.48 ===
@@ -73,6 +76,8 @@ For notes on 1.47.x and older releases, see HISTORY.
 * Updated guzzlehttp/guzzle from 7.15.5 to 7.16.1.
 * Updated monolog/monolog from 3.12.0 to 3.12.1.
 * Updated vue and vue-compiler-dom from 3.5.17 to 3.5.43.
+* Updated wikimedia/css-sanitizer from 6.2.1 to 6.2.2.
+* Updated wikimedia/xmp-reader from 0.10.3 to 0.11.0.
 * …
 
 ===== Changed development-only external libraries =====
@@ -149,9 +154,9 @@ For notes on 1.47.x and older releases, see HISTORY.
 
 === Deprecations in 1.48 ===
 
-* MetricInterface::copyToStatsdAt(), deprecated since 1.45, now emits
-  deprecation warnings.
 * Xml::escapeTagsOnly() is unused and has been deprecated.
+* The SpecialWhatLinksHereQuery hook has been deprecated. Use the
+  SpecialWhatLinksHereBacklinkQuery hook instead.
 * …
 
 === Other changes in 1.48 ===
