@@ -850,14 +850,14 @@ class WebRequest {
 		$sessionId = $this->getSessionId();
 		$sessionManager = MediaWikiServices::getInstance()->getSessionManager();
 
-		// Destroy the old session if someone has set a new session ID
-		if ( $this->session && $sessionId && $this->session->getId() !== $sessionId->getId() ) {
-			$this->session = null;
-		}
+		if ( $sessionId ) {
+			// Destroy the old session if someone has set a new session ID
+			if ( $this->session && $this->session->getId() !== $sessionId->getId() ) {
+				$this->session = null;
+			}
 
-		// Look up session by ID if provided
-		if ( !$this->session && $sessionId ) {
-			$this->session = $sessionManager->getSessionById( $sessionId->getId(), true, $this );
+			// Look up session by ID if provided
+			$this->session ??= $sessionManager->getSessionById( $sessionId->getId(), true, $this );
 		}
 
 		// If it was not provided, or a session with that ID doesn't exist, create a new one
@@ -1112,9 +1112,7 @@ class WebRequest {
 	 */
 	public function response(): WebResponse {
 		/* Lazy initialization of response object for this request */
-		if ( !$this->response ) {
-			$this->response = new WebResponse();
-		}
+		$this->response ??= new WebResponse();
 		return $this->response;
 	}
 
@@ -1145,9 +1143,8 @@ class WebRequest {
 	 *
 	 * @param string $name Case-insensitive header name
 	 * @param int $flags Bitwise combination of:
-	 *   WebRequest::GETHEADER_LIST  Treat the header as a comma-separated list
-	 *                               of values, as described in RFC 2616 § 4.2.
-	 *                               (since 1.26).
+	 *  - WebRequest::GETHEADER_LIST: Treat the header as a comma-separated list
+	 *    of values, as described in RFC 2616 § 4.2. (since 1.26).
 	 * @return string|string[]|false False if header is unset; otherwise the
 	 *  header value(s) as either a string (the default) or an array, if
 	 *  WebRequest::GETHEADER_LIST flag was set.

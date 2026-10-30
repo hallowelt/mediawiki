@@ -843,6 +843,8 @@ class DerivedPageDataUpdater implements LoggerAwareInterface, PreparedUpdate {
 		}
 
 		$renderHints['generate-html'] = $this->shouldGenerateHTMLOnEdit();
+		// The canonical output drives the links update; see $wgUseParsoidLinksUpdate.
+		$renderHints['for-links-update'] = true;
 
 		[ $causeAction, ] = $this->getCauseForTracing();
 		$renderHints['causeAction'] = $causeAction;
@@ -1059,7 +1061,13 @@ class DerivedPageDataUpdater implements LoggerAwareInterface, PreparedUpdate {
 	 *    matched the $rev and $options. This mechanism is intended as a temporary stop-gap,
 	 *    for the time until caches have been changed to store RenderedRevision states instead
 	 *    of ParserOutput objects. (default: null) (since 1.33)
-	 *  - 'known-revision-options': ParserOptions object associated with the known-revision-output
+	 *  - 'known-revision-options': ParserOptions object associated with the known-revision-output.
+	 *    If neither is given, the revision is rendered with canonical ParserOptions,
+	 *    using the parser selected by $wgUseParsoidLinksUpdate if for-links-update is set.
+	 *  - for-links-update: whether the canonical rendering is for a links update, in which
+	 *    case the parser is selected by $wgUseParsoidLinksUpdate. This only applies when
+	 *    the revision has not been rendered yet and neither known-revision-output nor
+	 *    known-revision-options is given. (default: true) (since 1.47)
 	 *  - editResult: EditResult object created during the update. Required to perform reverted
 	 *    tag update using RevertedTagUpdateJob. (default: null) (since 1.36)
 	 */
@@ -1217,9 +1225,7 @@ class DerivedPageDataUpdater implements LoggerAwareInterface, PreparedUpdate {
 
 		// NOTE: in case we have a User object, don't override with a UserIdentity.
 		// We already checked that $revision->getUser() matches $this->user;
-		if ( !$this->user ) {
-			$this->user = $revision->getUser( RevisionRecord::RAW );
-		}
+		$this->user ??= $revision->getUser( RevisionRecord::RAW );
 
 		// Prune any output that depends on the revision ID.
 		if ( $this->renderedRevision ) {
@@ -1242,6 +1248,8 @@ class DerivedPageDataUpdater implements LoggerAwareInterface, PreparedUpdate {
 					'use-master' => $this->usePrimary(),
 					'audience' => RevisionRecord::RAW,
 					'known-revision-output' => $options['known-revision-output'] ?? null,
+					// The canonical output drives the links update; see $wgUseParsoidLinksUpdate.
+					'for-links-update' => $options['for-links-update'] ?? true,
 					'causeAction' => $causeAction
 				]
 			);

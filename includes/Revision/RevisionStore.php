@@ -1179,20 +1179,16 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 
 	/**
 	 * Load a page revision from a given revision ID number.
-	 * Returns null if no such revision can be found.
 	 *
 	 * MCR migration note: this replaced Revision::newFromId
 	 *
-	 * $flags include:
-	 * - IDBAccessObject::READ_LATEST: Select the data from the primary DB
-	 * - IDBAccessObject::READ_LOCKING: Select & lock the data from the primary DB
-	 *
 	 * @param int $id
 	 * @param int $flags (optional)
+	 *  - IDBAccessObject::READ_LATEST: Select the data from the primary DB
+	 *  - IDBAccessObject::READ_LOCKING: Select & lock the data from the primary DB
 	 * @param PageIdentity|null $page The page the revision belongs to.
 	 *        Providing the page may improve performance.
-	 *
-	 * @return RevisionRecord|null
+	 * @return RevisionRecord|null Returns null if no such revision can be found.
 	 */
 	public function getRevisionById( $id, $flags = 0, ?PageIdentity $page = null ) {
 		return $this->newRevisionFromConds( [ 'rev_id' => intval( $id ) ], $flags, $page );
@@ -1211,7 +1207,6 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 	 * @param int $flags Supports IDBAccessObject::READ_LATEST to use the primary DB.
 	 * @param PageIdentity|null $page The page all revisions belong to.
 	 *        Providing the page may improve performance.
-	 *
 	 * @return array<int,RevisionRecord|null> Map keyed by revision ID.
 	 *         Missing or failed revisions have null values.
 	 */
@@ -2307,17 +2302,18 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 	/**
 	 * Given a set of conditions, fetch a revision
 	 *
-	 * This method should be used if we are pretty sure the revision exists.
-	 * Unless $flags has READ_LATEST set, this method will first try to find the revision
-	 * on a replica before hitting the primary database.
+	 * This method should only be called if we are pretty sure the revision exists,
+	 * because it includes a fallback to the primary DB if the replica DB doesn't
+	 * have the revision ID. Otherwise call loadRevisionFromConds instead.
 	 *
 	 * MCR migration note: this corresponded to Revision::newFromConds
 	 *
 	 * @param array $conditions
-	 * @param int $flags (optional)
+	 * @param int $flags (optional) By default this method will first try a
+	 *  a replica and fallback to a primary database. Set READ_LATEST to read
+	 *  directly from a primary database.
 	 * @param PageIdentity|null $page (optional)
 	 * @param array $options (optional) additional query options
-	 *
 	 * @return RevisionRecord|null
 	 */
 	private function newRevisionFromConds(
@@ -2345,8 +2341,7 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 	}
 
 	/**
-	 * Given a set of conditions, fetch a revision from
-	 * the given database connection.
+	 * Given a set of conditions, fetch a revision from a given database connection.
 	 *
 	 * MCR migration note: this corresponded to Revision::loadFromConds
 	 *
@@ -2868,15 +2863,11 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 	public function countRevisionsByPageId( IReadableDatabase $db, $id ) {
 		$this->checkDatabaseDomain( $db );
 
-		$row = $db->newSelectQueryBuilder()
-			->select( [ 'revCount' => 'COUNT(*)' ] )
+		return $db->newSelectQueryBuilder()
 			->from( 'revision' )
 			->where( [ 'rev_page' => $id ] )
-			->caller( __METHOD__ )->fetchRow();
-		if ( $row ) {
-			return intval( $row->revCount );
-		}
-		return 0;
+			->caller( __METHOD__ )
+			->fetchRowCount();
 	}
 
 	/**
@@ -3183,6 +3174,9 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 	 *  - RevisionStore::INCLUDE_OLD Include $old in the range; $new is excluded.
 	 *  - RevisionStore::INCLUDE_NEW Include $new in the range; $old is excluded.
 	 *  - RevisionStore::INCLUDE_BOTH Include both $old and $new in the range.
+	 *  - RevisionStore::INCLUDE_DELETED_REVISIONS Include revisions that have been revision deleted.
+	 *  If no options are selected, the first revision, last revision, and revision
+	 *  deleted revisions will not be included.
 	 * @param string|null $order The direction in which the revisions should be sorted.
 	 *  Possible values:
 	 *  - RevisionStore::ORDER_OLDEST_TO_NEWEST
@@ -3223,11 +3217,12 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 		$queryBuilder = $db->newSelectQueryBuilder()
 			->select( 'rev_id' )
 			->from( 'revision' )
-			->where( [
-				'rev_page' => $pageId,
-				$db->bitAnd( 'rev_deleted', RevisionRecord::DELETED_TEXT ) . ' = 0'
-			] )
+			->where( [ 'rev_page' => $pageId ] )
 			->andWhere( $this->getRevisionLimitConditions( $db, $old, $new, $options ) );
+
+		if ( !in_array( self::INCLUDE_DELETED_REVISIONS, $options ) ) {
+			$queryBuilder->where( $db->bitAnd( 'rev_deleted', RevisionRecord::DELETED_TEXT ) . ' = 0' );
+		}
 
 		if ( $order !== null ) {
 			$queryBuilder->orderBy( [ 'rev_timestamp', 'rev_id' ], $order );
@@ -3395,32 +3390,24 @@ class RevisionStore implements RevisionFactory, RevisionLookup, LoggerAwareInter
 			return 0;
 		}
 
-		$dbr = $this->getReplicaConnection();
-		$where = [ 'rev_page' => $pageId ];
-		// If $options is a string, convert it to an array
 		$options = (array)$options;
+		$dbr = $this->getReplicaConnection();
+		$queryBuilder = $dbr->newSelectQueryBuilder()
+			->from( 'revision' )
+			->where( [ 'rev_page' => $pageId ] )
+			->andWhere( $this->getRevisionLimitConditions( $dbr, $old, $new, $options ) )
+			->caller( __METHOD__ );
+
 		if ( !in_array( self::INCLUDE_DELETED_REVISIONS, $options ) ) {
-			$where[] = $dbr->bitAnd( 'rev_deleted', RevisionRecord::DELETED_TEXT ) . " = 0";
+			$queryBuilder->andWhere( $dbr->bitAnd( 'rev_deleted', RevisionRecord::DELETED_TEXT ) . ' = 0' );
 		}
-		$conds = array_merge(
-			$where,
-			$this->getRevisionLimitConditions( $dbr, $old, $new, $options )
-		);
+
 		if ( $max !== null ) {
-			return $dbr->newSelectQueryBuilder()
-				->select( '1' )
-				->from( 'revision' )
-				->where( $conds )
-				->caller( __METHOD__ )
-				->limit( $max + 1 ) // extra to detect truncation
-				->fetchRowCount();
-		} else {
-			return (int)$dbr->newSelectQueryBuilder()
-				->select( 'count(*)' )
-				->from( 'revision' )
-				->where( $conds )
-				->caller( __METHOD__ )->fetchField();
+			// extra to detect truncation
+			$queryBuilder->limit( $max + 1 );
 		}
+
+		return $queryBuilder->fetchRowCount();
 	}
 
 	/**

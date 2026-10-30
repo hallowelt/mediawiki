@@ -502,13 +502,8 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 		}
 	}
 
-	/**
-	 * @return MapCacheLRU
-	 */
-	private static function getTitleCache() {
-		if ( self::$titleCache === null ) {
-			self::$titleCache = new MapCacheLRU( self::CACHE_MAX );
-		}
+	private static function getTitleCache(): MapCacheLRU {
+		self::$titleCache ??= new MapCacheLRU( self::CACHE_MAX );
 		return self::$titleCache;
 	}
 
@@ -3002,7 +2997,6 @@ class Title implements Stringable, LinkTarget, PageIdentity {
 		if ( $this->mIsBigDeletion === null ) {
 			$dbr = $this->getDbProvider()->getReplicaDatabase();
 			$revCount = $dbr->newSelectQueryBuilder()
-				->select( '1' )
 				->from( 'revision' )
 				->where( [ 'rev_page' => $this->getArticleID() ] )
 				->limit( $wgDeleteRevisionsLimit + 1 )

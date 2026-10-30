@@ -8,7 +8,6 @@ namespace MediaWiki\Tests\Unit\EditPage\Constraint;
 
 use MediaWiki\EditPage\Constraint\DefaultTextConstraint;
 use MediaWiki\EditPage\Constraint\EditConstraint;
-use MediaWiki\Language\RawMessage;
 use MediaWiki\PageEdit\PageEditAttemptState;
 use MediaWiki\ShadowPage\ShadowPage;
 use MediaWiki\ShadowPage\ShadowPageLoader;
@@ -51,7 +50,6 @@ class DefaultTextConstraintTest extends MediaWikiUnitTestCase {
 			$this->getShadowPageLoader( 'DefaultMessageTextGoesHere' ),
 			$this->getTitle(),
 			'User provided text goes here',
-			new RawMessage( '' ),
 			new PageEditAttemptState(),
 		);
 		$this->assertConstraintPassed( $constraint );
@@ -59,26 +57,32 @@ class DefaultTextConstraintTest extends MediaWikiUnitTestCase {
 
 	/**
 	 * @dataProvider provideTestFailure
-	 * @param string|bool $defaultText
-	 * @param string $userInput
 	 */
-	public function testFailure( $defaultText, $userInput ) {
+	public function testFailure( string|bool $defaultText, string $userInput, string $expectedMessage ) {
 		$editAttemptState = new PageEditAttemptState();
 		$constraint = new DefaultTextConstraint(
 			$this->getShadowPageLoader( $defaultText ),
 			$this->getTitle(),
 			$userInput,
-			new RawMessage( '' ),
 			$editAttemptState,
 		);
 		$status = $this->assertConstraintFailed( $constraint, EditConstraint::AS_BLANK_ARTICLE );
 		$this->assertTrue( $editAttemptState->shouldAllowBlankArticle() );
 		$this->assertTrue( $status->canResubmit() );
+		$this->assertStatusMessage( $expectedMessage, $status );
 	}
 
 	public static function provideTestFailure() {
-		yield 'Matching message text' => [ 'MessageText', 'MessageText' ];
-		yield 'Blank page and no default' => [ false, '' ];
+		yield 'Matching message text' => [
+			'MessageText',
+			'MessageText',
+			'edit-constraint-defaulttext-default-warning'
+		];
+		yield 'Blank page and no default' => [
+			false,
+			'',
+			'edit-constraint-defaulttext-blank-warning'
+		];
 	}
 
 }

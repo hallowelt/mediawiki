@@ -9960,6 +9960,91 @@ class MainConfigSchema {
 		'default' => true,
 	];
 
+	/**
+	 * Enable Device Bound Session Credentials (DBSC) support: the registration
+	 * and refresh REST endpoints under /dbsc/v0/.
+	 *
+	 * Experimental: the specification is a draft and this is not ready for
+	 * third-party use.
+	 *
+	 * @since 1.48
+	 */
+	public const DeviceBoundSessions = [
+		'default' => false,
+		'type' => 'boolean',
+	];
+
+	/**
+	 * Restrict DBSC to measurement: offer registration once per session, log
+	 * whether the browser could complete it, then refuse. No binding is
+	 * stored and the refresh endpoint stays disabled. Turn this off only when
+	 * enforcing device binding for real.
+	 *
+	 * @since 1.48
+	 */
+	public const DeviceBoundSessionsReportOnly = [
+		'default' => true,
+		'type' => 'boolean',
+	];
+
+	/**
+	 * Name of the device-bound credential cookie set alongside the session
+	 * cookie for DBSC-registered sessions.
+	 *
+	 * @since 1.48
+	 */
+	public const DeviceBoundSessionCookieName = [
+		'default' => '__Host-dbsc',
+		'type' => 'string',
+	];
+
+	/**
+	 * Max-Age of the device-bound credential cookie, in seconds. Must be less
+	 * than $wgDeviceBoundSessionChallengeTTL.
+	 *
+	 * @since 1.48
+	 */
+	public const DeviceBoundSessionCredentialTTL = [
+		'default' => 600,
+		'type' => 'integer',
+	];
+
+	/**
+	 * Lifetime of DBSC signing challenges, in seconds. Must exceed
+	 * $wgDeviceBoundSessionCredentialTTL so a challenge cached just before the
+	 * bound cookie expires is still redeemable (enforced by the protocol
+	 * library).
+	 *
+	 * @since 1.48
+	 */
+	public const DeviceBoundSessionChallengeTTL = [
+		'default' => 900,
+		'type' => 'integer',
+	];
+
+	/**
+	 * Hard lifetime of a device binding, in seconds. After this the user agent
+	 * must register again.
+	 *
+	 * @since 1.48
+	 */
+	public const DeviceBoundSessionBindingTTL = [
+		'default' => 2592000,
+		'type' => 'integer',
+	];
+
+	/**
+	 * Extra path prefixes excluded from the DBSC session scope, in addition to
+	 * the script and resource paths, which are excluded automatically.
+	 * Requests in scope are suspended while a credential is refreshed.
+	 *
+	 * @since 1.48
+	 */
+	public const DeviceBoundSessionScopeExcludes = [
+		'default' => [],
+		'type' => 'list',
+	];
+
 	// endregion -- end of cookie settings
 
 	/***************************************************************************/
@@ -12559,6 +12644,20 @@ class MainConfigSchema {
 	];
 
 	/**
+	 * Whether newly created accounts should watch their own user page and
+	 * user talk page.
+	 *
+	 * This applies to both regular and automatic account creation.
+	 * Temporary accounts never watch their user page.
+	 *
+	 * @since 1.48
+	 */
+	public const WatchUserPageOnAccountCreation = [
+		'default' => true,
+		'type' => 'boolean',
+	];
+
+	/**
 	 * Maintain a log of page creations at Special:Log/create?
 	 *
 	 * @since 1.32
@@ -13683,11 +13782,17 @@ class MainConfigSchema {
 	];
 
 	/**
-	 * Force Parsoid/legacy parser use in RefreshLinksJob
+	 * Force Parsoid/legacy parser use for links updates
+	 *
+	 * This covers every parse whose output updates the links tables and
+	 * other derived page metadata (page properties, categories, search
+	 * index): the canonical rendering done on edit, null edit, purge with
+	 * forcelinkupdate and other secondary data updates, RefreshLinksJob,
+	 * CategoryMembershipChangeJob, and ContentHandler::getParserOutputForIndexing().
 	 *
 	 * When null, this follows the default canonical ParserOptions.
-	 * If set to true, will force Parsoid use for RefreshLinksJob, and
-	 * if set to false will force legacy parser use for RefreshLinksJob,
+	 * If set to true, will force Parsoid use for these parses, and
+	 * if set to false will force legacy parser use for these parses,
 	 * independent of the default canonical ParserOptions used elsewhere
 	 * in MediaWiki.
 	 *

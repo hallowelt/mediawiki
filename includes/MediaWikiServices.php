@@ -169,6 +169,9 @@ use MediaWiki\Search\SearchEngineConfig;
 use MediaWiki\Search\SearchEngineFactory;
 use MediaWiki\Search\SearchResultThumbnailProvider;
 use MediaWiki\Search\TitleMatcher;
+use MediaWiki\Session\DeviceBoundSessionManager;
+use MediaWiki\Session\DeviceBoundSessionReporter;
+use MediaWiki\Session\DeviceBoundSessionStore;
 use MediaWiki\Session\SessionManagerInterface;
 use MediaWiki\Session\SessionStore;
 use MediaWiki\Settings\Config\ConfigSchema;
@@ -1193,6 +1196,30 @@ class MediaWikiServices extends ServiceContainer {
 	 */
 	public function getDeletePageFactory(): DeletePageFactory {
 		return $this->getService( 'DeletePageFactory' );
+	}
+
+	/**
+	 * @since 1.48
+	 * @unstable until 1.49
+	 */
+	public function getDeviceBoundSessionManager(): DeviceBoundSessionManager {
+		return $this->getService( 'DeviceBoundSessionManager' );
+	}
+
+	/**
+	 * @since 1.48
+	 * @unstable until 1.49
+	 */
+	public function getDeviceBoundSessionReporter(): DeviceBoundSessionReporter {
+		return $this->getService( 'DeviceBoundSessionReporter' );
+	}
+
+	/**
+	 * @since 1.48
+	 * @unstable until 1.49
+	 */
+	public function getDeviceBoundSessionStore(): DeviceBoundSessionStore {
+		return $this->getService( 'DeviceBoundSessionStore' );
 	}
 
 	/**

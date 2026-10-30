@@ -2832,9 +2832,7 @@ class OutputPage extends ContextSource {
 	 * @param string $header Header name
 	 */
 	public function addVaryHeader( $header ) {
-		if ( !array_key_exists( $header, $this->mVaryHeader ) ) {
-			$this->mVaryHeader[$header] = null;
-		}
+		$this->mVaryHeader[$header] ??= null;
 	}
 
 	/**
@@ -3160,6 +3158,16 @@ class OutputPage extends ContextSource {
 		$featurePolicyReportOnly = $this->getFeaturePolicyReportOnly();
 		if ( $featurePolicyReportOnly ) {
 			$response->header( "Feature-Policy-Report-Only: $featurePolicyReportOnly" );
+		}
+
+		// DBSC report-only: offer a binding once per session to measure how many
+		// browsers could establish one. Covers sessions created by a session
+		// provider, which never pass through AuthManager.
+		if ( $config->get( MainConfigNames::DeviceBoundSessions )
+			&& $config->get( MainConfigNames::DeviceBoundSessionsReportOnly )
+		) {
+			MediaWikiServices::getInstance()->getDeviceBoundSessionReporter()
+				->offerOnce( $request->getSession(), $request, $response );
 		}
 
 		if ( $this->mArticleBodyOnly ) {

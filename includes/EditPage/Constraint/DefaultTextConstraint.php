@@ -10,7 +10,6 @@ use MediaWiki\Page\PageReference;
 use MediaWiki\PageEdit\PageEditAttemptState;
 use MediaWiki\PageEdit\PageEditStatus;
 use MediaWiki\ShadowPage\ShadowPageLoader;
-use Wikimedia\Message\MessageSpecifier;
 
 /**
  * Don't save a new page if it's blank or if it's a page with shadow content
@@ -27,7 +26,6 @@ class DefaultTextConstraint extends EditConstraint {
 		private readonly ShadowPageLoader $shadowPageLoader,
 		private readonly PageReference $title,
 		private readonly string $userProvidedText,
-		private readonly MessageSpecifier $submitButtonLabel,
 		private readonly PageEditAttemptState $editAttemptState,
 	) {
 	}
@@ -38,10 +36,13 @@ class DefaultTextConstraint extends EditConstraint {
 		$defaultText = $defaultContent?->serialize() ?? '';
 		if ( !$this->editAttemptState->shouldAllowBlankArticle() && $this->userProvidedText === $defaultText ) {
 			$this->editAttemptState->setAllowBlankArticle( true );
+			$warning = $defaultText === ''
+				? 'edit-constraint-defaulttext-blank-warning'
+				: 'edit-constraint-defaulttext-default-warning';
 			return PageEditStatus::newGood( self::AS_BLANK_ARTICLE )
 				->setOK( false )
 				->setCanResubmit( true )
-				->warning( 'blankarticle', $this->submitButtonLabel );
+				->warning( $warning );
 		}
 		return PageEditStatus::newGood();
 	}
