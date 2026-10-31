@@ -2607,7 +2607,7 @@ class EditPage implements IEditObject {
 				),
 			);
 
-			// No call to $this->handleFailedConstraint() here to avoid setting wpRedirect
+			// No need to call $this->handleFailedConstraint() here
 			$out->addHTML( $this->editStatusFormatter->formatStatus( $constraintRunner->checkAllConstraints() ) );
 		}
 
@@ -2674,7 +2674,7 @@ class EditPage implements IEditObject {
 	 *   down below the textarea
 	 */
 	private function showSummaryInput( bool $isSubjectPreview ): void {
-		# Add a class if 'missingsummary' is triggered to allow styling of the summary line
+		# Add a class if ExistingSectionEditConstraint/NewSectionMissingSubjectConstraint is triggered to allow styling
 		$summaryClass = $this->missingSummary ? 'mw-summarymissed' : 'mw-summary';
 		if ( $isSubjectPreview ) {
 			if ( $this->nosummary ) {
