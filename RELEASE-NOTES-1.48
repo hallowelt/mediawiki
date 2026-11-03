@@ -72,6 +72,14 @@ For notes on 1.47.x and older releases, see HISTORY.
 * The SpecialWhatLinksHereBacklinkQuery hook was added. It allows
   extensions to filter the backlink query of Special:WhatLinksHere before
   the limit is applied.
+* (T434143) New domain events representing updates to the change tags attached
+  to an entity: RevisionTagsUpdated and LogTagsUpdated, both sharing the
+  abstract base type EntityTagsUpdated
+  (MediaWiki\ChangeTags\Event\EntityTagsUpdatedEvent). A single tag update may
+  affect a revision and a log entry at once; those are separate entities, so
+  one event is emitted per affected entity. Together they provide a modern
+  replacement for the ChangeTagsAfterUpdateTags hook. Tags attached to a
+  recentchanges row alone are not reported by an event yet.
 * …
 
 === External library changes in 1.48 ===
@@ -171,6 +179,8 @@ For notes on 1.47.x and older releases, see HISTORY.
   private are now actually private. Use get_last_cmd_status() instead of
   reading $_last_cmd_status, and get_hosts_for_key() to find which servers
   a key maps to.
+* The EditPageBeforeEditToolbar hook, deprecated since 1.36, has been
+  removed.
 * …
 
 === Deprecations in 1.48 ===
@@ -178,6 +188,12 @@ For notes on 1.47.x and older releases, see HISTORY.
 * Xml::escapeTagsOnly() is unused and has been deprecated.
 * The SpecialWhatLinksHereQuery hook has been deprecated. Use the
   SpecialWhatLinksHereBacklinkQuery hook instead.
+* EditPage::getEditToolbar() always returns null and has been
+  deprecated.
+* RevisionStore::getRecentChange() has been deprecated and emits deprecation
+  warnings. Use RecentChangeLookup::getRecentChangeByRevision() instead.
+* RevisionStore::getRcIdIfUnpatrolled() has been deprecated without a
+  direct replacement
 * …
 
 === Other changes in 1.48 ===

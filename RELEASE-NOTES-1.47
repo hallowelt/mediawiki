@@ -256,14 +256,6 @@ For notes on 1.46.x and older releases, see HISTORY.
   WANObjectCache.
 * (T427815) Add MediaWiki\Logging\LogRecord, a new immutable value object
   representing an entry in the logging table.
-* (T434143) New domain events representing updates to the change tags attached
-  to an entity: RevisionTagsUpdated and LogTagsUpdated, both sharing the
-  abstract base type EntityTagsUpdated
-  (MediaWiki\ChangeTags\Event\EntityTagsUpdatedEvent). A single tag update may
-  affect a revision and a log entry at once; those are separate entities, so
-  one event is emitted per affected entity. Together they provide a modern
-  replacement for the ChangeTagsAfterUpdateTags hook. Tags attached to a
-  recentchanges row alone are not reported by an event yet.
 * (T290916) The vue-router module has been added to provide convenient routing
   to Vue applications.
 * (T388663) New Notification types TitleNotification and AgentNotification
@@ -308,6 +300,7 @@ For notes on 1.46.x and older releases, see HISTORY.
 * Updated wikimedia/language-data from 1.1.13 to 1.1.14.
 * Updated wikimedia/minify from 2.10.0 to 2.12.0.
 * Updated wikimedia/object-factory from 6.0.0 to 7.0.0.
+* Updated wikimedia/parsoid from 0.23.0 to 0.24.0.
 * Updated wikimedia/shellbox from 4.4.0 to 4.5.2.
 * …
 
@@ -828,10 +821,6 @@ because of Phabricator reports.
   $pageLanguageOverride parameter is deprecated and emits warnings;
   instead use ::setTargetLanguage() on the ParserOptions passed to the
   method.
-* RevisionStore::getRecentChange() has been deprecated and emits deprecation
-  warnings. Use RecentChangeLookup::getRecentChangeByRevision() instead.
-* RevisionStore::getRcIdIfUnpatrolled() has been deprecated without a
-  direct replacement
 * …
 
 === Other changes in 1.47 ===
