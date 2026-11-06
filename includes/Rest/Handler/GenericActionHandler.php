@@ -50,15 +50,23 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		// responselanginfo doesn't have a place in a REST response.
 		'responselanginfo',
 
+		// maxlag should be supported for all REST APIs, or not at all.
+		// We don't expose it until the REST framework supports it.
+		'maxlag',
+
+		// uselang should arguably be a per-endpoint param, since its exact
+		// interpretation and impact depends a lot on what's actually being done.
+		// We don't expose it for now.
+		'uselang',
+
 		// We allow assert and assertuser for now, but ideally they would
 		// be replaced by headers handled by the REST framework / middleware.
-		// Same for maxlag, smaxage, and maxage: we should support them for
+		// Same for smaxage and maxage: we should support them for
 		// all APIs, or not at all.
 		// Same also for origin and crossorigin for CORS support.
 
-		// We allow uselang and variant, but they should arguably be
-		// per-endpoint params, since their exact interpretation and impact
-		// depends a lot on what's actually being done.
+		// We allow variant, but it should arguably be a per-endpoint param,
+		// like uselang.
 	];
 
 	/**
@@ -87,6 +95,19 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		ApiBase::PARAM_TEMPLATE_VARS,
 		SubmoduleDef::PARAM_SUBMODULE_MAP,
 		SubmoduleDef::PARAM_SUBMODULE_PARAM_PREFIX,
+	];
+
+	/**
+	 * Action API help messages with wikitext links that have a Markdown
+	 * version, which OpenAPI descriptions use. The Markdown version has the
+	 * same key with a ".md" suffix.
+	 *
+	 * @todo Stop-gap until action API help messages have a Markdown version
+	 *       in general.
+	 */
+	private const MARKDOWN_HELP_MESSAGES = [
+		'api-help-param-continue',
+		'api-help-param-token',
 	];
 
 	/**
@@ -170,11 +191,6 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 			+ $this->getRequest()->getPathParams()
 			+ $this->getRequest()->getQueryParams();
 
-		// TODO: Fail if the client tries to set unsupported params,
-		// don't just ignore them (T436749)!
-		// This doesn't happen automatically, since we are overriding
-		// validate() to do nothing, leaving validation to ApiMain.
-
 		$params = array_intersect_key( $all, $this->getActionModuleParamSpecs() );
 
 		// Hack: If the ActioModule requires a token, but the session is safe
@@ -221,9 +237,15 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		$params = $this->makeParamSettings( $this->getSupportedPathParams(), 'path' );
 
 		if ( !$this->usesRequestBody() ) {
-			$params += $this->makeParamSettings( $this->getSupportedQueryParams(), 'query' );
+			$supported = $this->getSupportedQueryParams();
+		} else {
+			$supported = array_intersect(
+				$this->getSupportedQueryParams(),
+				$this->getQueryOnlyParams()
+			);
 		}
 
+		$params += $this->makeParamSettings( $supported, 'query' );
 		$params += parent::getParamSettings();
 		return $params;
 	}
@@ -241,7 +263,12 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		if ( $this->usesRequestBody() ) {
 			// XXX: Do we need to support 'post' as a source (form data) as well?
 			//      We could ask the helper for the supported body formats...
-			$params += $this->makeParamSettings( $this->getSupportedQueryParams(), 'body' );
+			$supported = array_diff(
+				$this->getSupportedQueryParams(),
+				$this->getQueryOnlyParams()
+			);
+
+			$params += $this->makeParamSettings( $supported, 'body' );
 		}
 
 		$params += parent::getBodyParamSettings();
@@ -298,6 +325,19 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	}
 
 	/**
+	 * Return the names of query parameters that can never be given in the
+	 * request body. The action API doesn't really distinguish between
+	 * query parameters and post data, but some parameters must be part of
+	 * the URI.
+	 *
+	 * @return string[]
+	 */
+	protected function getQueryOnlyParams(): array {
+		// See ApiMain::getAllowedParams()
+		return [ 'origin', 'crossorigin' ];
+	}
+
+	/**
 	 * Return the names of supported query parameters.
 	 * Parameters provided in the path are excluded.
 	 *
@@ -350,14 +390,10 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 			// Translate Action API help-message specs into the REST
 			// framework's description field. PARAM_HELP_MSG holds either a bare
 			// message key, an array [ key, params... ], or a MessageSpecifier.
-			if ( isset( $spec[ApiBase::PARAM_HELP_MSG] ) ) {
-				$helpMsg = $spec[ApiBase::PARAM_HELP_MSG];
-				$spec[self::PARAM_DESCRIPTION] = self::toMessageSpecifier( $helpMsg );
-				unset( $spec[ApiBase::PARAM_HELP_MSG] );
-			} else {
-				$msg = "apihelp-{$this->actionName}-param-{$param}";
-				$spec[self::PARAM_DESCRIPTION] = new MessageValue( $msg );
-			}
+			$spec[self::PARAM_DESCRIPTION] = self::toMessageSpecifier(
+				$spec[ApiBase::PARAM_HELP_MSG] ?? "apihelp-{$this->actionName}-param-{$param}"
+			);
+			unset( $spec[ApiBase::PARAM_HELP_MSG] );
 			$spec = array_diff_key( $spec, array_flip( self::ACTION_PARAM_SETTINGS ) );
 
 			$settings[$param] = $spec;
@@ -366,16 +402,25 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		return $settings;
 	}
 
+	/**
+	 * Converts an action API help message spec into a MessageSpecifier,
+	 * replacing the message by its Markdown version if it is listed in
+	 * MARKDOWN_HELP_MESSAGES.
+	 */
 	private static function toMessageSpecifier(
 		string|array|MessageSpecifier $helpMsg
 	): MessageSpecifier {
 		if ( $helpMsg instanceof MessageSpecifier ) {
-			return $helpMsg;
+			$msg = $helpMsg;
+		} else {
+			$params = (array)$helpMsg;
+			$msg = new MessageValue( array_shift( $params ), $params );
 		}
 
-		$helpMsg = (array)$helpMsg;
-		$key = array_shift( $helpMsg );
-		return new MessageValue( $key, $helpMsg );
+		if ( in_array( $msg->getKey(), self::MARKDOWN_HELP_MESSAGES, true ) ) {
+			return new MessageValue( $msg->getKey() . '.md', $msg->getParams() );
+		}
+		return $msg;
 	}
 
 	/**
@@ -384,12 +429,16 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	 * @inheritDoc
 	 */
 	public function validate( Validator $restValidator ) {
-		// HACK: disable REST validation completely by not calling the parent.
+		// HACK: disable REST validation by not calling the parent.
 		// This breaks access to validated parameters and body in the handler.
 		// But since all parameter access, including validation, happens in the
 		// action module, that should be fine.
-		// It would be nice of ApiMain provided a way to trigger validation
+		// It would be nice if ApiMain provided a way to trigger validation
 		// separately from execution, then we could call it here.
+
+		// We still want to fail if the client tries to send extra body params,
+		// don't just ignore them (T436749)!
+		$this->detectExtraneousBodyFields( $restValidator );
 	}
 
 	/**
