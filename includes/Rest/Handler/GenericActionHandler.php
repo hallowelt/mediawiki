@@ -4,6 +4,7 @@ namespace MediaWiki\Rest\Handler;
 use MediaWiki\Api\ApiBase;
 use MediaWiki\Api\ApiMain;
 use MediaWiki\Api\ApiRestHelper;
+use MediaWiki\Api\ApiRestHelperContext;
 use MediaWiki\Api\ApiRestHybrid;
 use MediaWiki\Api\IApiMessage;
 use MediaWiki\Api\Validator\SubmoduleDef;
@@ -82,6 +83,10 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		'submodule' => 'string',
 	];
 
+	private ?ApiBase $actionModule = null;
+
+	private ?ApiRestHelper $apiRestHelper = null;
+
 	/**
 	 * Parameter settings that only the action API understands. The REST
 	 * framework rejects unknown settings, so they are removed.
@@ -149,10 +154,25 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	 * Returns the module that will be called by this handler, based on
 	 * the 'action' parameter returned by getActionModuleParameters().
 	 *
+	 * If that module implements ApiRestHybrid, this method calls initRestMode()
+	 * on it.
+	 *
 	 * @return ApiBase
 	 */
-	protected function getApiActionModule(): ApiBase {
-		return $this->getApiMain()->initModule( $this->actionName );
+	protected function getActionModule(): ApiBase {
+		if ( $this->actionModule ) {
+			return $this->actionModule;
+		}
+
+		$this->actionModule = $this->getApiMain()->initModule( $this->actionName );
+
+		if ( $this->actionModule instanceof ApiRestHybrid ) {
+			$this->apiRestHelper = $this->actionModule->initRestMode(
+				new ApiRestHelperContext( $this->adapterConfig, $this->getConfig() )
+			);
+		}
+
+		return $this->actionModule;
 	}
 
 	/**
@@ -160,12 +180,8 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	 * @return ?ApiRestHelper
 	 */
 	protected function getApiRestHelper(): ?ApiRestHelper {
-		$module = $this->getApiActionModule();
-		if ( $module instanceof ApiRestHybrid ) {
-			return $module->getRestHelper();
-		}
-
-		return null;
+		$this->getActionModule();
+		return $this->apiRestHelper;
 	}
 
 	/**
@@ -197,7 +213,7 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		// against CSRF attacks, then make the action module happy by
 		// supplying a valid token. The action API validates the token
 		// unconditionally, it has no exemption for CSRF-safe providers.
-		if ( $this->getApiActionModule()->needsToken() && !isset( $params['token'] ) ) {
+		if ( $this->getActionModule()->needsToken() && !isset( $params['token'] ) ) {
 			if ( $this->getSession()->getProvider()->safeAgainstCsrf() ) {
 				$sessionToken = null;
 				if ( $this->getSession()->getUser()->isAnon() ) {
@@ -276,32 +292,44 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	}
 
 	/**
-	 * Return parameter specs defined by the ApiModule.
-	 * The specs are raw, but they keys may have been adjusted/filtered.
+	 * Return parameter specs defined by the ApiModule and ApiMain.
+	 * Some may have been filtered out, see filterSupportedParams().
 	 *
 	 * @return array[]
 	 */
 	protected function getActionModuleParamSpecs(): array {
 		return $this->filterSupportedParams(
-			$this->getApiActionModule()->getFinalParams()
-				+ $this->getMainParamSpecs()
+			$this->getModuleParamSpecs( $this->getActionModule() )
+				+ $this->getModuleParamSpecs( $this->getApiMain() )
 		);
 	}
 
 	/**
-	 * The parameter specs of ApiMain, each with a help message, since
-	 * makeParamSettings() would otherwise derive one from the action name.
+	 * The parameter specs of the given module, in array form, each with a
+	 * help message, since makeParamSettings() would otherwise derive one from
+	 * the action name. The message gets the params that
+	 * ApiBase::getFinalParamDescription() adds: the module prefix, which is
+	 * empty since REST parameter names have none, the parameter name, the
+	 * module name and the module path.
 	 *
 	 * @return array[]
 	 */
-	protected function getMainParamSpecs(): array {
+	protected function getModuleParamSpecs( ApiBase $module ): array {
+		$moduleName = $module->getModuleName();
+		$path = $module->getModulePath();
+
 		$specs = [];
-		foreach ( $this->getApiMain()->getFinalParams() as $name => $spec ) {
+		foreach ( $module->getFinalParams() as $name => $spec ) {
 			// Specs may be in scalar shorthand form, just a default value.
 			if ( !is_array( $spec ) ) {
 				$spec = [ ParamValidator::PARAM_DEFAULT => $spec ];
 			}
-			$spec[ApiBase::PARAM_HELP_MSG] ??= "apihelp-main-param-$name";
+			$msg = self::toMessageSpecifier(
+				$spec[ApiBase::PARAM_HELP_MSG] ?? "apihelp-$path-param-$name"
+			);
+			// Copy the message, since MessageValue::params() modifies it.
+			$spec[ApiBase::PARAM_HELP_MSG] = ( new MessageValue( $msg->getKey(), $msg->getParams() ) )
+				->params( '', $name, $moduleName, $path );
 			$specs[$name] = $spec;
 		}
 		return $specs;
