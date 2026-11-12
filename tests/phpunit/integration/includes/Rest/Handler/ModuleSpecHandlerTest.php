@@ -10,7 +10,9 @@ use MediaWiki\Rest\ErrorFormatterV1;
 use MediaWiki\Rest\ErrorFormatterV2;
 use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\Handler\ModuleSpecHandler;
+use MediaWiki\Rest\JsonLocalizer;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Module\Module;
 use MediaWiki\Rest\Module\ModuleAvailability;
 use MediaWiki\Rest\Reporter\MWErrorReporter;
 use MediaWiki\Rest\RequestData;
@@ -76,6 +78,7 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 			$services->getHookContainer(),
 			$this->getSession( true ),
 			$services->getUrlUtils(),
+			new JsonLocalizer( $formatter ),
 		) );
 	}
 
@@ -249,7 +252,7 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 				'paths' => [
 					'/foo/bar' => [
 						'get' => [
-							'operationId' => 'getFooBarAction',
+							'operationId' => 'getFooBar',
 							'parameters' => [ [ 'name' => 'q', 'in' => 'query' ] ],
 							'responses' => [ 200 => [ 'description' => 'OK' ] ]
 						],
@@ -529,7 +532,7 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 	public static function provideLocalModuleTestBaseUrlCases() {
 		return [
 			'test local module test base URL configured' => [
-				'https://test.wikimedia.org/w/rest.php',
+				'https://test.wikipedia.org/w/rest.php',
 				2,
 				[
 					0 => [
@@ -537,14 +540,14 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 						'description' => '<message key="rest-sandbox-server-production"></message>',
 					],
 					1 => [
-						'url' => 'https://test.wikimedia.org/w/rest.php/mock/v1',
+						'url' => 'https://test.wikipedia.org/w/rest.php/mock/v1',
 						'description' => '<message key="rest-sandbox-server-sandbox"></message>',
 					],
 				],
-				'<message key="rest-sandbox-recommend-test-server"><text>test.wikimedia.org</text></message>',
+				'<message key="rest-sandbox-recommend-test-server"><text>test.wikipedia.org</text></message>',
 			],
 			'test local module test base URL configured with existing description' => [
-				'https://test.wikimedia.org/w/rest.php',
+				'https://test.wikipedia.org/w/rest.php',
 				2,
 				[
 					0 => [
@@ -552,11 +555,11 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 						'description' => '<message key="rest-sandbox-server-production"></message>',
 					],
 					1 => [
-						'url' => 'https://test.wikimedia.org/w/rest.php/mock/v1',
+						'url' => 'https://test.wikipedia.org/w/rest.php/mock/v1',
 						'description' => '<message key="rest-sandbox-server-sandbox"></message>',
 					],
 				],
-				'<message key="rest-sandbox-recommend-test-server-with-description"><text>Existing mock description.</text><text>test.wikimedia.org</text></message>',
+				'<message key="rest-sandbox-recommend-test-server-with-description"><text>Existing mock description.</text><text>test.wikipedia.org</text></message>',
 				'SpecTestModuleWithDescription.json'
 			],
 			'no test server' => [
@@ -640,16 +643,32 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public static function provideGenerateOperationId(): iterable {
-		// ASCII summary
-		yield 'GET + summary' => [ 'GET', 'Search pages', '/v1/page', 'getSearchPages' ];
-		// No summary → falls back to path
-		yield 'GET + no summary' => [ 'GET', null, '/v1/page/{title}', 'getV1PageByTitle' ];
-		// Empty summary → falls back to path
-		yield 'GET + empty summary' => [ 'GET', '', '/v1/page', 'getV1Page' ];
-		// Method case is irrelevant; output is always lowercase-prefixed
-		yield 'lowercase method' => [ 'get', 'Search pages', '/v1/page', 'getSearchPages' ];
-		// Accented characters: non-ASCII letters are stripped; surrounding ASCII letters remain
-		yield 'accented chars in summary' => [ 'GET', 'Récupérer la page', '/v1/page', 'getRCupRerLaPage' ];
+		// Use the path
+		yield 'GET' => [ 'GET', '/v1/page/{title}', [], 'getV1PageByTitle' ];
+
+		// Use the method name
+		yield 'POST' => [ 'POST', '/page', [], 'postPage' ];
+
+		// RPC-style action suffix; the colon acts as a word separator
+		yield 'POST with action suffix' => [ 'POST', '/page:move', [], 'postPageMove' ];
+		yield 'POST with action suffix and parameter' => [
+			'POST', '/page:move/{title}', [], 'postPageMoveByTitle',
+		];
+
+		// NOTE: The operationId used to be based on the summary field if available (T425428).
+		// This should not be the case (T444613), and we need a test to assert that.
+		yield 'GET + summary' => [
+			'GET', '/v1/page',
+			[ 'summary' => 'Search pages' ],
+			'getV1Page',
+		];
+
+		// An explicit operationId takes precedence over the generated one
+		yield 'explicit operationId' => [
+			'GET', '/v1/page',
+			[ 'operationId' => 'customId' ],
+			'customId',
+		];
 	}
 
 	/**
@@ -657,12 +676,21 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testGenerateOperationId(
 		string $method,
-		?string $summary,
 		string $path,
+		array $operationSpec,
 		string $expected
 	): void {
-		$handler = TestingAccessWrapper::newFromClass( ModuleSpecHandler::class );
-		$this->assertSame( $expected, $handler->generateOperationId( $method, $summary, $path ) );
+		$routeHandler = $this->createMock( Handler::class );
+		$routeHandler->method( 'getOpenApiSpec' )->willReturn( $operationSpec );
+		$routeHandler->method( 'needsWriteAccess' )->willReturn( false );
+
+		$module = $this->createMock( Module::class );
+		$module->method( 'getHandlerForPath' )->willReturn( $routeHandler );
+
+		$handler = TestingAccessWrapper::newFromObject( $this->newHandler() );
+		$oad = $handler->getRouteSpec( $module, $path, $method );
+		$this->assertArrayHasKey( 'operationId', $oad );
+		$this->assertSame( $expected, $oad['operationId'] );
 	}
 
 	public function testHiddenSpec() {
@@ -899,6 +927,76 @@ class ModuleSpecHandlerTest extends MediaWikiIntegrationTestCase {
 				return 'foo bar';
 			}
 		};
+	}
+
+	/**
+	 * Localization placeholders in the module definition (x-i18n-*) must be resolved
+	 * when the spec is rendered, including the ones the info section and the sandbox
+	 * recommendation depend on.
+	 *
+	 * @dataProvider provideSandboxUrl
+	 */
+	public function testI18nFieldsInModuleDefinitionAreLocalized( ?string $sandboxBaseUrl ) {
+		$this->overrideConfigValues( [
+			MainConfigNames::RightsText => 'Test License',
+			MainConfigNames::RightsUrl => 'https://example.com/license',
+			MainConfigNames::EmergencyContact => 'test@example.com',
+			MainConfigNames::Sitename => 'TestWiki',
+			MainConfigNames::RestExternalModules => [],
+			MainConfigNames::CanonicalServer => 'https://zh.wikipedia.org',
+			MainConfigNames::RestPath => '/api',
+			MainConfigNames::RestLocalModuleTestBaseUrl => $sandboxBaseUrl,
+		] );
+
+		$request = new RequestData( [ 'pathParams' => [ 'module' => 'mock', 'version' => 'v1' ] ] );
+		$response = $this->executeModuleSpecHandler(
+			$request,
+			__DIR__ . '/SpecTestModuleI18n.json',
+			[ 'mock/v1' => ModuleAvailability::PUBLISHED, '' => ModuleAvailability::PUBLISHED ]
+		);
+		$this->assertSame( 200, $response->getStatusCode() );
+		$data = json_decode( (string)$response->getBody(), true );
+
+		$this->assertStringNotContainsString( 'x-i18n-', json_encode( $data ) );
+		$this->assertSame( '<message key="rest-test-module-title"></message>', $data['info']['title'] );
+
+		$operation = $data['paths']['/foo/bar']['get'];
+		$this->assertSame( '<message key="rest-test-op-summary"></message>', $operation['summary'] );
+		$this->assertSame( '<message key="rest-test-op-desc"></message>', $operation['description'] );
+
+		// The module's own description must survive, with or without the sandbox recommendation.
+		$this->assertStringContainsString( 'rest-test-module-desc', $data['info']['description'] );
+	}
+
+	public static function provideSandboxUrl() {
+		yield 'without sandbox' => [ null ];
+		yield 'with sandbox' => [ 'https://test.wikimedia.org/w/rest.php' ];
+	}
+
+	/**
+	 * Operation IDs must not depend on the user language, so they are not derived
+	 * from a summary that is only available as x-i18n-summary.
+	 */
+	public function testOperationIdIgnoresLocalizedSummary() {
+		$this->overrideConfigValues( [
+			MainConfigNames::RightsText => 'Test License',
+			MainConfigNames::RightsUrl => 'https://example.com/license',
+			MainConfigNames::EmergencyContact => 'test@example.com',
+			MainConfigNames::CanonicalServer => 'https://zh.wikipedia.org',
+			MainConfigNames::RestPath => '/api',
+		] );
+
+		$request = new RequestData( [ 'pathParams' => [ 'module' => 'mock', 'version' => 'v1' ] ] );
+		$response = $this->executeModuleSpecHandler(
+			$request,
+			__DIR__ . '/SpecTestModuleI18n.json',
+			[ 'mock/v1' => ModuleAvailability::PUBLISHED, '' => ModuleAvailability::PUBLISHED ]
+		);
+		$data = json_decode( (string)$response->getBody(), true );
+
+		$operationId = $data['paths']['/foo/bar']['get']['operationId'];
+		$this->assertSame( 'getFooBar', $operationId );
+		$this->assertStringNotContainsString( 'summary', $operationId );
 	}
 
 }

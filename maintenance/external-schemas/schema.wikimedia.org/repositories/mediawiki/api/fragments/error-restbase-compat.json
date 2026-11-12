@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "error-v1.json",
-  "title": "MediaWiki REST API error response (v1, legacy)",
-  "description": "Default error shape emitted by REST modules that don't opt in to errorSchemaVersion 2.0. Additional properties are allowed since handlers may attach extra data.",
+  "$id": "https://schema.wikimedia.org/repositories/mediawiki/api/fragments/error-restbase-compat.json",
+  "title": "MediaWiki REST API error response (RESTBase compatibility)",
+  "description": "Error response in the RESTBase-compatible format, returned when the request has the header \"x-restbase-compat: true\". Extends the v1 (legacy) shape with fields mirroring RESTBase's own error format.",
   "type": "object",
   "properties": {
     "httpCode": {
@@ -54,6 +54,41 @@
     "exception": {
       "type": "object",
       "description": "Structured details of the exception that caused the error. Only present when the wiki is configured to show exception details."
+    },
+    "type": {
+      "type": "string",
+      "description": "RESTBase-style error type.",
+      "examples": [
+        "MediaWikiError/Not_Found"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "description": "Message key, mirroring RESTBase's \"title\" field.",
+      "examples": [
+        "rest-nonexistent-title"
+      ]
+    },
+    "method": {
+      "type": "string",
+      "description": "Lowercased HTTP method of the request.",
+      "examples": [
+        "get"
+      ]
+    },
+    "detail": {
+      "type": "string",
+      "description": "Human-readable error text.",
+      "examples": [
+        "The specified page does not exist"
+      ]
+    },
+    "uri": {
+      "type": "string",
+      "description": "Path and query of the request.",
+      "examples": [
+        "/w/rest.php/v1/page/Foo"
+      ]
     }
   },
   "required": [

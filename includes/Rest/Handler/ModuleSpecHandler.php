@@ -108,7 +108,7 @@ class ModuleSpecHandler extends SimpleHandler {
 			);
 		}
 
-		$spec = [
+		$oad = [
 			'openapi' => '3.0.0',
 			'info' => $this->getInfoSpec( $module ),
 			'servers' => $this->getServerSpec( $module ),
@@ -119,18 +119,19 @@ class ModuleSpecHandler extends SimpleHandler {
 		];
 
 		// Remove some extra info outside the standard OAD schema
-		unset( $spec['info']['deprecationSettings'] );
-		unset( $spec['info']['oadSpecPath'] );
+		unset( $oad['info']['deprecationSettings'] );
+		unset( $oad['info']['oadSpecPath'] );
 
-		if ( !$spec['externalDocs'] ) {
-			unset( $spec['externalDocs'] );
+		if ( !$oad['externalDocs'] ) {
+			unset( $oad['externalDocs'] );
 		}
 
-		if ( empty( $spec['tags'] ) ) {
-			unset( $spec['tags'] );
+		if ( empty( $oad['tags'] ) ) {
+			unset( $oad['tags'] );
 		}
 
-		return $spec;
+		$oad = $this->getJsonLocalizer()->localizeJson( $oad );
+		return $oad;
 	}
 
 	/**
@@ -161,6 +162,11 @@ class ModuleSpecHandler extends SimpleHandler {
 
 		$sandboxUrl = $this->getLocalModuleSandboxUrl( $module );
 		if ( $sandboxUrl !== null ) {
+			if ( isset( $info['x-i18n-description'] ) && $info['x-i18n-description'] !== '' ) {
+				$info['description'] = $this->getJsonLocalizer()->getFormattedMessage( $info['x-i18n-description'] );
+				unset( $info['x-i18n-description'] );
+			}
+
 			$host = parse_url( $sandboxUrl, PHP_URL_HOST );
 			if ( isset( $info['description'] ) && $info['description'] !== '' ) {
 				$info['description'] = $this->getJsonLocalizer()->getFormattedMessage(
@@ -267,7 +273,6 @@ class ModuleSpecHandler extends SimpleHandler {
 
 	private function getPathsSpec( Module $module ): array {
 		$specs = [];
-		$usedOpIds = [];
 
 		// XXX: We currently don't support meta-data on OpenAPI path objects
 		//      (summary, description).
@@ -276,7 +281,7 @@ class ModuleSpecHandler extends SimpleHandler {
 			foreach ( $methods as $mth ) {
 				$key = strtolower( $mth );
 				$mth = strtoupper( $mth );
-				$specs[ $path ][ $key ] = $this->getRouteSpec( $module, $path, $mth, $usedOpIds );
+				$specs[ $path ][ $key ] = $this->getRouteSpec( $module, $path, $mth );
 			}
 		}
 
@@ -293,11 +298,9 @@ class ModuleSpecHandler extends SimpleHandler {
 	 * @param Module $module
 	 * @param string $path Route path, e.g. "/v1/page/{title}"
 	 * @param string $method HTTP method (case-insensitive)
-	 * @param array &$usedOpIds Operation IDs already assigned in this spec,
-	 *   updated in-place to include the ID assigned here
 	 * @return array OpenAPI operation object
 	 */
-	private function getRouteSpec( Module $module, string $path, string $method, array &$usedOpIds ): array {
+	private function getRouteSpec( Module $module, string $path, string $method ): array {
 		$request = new RequestData( [ 'method' => $method ] );
 		$handler = $module->getHandlerForPath( $path, $request, false );
 
@@ -306,23 +309,11 @@ class ModuleSpecHandler extends SimpleHandler {
 		$operationSpec['security'] = $this->getOpenApiSecurityRequirements( $handler );
 
 		// If the spec already contains an explicit operationId (e.g. set in the JSON
-		// definition file via $oasKeys), respect it. Otherwise auto-generate one.
+		// definition file via $oasKeys), respect it. Otherwise auto-generate one
+		// from the method and path, see pathToOperationId().
 		if ( !isset( $operationSpec['operationId'] ) ) {
-			$baseId = self::generateOperationId(
-				$method,
-				$operationSpec['summary'] ?? null,
-				$path
-			);
-			$operationId = $baseId;
-			$counter = 2;
-			while ( in_array( $operationId, $usedOpIds, true ) ) {
-				$operationId = $baseId . $counter;
-				$counter++;
-			}
-			$operationSpec['operationId'] = $operationId;
+			$operationSpec['operationId'] = self::pathToOperationId( $method, $path );
 		}
-
-		$usedOpIds[] = $operationSpec['operationId'];
 
 		return $operationSpec;
 	}
@@ -376,54 +367,19 @@ class ModuleSpecHandler extends SimpleHandler {
 	}
 
 	/**
-	 * Generate an operationId for an operation.
-	 *
-	 * Uses the summary when available (more readable), falls back to the path.
-	 *
-	 * @param string $method HTTP method (case-insensitive; will be normalized to lowercase)
-	 * @param string|null $summary Localized summary, or null/empty if absent
-	 * @param string $path Route path, e.g. "/v1/page/{title}"
-	 * @return string camelCase operationId
-	 */
-	private static function generateOperationId(
-		string $method,
-		?string $summary,
-		string $path
-	): string {
-		if ( $summary !== null && trim( $summary ) !== '' ) {
-			return self::summaryToOperationId( $method, $summary );
-		}
-		return self::pathToOperationId( $method, $path );
-	}
-
-	/**
-	 * Derive an operationId from the HTTP method and operation summary.
-	 *
-	 * Converts the summary to camelCase and prepends the HTTP method in lowercase.
-	 * Example: method=GET, summary="Search pages" → "getSearchPages"
-	 *
-	 * @param string $method HTTP method (case-insensitive)
-	 * @param string $summary The operation summary string
-	 * @return string camelCase operationId
-	 */
-	private static function summaryToOperationId( string $method, string $summary ): string {
-		// Replace any non-alphanumeric character with a space, then split into words.
-		$clean = preg_replace( '/[^a-zA-Z0-9]/', ' ', $summary );
-		$words = preg_split( '/\s+/', trim( $clean ), -1, PREG_SPLIT_NO_EMPTY );
-		$id = strtolower( $method );
-		foreach ( $words as $word ) {
-			$id .= ucfirst( strtolower( $word ) );
-		}
-		return $id;
-	}
-
-	/**
 	 * Derive an operationId from the HTTP method and route path.
-	 * Used as a fallback when no summary is available.
 	 *
 	 * Path parameters ({name}) become "ByName". Hyphens, underscores and other
 	 * non-alphanumeric characters act as word separators.
 	 * Example: method=GET, path="/v1/page/{title}/links" → "getV1PageByTitleLinks"
+	 *
+	 * @note The ID is unique only if the paths of a module differ in more than case,
+	 * separators, non-ASCII characters or the name of a path parameter. For
+	 * example, "/foo-bar" and "/foo/bar" both yield "getFooBar". By convention,
+	 * such combinations of paths should not exist, but we do not protect against
+	 * them here. When the logic for generating the operationId moves somewhere
+	 * reusable, like ModuleManager, we can write a structure test that ensures
+	 * that operationIds are unique per module.
 	 *
 	 * @param string $method HTTP method (case-insensitive)
 	 * @param string $path Route path, e.g. "/v1/page/{title}/links"
@@ -454,20 +410,20 @@ class ModuleSpecHandler extends SimpleHandler {
 	private function getComponentsSpec( string $moduleName ): array {
 		$components = [];
 
-		// Resolve x-i18n-message references. Use the documented module's response factory
-		// rather than $this->getResponseFactory(), so that the error schema is the one that
+		// Use the documented module's response factory rather
+		// than $this->getResponseFactory(), so that the error schema is the one that
 		// module actually uses. Pass a blank request, not $this->getRequest(): the spec must
 		// not depend on request headers, so error formats selected per request (such as
 		// RESTBase compat via x-restbase-compat) are intentionally not documented.
-		$resolvedComponents = $this->getJsonLocalizer()->localizeJson(
-			$this->getRouter()->getModuleResponseFactoryByName( $moduleName, new RequestData() )
-				->getResponseComponents()
-		);
+		$responseComponents = $this->getRouter()->getModuleResponseFactoryByName(
+			$moduleName,
+			new RequestData()
+		)->getResponseComponents();
 
 		// XXX: also collect reusable components from handler specs (but how to avoid name collisions?).
 		$componentsSources = [
 			[ 'schemas' => Validator::getParameterTypeSchemas() ],
-			$resolvedComponents
+			$responseComponents
 		];
 
 		// 2D merge
@@ -482,12 +438,6 @@ class ModuleSpecHandler extends SimpleHandler {
 		// third-party providers, are emitted as-is. The key is omitted when no provider
 		// declares schemes, to avoid an empty securitySchemes object.
 		$securitySchemes = $this->sessionManager->getAllOpenApiSecuritySchemes();
-		foreach ( $securitySchemes as &$scheme ) {
-			if ( isset( $scheme['description'] ) && $scheme['description'] instanceof MessageValue ) {
-				$scheme['description'] = $this->getJsonLocalizer()->getFormattedMessage( $scheme['description'] );
-			}
-		}
-		unset( $scheme );
 		if ( $securitySchemes ) {
 			$components['securitySchemes'] = $securitySchemes;
 		}
