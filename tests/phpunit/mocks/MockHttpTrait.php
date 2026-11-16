@@ -19,8 +19,12 @@ use Wikimedia\Http\MultiHttpClient;
  *
  * @stable to use in extensions
  * @since 1.36
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait MockHttpTrait {
+
+	use MediaWikiTestCaseTrait;
+
 	/**
 	 * @see MediaWikiIntegrationTestCase::setService()
 	 *
@@ -82,7 +86,7 @@ trait MockHttpTrait {
 			MainConfigNames::LocalHTTPProxy => false,
 		] );
 
-		$failCallback = static function ( /* discard any arguments */ ) {
+		$failCallback = static function ( /* discard any arguments */ ): never {
 			TestCase::fail( 'method should not be called' );
 		};
 

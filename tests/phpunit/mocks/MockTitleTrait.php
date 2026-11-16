@@ -10,8 +10,11 @@ use PHPUnit\Framework\MockObject\MockObject;
 /**
  * Creates semi-sane Title mocks for tests.
  * @stable to use since 1.41
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait MockTitleTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	/** @var int */
 	private $pageIdCounter = 0;

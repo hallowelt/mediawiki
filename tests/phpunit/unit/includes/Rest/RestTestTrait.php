@@ -18,6 +18,7 @@ use MediaWiki\Tests\Rest\Handler\SessionHelperTestTrait;
 use MediaWiki\Tests\Unit\DummyServicesTrait;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWiki\Utils\UrlUtils;
+use MediaWikiTestCaseTrait;
 use Psr\Container\ContainerInterface;
 use Wikimedia\ObjectCache\EmptyBagOStuff;
 use Wikimedia\ObjectFactory\ObjectFactory;
@@ -29,8 +30,11 @@ use Wikimedia\ObjectFactory\ObjectFactory;
  *
  * @stable to use
  * @since 1.39
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait RestTestTrait {
+
+	use MediaWikiTestCaseTrait;
 	use SessionHelperTestTrait;
 	use MockAuthorityTrait;
 	use DummyServicesTrait;

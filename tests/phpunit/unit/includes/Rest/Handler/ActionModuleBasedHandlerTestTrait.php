@@ -8,6 +8,7 @@ use MediaWiki\Api\ApiMain;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Language\Language;
 use MediaWiki\Request\FauxRequest;
+use MediaWikiTestCaseTrait;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -18,9 +19,11 @@ use PHPUnit\Framework\MockObject\MockObject;
  * or MediaWikiIntegrationTestCase.
  *
  * @method MockBuilder getMockBuilder(string $className)
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait ActionModuleBasedHandlerTestTrait {
 
+	use MediaWikiTestCaseTrait;
 	use HandlerTestTrait;
 
 	/**

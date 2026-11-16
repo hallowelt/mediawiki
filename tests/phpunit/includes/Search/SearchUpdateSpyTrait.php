@@ -4,12 +4,17 @@ namespace MediaWiki\Tests\Search;
 
 use MediaWiki\Search\SearchEngine;
 use MediaWiki\Search\SearchEngineFactory;
+use MediaWikiTestCaseTrait;
 
 /**
  * Trait for asserting that the search component is getting notified
  * about changes as expected.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait SearchUpdateSpyTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	/**
 	 * Register expectations about updates that should get triggered.

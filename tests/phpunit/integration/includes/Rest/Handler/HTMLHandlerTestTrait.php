@@ -14,13 +14,18 @@ use MediaWiki\Permissions\UserAuthority;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Rest\RequestData;
 use MediaWiki\User\User;
+use MediaWikiTestCaseTrait;
 use Wikimedia\ObjectCache\HashBagOStuff;
 
 /**
  * This trait is used in PageHTMLHandlerTest.php & RevisionHTMLHandlerTest.php
  * to construct requests and perform stashing for the Parsoid Output stash feature.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait HTMLHandlerTestTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	/** @var ParsoidOutputStash|null */
 	private $parsoidOutputStash = null;

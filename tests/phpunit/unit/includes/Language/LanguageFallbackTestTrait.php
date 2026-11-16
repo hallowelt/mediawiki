@@ -6,12 +6,17 @@ namespace MediaWiki\Tests\Unit\Language;
 use MediaWiki\Language\LanguageFallback;
 use MediaWiki\Language\LanguageFallbackMode;
 use MediaWiki\Language\LocalisationCache;
+use MediaWikiTestCaseTrait;
 use ValueError;
 
 /**
  * @internal For LanguageFallbackTest and LanguageFallbackIntegrationTest
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait LanguageFallbackTestTrait {
+
+	use MediaWikiTestCaseTrait;
+
 	/**
 	 * @param array $options Valid keys:
 	 *   * expectedGets: How many times we expect to hit the localisation cache. (This can be

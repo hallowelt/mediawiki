@@ -11,8 +11,12 @@ use Wikimedia\ScopedCallback;
  * This is a trait for running parser tests under phpunit.  It
  * is expected that the parent class defines the filename of the
  * test to run as `static::$filename`; see `ParserTest.php.template`.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait ParserTestFileTrait {
+
+	use MediaWikiTestCaseTrait;
 	use MediaWikiCoversValidator;
 
 	public static ?TestFileReader $fileInfo = null;

@@ -11,6 +11,7 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\RevisionDelete\RevisionDeleter;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
+use MediaWikiTestCaseTrait;
 use RuntimeException;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Timestamp\TimestampFormat as TS;
@@ -19,8 +20,12 @@ use Wikimedia\Timestamp\TimestampFormat as TS;
  * Trait for creating a know set of test pages in the database,
  * corresponding to the XML data files in tests/phpunit/data/dumps,
  * to be used used with DumpAsserter::assertDOM().
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait PageDumpTestDataTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	// We'll add several pages, revision and texts. The following variables hold the
 	// corresponding ids.

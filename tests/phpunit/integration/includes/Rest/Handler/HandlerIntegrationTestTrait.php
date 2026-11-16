@@ -13,14 +13,19 @@ use MediaWiki\Rest\RequestData;
 use MediaWiki\Rest\RequestInterface;
 use MediaWiki\Rest\ResponseInterface;
 use MediaWiki\Tests\Rest\RestTestTrait;
+use MediaWikiTestCaseTrait;
 use Throwable;
 use Wikimedia\TestingAccessWrapper;
 
 /**
  * Trait for actually integrated REST handler tests, i.e. using real
  * dependencies rather than mocked dependencies where possible.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait HandlerIntegrationTestTrait {
+
+	use MediaWikiTestCaseTrait;
 	use RestTestTrait, HandlerTestTrait {
 		RestTestTrait::newRouter insteadof HandlerTestTrait;
 		HandlerTestTrait::newRouter as newMockRouter;
@@ -61,7 +66,7 @@ trait HandlerIntegrationTestTrait {
 		TestingAccessWrapper::newFromObject( $router )->errorReporter = new class implements ErrorReporter {
 			public function reportError(
 				Throwable $error, ?Handler $handler, RequestInterface $request
-			) {
+			): never {
 				throw $error;
 			}
 		};

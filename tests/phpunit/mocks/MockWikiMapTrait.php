@@ -5,13 +5,17 @@ namespace MediaWiki\Tests;
 use MediaWiki\Site\HashSiteStore;
 use MediaWiki\Site\MediaWikiSite;
 use MediaWiki\WikiMap\WikiMap;
+use MediaWikiTestCaseTrait;
 
 /**
  * Ensure WikiMap::getWiki returns a MediaWikiSite for the current wiki, for tests.
  *
  * @since 1.44
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait MockWikiMapTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	/**
 	 * Override the SiteLookup service to include the current site.

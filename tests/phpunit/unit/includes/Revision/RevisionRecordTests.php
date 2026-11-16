@@ -19,13 +19,17 @@ use MediaWiki\Revision\SuppressedDataException;
 use MediaWiki\Tests\Mocks\Content\DummyContentForTesting;
 use MediaWiki\Tests\Unit\Permissions\MockAuthorityTrait;
 use MediaWiki\User\UserIdentityValue;
+use MediaWikiTestCaseTrait;
 
 /**
  * @covers \MediaWiki\Revision\RevisionRecord
  *
  * @note Expects to be used in classes that extend MediaWikiUnitTestCase.
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait RevisionRecordTests {
+
+	use MediaWikiTestCaseTrait;
 	use MockAuthorityTrait;
 
 	/**

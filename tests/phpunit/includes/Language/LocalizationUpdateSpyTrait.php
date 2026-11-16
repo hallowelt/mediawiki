@@ -3,12 +3,17 @@
 namespace MediaWiki\Tests\Language;
 
 use MediaWiki\Language\MessageCache;
+use MediaWikiTestCaseTrait;
 
 /**
  * Trait for asserting that the localization component is getting notified
  * about changes as expected.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait LocalizationUpdateSpyTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	/**
 	 * Register expectations about updates that should get triggered.

@@ -2,14 +2,19 @@
 
 namespace MediaWiki\Tests\Unit;
 
+use MediaWikiTestCaseTrait;
 use ReflectionClass;
 use ReflectionParameter;
 
 /**
  * Helper trait for instantiating MW service object for testing
  * with mocked dependencies.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait MockServiceDependenciesTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	/**
 	 * Construct a new instance of $serviceClass with all constructor arguments

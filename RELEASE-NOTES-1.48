@@ -112,6 +112,8 @@ For notes on 1.47.x and older releases, see HISTORY.
 * Updated vue and vue-compiler-dom from 3.5.17 to 3.5.43.
 * Updated wikimedia/css-sanitizer from 6.2.1 to 6.2.2.
 * Updated wikimedia/xmp-reader from 0.10.3 to 0.11.0.
+* Updated codex, codex-design-tokens and codex-icons
+  from v2.7.0 to v2.8.0.
 * …
 
 ===== Changed development-only external libraries =====
@@ -223,6 +225,25 @@ For notes on 1.47.x and older releases, see HISTORY.
 *  - searchaction
 *  - personal_urls
 *  - data-portlets.data-personal
+* The following methods have been removed:
+  - ParserOptions::setThumbSize() (deprecated since 1.47)
+  - ParserOptions::getIsPrintable() and ::setIsPrintable() (deprecated
+    since 1.47)
+  - ParserOptions::setSuppressTOC() (deprecated since 1.42)
+  - MagicWordFactory::getSubstIDs() (deprecated since 1.42), use
+    getSubstArray()
+  - MagicWord::getId() (deprecated since 1.42)
+  - Parser::statelessFetchRevisionRecord() (deprecated since 1.47), use
+    ParserOptions::getCurrentRevisionRecordCallback()
+  - Parser::getExternalLinkRel() (deprecated since 1.47), use
+    LinkRenderer::getExternalLinkRel()
+  - Parser::guessLegacySectionNameFromWikiText() (deprecated since 1.45)
+* The following methods of WikiPage have been removed:
+  - insertRedirectEntry() (deprecated since 1.43), use
+    RedirectStore::updateRedirectTarget()
+  - shouldCheckParserCache() (deprecated since 1.47), use
+    ParserOutputAccess::shouldUseCache()
+  - doEditUpdates() (deprecated since 1.32)
 * …
 
 === Deprecations in 1.48 ===

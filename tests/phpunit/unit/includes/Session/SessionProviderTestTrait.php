@@ -8,6 +8,7 @@ use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\Session\SessionManager;
 use MediaWiki\Session\SessionProvider;
 use MediaWiki\User\UserNameUtils;
+use MediaWikiTestCaseTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -17,8 +18,11 @@ use Psr\Log\NullLogger;
  * subclasses of MediaWikiIntegrationTestCase or MediaWikiUnitTestCase.
  *
  * @stable to use
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait SessionProviderTestTrait {
+
+	use MediaWikiTestCaseTrait;
 
 	/**
 	 * Calls init() on an SessionProvider.

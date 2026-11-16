@@ -20,8 +20,13 @@ use Wikimedia\TestingAccessWrapper;
 /**
  * Code shared by the FileBackendGroup integration and unit tests. They need merely provide a
  * suitable newObj() method and everything else works magically.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait FileBackendGroupTestTrait {
+
+	use MediaWikiTestCaseTrait;
+
 	/**
 	 * @param array $options Dictionary to use as a source for ServiceOptions before defaults, plus
 	 *   the following options are available to override other arguments:

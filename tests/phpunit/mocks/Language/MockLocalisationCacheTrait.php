@@ -7,13 +7,18 @@ use MediaWiki\Language\LCStoreDB;
 use MediaWiki\Language\LocalisationCache;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Tests\Unit\DummyServicesTrait;
+use MediaWikiTestCaseTrait;
 use Psr\Log\NullLogger;
 
 /**
  * Allows the construction of a mock {@link LocalisationCache} that has a limited pre-determined list of
  * message keys.
+ *
+ * @extends \PHPUnit\Framework\TestCase
  */
 trait MockLocalisationCacheTrait {
+
+	use MediaWikiTestCaseTrait;
 	use DummyServicesTrait;
 
 	/**
