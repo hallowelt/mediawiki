@@ -102,8 +102,10 @@ class ApiQueryAllImages extends ApiQueryGeneratorBase {
 		$migrationStage = $this->getConfig()->get( MainConfigNames::FileSchemaMigrationStage );
 		$fileOptions = [];
 		if ( ( $migrationStage & SCHEMA_COMPAT_READ_NEW ) && $params['sort'] == 'timestamp' ) {
-			// Force fr_timestamp index to optimize query for timestamp sorting
-			$fileOptions['force-index'] = 'fr_timestamp';
+			// Force an index matching the timestamp sort. With a user filter, use
+			// fr_actor_timestamp so the scan is bounded by that user's revisions
+			// instead of walking the whole fr_timestamp index.
+			$fileOptions['force-index'] = $params['user'] !== null ? 'fr_actor_timestamp' : 'fr_timestamp';
 		}
 
 		$fileQuery = FileSelectQueryBuilder::newForFile( $db, $fileOptions )->getQueryInfo();
@@ -220,12 +222,15 @@ class ApiQueryAllImages extends ApiQueryGeneratorBase {
 
 			}
 			if ( $params['filterbots'] != 'all' ) {
+				// With file read new, the actor table is inside the subquery
+				// and only reachable through the img_user alias
+				$userIdField = $fileQuery['fields']['img_user'] ?? 'img_user';
 				$this->addTables( 'user_groups' );
 				$this->addJoinConds( [ 'user_groups' => [
 					'LEFT JOIN',
 					[
 						'ug_group' => $this->groupPermissionsLookup->getGroupsWithPermission( 'bot' ),
-						'ug_user = actor_user',
+						"ug_user = $userIdField",
 						$db->expr( 'ug_expiry', '=', null )->or( 'ug_expiry', '>=', $db->timestamp() )
 					]
 				] ] );
