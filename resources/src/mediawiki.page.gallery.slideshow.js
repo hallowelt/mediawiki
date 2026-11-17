@@ -116,6 +116,20 @@
 			)
 		);
 
+		// The gallery may be laid out while hidden (e.g. inside a collapsed section
+		// in MobileFrontend), which makes the computed size 0 and every imageinfo
+		// request fail. Recompute when the container gets its real size, and show
+		// the current image again if it could not be loaded before.
+		if ( window.ResizeObserver ) {
+			new ResizeObserver( OO.ui.debounce( () => {
+				const hadNoSize = this.imageWidth <= 0;
+				this.setSizeRequirement();
+				if ( hadNoSize && this.imageWidth > 0 ) {
+					this.showCurrentImage();
+				}
+			}, 100 ) ).observe( this.$imgContainer[ 0 ] );
+		}
+
 		// Disable thumbnails' link, instead show the image in the carousel
 		this.$galleryBox.on( 'click', ( e ) => {
 			this.$currentImage = $( e.currentTarget );
@@ -378,12 +392,17 @@
 				iiprop: 'url'
 			};
 
+			// Request enough pixels for high-density screens, capped at 2x like
+			// the srcset of regular thumbnails. imageWidth and imageHeight are
+			// in CSS pixels.
+			const pixelRatio = Math.min( window.devicePixelRatio || 1, 2 );
+
 			// Check which dimension we need to request, based on
 			// image and container proportions.
 			if ( this.getDimensionToRequest( $img ) === 'height' ) {
-				params.iiurlheight = this.imageHeight;
+				params.iiurlheight = Math.round( this.imageHeight * pixelRatio );
 			} else {
-				params.iiurlwidth = this.imageWidth;
+				params.iiurlwidth = Math.round( this.imageWidth * pixelRatio );
 			}
 
 			this.imageInfoCache[ imageSrc ] = api.get( params ).then( ( data ) => {
