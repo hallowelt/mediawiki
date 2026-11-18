@@ -32,7 +32,7 @@
 		"mediawiki/user-profile": "dev-REL1_47",
 		"mediawiki/visual-editor-plus": "dev-REL1_47",
 		"mediawiki/vuejs-plus": "dev-REL1_47",
-		"starcitizenwiki/embedvideo": "4.0.*",
+		"starcitizenwiki/embedvideo": "4.2.*",
 		"universal-omega/dynamic-page-list4": "dev-main"
 	}
 }
