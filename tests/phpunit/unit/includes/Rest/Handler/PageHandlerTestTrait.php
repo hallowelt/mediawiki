@@ -37,8 +37,6 @@ use Wikimedia\Stats\StatsFactory;
 
 /**
  * A trait providing utility functions for testing Page Handler classes.
- * This trait is intended to be used on subclasses of MediaWikiUnitTestCase
- * or MediaWikiIntegrationTestCase.
  *
  * @stable to use
  * @extends \PHPUnit\Framework\TestCase
@@ -46,6 +44,7 @@ use Wikimedia\Stats\StatsFactory;
 trait PageHandlerTestTrait {
 
 	use MediaWikiTestCaseTrait;
+	use HTMLHandlerTestTrait;
 
 	private function newRouterForPageHandler( string $baseUrl, string $rootPath = '' ): Router {
 		$router = $this->createNoOpMock( Router::class, [ 'getRoutePath', 'getRouteUrl' ] );

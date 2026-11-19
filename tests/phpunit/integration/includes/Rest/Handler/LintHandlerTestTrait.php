@@ -2,38 +2,21 @@
 
 namespace MediaWiki\Tests\Rest\Handler;
 
-use MediaWiki\Block\BlockErrorFormatter;
-use MediaWiki\Context\IContextSource;
 use MediaWiki\Page\WikiPage;
 use MediaWiki\Permissions\Authority;
-use MediaWiki\Permissions\UserAuthority;
-use MediaWiki\Request\FauxRequest;
 use MediaWiki\Rest\RequestData;
 use MediaWiki\Rest\ResponseInterface;
-use MediaWiki\User\User;
 use MediaWikiTestCaseTrait;
 
 /**
- * This trait is used in PageLintLHandlerTest.php & RevisionLintHandlerTest.php to construct requests.
+ * This trait is used in PageLintHandlerTest.php & RevisionLintHandlerTest.php to construct requests.
  *
  * @extends \PHPUnit\Framework\TestCase
  */
 trait LintHandlerTestTrait {
 
 	use MediaWikiTestCaseTrait;
-
-	private function getAuthority(): Authority {
-		$services = $this->getServiceContainer();
-		return new UserAuthority(
-		// We need a newly created user because we want IP and newbie to apply.
-			new User(),
-			new FauxRequest(),
-			$this->createMock( IContextSource::class ),
-			$services->getPermissionManager(),
-			$services->getRateLimiter(),
-			$this->createMock( BlockErrorFormatter::class )
-		);
-	}
+	use HandlerTestTrait;
 
 	/**
 	 * @param WikiPage $page
