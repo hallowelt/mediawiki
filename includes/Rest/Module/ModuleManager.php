@@ -67,6 +67,7 @@ class ModuleManager {
 	private readonly array $restApiAdditionalRouteFiles;
 	private readonly array $restExternalModules;
 	private readonly array $restModuleOverrides;
+	private readonly array $restAudienceOverrides;
 
 	private string $rootPath;
 	private ?array $moduleInfos = null;
@@ -79,6 +80,7 @@ class ModuleManager {
 		MainConfigNames::RestAPIAdditionalRouteFiles,
 		MainConfigNames::RestExternalModules,
 		MainConfigNames::RestModuleOverrides,
+		MainConfigNames::RestAudienceOverrides,
 		MainConfigNames::RestPath
 	];
 
@@ -102,11 +104,18 @@ class ModuleManager {
 		$this->restApiAdditionalRouteFiles = $options->get( MainConfigNames::RestAPIAdditionalRouteFiles );
 		$this->restExternalModules = $options->get( MainConfigNames::RestExternalModules );
 		$this->restModuleOverrides = $options->get( MainConfigNames::RestModuleOverrides );
+		$this->restAudienceOverrides = $options->get( MainConfigNames::RestAudienceOverrides );
 		$this->rootPath = $options->get( MainConfigNames::RestPath );
 	}
 
 	/**
 	 * Gets the availability for a given module id.
+	 *
+	 * The availability is looked up in three places, falling back to the
+	 * next if one is not given (or invalid):
+	 * - in the RestModuleOverrides setting, by the module id
+	 * - in the RestAudienceOverrides setting, by the module's audience designation
+	 * - ModuleAvailability::getModuleAvailability for the audience designation
 	 *
 	 * @param string $moduleId The module id
 	 *
@@ -114,14 +123,29 @@ class ModuleManager {
 	 * @since 1.47
 	 */
 	public function getModuleAvailability( string $moduleId ): ModuleAvailability {
-		// If an override is attempted, but the availability is unrecognized, disable the module. This
-		// helps guard against undesired module activation/publishing due to configuration typos.
 		if ( isset( $this->restModuleOverrides[$moduleId]['availability'] ) ) {
 			$availability = ModuleAvailability::tryFrom( $this->restModuleOverrides[$moduleId]['availability'] );
-			return $availability ?? ModuleAvailability::DISABLED;
+
+			// If the availability override is invalid, ignore it and continue below.
+			if ( $availability ) {
+				return $availability;
+			}
 		}
 
-		return ModuleAvailability::getModuleAvailability( $this->getModuleAudience( $moduleId ) );
+		$audience = $this->getModuleAudience( $moduleId );
+
+		if ( $audience && isset( $this->restAudienceOverrides[$audience->value]['availability'] ) ) {
+			$availability = ModuleAvailability::tryFrom(
+				$this->restAudienceOverrides[$audience->value]['availability']
+			);
+
+			// If the availability override is invalid, ignore it and continue below.
+			if ( $availability ) {
+				return $availability;
+			}
+		}
+
+		return ModuleAvailability::getModuleAvailability( $audience );
 	}
 
 	/**
@@ -144,6 +168,8 @@ class ModuleManager {
 	 * unknown. This is a convenience wrapper around getModuleInfo(), so it always agrees with
 	 * the groups exposed via ModuleInfo::getGroups().
 	 *
+	 * @see resolveGroups()
+	 *
 	 * @param string $moduleId The module id
 	 *
 	 * @return string[]
@@ -156,8 +182,13 @@ class ModuleManager {
 	/**
 	 * Resolves the REST discovery groups for a module. Modules that are not listed in discovery
 	 * (hidden or disabled) have no groups. Otherwise, the groups come from (in order of
-	 * precedence) RestModuleOverrides, the module definition file, or the audience designation's
-	 * defaults. Deprecated modules additionally get the 'deprecated' group.
+	 * precedence):
+	 * - in the RestModuleOverrides setting, by the module id
+	 * - in the RestAudienceOverrides setting, by the module's audience designation
+	 * - the module's definition file
+	 * - AudienceDesignation::getDefaultGroups
+	 *
+	 * Deprecated modules additionally get the 'deprecated' group.
 	 *
 	 * @param string $moduleId The module id
 	 * @param ModuleAvailability $availability The module's resolved availability
@@ -174,12 +205,16 @@ class ModuleManager {
 			return [];
 		}
 
+		$audience = $this->getModuleAudience( $moduleId );
+
 		if ( isset( $this->restModuleOverrides[$moduleId]['groups'] ) ) {
 			$groups = (array)$this->restModuleOverrides[$moduleId]['groups'];
+		} elseif ( $audience && isset( $this->restAudienceOverrides[$audience->value]['groups'] ) ) {
+			$groups = (array)$this->restAudienceOverrides[$audience->value]['groups'];
 		} elseif ( isset( $moduleDefInfo['groups'] ) ) {
 			$groups = $moduleDefInfo['groups'];
 		} else {
-			$groups = $this->getModuleAudience( $moduleId )?->getDefaultGroups() ?? [];
+			$groups = $audience?->getDefaultGroups() ?? [];
 		}
 
 		if ( isset( $moduleDefInfo['deprecationSettings'] ) && !in_array( 'deprecated', $groups, true ) ) {
