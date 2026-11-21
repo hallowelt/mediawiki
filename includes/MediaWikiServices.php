@@ -6,7 +6,6 @@
 
 namespace MediaWiki;
 
-use Liuggio\StatsdClient\Factory\StatsdDataFactoryInterface;
 use LogicException;
 use MediaWiki\Actions\ActionFactory;
 use MediaWiki\Auth\AuthManager;
@@ -253,7 +252,6 @@ use Wikimedia\RequestTimeout\CriticalSectionProvider;
 use Wikimedia\Services\NoSuchServiceException;
 use Wikimedia\Services\SalvageableService;
 use Wikimedia\Services\ServiceContainer;
-use Wikimedia\Stats\IBufferingStatsdDataFactory;
 use Wikimedia\Stats\StatsFactory;
 use Wikimedia\Telemetry\TracerInterface;
 use Wikimedia\UUID\GlobalIdGenerator;
@@ -1876,22 +1874,6 @@ class MediaWikiServices extends ServiceContainer {
 	}
 
 	/**
-	 * @since 1.32
-	 * @deprecated since 1.44 Use StatsFactory with `setLabel()` instead
-	 *
-	 * For example:
-	 *
-	 * ```
-	 * $statsFactory
-	 *      ->getCounter( 'example_total' )
-	 *      ->setLabel( 'wiki', WikiMap::getCurrentWikiId() )
-	 * ```
-	 */
-	public function getPerDbNameStatsdDataFactory(): StatsdDataFactoryInterface {
-		return $this->getService( 'PerDbNameStatsdDataFactory' );
-	}
-
-	/**
 	 * @since 1.33
 	 */
 	public function getPermissionManager(): PermissionManager {
@@ -2221,13 +2203,6 @@ class MediaWikiServices extends ServiceContainer {
 	 */
 	public function getSpecialPageFactory(): SpecialPageFactory {
 		return $this->getService( 'SpecialPageFactory' );
-	}
-
-	/**
-	 * @since 1.27
-	 */
-	public function getStatsdDataFactory(): IBufferingStatsdDataFactory {
-		return $this->getService( 'StatsdDataFactory' );
 	}
 
 	/**

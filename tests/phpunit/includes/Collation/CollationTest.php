@@ -3,6 +3,7 @@
 /**
  * @covers \MediaWiki\Collation\Collation
  * @covers \MediaWiki\Collation\IcuCollation
+ * @covers \MediaWiki\Collation\PinyinCollation
  * @covers \MediaWiki\Collation\IdentityCollation
  * @covers \MediaWiki\Collation\UppercaseCollation
  */
@@ -106,29 +107,44 @@ class CollationTest extends MediaWikiLangTestCase {
 			[ 'uppercase-ba', 'в', 'В' ],
 			[ 'uppercase-smn', 'đ', 'Đ' ],
 
+			// CJK characters are their own headers outside of zh collations
+			[ 'uca-root', "\u{4E00}", "\u{4E00}" ], // `一`
+			// Kanbun with the same weight as its decomposition U+4E00
+			[ 'uca-root', "\u{3192}", "\u{3192}" ], // `㆒`
+			// Kanbun without decomposition, from the first-letters data since zh collations skip the CJK check
+			[ 'uca-zh@collation=pinyin', "\u{3190}", "\u{3190}" ], // `㆐`
+
 			[ 'uca-zh@collation=unihan', '测试', '⽔' ],
 			[ 'uca-zh@collation=unihan', '瀑布', '⽔' ],
 			[ 'uca-zh@collation=unihan', '安全', '⼧' ],
 			[ 'uca-zh@collation=unihan', '首页', '⾸' ],
 			[ 'uca-zh@collation=unihan', '馗龙', '⾸' ],
 			[ 'uca-zh@collation=unihan', 'Test', 'T' ],
+			[ 'uca-zh@collation=unihan', '🈵', '⽔' ],
 
 			[ 'uca-zh@collation=zhuyin', '测试', 'ㄘ' ],
 			[ 'uca-zh@collation=zhuyin', '重要', 'ㄓ' ],
 			[ 'uca-zh@collation=zhuyin', '重庆', 'ㄓ' ], // Should be `ㄔ`, incorrect due to the ICU implementation.
 			[ 'uca-zh@collation=zhuyin', 'Test', 'T' ],
+			[ 'uca-zh@collation=zhuyin', '🈵', 'ㄇ' ],
 
 			[ 'uca-zh@collation=pinyin', '测试', 'C' ],
 			[ 'uca-zh@collation=pinyin', '重要', 'Z' ],
 			[ 'uca-zh@collation=pinyin', '重阳', 'Z' ], // Should be `C`, incorrect due to the ICU implementation.
 			[ 'uca-zh@collation=pinyin', '重庆', 'C' ], // With a special handling ("&虫<重庆/庆") in the ICU implementation.
 			[ 'uca-zh@collation=pinyin', 'Test', 'T' ],
+			[ 'uca-zh@collation=pinyin', '🈵', 'M' ],
 
 			[ 'uca-zh@collation=stroke', '测试', '9 strokes' ],
 			[ 'uca-zh@collation=stroke', '重要', '9 strokes' ],
 			[ 'uca-zh@collation=stroke', '安全', '6 strokes' ],
 			[ 'uca-zh@collation=stroke', '馗龙', '11 strokes' ],
 			[ 'uca-zh@collation=stroke', 'Test', 'T' ],
+			[ 'uca-zh@collation=stroke', '🈵', '12 strokes' ],
+
+			[ 'pinyin-zh-u-kr-latn-hani', '测试', 'C' ],
+			[ 'pinyin-zh-u-kr-latn-hani', 'Test', 'T' ],
+			[ 'pinyin-zh-u-kr-latn-hani', '🈵', 'M' ],
 
 			[ 'uca-default-u-kn', '1 metter', '0–9' ],
 			[ 'uca-default-u-kn', '10 metters', '0–9' ],

@@ -7,6 +7,7 @@
 namespace MediaWiki\Collation;
 
 use Collator;
+use IntlChar;
 use InvalidArgumentException;
 use Locale;
 use MediaWiki\Language\Language;
@@ -19,7 +20,7 @@ use Wikimedia\ArrayUtils\ArrayUtils;
  * @since 1.16.3
  */
 class IcuCollation extends Collation {
-	private const FIRST_LETTER_VERSION = 5;
+	private const FIRST_LETTER_VERSION = 6;
 
 	protected Collator $primaryCollator;
 	protected Collator $mainCollator;
@@ -67,7 +68,7 @@ class IcuCollation extends Collation {
 		[ 0x31350, 0x323AF ], // CJK Unified Ideographs Extension H (added in Unicode 15.0)
 
 		// With the same weight as their decomposition characters listed above
-		[ 0x3190, 0x319F ], // Kanbun
+		[ 0x3192, 0x319F ], // Kanbun (excluding U+3190 and U+3191, which have no decomposition)
 	];
 
 	/**
@@ -349,10 +350,10 @@ class IcuCollation extends Collation {
 
 		$firstChar = mb_substr( $string, 0, 1, 'UTF-8' );
 
-		// If the first character is a CJK character, just return that character.
+		// Show CJK characters as-is, for non-Chinese collations and punctuations
 		if (
-			$this->langCode !== 'zh' &&
-			ord( $firstChar[0] ) > 0x7f && self::isCjk( mb_ord( $firstChar ) )
+			ord( $firstChar[0] ) > 0x7f && self::isCjk( mb_ord( $firstChar ) ) &&
+			( $this->langCode !== 'zh' || IntlChar::ispunct( $firstChar ) )
 		) {
 			return $firstChar;
 		}

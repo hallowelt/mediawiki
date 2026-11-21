@@ -29,7 +29,6 @@
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
-use Liuggio\StatsdClient\Factory\StatsdDataFactoryInterface;
 use MediaWiki\Actions\ActionFactory;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\Auth\Throttler;
@@ -339,10 +338,7 @@ use Wikimedia\Rdbms\IConnectionProvider;
 use Wikimedia\Rdbms\ReadOnlyMode;
 use Wikimedia\RequestTimeout\CriticalSectionProvider;
 use Wikimedia\RequestTimeout\RequestTimeout;
-use Wikimedia\Stats\IBufferingStatsdDataFactory;
-use Wikimedia\Stats\NullStatsdDataFactory;
 use Wikimedia\Stats\OutputFormats;
-use Wikimedia\Stats\PrefixingStatsdDataFactoryProxy;
 use Wikimedia\Stats\StatsCache;
 use Wikimedia\Stats\StatsFactory;
 use Wikimedia\Telemetry\Clock;
@@ -2026,7 +2022,6 @@ return [
 			$parsoidSettings,
 			$services->getObjectFactory(),
 			$services->getContentLanguage(),
-			$services->getStatsdDataFactory(),
 			$services->getStatsFactory(),
 			$services->getMagicWordFactory(),
 			$services->getNamespaceInfo(),
@@ -2076,15 +2071,6 @@ return [
 			$services->getUserFactory(),
 			$services->getHookContainer(),
 			$services->getRevertedTagUpdateManager()
-		);
-	},
-
-	'PerDbNameStatsdDataFactory' => static function ( MediaWikiServices $services ): StatsdDataFactoryInterface {
-		$config = $services->getMainConfig();
-		$wiki = $config->get( MainConfigNames::DBname );
-		return new PrefixingStatsdDataFactoryProxy(
-			$services->getStatsdDataFactory(),
-			$wiki
 		);
 	},
 
@@ -2731,10 +2717,6 @@ return [
 			$services->getHookContainer(),
 			$services->getStatsFactory(),
 		);
-	},
-
-	'StatsdDataFactory' => static function ( MediaWikiServices $services ): IBufferingStatsdDataFactory {
-		return new NullStatsdDataFactory();
 	},
 
 	'StatsFactory' => static function ( MediaWikiServices $services ): StatsFactory {
