@@ -9,8 +9,7 @@
 namespace MediaWiki\Output;
 
 use MediaWiki\Logger\LoggerFactory;
-use MediaWiki\MainConfigNames;
-use MediaWiki\MediaWikiServices;
+use Wikimedia\Http\HttpHeader;
 
 /**
  * @since 1.31
@@ -27,8 +26,12 @@ class OutputHandler {
 	 * @return string
 	 */
 	public static function handle( $s, $phase ) {
-		$config = MediaWikiServices::getInstance()->getMainConfig();
-		$disableOutputCompression = $config->get( MainConfigNames::DisableOutputCompression );
+		// NOTE: Use global instead of MediaWikiServices::getMainConfig which is unsafe
+		// during Setup.php before reaching MediaWikiServices::allowGlobalInstance.
+		// For example, when serving ExtensionDependencyError after loading an extension
+		// with a missing dependency.
+		global $wgDisableOutputCompression;
+
 		// Don't send headers if output is being discarded (T278579)
 		if ( ( $phase & PHP_OUTPUT_HANDLER_CLEAN ) === PHP_OUTPUT_HANDLER_CLEAN ) {
 			$logger = LoggerFactory::getInstance( 'output' );
@@ -57,7 +60,7 @@ class OutputHandler {
 			// Compression is not disabled by the application entry point
 			!defined( 'MW_NO_OUTPUT_COMPRESSION' ) &&
 			// Compression is not disabled by site configuration
-			!$disableOutputCompression
+			!$wgDisableOutputCompression
 		) {
 			$s = self::handleGzip( $s );
 		}
@@ -120,7 +123,7 @@ class OutputHandler {
 			wfDebug( __METHOD__ . "() skipping compression (gzencode unavailable)" );
 			return $s;
 		}
-		if ( headers_sent() ) {
+		if ( HttpHeader::headersSent() ) {
 			wfDebug( __METHOD__ . "() skipping compression (headers already sent)" );
 			return $s;
 		}
@@ -143,13 +146,13 @@ class OutputHandler {
 
 		if ( wfClientAcceptsGzip() ) {
 			wfDebug( __METHOD__ . "() is compressing output" );
-			header( 'Content-Encoding: gzip' );
+			HttpHeader::send( 'Content-Encoding: gzip' );
 			$s = gzencode( $s, 6 );
 		}
 
 		// Set vary header if it hasn't been set already
 		if ( !preg_grep( '/^Vary:/i', headers_list() ) ) {
-			header( 'Vary: Accept-Encoding' );
+			HttpHeader::send( 'Vary: Accept-Encoding' );
 		}
 		return $s;
 	}
@@ -170,7 +173,7 @@ class OutputHandler {
 	 * @param int $length
 	 */
 	private static function emitContentLength( $length ) {
-		if ( headers_sent() ) {
+		if ( HttpHeader::headersSent() ) {
 			wfDebug( __METHOD__ . "() headers already sent" );
 			return;
 		}
@@ -179,7 +182,7 @@ class OutputHandler {
 			in_array( http_response_code(), [ 200, 404 ], true ) ||
 			( $_SERVER['SERVER_PROTOCOL'] ?? null ) === 'HTTP/1.0'
 		) {
-			header( "Content-Length: $length" );
+			HttpHeader::send( "Content-Length: $length" );
 		}
 	}
 }

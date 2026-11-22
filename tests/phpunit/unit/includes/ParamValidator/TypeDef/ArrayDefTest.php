@@ -86,7 +86,8 @@ class ArrayDefTest extends TypeDefUnitTestCase {
 		];
 		$missingSchemaSettings = [ ArrayDef::PARAM_SCHEMA => [ 'type' => [ 'object' ], 'required' => [ 'required' ] ] ];
 		$schemaValidationFailed = self::makeValidationException(
-			$missingSchemaSettings, 'required', '/required', 'The property required is required', 'required'
+			$missingSchemaSettings, 'required', '/required', 'The property required is required',
+			[ 'name' => 'required', 'params' => [ 'property' => 'required' ] ]
 		);
 
 		yield 'empty object is not valid' => [

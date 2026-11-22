@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Request\WebResponse;
+use Wikimedia\Http\HttpHeader;
 
 /**
  * @covers \MediaWiki\Request\WebResponse
@@ -41,7 +42,14 @@ class WebResponseTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	/**
+	 * @phpcs:disable
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 * @phpcs:enable
+	 */
 	public function testStatusCode() {
+		$scopedEnable = HttpHeader::enableForTest();
 		$response = new WebResponse();
 
 		$response->statusHeader( 404 );

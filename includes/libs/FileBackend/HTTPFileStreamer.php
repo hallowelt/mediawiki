@@ -8,6 +8,7 @@
 
 namespace Wikimedia\FileBackend;
 
+use Wikimedia\Http\HttpHeader;
 use Wikimedia\Http\HttpStatus;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 use Wikimedia\Timestamp\TimestampFormat as TS;
@@ -64,7 +65,7 @@ class HTTPFileStreamer {
 		$this->path = $path;
 		$this->obResetFunc = $params['obResetFunc'] ?? self::resetOutputBuffers( ... );
 		$this->streamMimeFunc = $params['streamMimeFunc'] ?? self::contentTypeFromPath( ... );
-		$this->headerFunc = $params['headerFunc'] ?? header( ... );
+		$this->headerFunc = $params['headerFunc'] ?? HttpHeader::send( ... );
 	}
 
 	/**
@@ -84,7 +85,7 @@ class HTTPFileStreamer {
 		$headless = ( $flags & self::STREAM_HEADLESS );
 
 		// Don't stream it out as text/html if there was a PHP error
-		if ( $headers && headers_sent() ) {
+		if ( $headers && HttpHeader::headersSent() ) {
 			echo "Headers already sent, terminating.\n";
 			return false;
 		}
@@ -128,7 +129,10 @@ class HTTPFileStreamer {
 		if ( isset( $optHeaders['if-modified-since'] ) ) {
 			$modsince = preg_replace( '/;.*$/', '', $optHeaders['if-modified-since'] );
 			if ( $mtimeCT->getTimestamp( TS::UNIX ) <= strtotime( $modsince ) ) {
-				ini_set( 'zlib.output_compression', 0 );
+				if ( !defined( 'MW_PHPUNIT_TEST' ) ) {
+					// PHPUnit begins output, so avoid "headers already sent" warnings in tests.
+					ini_set( 'zlib.output_compression', 0 );
+				}
 				$headerFunc( 304 );
 				return true; // ok
 			}
@@ -195,8 +199,8 @@ class HTTPFileStreamer {
 	public static function send404Message( $fname, $flags = 0 ) {
 		if ( ( $flags & self::STREAM_HEADLESS ) == 0 ) {
 			HttpStatus::header( 404 );
-			header( 'Cache-Control: no-cache' );
-			header( 'Content-Type: text/html; charset=utf-8' );
+			HttpHeader::send( 'Cache-Control: no-cache' );
+			HttpHeader::send( 'Content-Type: text/html; charset=utf-8' );
 		}
 		$encFile = htmlspecialchars( $fname );
 		$encScript = htmlspecialchars( $_SERVER['SCRIPT_NAME'] );

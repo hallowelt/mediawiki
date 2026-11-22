@@ -9,6 +9,7 @@ use MediaWiki\Rest\BasicAccess\BasicAuthorizerInterface;
 use MediaWiki\Rest\CorsUtils;
 use MediaWiki\Rest\Handler;
 use MediaWiki\Rest\Handler\GenericActionHandler;
+use MediaWiki\Rest\Handler\GenericItemHandler;
 use MediaWiki\Rest\Handler\GenericListHandler;
 use MediaWiki\Rest\Hook\HookRunner;
 use MediaWiki\Rest\HttpException;
@@ -488,6 +489,8 @@ abstract class Module {
 				return new GenericActionHandler( $require( 'action' ), $adapterSpec );
 			case 'list':
 				return new GenericListHandler( $require( 'list' ), $adapterSpec );
+			case 'item':
+				return new GenericItemHandler( $require( 'list' ), $adapterSpec );
 			default:
 				throw new ModuleConfigurationException(
 					"unknown adapter type '{$adapterSpec['type']}'"
@@ -559,6 +562,9 @@ abstract class Module {
 	 * Return an array with data to be included in an OpenAPI "info" object
 	 * describing this module.
 	 *
+	 * The return value may contain localization placeholders that need to be
+	 * resolved using JsonLocalizer to produce human-readable values.
+	 *
 	 * @see https://spec.openapis.org/oas/v3.0.0#info-object
 	 * @return array
 	 */
@@ -610,6 +616,10 @@ abstract class Module {
 	 *
 	 * Supported keys are described in /docs/discovery-1.1.json#/definitions/Module
 	 *
+	 * The return value may contain localization placeholders that need to be
+	 * resolved using JsonLocalizer to produce human-readable values.
+	 * For instance, it may contain x-i18n-description instead of description.
+	 *
 	 * @see /docs/discovery-1.1.json
 	 * @see /docs/mwapi-1.2.json
 	 * @see DiscoveryHandler
@@ -627,7 +637,8 @@ abstract class Module {
 		// (docs/rest/discovery-1.1.json) and the module definition spec (docs/rest/mwapi-1.2.json).
 		// Adding fields requires a minor version bump of both specs, and their references
 		// must be synchronized.
-		$infoFields = [ 'version', 'title', 'description', 'deprecationSettings' ];
+		$infoFields = [ 'version', 'title', 'description', 'deprecationSettings',
+			'x-i18n-title', 'x-i18n-description', ];
 
 		if ( isset( $moduleInfo['oadSpecPath'] ) ) {
 			$spec = $this->getRouter()->getRouteUrl( '/' . $moduleId . $moduleInfo['oadSpecPath'] );

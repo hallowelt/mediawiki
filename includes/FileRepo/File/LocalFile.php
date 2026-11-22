@@ -36,6 +36,7 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityValue;
 use MediaWiki\Utils\MWFileProps;
+use MediaWiki\WikiMap\WikiMap;
 use RuntimeException;
 use stdClass;
 use UnexpectedValueException;
@@ -1148,29 +1149,6 @@ class LocalFile extends File {
 	}
 
 	/**
-	 * Get short description URL for a file based on the page ID.
-	 * @stable to override
-	 *
-	 * @return string|null
-	 * @since 1.27
-	 */
-	public function getDescriptionShortUrl() {
-		if ( !$this->title ) {
-			return null; // Avoid hard failure when the file does not exist. T221812
-		}
-
-		$pageId = $this->title->getArticleID();
-
-		if ( $pageId ) {
-			$url = $this->repo->makeUrl( [ 'curid' => $pageId ] );
-			if ( $url !== false ) {
-				return $url;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get handler-specific metadata as a serialized string
 	 *
 	 * @deprecated since 1.37 use getMetadataArray() or getMetadataItems()
@@ -1362,7 +1340,7 @@ class LocalFile extends File {
 			}
 		} else {
 			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-			$data = @unserialize( $metadataString );
+			$data = @unserialize( $metadataString, [ 'allowed_classes' => false ] );
 			if ( !is_array( $data ) ) {
 				// Legacy error encoding
 				$data = [ '_error' => $metadataString ];
@@ -1867,7 +1845,7 @@ class LocalFile extends File {
 				// property using serialize(). Normally the metadata property
 				// comes from MWFileProps, in which case it won't be a string.
 				// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-				$metadata = @unserialize( $props['metadata'] );
+				$metadata = @unserialize( $props['metadata'], [ 'allowed_classes' => false ] );
 			} else {
 				$metadata = $props['metadata'];
 			}
@@ -2640,6 +2618,32 @@ class LocalFile extends File {
 	public function getDescriptionUrl() {
 		// Avoid hard failure when the file does not exist. T221812
 		return $this->title ? $this->title->getLocalURL() : false;
+	}
+
+	/**
+	 * Get short description URL for a file based on the page ID.
+	 * @stable to override
+	 *
+	 * @return string|null
+	 * @since 1.27
+	 */
+	public function getDescriptionShortUrl() {
+		if ( !$this->title ) {
+			return null; // Avoid hard failure when the file does not exist. T221812
+		}
+
+		$pageId = $this->title->getArticleID();
+		if ( !$pageId ) {
+			return null;
+		}
+
+		// T428296: This is intentionally unlocalised to produce a consistent and short URL
+		$url = WikiMap::getForeignURL( WikiMap::getCurrentWikiId(), "Special:Redirect/page/$pageId" );
+		if ( $url === false ) {
+			return null;
+		}
+
+		return $url;
 	}
 
 	/**

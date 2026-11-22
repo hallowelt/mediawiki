@@ -284,8 +284,9 @@ For notes on 1.46.x and older releases, see HISTORY.
 
 * Updated codex, codex-design-tokens and codex-icons
   from v2.5.1 to v2.7.0.
-* Updated composer/semver from 3.4.4 to 3.5.1.
+* Updated composer/semver from 3.4.4 to 3.5.2.
 * Updated guzzlehttp/guzzle from 7.12.3 to 7.15.5.
+* Updated justinrainbow/json-schema from 5.3.4 to 6.14.0.
 * Updated mck89/peast from 1.17.5 to 1.18.0.
 * Updated monolog/monolog from 2.11.0 to 3.12.0.
 * Updated OOUI from v0.53.2 to v0.54.2
@@ -583,9 +584,9 @@ For notes on 1.46.x and older releases, see HISTORY.
 * ApiBase::makeMessage(), deprecated since 1.43, has been removed.
 * SamplingStatsdClient, deprecated since 1.43, has been removed.
 * StatsdAwareInterface, deprecated since 1.45, has been removed.
-* MediaWikiServices::getStatsFactory() and
+* MediaWikiServices::getStatsdDataFactory() and
   StatsFactory::withStatsdDataFactory(), deprecated since 1.45,
-  has been removed.
+  have been removed.
 * MediaWikiServices::getPerDbNameStatsdDataFactory(), deprecated since 1.44,
   has been removed. Use StatsFactory with wiki ID from
   WikiMap::getCurrentWikiId() as label instead.
@@ -812,6 +813,9 @@ For notes on 1.46.x and older releases, see HISTORY.
 * (T436997) Passing an int bitmask as the $options parameter to
   ParserOutputAccess::getParserOutput() and ::getCachedParserOutput() is
   deprecated and emits deprecation warnings. Pass an options array instead.
+* JsonLocalizer::localizeValue() is deprecated and emits deprecation warnings.
+  Use JsonLocalizer::localizeJson() or JsonLocalizer::getFormattedMessage()
+  instead.
 * Calling PageConfigFactory::createFromParserOptions() with ParserOptions
   that do not have the 'useParsoid' option set is deprecated and emits
   warnings.

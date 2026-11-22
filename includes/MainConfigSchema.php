@@ -12398,7 +12398,7 @@ class MainConfigSchema {
 	 * The same as above, but here values are class names or ObjectFactory specifications,
 	 * not messages. The specification must resolve to a LogFormatter subclass,
 	 * and will receive the LogEntry object as its first constructor argument.
-	 * The type can be specified as '*' (e.g. 'block/*') to handle all types.
+	 * The type can be specified as '*' (e.g. `block/*`) to handle all types.
 	 *
 	 * @see \MediaWiki\Logging\LogPage::actionText
 	 * @see \MediaWiki\Logging\LogFormatter
@@ -13025,7 +13025,7 @@ class MainConfigSchema {
 	/**
 	 * The absolute base URL of the local REST API entry point on the test server.
 	 *
-	 * When set (e.g., 'https://test.wikimedia.org/w/rest.php'), the REST Sandbox
+	 * When set (e.g., 'https://test.wikipedia.org/w/rest.php'), the REST Sandbox
 	 * will display this sandbox server as an option for testing calls.
 	 *
 	 * @since 1.47
@@ -13661,7 +13661,7 @@ class MainConfigSchema {
 	 *     ],
 	 *   ],
 	 * ];
-	 * @encdode
+	 * @endcode
 	 *
 	 * @since 1.44
 	 */

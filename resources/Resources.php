@@ -2330,6 +2330,7 @@ return [
 			'special.revisionDelete.js',
 			'special.undelete.js',
 			'special.undelete.loadMoreRevisions.js',
+			'special.version.js',
 		],
 		'styles' => [ 'styles.less' ],
 		'dependencies' => [
@@ -2468,6 +2469,7 @@ return [
 			'block-log-flags-nocreate',
 			'block-log-flags-noemail',
 			'block-log-flags-nousertalk',
+			'block-createpage-namespaces-placeholder',
 			'block-namespaces-placeholder',
 			'block-options',
 			'block-pages-placeholder',
@@ -2506,6 +2508,7 @@ return [
 			'blocklist-editing-sitewide',
 			'blocklist-editing-page',
 			'blocklist-editing-ns',
+			'blocklist-editing-createpage-ns',
 			'blocklist-editing-action',
 			'blocklist-expiry',
 			'blocklist-params',
@@ -2533,6 +2536,7 @@ return [
 			'ipb-edit-dropdown',
 			'ipb-hardblock',
 			'block-multiblocks-new-feature',
+			'ipb-createpage-namespaces-label',
 			'ipb-namespaces-label',
 			'ipb-needreblock',
 			'ipb-pages-label',
@@ -2798,14 +2802,22 @@ return [
 		'codexStyleOnly' => true,
 	],
 	'mediawiki.authenticationPopup' => [
+		'class' => CodexModule::class,
+		'localBasePath' => MW_INSTALL_PATH . '/resources/src/mediawiki.authenticationPopup',
+		'remoteBasePath' => "$wgResourceBasePath/resources/src/mediawiki.authenticationPopup",
+		'codexComponents' => [
+			'CdxButton',
+			'CdxDialog',
+			'CdxProgressIndicator',
+		],
 		'packageFiles' => [
-			'resources/src/mediawiki.authenticationPopup/index.js',
-			'resources/src/mediawiki.authenticationPopup/constants.js',
-			'resources/src/mediawiki.authenticationPopup/AuthPopup.js',
-			'resources/src/mediawiki.authenticationPopup/AuthMessageDialog.js',
-			'resources/src/mediawiki.authenticationPopup/AuthPopupError.js',
+			'index.js',
+			'constants.js',
+			'AuthPopup.js',
+			'AuthMessageDialog.vue',
+			'AuthPopupError.js',
 			[
-				'name' => 'resources/src/mediawiki.authenticationPopup/config.json',
+				'name' => 'config.json',
 				'callback' => static function ( Context $context ) {
 					$specials = MediaWikiServices::getInstance()->getSpecialPageFactory();
 					return [
@@ -2819,16 +2831,14 @@ return [
 		],
 		'messages' => [
 			'userlogin-authpopup-loggingin-title',
-			'userlogin-authpopup-loggingin-body',
-			'userlogin-authpopup-loggingin-body-link',
+			'userlogin-authpopup-loggingin-body-popup',
+			'userlogin-authpopup-fallback',
 			'userlogin-authpopup-retry',
 			'userlogin-authpopup-cancel',
 		],
 		'dependencies' => [
-			'jquery.spinner',
 			'mediawiki.Title',
-			'oojs-ui-windows',
-		]
+		],
 	],
 	'mediawiki.authenticationPopup.success' => [
 		'packageFiles' => [
