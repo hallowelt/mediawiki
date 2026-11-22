@@ -108,6 +108,50 @@ class LCStoreStaticArrayTest extends MediaWikiUnitTestCase {
 		);
 	}
 
+	public function testSetMessages() {
+		$dir = $this->prepareDir();
+		$cache = new LCStoreStaticArray( [ 'directory' => $dir ] );
+		$cache->startWrite( 'en' );
+		$cache->setMessages( [] );
+		$cache->setMessages( [ 'foo' => 'Foo', 'bar' => [ 'Bar' ] ] );
+		$cache->finishWrite();
+
+		$this->assertEquals(
+			[ 'messages' => [ 'foo' => 'Foo', 'bar' => [ 'v', [ 'Bar' ] ] ] ],
+			require $dir . '/en.l10n.php'
+		);
+		$this->assertSame( 'Foo', $cache->get( 'en', 'messages:foo' ) );
+		$this->assertSame( [ 'Bar' ], $cache->get( 'en', 'messages:bar' ) );
+	}
+
+	public function testDecodeMw145Messages() {
+		$dir = $this->prepareDir();
+		$this->prepareFile( $dir, 'en', [
+			// MediaWiki 1.45 and earlier: store messages under prefixed key
+			'messages:foo' => 'Foo bar',
+			'messages:quux' => 'Quux',
+			'list' => [
+				'v',
+				[ 'messages' => [ 'foo', 'quux' ] ]
+			]
+		] );
+		$cache = new LCStoreStaticArray( [ 'directory' => $dir ] );
+
+		$this->assertSame( 'Foo bar', $cache->get( 'en', 'messages:foo' ) );
+		$this->assertSame( [ 'messages' => [ 'foo', 'quux' ] ], $cache->get( 'en', 'list' ), 'missing list' );
+	}
+
+	public function testDecodeMw134Array() {
+		$dir = $this->prepareDir();
+		$this->prepareFile( $dir, 'en', [
+			// MediaWiki 1.34 and earlier: arrays with each element encoded, scalars unwrapped
+			'some-array' => [ 'a', [ 'foo', 42, [ 'a', [ false ] ], [ 's', serialize( [ 'bar' ] ) ] ] ],
+		] );
+		$cache = new LCStoreStaticArray( [ 'directory' => $dir ] );
+
+		$this->assertSame( [ 'foo', 42, [ false ], [ 'bar' ] ], $cache->get( 'en', 'some-array' ) );
+	}
+
 	public function testDecodeMw132Value() {
 		$dir = $this->prepareDir();
 		$this->prepareFile( $dir, 'en', [

@@ -1854,7 +1854,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		// Can be removed after parser cache contents have expired
 		$old = $this->getExtensionData( 'parsoid-render-id' );
 		if ( $old !== null ) {
-			return ParsoidRenderId::newFromKey( $old )->getUniqueID();
+			return ParsoidRenderID::newFromKey( $old )->getUniqueID();
 		}
 		return $this->getExtensionData( 'core:render-id' );
 	}
@@ -2724,6 +2724,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 		);
 
 		$this->mFlags = self::mergeMap( $this->mFlags, $source->mFlags );
+		$this->setRevisionUsedSha1Base36( $source->revisionUsedSha1Base36 );
 		$this->mParseUsedOptions = self::mergeMap( $this->mParseUsedOptions, $source->mParseUsedOptions );
 
 		// TODO: maintain per-slot limit reports!
@@ -3097,6 +3098,7 @@ class ParserOutput extends CacheTime implements ContentMetadataCollector {
 				}
 				$metadata->$field = self::useMaxValue( $this->$field, $metadata->$field );
 			}
+			$metadata->setRevisionUsedSha1Base36( $this->revisionUsedSha1Base36 );
 
 			$metadata->mParseStartTime = self::useEachMinValue(
 				$this->mParseStartTime,

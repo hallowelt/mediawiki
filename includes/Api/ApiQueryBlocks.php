@@ -12,6 +12,7 @@ use MediaWiki\Block\BlockActionInfo;
 use MediaWiki\Block\BlockRestrictionStore;
 use MediaWiki\Block\DatabaseBlockStore;
 use MediaWiki\Block\HideUserUtils;
+use MediaWiki\Block\Restriction\CreatePageNamespaceRestriction;
 use MediaWiki\Block\Restriction\PageRestriction;
 use MediaWiki\CommentFormatter\CommentFormatter;
 use MediaWiki\CommentStore\CommentStore;
@@ -240,9 +241,7 @@ class ApiQueryBlocks extends ApiQueryBase {
 				$this->setContinueEnumParameter( 'continue', "{$row->bl_timestamp}|{$row->bl_id}" );
 				break;
 			}
-			$block = [
-				ApiResult::META_TYPE => 'assoc',
-			];
+			$block = [];
 			if ( $fld_id ) {
 				$block['id'] = (int)$row->bl_id;
 			}
@@ -305,6 +304,7 @@ class ApiQueryBlocks extends ApiQueryBase {
 				}
 			}
 
+			ApiResult::setArrayType( $block, 'assoc' );
 			$fit = $result->addValue( [ 'query', $this->getModuleName() ], null, $block );
 			if ( !$fit ) {
 				$this->setContinueEnumParameter( 'continue', "{$row->bl_timestamp}|{$row->bl_id}" );
@@ -337,6 +337,7 @@ class ApiQueryBlocks extends ApiQueryBase {
 		$keys = [
 			'page' => 'pages',
 			'ns' => 'namespaces',
+			'createpage-ns' => 'createpagenamespaces',
 			'action' => 'actions',
 		];
 
@@ -347,7 +348,7 @@ class ApiQueryBlocks extends ApiQueryBase {
 				case 'page':
 					$value = [ 'id' => $restriction->getValue() ];
 					/** @var PageRestriction $restriction */
-					'@phan-var \MediaWiki\Block\Restriction\PageRestriction $restriction';
+					'@phan-var PageRestriction $restriction';
 					if ( !$restriction->getTitle() ) {
 						continue 2;
 					}
@@ -362,7 +363,10 @@ class ApiQueryBlocks extends ApiQueryBase {
 
 			if ( !isset( $data[$id][$key] ) ) {
 				$data[$id][$key] = [];
-				ApiResult::setIndexedTagName( $data[$id][$key], $restriction->getType() );
+				$tagName = $restriction instanceof CreatePageNamespaceRestriction ?
+					'ns' :
+					$restriction->getType();
+				ApiResult::setIndexedTagName( $data[$id][$key], $tagName );
 			}
 			$data[$id][$key][] = $value;
 		}

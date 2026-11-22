@@ -11,13 +11,17 @@ use MediaWiki\Context\IContextSource;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Exception\ErrorPageError;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Permissions\SimpleAuthority;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Specials\SpecialCreateAccount;
+use MediaWiki\User\UserIdentityValue;
 use TestLogger;
 use Wikimedia\Parsoid\DOM\Document;
+use Wikimedia\Parsoid\DOM\Element;
 use Wikimedia\Parsoid\Utils\DOMCompat;
 use Wikimedia\Parsoid\Utils\DOMUtils;
+use Wikimedia\TestingAccessWrapper;
 
 /**
  * @covers \MediaWiki\Specials\SpecialCreateAccount
@@ -41,22 +45,216 @@ class SpecialCreateAccountTest extends SpecialPageTestBase {
 	}
 
 	public function testCheckPermissions(): void {
+		$testLogger = new TestLogger( true, null, true );
+		$this->setLogger( 'authevents', $testLogger );
+
+		$specialPage = $this->newSpecialPage();
+		$specialPage->getContext()->setAuthority( new SimpleAuthority(
+			UserIdentityValue::newAnonymous( '1.2.3.4' ),
+			[ /* createaccount not allowed */ ]
+		) );
+		// simulate POST to trigger authevents logging
+		TestingAccessWrapper::newFromObject( $specialPage )->mPosted = true;
+		try {
+			$specialPage->checkPermissions();
+		} catch ( ErrorPageError $e ) {
+			$msg = $e->getMessageObject();
+			$this->assertSame( 'permissionserrors', $msg->getKey() );
+			$buffer = $testLogger->getBuffer();
+			$this->assertEquals( 'Account creation attempt', $buffer[0][1] );
+			$this->assertEquals( 'permissionserrors', $buffer[0][2]['status'] );
+			$this->assertArrayHasKey( 'ua', $buffer[0][2] );
+			return;
+		}
+		$this->fail( 'ErrorPageError exception was not thrown' );
+	}
+
+	public function testCheckPermissionsWhenReadOnly(): void {
 		$readOnlyMode = $this->getServiceContainer()->getReadOnlyMode();
 		$readOnlyMode->setReason( 'Test' );
 		$testLogger = new TestLogger( true, null, true );
 		$this->setLogger( 'authevents', $testLogger );
 
 		$specialPage = $this->newSpecialPage();
+		TestingAccessWrapper::newFromObject( $specialPage )->mPosted = false;
 		try {
 			$specialPage->checkPermissions();
-		} catch ( ErrorPageError ) {
-			$buffer = $testLogger->getBuffer();
-			$this->assertEquals( 'Account creation attempt', $buffer[0][1] );
-			$this->assertEquals( 'readonlytext', $buffer[0][2]['status'] );
-			$this->assertArrayHasKey( 'ua', $buffer[0][2] );
+		} catch ( ErrorPageError $e ) {
+			$msg = $e->getMessageObject();
+			$this->assertSame( 'readonlytext', $msg->getKey() );
+			$this->assertSame( [ 'Test' ], $msg->getParams() );
+			$this->assertSame( [], $testLogger->getBuffer() );
 			return;
 		}
 		$this->fail( 'ErrorPageError exception was not thrown' );
+	}
+
+	/** @dataProvider provideCheckPermissionsWhenIpBlocked */
+	public function testCheckPermissionsWhenIpBlocked( bool $createAccount, bool $expectError ): void {
+		$this->setGroupPermissions( '*', 'createaccount', true );
+		$this->getServiceContainer()->getDatabaseBlockStore()
+			->insertBlockWithParams( [
+				'address' => RequestContext::getMain()->getRequest()->getIP(),
+				'by' => $this->getTestSysop()->getUser(),
+				'expiry' => 'infinity',
+				'createAccount' => $createAccount,
+			] );
+		$testLogger = new TestLogger( true, null, true );
+		$this->setLogger( 'authevents', $testLogger );
+
+		$specialPage = $this->newSpecialPage();
+		TestingAccessWrapper::newFromObject( $specialPage )->mPosted = false;
+		try {
+			$specialPage->checkPermissions();
+		} catch ( ErrorPageError $e ) {
+			$this->assertTrue( $expectError, 'ErrorPageError exception was thrown' );
+			$msg = $e->getMessageObject();
+			$this->assertSame( 'blockedtext', $msg->getKey() );
+			$this->assertSame( [], $testLogger->getBuffer() );
+			return;
+		}
+		$this->assertFalse( $expectError, 'ErrorPageError exception was not thrown' );
+	}
+
+	private function blockCurrentIpFromAccountCreation( array $query = [] ): void {
+		$this->setGroupPermissions( '*', 'createaccount', true );
+		$request = new FauxRequest( $query );
+		RequestContext::getMain()->setRequest( $request );
+		$this->getServiceContainer()->getDatabaseBlockStore()
+			->insertBlockWithParams( [
+				'address' => $request->getIP(),
+				'by' => $this->getTestSysop()->getUser(),
+				'expiry' => 'infinity',
+				'createAccount' => true,
+			] );
+	}
+
+	public function testExecuteShowsBlockedPageWhenIpBlocked(): void {
+		$this->setUserLang( 'qqx' );
+		$this->blockCurrentIpFromAccountCreation( [ 'returnto' => 'Some page', 'returntoquery' => 'foo=bar' ] );
+
+		$specialPage = $this->newSpecialPage();
+		$specialPage->execute( null );
+		$output = $specialPage->getOutput();
+		$html = $output->getHTML();
+		$doc = DOMUtils::parseHTML( $html );
+
+		$this->assertNull( DOMCompat::querySelector( $doc, 'form' ) );
+		$this->assertNotNull( DOMCompat::querySelector( $doc, '.mw-createaccount-ipblocked' ) );
+		$this->assertStringContainsString( '(createacct-ipblocked-text)', $html );
+		$this->assertStringNotContainsString( '(blockedtext', $html );
+
+		$links = $this->assertActionButtons( $html );
+		$this->assertStringContainsString( 'returnto=Some+page', $links[0]->getAttribute( 'href' ) );
+		$this->assertStringContainsString( 'Some_page', $links[1]->getAttribute( 'href' ) );
+		$this->assertStringContainsString( 'foo=bar', $links[1]->getAttribute( 'href' ) );
+
+		$details = DOMCompat::querySelector( $doc, '#mw-createaccount-ipblocked-details' );
+		$this->assertNotNull( $details );
+		$this->assertStringContainsString( '(createacct-ipblocked-details: ', $details->textContent );
+		$this->assertStringContainsString( 'blockdetails=1', $html );
+	}
+
+	/** @dataProvider provideBlockTargets */
+	public function testExecuteShowsBlockedPageOnlyForIpBlocks(
+		array $targets, bool $expectBlockedPage
+	): void {
+		$this->setGroupPermissions( '*', 'createaccount', true );
+		RequestContext::getMain()->setRequest( new FauxRequest() );
+		$user = $this->getTestUser()->getUser();
+		if ( in_array( 'user', $targets, true ) ) {
+			RequestContext::getMain()->setUser( $user );
+		}
+		$this->setUserLang( 'qqx' );
+		$blockStore = $this->getServiceContainer()->getDatabaseBlockStore();
+		foreach ( $targets as $target ) {
+			$block = $blockStore->insertBlockWithParams( [
+				'address' => $target === 'autoblock' ? $this->getTestUser( 'other' )->getUser()->getName() :
+					( $target === 'user' ? $user->getName() : $target ),
+				'by' => $this->getTestSysop()->getUser(),
+				'expiry' => 'infinity',
+				'createAccount' => true,
+				'enableAutoblock' => $target === 'autoblock',
+			] );
+			if ( $target === 'autoblock' ) {
+				$blockStore->doAutoblock( $block, '127.0.0.1' );
+			}
+		}
+
+		$specialPage = $this->newSpecialPage();
+		$specialPage->execute( null );
+		$html = $specialPage->getOutput()->getHTML();
+		if ( $expectBlockedPage ) {
+			$this->assertStringContainsString( '(createacct-ipblocked-text)', $html );
+		} else {
+			$this->assertStringNotContainsString( '(createacct-ipblocked-text)', $html );
+			$this->assertStringContainsString( '(blockedtext', $html );
+		}
+		$this->assertActionButtons( $html );
+	}
+
+	public static function provideBlockTargets(): array {
+		return [
+			'IP block' => [ [ '127.0.0.1' ], true ],
+			'IP range block' => [ [ '127.0.0.0/24' ], true ],
+			'Autoblock' => [ [ 'autoblock' ], true ],
+			'User block' => [ [ 'user' ], false ],
+			'User block and IP block' => [ [ 'user', '127.0.0.1' ], false ],
+		];
+	}
+
+	public function testExecuteShowsErrorPageWithButtons(): void {
+		$this->setUserLang( 'qqx' );
+		$this->blockCurrentIpFromAccountCreation( [
+			'returnto' => 'Some page', 'returntoquery' => 'foo=bar', 'blockdetails' => '1'
+		] );
+
+		$specialPage = $this->newSpecialPage();
+		$specialPage->execute( null );
+		$output = $specialPage->getOutput();
+		$html = $output->getHTML();
+
+		$this->assertSame( '(createacct-error)', $output->getPageTitle() );
+		$this->assertNull( DOMCompat::querySelector( DOMUtils::parseHTML( $html ), 'form' ) );
+		$this->assertStringContainsString( '(blockedtext', $html );
+		$this->assertStringNotContainsString( '(createacct-ipblocked-text)', $html );
+		$this->assertStringNotContainsString( 'mw-returnto', $html );
+
+		$links = $this->assertActionButtons( $html );
+		$this->assertStringContainsString( 'returnto=Some+page', $links[0]->getAttribute( 'href' ) );
+		$this->assertStringContainsString( 'Some_page', $links[1]->getAttribute( 'href' ) );
+		$this->assertStringContainsString( 'foo=bar', $links[1]->getAttribute( 'href' ) );
+	}
+
+	/**
+	 * Check that the page has the "Log in" and "Continue" buttons. Expects the qqx language.
+	 *
+	 * @param string $html
+	 * @return Element[] The links of the buttons
+	 */
+	private function assertActionButtons( string $html ): array {
+		$links = DOMCompat::querySelectorAll(
+			DOMUtils::parseHTML( $html ), '.mw-createaccount-permissionerror-actions a'
+		);
+		$this->assertCount( 2, $links );
+
+		$this->assertSame( 'mw-createaccount-permerror-login', $links[0]->getAttribute( 'id' ) );
+		$this->assertSame( '(createacct-permerror-login)', $links[0]->textContent );
+		$this->assertStringContainsString( 'Special:UserLogin', $links[0]->getAttribute( 'href' ) );
+		$this->assertStringContainsString( 'cdx-button--action-progressive', $links[0]->getAttribute( 'class' ) );
+
+		$this->assertSame( 'mw-createaccount-permerror-return', $links[1]->getAttribute( 'id' ) );
+		$this->assertSame( '(createacct-permerror-return)', $links[1]->textContent );
+		$this->assertStringNotContainsString( 'cdx-button--action-progressive', $links[1]->getAttribute( 'class' ) );
+
+		return $links;
+	}
+
+	public static function provideCheckPermissionsWhenIpBlocked(): array {
+		return [
+			'Block prevents account creation' => [ true, true ],
+			'Block allows account creation' => [ false, false ],
+		];
 	}
 
 	/**

@@ -392,8 +392,12 @@ class ParserOutputAccess implements LoggerAwareInterface {
 			// with $wgParserCacheFilterConfig. Then use the stale output
 			// from the parser cache, and postprocess it.
 			$preParserOptions = $parserOptions->clearPostproc();
-			$parserOutput = $this->getPrimaryCache( $preParserOptions )
-				->getDirty( $page, $preParserOptions );
+			$preParserCache = $this->getPrimaryCache( $preParserOptions );
+			$parserOutput = $preParserCache->getDirty( $page, $preParserOptions );
+			// If we go on to wait for the lock and render the page, this
+			// outdated entry must not hide the output that the lock holder
+			// saves in the meantime.
+			$preParserCache->clearProcessCache( $page );
 			if ( $parserOutput ) {
 				$parserOutput = $this->postprocess( $parserOutput, $parserOptions, $page );
 			}
@@ -590,7 +594,10 @@ class ParserOutputAccess implements LoggerAwareInterface {
 		);
 		$doSample = ( $sampleRate && mt_rand( 1, $sampleRate ) === 1 );
 
-		if ( $previousOutput === null && ( $doSample || $parserOptions->getUseParsoid() ) ) {
+		// T442669: Always check the cache for Parsoid because it should be
+		// worth it to enable selective updates but disabled for now because
+		// of the memory footprint
+		if ( $previousOutput === null && ( $doSample /* || $parserOptions->getUseParsoid() */ ) ) {
 			// If $useCache === self::CACHE_SECONDARY we could potentially
 			// try to reuse the parse of $revision-1 from the secondary cache,
 			// but it is likely those template transclusions are out of date.
@@ -739,6 +746,9 @@ class ParserOutputAccess implements LoggerAwareInterface {
 
 				$callbacks['doCachedWork'] =
 					static function () use ( $primaryCache, $page, $parserOptions ) {
+						// The process we waited for saved new output. Don't let the
+						// metadata we read before waiting hide it.
+						$primaryCache->clearProcessCache( $page );
 						$parserOutput = $primaryCache->get( $page, $parserOptions );
 						return $parserOutput ? Status::newGood( $parserOutput ) : false;
 					};

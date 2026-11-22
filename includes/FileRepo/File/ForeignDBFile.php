@@ -11,6 +11,7 @@ use MediaWiki\Language\Language;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
+use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\DBUnexpectedError;
 
@@ -70,6 +71,41 @@ class ForeignDBFile extends LocalFile {
 	}
 
 	/**
+	 * Get short description URL for a file based on the page ID.
+	 *
+	 * @return string|null
+	 * @throws DBUnexpectedError
+	 * @since 1.27
+	 */
+	public function getDescriptionShortUrl() {
+		$dbr = $this->repo->getReplicaDB();
+		$pageId = $dbr->newSelectQueryBuilder()
+			->select( 'page_id' )
+			->from( 'page' )
+			->where( [ 'page_namespace' => NS_FILE, 'page_title' => $this->title->getDBkey() ] )
+			->caller( __METHOD__ )->fetchField();
+
+		if ( $pageId === false ) {
+			return null;
+		}
+
+		// NOTE: FileRepo supports a "articleUrl" field that would let
+		// us form pretty URLs in theory. But, consumers like Wikimedia
+		// Commons don't set this field today, and we have no method
+		// to make these URLs. The closest we have is FileRepo::getDescriptionUrl
+		// but that hardcodes the Image-namespace.
+		//
+		// T428296: This is intentionally unlocalised to produce a consistent and short URL
+		$wikiId = WikiMap::getWikiIdFromDbDomain( $this->repo->getDbDomain() );
+		$url = WikiMap::getForeignURL( $wikiId, "Special:Redirect/page/$pageId" );
+		if ( $url === false ) {
+			return null;
+		}
+
+		return $url;
+	}
+
+	/**
 	 * @param Language $lang Language to fetch description in.
 	 * @return string|false
 	 */
@@ -114,30 +150,6 @@ class ForeignDBFile extends LocalFile {
 				return $res ?? false;
 			}
 		);
-	}
-
-	/**
-	 * Get short description URL for a file based on the page ID.
-	 *
-	 * @return string|null
-	 * @throws DBUnexpectedError
-	 * @since 1.27
-	 */
-	public function getDescriptionShortUrl() {
-		$dbr = $this->repo->getReplicaDB();
-		$pageId = $dbr->newSelectQueryBuilder()
-			->select( 'page_id' )
-			->from( 'page' )
-			->where( [ 'page_namespace' => NS_FILE, 'page_title' => $this->title->getDBkey() ] )
-			->caller( __METHOD__ )->fetchField();
-
-		if ( $pageId !== false ) {
-			$url = $this->repo->makeUrl( [ 'curid' => $pageId ] );
-			if ( $url !== false ) {
-				return $url;
-			}
-		}
-		return null;
 	}
 
 }

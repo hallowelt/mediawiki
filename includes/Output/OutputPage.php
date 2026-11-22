@@ -924,7 +924,10 @@ class OutputPage extends ContextSource {
 		# Not modified
 		# Give a 304 Not Modified response code and disable body output
 		wfDebug( __METHOD__ . ": NOT MODIFIED, $info", 'private' );
-		ini_set( 'zlib.output_compression', 0 );
+		if ( !defined( 'MW_PHPUNIT_TEST' ) ) {
+			// Avoid "headers already sent" warnings in tests.
+			ini_set( 'zlib.output_compression', 0 );
+		}
 		$this->getRequest()->response()->statusHeader( 304 );
 		$this->sendCacheControl();
 		$this->disable();
@@ -3018,7 +3021,7 @@ class OutputPage extends ContextSource {
 				wfDebug( __METHOD__ .
 					": local proxy caching; {$this->mLastModified} **", 'private' );
 				# start with a shorter timeout for initial testing
-				# header( "Cache-Control: s-maxage=2678400, must-revalidate, max-age=0" );
+				# HttpHeader::send( "Cache-Control: s-maxage=2678400, must-revalidate, max-age=0" );
 				$response->header( 'Cache-Control: ' .
 					"s-maxage={$this->mCdnMaxage}, must-revalidate, max-age=0" );
 			} else {

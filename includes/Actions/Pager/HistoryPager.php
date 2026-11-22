@@ -53,10 +53,9 @@ class HistoryPager extends ReverseChronologicalPager {
 	protected int $oldIdChecked;
 
 	protected bool $preventClickjacking = false;
-	/**
-	 * @var array
-	 */
-	protected $parentLens;
+
+	/** @var array<int,int> */
+	private array $parentSizes;
 
 	/** @var bool Whether to show the tag editing UI */
 	protected readonly bool $showTagEditUI;
@@ -222,7 +221,7 @@ class HistoryPager extends ReverseChronologicalPager {
 				$title
 			);
 		}
-		$this->parentLens = $this->revisionStore->getRevisionSizes( $revIds );
+		$this->parentSizes = $this->revisionStore->getRevisionSizes( $revIds );
 		$batch->execute();
 
 		# The keys of $this->formattedComments will be the same as the keys of $this->revisions
@@ -393,8 +392,7 @@ class HistoryPager extends ReverseChronologicalPager {
 			$lastlink = $this->lastLink( $revRecord, null );
 		} else {
 			// Do not display a link, because this is the oldest revision of the page
-			// @phan-suppress-next-line SecurityCheck-DoubleEscaped
-			$lastlink = Html::element( 'span', [
+			$lastlink = Html::rawElement( 'span', [
 				'class' => 'mw-history-histlinks-previous',
 			], $this->historyPage->message['last'] );
 		}
@@ -466,7 +464,7 @@ class HistoryPager extends ReverseChronologicalPager {
 		# Sometimes rev_len isn't populated
 		if ( $revRecord->getSize() !== null ) {
 			# Size is always public data
-			$prevSize = $this->parentLens[$row->rev_parent_id] ?? 0;
+			$prevSize = $row->rev_parent_id ? $this->parentSizes[$row->rev_parent_id] ?? 0 : 0;
 			$sDiff = ChangesList::showCharacterDifference(
 				$prevSize, $revRecord->getSize(), $this->getContext()
 			);
@@ -553,8 +551,7 @@ class HistoryPager extends ReverseChronologicalPager {
 		if ( $latest === $rev->getId()
 			|| !$rev->userCan( RevisionRecord::DELETED_TEXT, $this->getAuthority() )
 		) {
-			// @phan-suppress-next-line SecurityCheck-DoubleEscaped
-			return Html::element( 'span', [
+			return Html::rawElement( 'span', [
 				'class' => 'mw-history-histlinks-current',
 			], $cur );
 		}
@@ -587,8 +584,7 @@ class HistoryPager extends ReverseChronologicalPager {
 		if ( !$prevRev->userCan( RevisionRecord::DELETED_TEXT, $this->getAuthority() ) ||
 			( $nextRev && !$nextRev->userCan( RevisionRecord::DELETED_TEXT, $this->getAuthority() ) )
 		) {
-			// @phan-suppress-next-line SecurityCheck-DoubleEscaped
-			return Html::element( 'span', [
+			return Html::rawElement( 'span', [
 				'class' => 'mw-history-histlinks-previous',
 			], $last );
 		}
