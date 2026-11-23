@@ -2,12 +2,15 @@
 namespace MediaWiki\Rest\Handler;
 
 use MediaWiki\Api\ApiBase;
+use MediaWiki\Api\ApiHelpParamValueMessage;
 use MediaWiki\Api\ApiMain;
 use MediaWiki\Api\ApiRestHelper;
 use MediaWiki\Api\ApiRestHelperContext;
 use MediaWiki\Api\ApiRestHybrid;
 use MediaWiki\Api\IApiMessage;
 use MediaWiki\Api\Validator\SubmoduleDef;
+use MediaWiki\Language\RawMessage;
+use MediaWiki\Message\Message;
 use MediaWiki\Rest\RequestInterface;
 use MediaWiki\Rest\Validator\Validator;
 use MediaWiki\User\LoggedOutEditToken;
@@ -47,6 +50,7 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	 * framework rejects unknown settings, so they are removed.
 	 */
 	private const ACTION_PARAM_SETTINGS = [
+		ApiBase::PARAM_HELP_MSG,
 		ApiBase::PARAM_RANGE_ENFORCE,
 		ApiBase::PARAM_HELP_MSG_APPEND,
 		ApiBase::PARAM_HELP_MSG_INFO,
@@ -156,6 +160,30 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	 * @inheritDoc
 	 */
 	protected function getActionModuleParameters() {
+		// NOTE: ActionModuleBasedHandler will set the correct values for format, etc.
+		return array_merge( $this->getRequestedModuleParameters(), $this->getFixedParams() );
+	}
+
+	/**
+	 * Returns the parameters of the action API request that select the module to call.
+	 * They are not taken from the REST request. ActionModuleBasedHandler::execute() adds
+	 * the ones that select the output format.
+	 *
+	 * @return array
+	 */
+	protected function getFixedParams(): array {
+		return [ 'action' => $this->actionName ];
+	}
+
+	/**
+	 * Returns the parameters of the module that the request supplies, by the names the
+	 * action API uses for them, and a token if the module needs one and the session is
+	 * safe against CSRF. Action modules have no prefix, so the names are those of
+	 * getActionModuleParamSpecs().
+	 *
+	 * @return array
+	 */
+	protected function getRequestedModuleParameters(): array {
 		// The action API conflates query params and body params.
 		// Body parameters take precedence.
 		$all = ( $this->getRequest()->getParsedBody() ?? [] )
@@ -180,10 +208,6 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 				$params['token'] = $sessionToken;
 			}
 		}
-
-		// NOTE: ActionModuleBasedHandler will set the correct values for format, etc.
-		// Subclasses may add more things here
-		$params['action'] = $this->actionName;
 
 		return $params;
 	}
@@ -247,6 +271,13 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	}
 
 	/**
+	 * The module whose parameters the endpoint exposes.
+	 */
+	protected function getParamModule(): ApiBase {
+		return $this->getActionModule();
+	}
+
+	/**
 	 * Returns the parameters to be exposed via the REST framework.
 	 * The default implementation returns the parameters of the action module
 	 * after running them through filterSupportedParams().
@@ -256,39 +287,34 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	protected function getActionModuleParamSpecs(): array {
 		// SEAM: We can add parameters from ApiMain here, but we probably
 		//       don't want to, see T436749.
+		//       They can't collide with the parameters of an action module, which
+		//       share the names of ApiMain's. List modules can collide, see
+		//       GenericListHandler::getActionModuleParamSpecs().
 		$actionParams = $this->getModuleParamSpecs( $this->getActionModule() );
 		return $this->filterSupportedParams( $actionParams );
 	}
 
 	/**
-	 * The parameter specs of the given module, in array form, each with a
-	 * help message, since makeParamSettings() would otherwise derive one from
-	 * the action name. The message gets the params that
-	 * ApiBase::getFinalParamDescription() adds: the module prefix, which is
-	 * empty since REST parameter names have none, the parameter name, the
-	 * module name and the module path.
+	 * The parameter specs of the given module, in array form.
 	 *
 	 * @return array[]
 	 */
 	protected function getModuleParamSpecs( ApiBase $module ): array {
-		$moduleName = $module->getModuleName();
-		$path = $module->getModulePath();
-
 		$specs = [];
 		foreach ( $module->getFinalParams() as $name => $spec ) {
 			// Specs may be in scalar shorthand form, just a default value.
-			if ( !is_array( $spec ) ) {
-				$spec = [ ParamValidator::PARAM_DEFAULT => $spec ];
-			}
-			$msg = self::toMessageSpecifier(
-				$spec[ApiBase::PARAM_HELP_MSG] ?? "apihelp-$path-param-$name"
-			);
-			// Copy the message, since MessageValue::params() modifies it.
-			$spec[ApiBase::PARAM_HELP_MSG] = ( new MessageValue( $msg->getKey(), $msg->getParams() ) )
-				->params( '', $name, $moduleName, $path );
-			$specs[$name] = $spec;
+			$specs[$name] = is_array( $spec ) ? $spec : [ ParamValidator::PARAM_DEFAULT => $spec ];
 		}
 		return $specs;
+	}
+
+	/**
+	 * Parameter descriptions, without the module prefix, which REST names lack.
+	 *
+	 * @return Message[][]
+	 */
+	protected function getActionModuleParamDescriptions(): array {
+		return $this->getParamModule()->getFinalParamDescription( '' );
 	}
 
 	/**
@@ -336,13 +362,6 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 		// strip path params
 		$params = array_diff_key( $params, array_flip( $this->getSupportedPathParams() ) );
 
-		// Unset the parameters that are forced in getActionModuleParameters(),
-		// because the client can't specify them.
-		unset( $params['action'] );
-		unset( $params['format'] );
-		unset( $params['formatversion'] );
-		unset( $params['errorformat'] );
-
 		return array_keys( $params );
 	}
 
@@ -351,6 +370,7 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	 */
 	protected function makeParamSettings( array $names, string $source ): array {
 		$specs = $this->getActionModuleParamSpecs();
+		$descriptions = $this->getActionModuleParamDescriptions();
 		$settings = [];
 
 		foreach ( $names as $param ) {
@@ -374,13 +394,7 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 
 			$spec[self::PARAM_SOURCE] = $source;
 
-			// Translate Action API help-message specs into the REST
-			// framework's description field. PARAM_HELP_MSG holds either a bare
-			// message key, an array [ key, params... ], or a MessageSpecifier.
-			$spec[self::PARAM_DESCRIPTION] = self::toMessageSpecifier(
-				$spec[ApiBase::PARAM_HELP_MSG] ?? "apihelp-{$this->actionName}-param-{$param}"
-			);
-			unset( $spec[ApiBase::PARAM_HELP_MSG] );
+			$spec[self::PARAM_DESCRIPTION] = self::combineMessages( $descriptions[$param] ?? [] );
 			$spec = array_diff_key( $spec, array_flip( self::ACTION_PARAM_SETTINGS ) );
 
 			$settings[$param] = $spec;
@@ -390,22 +404,37 @@ class GenericActionHandler extends ActionModuleBasedHandler {
 	}
 
 	/**
-	 * Converts an action API help message spec into a MessageSpecifier,
-	 * replacing the message by its Markdown version if it is listed in
-	 * MARKDOWN_HELP_MESSAGES.
+	 * Combine the messages into one description, one paragraph each.
+	 *
+	 * @param Message[] $msgs
 	 */
-	private static function toMessageSpecifier(
-		string|array|MessageSpecifier $helpMsg
-	): MessageSpecifier {
-		if ( $helpMsg instanceof MessageSpecifier ) {
-			$msg = $helpMsg;
-		} else {
-			$params = (array)$helpMsg;
-			$msg = new MessageValue( array_shift( $params ), $params );
+	private static function combineMessages( array $msgs ): MessageSpecifier {
+		$msgs = array_map( self::toMarkdownMessage( ... ), array_values( $msgs ) );
+		if ( !$msgs ) {
+			return new MessageValue( 'api-help-param-no-description' );
 		}
+		if ( count( $msgs ) === 1 ) {
+			return $msgs[0];
+		}
+		$text = implode( "\n\n", array_map( static fn ( $i ) => '$' . $i, range( 1, count( $msgs ) ) ) );
+		return new RawMessage( $text, $msgs );
+	}
 
+	/**
+	 * The Markdown version of an action API help message.
+	 */
+	private static function toMarkdownMessage( Message $msg ): MessageSpecifier {
+		if ( $msg instanceof ApiHelpParamValueMessage ) {
+			// Not the message itself, which adds wikitext for Special:ApiHelp.
+			// shortcut: drops the deprecated and internal flags of the value,
+			// add them when an exposed parameter has such values.
+			return new Message( 'rest-param-value-list-item.md', [
+				Message::plaintextParam( $msg->getParamValue() ),
+				new Message( $msg->getKeysToTry(), $msg->getParams() ),
+			] );
+		}
 		if ( in_array( $msg->getKey(), self::MARKDOWN_HELP_MESSAGES, true ) ) {
-			return new MessageValue( $msg->getKey() . '.md', $msg->getParams() );
+			return new Message( $msg->getKey() . '.md', $msg->getParams() );
 		}
 		return $msg;
 	}
