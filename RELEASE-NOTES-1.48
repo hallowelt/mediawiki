@@ -60,6 +60,13 @@ For notes on 1.47.x and older releases, see HISTORY.
 
 === New user-facing features in 1.48 ===
 
+* Special:Block has a new option to place a deferred block. A deferred block
+  is not enforced, and is not shown to the blocked user or in the public block
+  log, until the user next attempts an action that the block prevents, such as
+  an edit. That action is blocked, and the block then takes effect and is added
+  to the block log. Deferred blocks are logged in a new private log,
+  Special:Log/deferredblock. Placing, viewing and removing deferred blocks
+  requires the new 'deferredblock' right.
 * …
 
 === New features for sysadmins in 1.48 ===
@@ -90,12 +97,14 @@ For notes on 1.47.x and older releases, see HISTORY.
   bl_deleted, which can be combined with the existing hide user and hide block
   values. DatabaseBlockStore lookups exclude deferred blocks unless the new
   $includeDeferred parameter is set. Code that queries the block table
-  directly should exclude them, using
-  DatabaseBlockStore::getNotDeferredCondition(). Deferred blocks can be placed
-  only if $wgEnableMultiBlocks is true.
+  directly should exclude them. Deferred blocks can be placed only if
+  $wgEnableMultiBlocks is true.
 * The BlockIp and UnblockUser hooks are also called for deferred blocks. Use
   DatabaseBlock::isDeferred() to find them. The BlockIpComplete and
   UnblockUserComplete hooks are not called for deferred blocks.
+* The new DeferredBlockMaterializer service materializes deferred blocks.
+  UserAuthority uses it in authorizeWrite() and authorizeAction(), when the
+  user of the session attempts an action that a deferred block prevents.
 * …
 
 === External library changes in 1.48 ===
@@ -143,6 +152,9 @@ For notes on 1.47.x and older releases, see HISTORY.
 
 === Action API changes in 1.48 ===
 
+* action=block has a new 'deferred' parameter to place a deferred block, and
+  list=blocks returns a 'deferred' flag for deferred blocks. Deferred blocks
+  are only listed for users with the 'deferredblock' right.
 * …
 
 === Action API internal changes in 1.48 ===
