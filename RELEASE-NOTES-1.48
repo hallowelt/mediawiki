@@ -51,8 +51,6 @@ For notes on 1.47.x and older releases, see HISTORY.
 ==== Removed configuration ====
 * $wgWebPThumbnailType has been removed. WebP images are served as WebP
   thumbnails unconditionally.
-* $wgForcedRawSMaxage has been removed. The caching of canonical action=raw
-  URLs is now controlled by $wgCdnMaxAge.
 * $wgStatsdServer and $wgStatsdMetricPrefix, deprecated since 1.25
   and unused since 1.45, have been removed. For StatsD support, see:
   https://www.mediawiki.org/wiki/Manual:Stats.
@@ -105,6 +103,11 @@ For notes on 1.47.x and older releases, see HISTORY.
 * The new DeferredBlockMaterializer service materializes deferred blocks.
   UserAuthority uses it in authorizeWrite() and authorizeAction(), when the
   user of the session attempts an action that a deferred block prevents.
+* (T443789) TitleDef has a new PARAM_ALLOW_ID setting, to accept a page ID
+  formatted like "#123" instead of a title. PARAM_RETURN_OBJECT can now be set
+  to TitleDef::TITLE_PARAM_VALUE, to get a TitleParam that has the page next to
+  the title as requested. TitleDef::LINK_TARGET_VALUE replaces true, which is
+  still accepted.
 * …
 
 === External library changes in 1.48 ===
@@ -304,6 +307,9 @@ For notes on 1.47.x and older releases, see HISTORY.
 
 * (T444213) Special:ResetPassword and Special:ResetPass used to redirect to
   Special:ChangePassword. They now redirect to Special:PasswordReset instead.
+* (T443789) REST page routes such as /v1/page/{title} accept a page ID
+  formatted like "#123" (URL-encoded as %23123) instead of a title. Invalid
+  titles now return a 400 error instead of a 404.
 * …
 
 == Compatibility ==
