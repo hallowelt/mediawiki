@@ -13,22 +13,9 @@ BRANCH=${BRANCH%%[[:space:]]}
 BRANCH=${BRANCH##[[:space:]]}
 BRANCH="${BRANCH//[$'\t\r\n ']}"
 
-if [ "$BRANCH" == "4.1.x" ] || [ "$BRANCH" == "4.2.x" ]
+if [ "$BRANCH" == "6.0.x" ]
 then
-	BRANCH="REL1_35-$BRANCH"
-fi
-if [ "$BRANCH" == "4.3.x" ] || [ "$BRANCH" == "4.4.x" ] || [ "$BRANCH" == "4.5.x" ]
-then
-	BRANCH="REL1_39-$BRANCH"
-fi
-if [ "$BRANCH" == "5.0.x" ] || [ "$BRANCH" == "5.1.x" ] || [ "$BRANCH" == "5.2.x" ]
-then
-	BRANCH="REL1_43-$BRANCH"
-fi
-# Temporary hack: REL1_47 branch does not exist yet in the overrides repo
-if [ "$BRANCH" == "REL1_47" ]
-then
-	BRANCH="master"
+	BRANCH="REL1_47-$BRANCH"
 fi
 
 printf "\n${PURPLE}Fetching installer: ${NC}"
@@ -45,19 +32,9 @@ fi
 if [ $? -ne 0 ]
 then
 	printf "${RED}[ FAILED ]${NC}\n"
-	# Try again by pulling out the default branch
-	# Read the value in the BLUESPICE-VERSION at the top of the repo
-	# and use that as the default branch using cat
-	DEFAULT_BRANCH=$(cat BLUESPICE-VERSION)
-	# Replace the last character with and X
-	# This is because the default branch is 4.2.x
-	# and we want to get the REL1_35-4.2.x branch
-	# so we replace the last character with an X
-	# and then append the REL1_35- to the front
-	# of the string
-	RELDEFAULT_BRANCH="REL1_43-${DEFAULT_BRANCH%?}x"
+	# Fallback to REL1_47 for any branch (including REL1_47-6.0.x)
 	rm -rf mw-config/overrides
-	git clone -b $RELDEFAULT_BRANCH --depth 1 https://gerrit.wikimedia.org/r/bluespice/mw-config/overrides mw-config/overrides
+	git clone -b REL1_47 --depth 1 https://github.com/wikimedia/bluespice-mw-config-overrides.git mw-config/overrides
 fi
 
 if [ $? -ne 0 ]
