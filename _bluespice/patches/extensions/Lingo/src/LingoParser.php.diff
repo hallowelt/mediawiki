@@ -1,0 +1,18 @@
+diff --git a/src/LingoParser.php b/src/LingoParser.php
+index 5c4b329..9464854 100644
+--- a/src/LingoParser.php
++++ b/src/LingoParser.php
+@@ -176,11 +176,12 @@ class LingoParser {
+ 	private function realParse( Parser $parser ): void {
+ 		// Parse text identical to options used in includes/api/ApiParse.php
+ 		$params = $this->mApiParams;
+-		$text = $params === null ? $parser->getOutput()->getText() : $parser->getOutput()->getText( [
++		$text = $params === null ? $parser->getOutput()->getText( [ 'unwrap' => true ] ) : $parser->getOutput()->getText( [
+ 			'allowTOC' => !$params['disabletoc'],
+ 			'enableSectionEditLinks' => !$params['disableeditsection'],
+ 			'wrapperDivClass' => $params['wrapoutputclass'],
+ 			'deduplicateStyles' => !$params['disablestylededuplication'],
++			'unwrap' => true
+ 		] );
+ 
+ 		if ( $text === null || $text === '' ) {
